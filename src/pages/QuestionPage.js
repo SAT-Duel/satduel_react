@@ -37,7 +37,7 @@ function QuestionsPage() {
             setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
         }
     };
-
+    console.log(questions)
     return (
         <div>
             <h1>SAT Practice Questions</h1>

@@ -11,11 +11,8 @@ function HomePage() {
                 <Link to="/questions">
                     <button>Start Practice</button>
                 </Link>
-                <Link to="/mock-test">
-                    <button>Mock Test</button>
-                </Link>
-                <Link to="/review">
-                    <button>Review Answers</button>
+                <Link to="/match">
+                    <button>Start Duel</button>
                 </Link>
             </div>
         </div>

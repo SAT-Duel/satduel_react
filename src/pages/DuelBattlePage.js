@@ -107,7 +107,6 @@ const DuelBattle = () => {
         const trackedQuestionId = trackedQuestionMap[id]; // Get the tracked question ID from the map
         console.log(`Question: ${id}, Chosen answer: ${choice}, TrackedQuestion: ${trackedQuestionId}`);
         const result = await checkAnswer(id, choice);
-        alert(result);
         await updateStatus(trackedQuestionId, result);
     };
 
