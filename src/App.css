@@ -5,3 +5,12 @@
 .question.incorrect {
     background-color: lightcoral;
 }
+.App{
+    margin: 0 20px;
+}
+.user-menu{
+    margin-left: auto;
+}
+.paragraph{
+    white-space: pre-wrap;
+}

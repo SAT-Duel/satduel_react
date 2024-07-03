@@ -1,18 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
+import {Card, Space, Radio, Button} from 'antd';
+import type {RadioChangeEvent} from 'antd';
+import {useAuth} from "../context/AuthContext";
+import axios from "axios";
 
-function Question({ questionData, onSubmit, status }) {
-    const { question, choices, id } = questionData;
+
+function Question({questionData, onSubmit, status}) {
+    const {question, choices, id} = questionData;
     const [selectedChoice, setSelectedChoice] = useState('');
     const [note, setNote] = useState('');
+    const {loading} = useAuth();
+
+    const [answer, setAnswer] = useState(null);
+    const [answerChoice, setAnswerChoice] = useState(null);
+    const [explanation, setExplanation] = useState(null);
+
+    const getAnswer = async () => {
+        try {
+            const response = await axios.post('http://127.0.0.1:8000/api/get_answer/', {question_id: id});
+            setAnswer(response.data.answer);
+            setExplanation(response.data.explanation);
+            setAnswerChoice(response.data.answer_choice)
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                console.log('Question does not exist');
+            } else {
+                console.log('An error occurred');
+            }
+            setAnswer(null);
+            setExplanation(null);
+            setAnswerChoice(null);
+        }
+    };
 
     useEffect(() => {
-        if (status === 'Correct'){
-            setSelectedChoice(questionData.choice);
-        }else if(status === 'Incorrect'){
-            setNote("The correct answer is: " + questionData.choice);
-        }
+        const fetchAnswer = async () => {
+            if (status === 'Correct' || status === 'Incorrect') {
+                await getAnswer();
+                if (status === 'Correct') {
+                    setSelectedChoice(answer);
+                    setNote("Correct! " + answerChoice + " is the correct answer.");
+                } else if (status === 'Incorrect') {
+                    if (!loading) {
+                        setNote("Nice Try! " + answerChoice + " is the correct answer.");
+                    }
+                }
+            }
+        };
 
-    }, [status, questionData.correctAnswer]);
+        fetchAnswer();
+    }, [status, note]);
 
     const handleSubmit = () => {
         if (selectedChoice) {
@@ -32,29 +69,30 @@ function Question({ questionData, onSubmit, status }) {
                 return '';
         }
     };
+    const onChange = (e: RadioChangeEvent) => {
+        console.log('radio checked', e.target.value);
+        setSelectedChoice(e.target.value);
+    };
 
     return (
-        <div className={`question ${getStatusClass()}`}>
-            <h3>{question}</h3>
-            <div>
-                {choices.map((choice, index) => (
-                    <label key={index}>
-                        <input
-                            type="radio"
-                            name={id}
-                            value={choice}
-                            checked={selectedChoice === choice}
-                            onChange={() => setSelectedChoice(choice)}
-                            disabled={status !== 'Blank'}
-                        />
-                        {choice}
-                    </label>
-                ))}
-            </div>
-            <p>{note}</p>
-            <button onClick={handleSubmit} disabled={status !== 'Blank'}>Submit</button>
+        <div>
+            <Card title={question} style={{width: '100%'}} className={`question ${getStatusClass()}`}>
+                <Radio.Group onChange={onChange} value={selectedChoice}>
+                    <Space direction="vertical">
+                        {choices.map((choice, index) => (
+                            <Radio key={index} checked={selectedChoice === choice} disabled={status !== 'Blank'}
+                                   value={choice}>{choice}</Radio>
+                        ))}
+
+                    </Space>
+                </Radio.Group>
+                <p>{note}</p>
+                <p>{explanation}</p>
+                <Button type="primary" onClick={handleSubmit} disabled={status !== 'Blank'}>Submit</Button>
+            </Card>
         </div>
-    );
+    )
+        ;
 }
 
 export default Question;
