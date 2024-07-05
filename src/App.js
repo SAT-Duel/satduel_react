@@ -1,15 +1,18 @@
 import React, {useState} from 'react';
-import Config from "./components/Config";
 import Router from "./components/Router";
 import './App.css';
-function App() {
-    const [RoomId, setRoomId] = useState(null)
-    return (
-        <div className="App">
-            <Config/>
-            <Router RoomId={RoomId} setRoomId={setRoomId}/>
-        </div>
+import Navbar from "./components/Navbar";
+import {Layout, theme} from 'antd';
 
+function App() {
+    const {
+        token: {colorBgContainer, borderRadiusLG},
+    } = theme.useToken();
+
+    const [RoomId, setRoomId] = useState(null)
+    const {Header, Content, Footer} = Layout;
+    return (
+        <Router RoomId={RoomId} setRoomId={setRoomId}/>
     );
 }
 
