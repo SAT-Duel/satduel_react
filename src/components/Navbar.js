@@ -11,7 +11,8 @@ import {
     QuestionCircleOutlined,
     UserAddOutlined,
 } from '@ant-design/icons';
-import {Row, Col} from 'antd';
+import {Row, Col, Badge} from 'antd';
+import SearchUser from "./SearchUser";
 
 
 function Navbar() {
@@ -31,11 +32,15 @@ function Navbar() {
                     onClick: () => navigate('/profile'),
                 },
                 {
+                    label: 'Friend Requests',
+                    key: 'FriendRequests',
+                    onClick: () => navigate('/friend_requests'),
+                },
+                {
                     label: 'Logout',
                     key: 'Logout',
                     onClick: () => handleLogout(),
                 },
-
             ],
         },
     ]
@@ -93,10 +98,13 @@ function Navbar() {
     return (
         <div className="navbar" style={{width: '100%'}}>
             <Row justify="space-between" align="middle">
-                <Col span="12">
-                    <Menu mode="horizontal" items={items}/>
+                <Col offset="1" span="11">
+                    <Menu mode="horizontal" items={items} />
                 </Col>
-                <Col span="4" offset="8">
+                <Col offset="3" span="5">
+                    <SearchUser/>
+                </Col>
+                <Col span="4">
                     <Menu mode="horizontal" className="user-menu" items={user ? userItems : anonymousItems}/>
                 </Col>
             </Row>

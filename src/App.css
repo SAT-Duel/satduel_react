@@ -6,11 +6,20 @@
     background-color: lightcoral;
 }
 .App{
-    margin: 0 20px;
 }
 .user-menu{
     margin-left: auto;
 }
 .paragraph{
     white-space: pre-wrap;
+}
+.site-layout-header {
+    background: #ffffff; /* Set background color to white */
+    color: #000000; /* Set text color to black */
+    box-shadow: 0 2px 8px #f0f1f2; /* Optional: add shadow for better visual separation */
+}
+
+.site-layout-header .ant-menu {
+    background: #ffffff; /* Ensure Navbar menu has a matching background */
+    color: #000000; /* Ensure Navbar text color is black */
 }
