@@ -17,12 +17,9 @@ function Router({setRoomId, RoomId}) {
         <Routes>
             {/* Routes using MainLayout */}
             <Route element={<MainLayout/>}>
-                <Route path="/about" element={<AboutPage/>}/>
                 <Route path="/questions" element={<QuestionsPage/>}/>
                 <Route path="/profile" element={<ProfilePage/>}/>
                 <Route path="/profile/:userId" element={<ProfilePage/>}/>
-
-                <Route path="/match" element={<Match setRoomId={setRoomId}/>}/>
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
                 <Route path="/friend_requests" element={<FriendRequestPage/>}/>
             </Route>
@@ -32,6 +29,8 @@ function Router({setRoomId, RoomId}) {
                 <Route path="/" element={<HomePage/>}/>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
+                <Route path="/about" element={<AboutPage/>}/>
+                <Route path="/match" element={<Match setRoomId={setRoomId}/>}/>
             </Route>
         </Routes>
     );

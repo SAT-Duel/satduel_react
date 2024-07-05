@@ -20,13 +20,13 @@ const HeroSection = styled.div`
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5d75ec 0%, #5f2f8c 100%);
     color: white;
     text-align: center;
 `;
 
 const GradientText = styled.span`
-    background: linear-gradient(90deg, #b8c6db, #f5e3e6);
+    background: linear-gradient(90deg, #0036a1, #00d2ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 `;
