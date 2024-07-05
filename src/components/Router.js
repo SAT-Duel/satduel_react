@@ -21,8 +21,7 @@ function Router({setRoomId, RoomId}) {
                 <Route path="/questions" element={<QuestionsPage/>}/>
                 <Route path="/profile" element={<ProfilePage/>}/>
                 <Route path="/profile/:userId" element={<ProfilePage/>}/>
-                <Route path="/login" element={<LoginPage/>}/>
-                <Route path="/register" element={<RegisterPage/>}/>
+
                 <Route path="/match" element={<Match setRoomId={setRoomId}/>}/>
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
                 <Route path="/friend_requests" element={<FriendRequestPage/>}/>
@@ -31,6 +30,8 @@ function Router({setRoomId, RoomId}) {
             {/* Routes using SecondaryLayout */}
             <Route element={<SecondaryLayout/>}>
                 <Route path="/" element={<HomePage/>}/>
+                <Route path="/login" element={<LoginPage/>}/>
+                <Route path="/register" element={<RegisterPage/>}/>
             </Route>
         </Routes>
     );
