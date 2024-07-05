@@ -1,17 +1,195 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import React, { useEffect } from 'react';
+import { Layout, Typography, Row, Col, Card, Avatar, Divider } from 'antd';
+import { TeamOutlined, TrophyOutlined, HistoryOutlined, BulbOutlined, StarOutlined, GlobalOutlined, HeartOutlined } from '@ant-design/icons';
+import styled from 'styled-components';
+import Aos from 'aos';
+import 'aos/dist/aos.css';
+
+const { Content } = Layout;
+const { Title, Paragraph } = Typography;
+
+const PageHeader = styled.div`
+    background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+    position: relative;
+`;
+
+const ContentSection = styled.div`
+    padding: 50px 0;
+    background-color: #f9f9f9;
+`;
+
+const StyledCard = styled(Card)`
+    height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+`;
+
+const IconWrapper = styled.div`
+    font-size: 3rem;
+    color: #4834d4;
+    margin-bottom: 20px;
+`;
+
+const TeamMemberCard = styled(Card)`
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+`;
+
+const ValuesCard = styled(Card)`
+    height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    padding: 20px;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+`;
+
+const valuesIcons = {
+    Innovation: <BulbOutlined style={{ fontSize: '3rem', color: '#ff5733' }} />,
+    Excellence: <StarOutlined style={{ fontSize: '3rem', color: '#ffbd33' }} />,
+    Accessibility: <GlobalOutlined style={{ fontSize: '3rem', color: '#33d9ff' }} />,
+    Engagement: <HeartOutlined style={{ fontSize: '3rem', color: '#ff33a6' }} />,
+};
 
 function AboutPage() {
+    useEffect(() => {
+        Aos.init({ duration: 1000 });
+    }, []);
+
+    const teamMembers = [
+        {
+            name: "Clement Zhou",
+            role: "Co-founder & CEO",
+            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+        },
+        {
+            name: "Alex Jin",
+            role: "Co-founder & CTO",
+            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+        },
+        {
+            name: "Thomas Tian",
+            role: "CFO",
+            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+        },
+        {
+            name: "William Yang",
+            role: "UFO",
+            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+        },
+    ];
+
     return (
-        <div>
-            <h1>About Us</h1>
-            <p>Below are our team members</p>
-            <ul>
-                <li>Clement Zhou</li>
-                <li>Alex Jin</li>
-            </ul>
-        </div>
+        <Layout>
+            <PageHeader>
+                <Title level={1} style={{color: 'white', marginBottom: '20px'}}>About Us</Title>
+                <Paragraph style={{color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto'}}>
+                    We're on a mission to revolutionize SAT preparation through innovative technology and engaging
+                    learning experiences.
+                </Paragraph>
+            </PageHeader>
+
+            <ContentSection>
+                <Content style={{ padding: '0 50px', maxWidth: '1200px', margin: '0 auto' }}>
+                    <Row gutter={[48, 48]}>
+                        <Col xs={24} md={8} data-aos="fade-up">
+                            <StyledCard>
+                                <IconWrapper>
+                                    <HistoryOutlined />
+                                </IconWrapper>
+                                <Title level={3}>Our Story</Title>
+                                <Paragraph>
+                                    Founded in 2023, we set out to create a platform that makes SAT preparation not just
+                                    effective, but also engaging and fun.
+                                </Paragraph>
+                            </StyledCard>
+                        </Col>
+                        <Col xs={24} md={8} data-aos="fade-up">
+                            <StyledCard>
+                                <IconWrapper>
+                                    <TrophyOutlined />
+                                </IconWrapper>
+                                <Title level={3}>Our Mission</Title>
+                                <Paragraph>
+                                    We're committed to empowering students worldwide to achieve their best possible SAT
+                                    scores through personalized, interactive learning.
+                                </Paragraph>
+                            </StyledCard>
+                        </Col>
+                        <Col xs={24} md={8} data-aos="fade-up">
+                            <StyledCard>
+                                <IconWrapper>
+                                    <TeamOutlined />
+                                </IconWrapper>
+                                <Title level={3}>Our Team</Title>
+                                <Paragraph>
+                                    Our diverse team of educators, technologists, and innovators is passionate about
+                                    creating the best SAT prep experience possible.
+                                </Paragraph>
+                            </StyledCard>
+                        </Col>
+                    </Row>
+
+                    <Divider />
+
+                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
+                        Meet Our Team
+                    </Title>
+                    <Row gutter={[24, 24]} justify="center">
+                        {teamMembers.map((member, index) => (
+                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up">
+                                <TeamMemberCard>
+                                    <Avatar size={128} src={member.avatar} />
+                                    <Title level={4} style={{ marginTop: '20px', marginBottom: '5px' }}>{member.name}</Title>
+                                    <Paragraph>{member.role}</Paragraph>
+                                </TeamMemberCard>
+                            </Col>
+                        ))}
+                    </Row>
+
+                    <Divider />
+
+                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
+                        Our Values
+                    </Title>
+                    <Row gutter={[24, 24]}>
+                        {['Innovation', 'Excellence', 'Accessibility', 'Engagement'].map((value, index) => (
+                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up">
+                                <ValuesCard>
+                                    {valuesIcons[value]}
+                                    <Title level={4} style={{ marginTop: '20px' }}>{value}</Title>
+                                    <Paragraph>
+                                        We believe in {value.toLowerCase()} as a core principle guiding our work and our
+                                        interaction with students.
+                                    </Paragraph>
+                                </ValuesCard>
+                            </Col>
+                        ))}
+                    </Row>
+                </Content>
+            </ContentSection>
+        </Layout>
     );
 }
 
