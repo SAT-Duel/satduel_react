@@ -20,7 +20,6 @@ function Router({setRoomId, RoomId}) {
                 <Route path="/questions" element={<QuestionsPage/>}/>
                 <Route path="/profile" element={<ProfilePage/>}/>
                 <Route path="/profile/:userId" element={<ProfilePage/>}/>
-                <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
                 <Route path="/friend_requests" element={<FriendRequestPage/>}/>
             </Route>
 
@@ -31,6 +30,8 @@ function Router({setRoomId, RoomId}) {
                 <Route path="/register" element={<RegisterPage/>}/>
                 <Route path="/about" element={<AboutPage/>}/>
                 <Route path="/match" element={<Match setRoomId={setRoomId}/>}/>
+                <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
+
             </Route>
         </Routes>
     );
