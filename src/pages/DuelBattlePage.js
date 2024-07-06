@@ -1,10 +1,41 @@
 import React, {useEffect, useState} from 'react';
+import styled from 'styled-components';
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
 import {useParams} from 'react-router-dom';
 import Question from "../components/Question";
 import useOpponentProgress from "../hooks/useOpponentProgress";
 import Progress from "../components/Progress";
+
+const DuelBattleContainer = styled.div`
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+`;
+
+const QuestionsSection = styled.div`
+    flex: 3;
+    margin-right: 24px;
+`;
+
+const ProgressSection = styled.div`
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+    background: linear-gradient(135deg, #e6e6fa, #e6f7ff);
+`;
+
+const SectionTitle = styled.h2`
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    color: #1a1a1a;
+`;
 
 
 const DuelBattle = () => {
@@ -98,7 +129,7 @@ const DuelBattle = () => {
         if (response.data.status === 'success') {
             // Update the question status in the local state
             setQuestions(prevQuestions => prevQuestions.map(q =>
-                q.id === tracked_question_id ? { ...q, status: result === 'correct' ? 'Correct' : 'Incorrect' } : q
+                q.id === tracked_question_id ? {...q, status: result === 'correct' ? 'Correct' : 'Incorrect'} : q
             ));
         }
         console.log(response.data);
@@ -115,19 +146,26 @@ const DuelBattle = () => {
     }
 
     return (
-        <div>
-            <h1>Question Battle</h1>
-            {questions.map((trackedQuestion) => (
-                <Question questionData={trackedQuestion.questionDetails} key={trackedQuestion.id}
-                          onSubmit={handleQuestionSubmit} status={trackedQuestion.status}/>
-            ))}
-            <h1>Opponent's Progress</h1>
-            {opponentProgress.map((trackedQuestion) => (
-                <div key={trackedQuestion.id}>
-                    <Progress status={trackedQuestion.status}/>
-                </div>
-            ))}
-        </div>
+        <DuelBattleContainer>
+            <QuestionsSection>
+                <SectionTitle>Question Battle</SectionTitle>
+                {questions.map((trackedQuestion, i) => (
+                    <Question
+                        questionData={trackedQuestion.questionDetails}
+                        key={trackedQuestion.id}
+                        onSubmit={handleQuestionSubmit}
+                        status={trackedQuestion.status}
+                        questionNumber={i + 1}
+                    />
+                ))}
+            </QuestionsSection>
+            <ProgressSection>
+                <SectionTitle>Opponent's Progress</SectionTitle>
+                {opponentProgress.map((trackedQuestion,i) => (
+                    <Progress key={trackedQuestion.id} status={trackedQuestion.status} questionNumber={i+1}/>
+                ))}
+            </ProgressSection>
+        </DuelBattleContainer>
     );
 };
 
