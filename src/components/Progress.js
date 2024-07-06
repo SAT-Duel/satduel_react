@@ -24,12 +24,6 @@ const StatusIcon = styled.span`
     color: #fff;
 `;
 
-// const StatusText = styled.p`
-//     font-size: 16px;
-//     color: #4b0082;
-//     margin-bottom: 10px;
-// `;
-
 const StatusText = styled.span`
     font-weight: 500;
     margin-right: 10px;
