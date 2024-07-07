@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { Button, Row, Col, Typography, Card, message } from 'antd';
 import { UsergroupAddOutlined, RocketOutlined, LoadingOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 
-const { Title, Paragraph } = Typography;
+const {Title, Paragraph} = Typography;
 
 const Container = styled.div`
     min-height: 100vh;
@@ -79,8 +79,12 @@ const StyledCard = styled(Card)`
 `;
 
 const spin = keyframes`
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 `;
 
 const LoadingIcon = styled(LoadingOutlined)`
@@ -104,8 +108,8 @@ const sentences = [
     "Preparing your battle arena..."
 ];
 
-const Match = ({ setRoomId }) => {
-    const { token } = useAuth();
+const Match = ({setRoomId}) => {
+    const {token, loading} = useAuth();
     const [matching, setMatching] = useState(false);
     const [roomId, setRoomIdInternal] = useState(null);
     const [loadingMessage, setLoadingMessage] = useState(sentences[0]);
@@ -132,6 +136,7 @@ const Match = ({ setRoomId }) => {
             await getStatus();
         } catch (err) {
             console.error('Error making a match:', err);
+            message.error(err.response.data.error || 'An error occurred while making a match.');
             setMatching(false);
         }
     };
@@ -151,6 +156,20 @@ const Match = ({ setRoomId }) => {
             }
         } catch (err) {
             console.error('Error checking room status:', err);
+        }
+    };
+
+    const rejoinRoom = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/api/match/rejoin/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.data.room_id) {
+                navigate(`/duel_battle/${response.data.room_id}`);
+            }
+        } catch (err) {
         }
     };
 
@@ -175,6 +194,12 @@ const Match = ({ setRoomId }) => {
         }
     }, [matching]);
 
+    useEffect(() => {
+        if(!loading){
+            rejoinRoom();
+        }
+    }, []);
+
     return (
         <Container>
             <ContentWrapper>
@@ -185,20 +210,20 @@ const Match = ({ setRoomId }) => {
                 </HeroParagraph>
 
                 {matching ? (
-                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                        <LoadingIcon />
-                        <Paragraph style={{ fontSize: '1.2rem', color: '#4A4A4A' }}>{loadingMessage}</Paragraph>
+                    <div style={{textAlign: 'center', marginBottom: '40px'}}>
+                        <LoadingIcon/>
+                        <Paragraph style={{fontSize: '1.2rem', color: '#4A4A4A'}}>{loadingMessage}</Paragraph>
                     </div>
                 ) : (
                     <BigButton onClick={handleMatch}>Find a Match</BigButton>
                 )}
 
-                <Row gutter={[24, 24]} style={{ marginTop: '60px' }}>
+                <Row gutter={[24, 24]} style={{marginTop: '60px'}}>
                     <Col xs={24} md={12}>
                         <StyledCard>
-                            <RocketOutlined />
-                            <Title level={3} style={{ marginTop: '20px', color: '#0B2F7D' }}>How It Works</Title>
-                            <Paragraph style={{ fontSize: '1rem', color: '#4A4A4A' }}>
+                            <RocketOutlined/>
+                            <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>How It Works</Title>
+                            <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
                                 Our platform matches you with other students based on your skill level.
                                 Click the "Find a Match" button and get paired up for an exciting duel.
                             </Paragraph>
@@ -206,10 +231,11 @@ const Match = ({ setRoomId }) => {
                     </Col>
                     <Col xs={24} md={12}>
                         <StyledCard>
-                            <UsergroupAddOutlined />
-                            <Title level={3} style={{ marginTop: '20px', color: '#0B2F7D' }}>Challenge a Friend</Title>
-                            <Paragraph style={{ fontSize: '1rem', color: '#4A4A4A' }}>
-                                Want to challenge a specific friend to a duel? Send them an invite and see who comes out on top.
+                            <UsergroupAddOutlined/>
+                            <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>Challenge a Friend</Title>
+                            <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
+                                Want to challenge a specific friend to a duel? Send them an invite and see who comes out
+                                on top.
                                 (Coming Soon)
                             </Paragraph>
                         </StyledCard>

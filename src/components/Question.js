@@ -1,11 +1,92 @@
 import React, {useState, useEffect} from 'react';
-import {Card, Space, Radio, Button} from 'antd';
-import type {RadioChangeEvent} from 'antd';
+import {Radio, Button, Space} from 'antd';
+import {CheckCircleOutlined, CloseCircleOutlined} from '@ant-design/icons';
+import styled, {keyframes} from 'styled-components';
 import {useAuth} from "../context/AuthContext";
 import axios from "axios";
 
+const fadeIn = keyframes`
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+`;
 
-function Question({questionData, onSubmit, status}) {
+const QuestionCard = styled.div`
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 24px;
+    animation: ${fadeIn} 0.5s ease-out;
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    &.correct {
+        border-left: 5px solid #52c41a;
+    }
+
+    &.incorrect {
+        border-left: 5px solid #f5222d;
+    }
+`;
+
+const QuestionText = styled.h3`
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    color: #1a1a1a;
+`;
+
+const StyledRadioGroup = styled(Radio.Group)`
+    width: 100%;
+`;
+
+const StyledRadio = styled(Radio)`
+    display: block;
+    height: 30px;
+    line-height: 30px;
+    margin: 8px 0;
+    transition: all 0.3s;
+
+    &:hover {
+        background-color: #f0f0f0;
+        border-radius: 4px;
+    }
+
+    .ant-radio-checked + span {
+        color: #1890ff;
+        font-weight: 500;
+    }
+`;
+
+const SubmitButton = styled(Button)`
+    margin-top: 16px;
+`;
+
+const Note = styled.p`
+    margin-top: 16px;
+    font-style: italic;
+    color: ${props => props.correct ? '#52c41a' : '#f5222d'};
+`;
+
+const Explanation = styled.p`
+    margin-top: 16px;
+    background-color: #f0f0f0;
+    padding: 12px;
+    border-radius: 4px;
+`;
+const QuestionNumber = styled.span`
+  font-weight: bold;
+  color: #4b0082;
+  margin-right: 10px;
+`;
+
+function Question({questionData, onSubmit, status, questionNumber}) {
     const {question, choices, id} = questionData;
     const [selectedChoice, setSelectedChoice] = useState('');
     const [note, setNote] = useState('');
@@ -75,22 +156,30 @@ function Question({questionData, onSubmit, status}) {
     };
 
     return (
-        <div>
-            <Card title={question} style={{width: '100%'}} className={`question ${getStatusClass()}`}>
-                <Radio.Group onChange={onChange} value={selectedChoice}>
-                    <Space direction="vertical">
-                        {choices.map((choice, index) => (
-                            <Radio key={index} checked={selectedChoice === choice} disabled={status !== 'Blank'}
-                                   value={choice}>{choice}</Radio>
-                        ))}
-
-                    </Space>
-                </Radio.Group>
-                <p>{note}</p>
-                <p>{explanation}</p>
-                <Button type="primary" onClick={handleSubmit} disabled={status !== 'Blank'}>Submit</Button>
-            </Card>
-        </div>
+        <QuestionCard className={getStatusClass()}>
+            <QuestionNumber>Question {questionNumber}:</QuestionNumber>
+            <QuestionText>
+                {question}
+            </QuestionText>
+            <StyledRadioGroup onChange={onChange} value={selectedChoice}>
+                <Space direction="vertical" style={{width: '100%'}}>
+                    {choices.map((choice, index) => (
+                        <StyledRadio key={index} value={choice} disabled={status !== 'Blank'}>
+                            {choice}
+                        </StyledRadio>
+                    ))}
+                </Space>
+            </StyledRadioGroup>
+            {note && (
+                <Note correct={status === 'Correct'}>
+                    {status === 'Correct' ? <CheckCircleOutlined/> : <CloseCircleOutlined/>} {note}
+                </Note>
+            )}
+            {explanation && <Explanation>{explanation}</Explanation>}
+            <SubmitButton type="primary" onClick={handleSubmit} disabled={status !== 'Blank'}>
+                Submit
+            </SubmitButton>
+        </QuestionCard>
     )
         ;
 }
