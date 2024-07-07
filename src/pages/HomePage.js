@@ -7,14 +7,14 @@ import {
     LineChartOutlined,
     TrophyOutlined,
     BookOutlined,
-    UserOutlined, CheckCircleOutlined
+    UserOutlined,
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
-const {Content, Footer} = Layout;
-const {Title, Paragraph, Text} = Typography;
+const {Content} = Layout;
+const {Title, Paragraph} = Typography;
 
 
 

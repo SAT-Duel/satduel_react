@@ -2,10 +2,11 @@ import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
-import {useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import Question from "../components/Question";
 import useOpponentProgress from "../hooks/useOpponentProgress";
 import Progress from "../components/Progress";
+import {message} from "antd";
 
 const DuelBattleContainer = styled.div`
     display: flex;
@@ -37,6 +38,18 @@ const SectionTitle = styled.h2`
     color: #1a1a1a;
 `;
 
+const TimeDisplay = styled.div`
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1a1a1a;
+    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 16px;
+`;
+
 
 const DuelBattle = () => {
     const {token, loading} = useAuth(); // Get the token from the AuthContext
@@ -45,6 +58,64 @@ const DuelBattle = () => {
     const [loadingQuestions, setLoading] = useState(true);
     const [trackedQuestionMap, setTrackedQuestionMap] = useState({}); // Mapping of Question IDs to TrackedQuestion IDs
     const [opponentProgress, setOpponentProgress] = useState([]);
+    const [endTime, setEndTime] = useState(null);
+    const [timeLeft, setTimeLeft] = useState(null);
+    const navigate = useNavigate();
+
+    const endMatch = async () => {
+            try{
+                await axios.post('http://localhost:8000/api/match/end_match/', {
+                    room_id: roomId
+                });
+            } catch
+                (err) {
+                message.error(err.response.data.error || 'An error occurred while ending the match.');
+            }
+        }
+    ;
+
+    useEffect(() => {
+        const fetchEndTime = async () => {
+            try {
+                const response = await axios.post('http://localhost:8000/api/match/get_end_time/',
+                    {
+                        room_id: roomId
+                    });
+                setEndTime(new Date(response.data.end_time));
+            } catch (err) {
+                message.error(err.response.data.error || 'An error occurred while making a match.');
+            }
+        };
+
+        fetchEndTime();
+    }, []);
+
+    useEffect(() => {
+        if (endTime) {
+            const timer = setInterval(() => {
+                const now = new Date();
+                const difference = endTime - now;
+
+                if (difference > 0) {
+                    setTimeLeft(Math.round(difference / 1000));
+                } else {
+                    clearInterval(timer);
+                    setTimeLeft(0);
+                    endMatch();
+                navigate(`/battle_result/${roomId}`); // Replace with your desired route
+                }
+            }, 500);
+
+            return () => clearInterval(timer);
+        }
+    }, [endTime, navigate]);
+
+    const formatTime = (seconds) => {
+        if (seconds === null) return '--:--';
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
 
     useOpponentProgress(roomId, setOpponentProgress);
 
@@ -144,6 +215,10 @@ const DuelBattle = () => {
     if (loadingQuestions) {
         return <div>Loading questions...</div>;
     }
+    if (endTime === null) {
+        return <div>Loading battle information...</div>;
+    }
+
 
     return (
         <DuelBattleContainer>
@@ -161,9 +236,11 @@ const DuelBattle = () => {
             </QuestionsSection>
             <ProgressSection>
                 <SectionTitle>Opponent's Progress</SectionTitle>
-                {opponentProgress.map((trackedQuestion,i) => (
-                    <Progress key={trackedQuestion.id} status={trackedQuestion.status} questionNumber={i+1}/>
+                {opponentProgress.map((trackedQuestion, i) => (
+                    <Progress key={trackedQuestion.id} status={trackedQuestion.status} questionNumber={i + 1}/>
                 ))}
+                <SectionTitle>Time Left</SectionTitle>
+                <TimeDisplay>{formatTime(timeLeft)}</TimeDisplay>
             </ProgressSection>
         </DuelBattleContainer>
     );
