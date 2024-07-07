@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from 'react-router-dom';
-import { Button, Row, Col, Typography, Card } from 'antd';
+import { Button, Row, Col, Typography, Card, message } from 'antd';
 import { UsergroupAddOutlined, RocketOutlined, LoadingOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 
@@ -109,9 +109,16 @@ const Match = ({ setRoomId }) => {
     const [matching, setMatching] = useState(false);
     const [roomId, setRoomIdInternal] = useState(null);
     const [loadingMessage, setLoadingMessage] = useState(sentences[0]);
+    const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
 
     const handleMatch = async () => {
+        if (!token) {
+            setErrorMessage('You must be logged in to find a match.');
+            message.error('You must be logged in to find a match.');
+            return;
+        }
+
         try {
             const response = await axios.get('http://localhost:8000/api/match/', {
                 headers: {
