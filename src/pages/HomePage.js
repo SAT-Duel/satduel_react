@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {Link} from 'react-router-dom';
 import {Layout, Typography, Button, Row, Col, Card, Divider, Statistic, Avatar, Rate, Steps} from 'antd';
 import {
@@ -10,9 +10,13 @@ import {
     UserOutlined, CheckCircleOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const {Content, Footer} = Layout;
 const {Title, Paragraph, Text} = Typography;
+
+
 
 const HeroSection = styled.div`
     height: 100vh;
@@ -142,6 +146,19 @@ const TestimonialCard = styled(Card)`
     }
 `;
 function HomePage() {
+    const contentRef = useRef(null);
+
+    React.useEffect(() => {
+        AOS.init({
+            duration: 1000,
+            once: true,
+            mirror: false,
+        });
+    }, []);
+
+    const scrollToContent = () => {
+        contentRef.current.scrollIntoView({ behavior: 'smooth' });
+    };
     return (
         <Layout>
             <HeroSection>
@@ -163,12 +180,12 @@ function HomePage() {
                         </StyledButton>
                     </Col>
                 </Row>
-                <ScrollIndicator>
-                    <ArrowDownOutlined style={{fontSize: '24px'}}/>
+                <ScrollIndicator onClick={scrollToContent}>
+                    <ArrowDownOutlined style={{ fontSize: '24px' }} />
                 </ScrollIndicator>
             </HeroSection>
 
-            <ContentSection>
+            <ContentSection ref={contentRef}>
                 <Content style={{padding: '0 50px', maxWidth: '1200px', margin: '0 auto'}}>
                     <Title level={2} style={{textAlign: 'center', marginBottom: '40px'}}>
                         Why Choose Our SAT Prep Platform?
@@ -197,10 +214,10 @@ function HomePage() {
                             }
                         ].map((item, index) => (
                             <Col xs={24} sm={12} md={6} key={index}>
-                                <FeatureCard>
+                                <FeatureCard data-aos="fade-up" data-aos-delay={index * 100}>
                                     <IconWrapper>{item.icon}</IconWrapper>
                                     <Title level={4}>{item.title}</Title>
-                                    <Paragraph style={{flexGrow: 1}}>{item.content}</Paragraph>
+                                    <Paragraph style={{ flexGrow: 1 }}>{item.content}</Paragraph>
                                 </FeatureCard>
                             </Col>
                         ))}
@@ -208,11 +225,11 @@ function HomePage() {
 
                     <Divider/>
 
-                    <Row gutter={[48, 48]} align="middle" style={{marginTop: '60px'}}>
+                    <Row gutter={[48, 48]} align="middle" style={{ marginTop: '60px' }}>
                         <Col xs={24} md={12}>
-                            <StyledCard>
+                            <StyledCard data-aos="fade-right">
                                 <IconWrapper>
-                                    <RocketOutlined/>
+                                    <RocketOutlined />
                                 </IconWrapper>
                                 <Title level={3}>Boost Your Scores</Title>
                                 <Paragraph>
@@ -225,37 +242,37 @@ function HomePage() {
                         <Col xs={24} md={12}>
                             <Row gutter={[16, 16]}>
                                 <Col span={12}>
-                                    <StatisticCard>
+                                    <StatisticCard data-aos="fade-left" data-aos-delay="100">
                                         <Statistic
                                             title="Average Score Improvement"
                                             value={200}
-                                            prefix={<TrophyOutlined style={{color: '#faad14'}}/>}
+                                            prefix={<TrophyOutlined style={{ color: '#faad14' }} />}
                                             suffix="points"
-                                            valueStyle={{color: '#3f8600'}}
+                                            valueStyle={{ color: '#3f8600' }}
                                         />
                                     </StatisticCard>
                                 </Col>
                                 <Col span={12}>
-                                    <StatisticCard>
+                                    <StatisticCard data-aos="fade-left" data-aos-delay="200">
                                         <Statistic
                                             title="Students Helped"
                                             value={50000}
-                                            prefix={<UserOutlined style={{color: '#1890ff'}}/>}
+                                            prefix={<UserOutlined style={{ color: '#1890ff' }} />}
                                             suffix="+"
-                                            valueStyle={{color: '#1890ff'}}
+                                            valueStyle={{ color: '#1890ff' }}
                                         />
                                     </StatisticCard>
                                 </Col>
                             </Row>
-                            <Row gutter={[16, 16]} style={{marginTop: '16px'}}>
+                            <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
                                 <Col span={24}>
-                                    <StatisticCard>
+                                    <StatisticCard data-aos="fade-left" data-aos-delay="300">
                                         <Statistic
                                             title="Success Rate"
                                             value={98.5}
-                                            prefix={<RocketOutlined style={{color: '#eb2f96'}}/>}
+                                            prefix={<RocketOutlined style={{ color: '#eb2f96' }} />}
                                             suffix="%"
-                                            valueStyle={{color: '#eb2f96'}}
+                                            valueStyle={{ color: '#eb2f96' }}
                                         />
                                     </StatisticCard>
                                 </Col>
@@ -290,7 +307,7 @@ function HomePage() {
                             }
                         ].map((testimonial, index) => (
                             <Col xs={24} sm={8} key={index}>
-                                <TestimonialCard>
+                                <TestimonialCard data-aos="fade-up" data-aos-delay={index * 100}>
                                     <Card.Meta
                                         avatar={<Avatar src={testimonial.avatar} size={64}/>}
                                         title={testimonial.name}
