@@ -51,7 +51,7 @@ const getStatusIcon = (status) => {
     }
 };
 
-function Progress({status, currentQuestion, totalQuestions, opponentProgress, questionNumber}) {
+function Progress({status, questionNumber}) {
 
     return (
         <OpponentProgress>

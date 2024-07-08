@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            let response = await axios.post('http://localhost:8000/api/logout/');
+            let response = await axios.post('/api/logout/');
             setUser(null);
             setToken(null);
             setRefreshToken(null);
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
     const refreshAccessToken = async () => {
         try {
-            const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+            const response = await axios.post('/api/token/refresh/', {
                 refresh: JSON.parse(Cookies.get('refreshToken'))
             });
             const newAccessToken = response.data.access;

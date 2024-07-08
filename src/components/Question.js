@@ -98,7 +98,7 @@ function Question({questionData, onSubmit, status, questionNumber}) {
 
     const getAnswer = async () => {
         try {
-            const response = await axios.post('http://127.0.0.1:8000/api/get_answer/', {question_id: id});
+            const response = await axios.post('/api/get_answer/', {question_id: id});
             setAnswer(response.data.answer);
             setExplanation(response.data.explanation);
             setAnswerChoice(response.data.answer_choice)

@@ -17,7 +17,7 @@ function Login() {
     const handleLogin = async () => {
         let userData = null;
         try {
-            const response = await axios.post('http://localhost:8000/api/login/', {
+            const response = await axios.post('/api/login/', {
                 username: username,
                 password: password
             });
@@ -33,7 +33,7 @@ function Login() {
             return;
         }
         try {
-            const response = await axios.post('http://localhost:8000/api/token/', {
+            const response = await axios.post('/api/token/', {
                 username: username,
                 password: password
             });

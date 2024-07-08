@@ -13,7 +13,7 @@ function QuestionsPage() {
 
     const fetchQuestions = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/api/questions/?num=10');
+            const response = await axios.get('/api/questions/?num=10');
             setQuestions(response.data); // Axios automatically parses the JSON data
         } catch (error) {
             setError(`An error occurred: ${error.response ? error.response.data : 'Server unreachable'}`);
@@ -28,7 +28,7 @@ function QuestionsPage() {
         console.log(`Question: ${id}, Chosen answer: ${choice}`);
 
         try {
-            const response = await axios.post('http://127.0.0.1:8000/api/check_answer/', {
+            const response = await axios.post('/api/check_answer/', {
                 question_id: id,
                 selected_choice: choice
             });

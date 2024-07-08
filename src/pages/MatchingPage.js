@@ -100,6 +100,26 @@ const GradientText = styled.span`
     -webkit-text-fill-color: transparent;
 `;
 
+const CancelButton = styled(Button)`
+    background: #ff4d4f;
+    color: #fff;
+    border: none;
+    font-size: 1.25rem;
+    height: auto;
+    padding: 15px 50px;
+    border-radius: 30px;
+    margin: 20px auto;
+    display: block;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: #d9363e;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(255, 77, 79, 0.2);
+    }
+`;
+
 const sentences = [
     "Finding the best opponent for you...",
     "Getting everything ready...",
@@ -113,18 +133,16 @@ const Match = ({setRoomId}) => {
     const [matching, setMatching] = useState(false);
     const [roomId, setRoomIdInternal] = useState(null);
     const [loadingMessage, setLoadingMessage] = useState(sentences[0]);
-    const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
 
     const handleMatch = async () => {
         if (!token) {
-            setErrorMessage('You must be logged in to find a match.');
             message.error('You must be logged in to find a match.');
             return;
         }
 
         try {
-            const response = await axios.get('http://localhost:8000/api/match/', {
+            const response = await axios.get('/api/match/', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -143,7 +161,7 @@ const Match = ({setRoomId}) => {
 
     const getStatus = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/match/status/', {
+            const response = await axios.get('/api/match/status/', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
@@ -161,15 +179,31 @@ const Match = ({setRoomId}) => {
 
     const rejoinRoom = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/match/rejoin/', {
+            const response = await axios.get('/api/match/rejoin/', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            if (response.data.room_id) {
-                navigate(`/duel_battle/${response.data.room_id}`);
+            if (response.data.battle_room_id) {
+                navigate(`/duel_battle/${response.data.battle_room_id}`);
+            }else if (response.data.searching_room_id){
+                setMatching(true);
+                setRoomIdInternal(response.data.searching_room_id);
             }
         } catch (err) {
+        }
+    };
+    const handleCancel = async () => {
+        try {
+            await axios.post('/api/match/cancel_match/', {
+                room_id: roomId
+            });
+            setMatching(false);
+            setRoomIdInternal(null);
+            message.success('Matchmaking canceled.');
+        } catch (err) {
+            console.error('Error canceling the match:', err);
+            message.error(err.response.data.error || 'An error occurred while canceling the match.');
         }
     };
 
@@ -180,7 +214,7 @@ const Match = ({setRoomId}) => {
             }, 1000);
             return () => clearInterval(interval);
         }
-    }, [roomId, token, navigate]);
+    }, [roomId, token, navigate, matching]);
 
     useEffect(() => {
         if (matching) {
@@ -198,7 +232,7 @@ const Match = ({setRoomId}) => {
         if(!loading){
             rejoinRoom();
         }
-    }, []);
+    }, [loading]);
 
     return (
         <Container>
@@ -213,6 +247,7 @@ const Match = ({setRoomId}) => {
                     <div style={{textAlign: 'center', marginBottom: '40px'}}>
                         <LoadingIcon/>
                         <Paragraph style={{fontSize: '1.2rem', color: '#4A4A4A'}}>{loadingMessage}</Paragraph>
+                        <CancelButton onClick={handleCancel}>Cancel</CancelButton>
                     </div>
                 ) : (
                     <BigButton onClick={handleMatch}>Find a Match</BigButton>
