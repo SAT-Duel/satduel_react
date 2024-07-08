@@ -28,7 +28,7 @@ function Register() {
     const handleSubmit = async (values) => {
         let userData = null;
         try {
-            const response = await axios.post('http://localhost:8000/api/register/', values);
+            const response = await axios.post('/api/register/', values);
             userData = response.data;
         } catch (error) {
             alert(error.response ? error.response.data.error : "Registration failed");
@@ -38,7 +38,7 @@ function Register() {
             return;
         }
         try {
-            const response = await axios.post('http://localhost:8000/api/token/', {
+            const response = await axios.post('/api/token/', {
                 username: values.username,
                 password: values.password
             });

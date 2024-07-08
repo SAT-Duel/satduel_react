@@ -64,7 +64,7 @@ const DuelBattle = () => {
 
     const endMatch = async () => {
             try{
-                await axios.post('http://localhost:8000/api/match/end_match/', {
+                await axios.post('/api/match/end_match/', {
                     room_id: roomId
                 });
             } catch
@@ -77,7 +77,7 @@ const DuelBattle = () => {
     useEffect(() => {
         const fetchEndTime = async () => {
             try {
-                const response = await axios.post('http://localhost:8000/api/match/get_end_time/',
+                const response = await axios.post('/api/match/get_end_time/',
                     {
                         room_id: roomId
                     });
@@ -120,7 +120,7 @@ const DuelBattle = () => {
     useOpponentProgress(roomId, setOpponentProgress);
 
     const fetchTrackedQuestions = async (roomId, token) => {
-        const response = await axios.post('http://localhost:8000/api/match/questions/', {
+        const response = await axios.post('/api/match/questions/', {
             room_id: roomId
         }, {
             headers: {
@@ -132,7 +132,7 @@ const DuelBattle = () => {
 
     // Fetch full question details for a given question ID
     const fetchQuestionDetails = async (questionId, token) => {
-        const response = await axios.post('http://localhost:8000/api/get_question/', {
+        const response = await axios.post('/api/get_question/', {
             question_id: questionId
         }, {
             headers: {
@@ -181,14 +181,14 @@ const DuelBattle = () => {
 
     const checkAnswer = async (id, choice) => {
         console.log(`Question: ${id}, Chosen answer: ${choice}`);
-        const response = await axios.post('http://127.0.0.1:8000/api/check_answer/', {
+        const response = await axios.post('/api/check_answer/', {
             question_id: id,
             selected_choice: choice
         });
         return response.data.result;
     };
     const updateStatus = async (tracked_question_id, result) => {
-        const response = await axios.post('http://localhost:8000/api/match/update/', {
+        const response = await axios.post('/api/match/update/', {
                 tracked_question_id: tracked_question_id,
                 result: result
             },

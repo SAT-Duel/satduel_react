@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from '../context/AuthContext';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, Link} from 'react-router-dom';
 import {Menu} from 'antd';
 import {
     TeamOutlined,
@@ -11,9 +11,17 @@ import {
     QuestionCircleOutlined,
     UserAddOutlined,
 } from '@ant-design/icons';
-import {Row, Col, Badge} from 'antd';
+import {Row, Col} from 'antd';
 import SearchUser from "./SearchUser";
+import styled from "styled-components";
 
+// const Logo = styled(Link)`
+//     font-size: 24px;
+//     font-weight: bold;
+//     color: #1890ff;
+//     margin-right: 24px;
+//     white-space: nowrap; /* Prevent text from wrapping */
+// `;
 
 function Navbar() {
     const {user, logout, loading} = useAuth();
@@ -99,7 +107,7 @@ function Navbar() {
         <div className="navbar" style={{width: '100%'}}>
             <Row justify="space-between" align="middle">
                 <Col offset="1" span="11">
-                    <Menu mode="horizontal" items={items} />
+                    <Menu mode="horizontal" items={items}/>
                 </Col>
                 <Col offset="3" span="5">
                     <SearchUser/>

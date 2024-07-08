@@ -2,7 +2,7 @@ import React from 'react';
 
 import FriendRequest from "../components/FriendRequest";
 
-function HomePage() {
+function FriendRequestPage() {
     return (
         <div>
             <FriendRequest/>
@@ -10,4 +10,4 @@ function HomePage() {
     );
 }
 
-export default HomePage;
+export default FriendRequestPage;

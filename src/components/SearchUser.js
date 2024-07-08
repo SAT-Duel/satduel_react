@@ -14,7 +14,7 @@ const SearchUsers = () => {
 
     const handleSearch = async () => {
         try {
-            const response = await axios.get(`http://localhost:8000/api/profile/search/?q=${query}`, {
+            const response = await axios.get(`/api/profile/search/?q=${query}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
