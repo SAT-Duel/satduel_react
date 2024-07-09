@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import axios from "axios";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from 'react-router-dom';
-import { Button, Row, Col, Typography, Card, message } from 'antd';
-import { UsergroupAddOutlined, RocketOutlined, LoadingOutlined } from '@ant-design/icons';
-import styled, { keyframes } from 'styled-components';
+import {useAuth} from "../context/AuthContext";
+import {useNavigate} from 'react-router-dom';
+import {Button, Row, Col, Typography, Card, message} from 'antd';
+import {UsergroupAddOutlined, RocketOutlined, LoadingOutlined} from '@ant-design/icons';
+import styled, {keyframes} from 'styled-components';
 
 const {Title, Paragraph} = Typography;
 
@@ -170,7 +170,7 @@ const Match = ({setRoomId}) => {
                 }
             });
             if (response.data.status === 'full') {
-                navigate(`/duel_battle/${roomId}`);
+                navigate(`/match-loading/${roomId}`);
             }
         } catch (err) {
             console.error('Error checking room status:', err);
@@ -186,7 +186,7 @@ const Match = ({setRoomId}) => {
             });
             if (response.data.battle_room_id) {
                 navigate(`/duel_battle/${response.data.battle_room_id}`);
-            }else if (response.data.searching_room_id){
+            } else if (response.data.searching_room_id) {
                 setMatching(true);
                 setRoomIdInternal(response.data.searching_room_id);
             }
@@ -229,7 +229,7 @@ const Match = ({setRoomId}) => {
     }, [matching]);
 
     useEffect(() => {
-        if(!loading){
+        if (!loading) {
             rejoinRoom();
         }
     }, [loading]);
