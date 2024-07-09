@@ -48,6 +48,8 @@ const MatchHistoryPage = () => {
             });
             setMatches(response.data);
             setLoadingHistory(false);
+            console.log(response.data);
+            console.log(user.id);
         } catch (error) {
             console.error('Error fetching match history:', error);
             message.error('Failed to load match history. Please try again later.');
@@ -60,7 +62,10 @@ const MatchHistoryPage = () => {
             title: 'Date',
             dataIndex: 'created_at',
             key: 'created_at',
-            render: (text) => new Date(text).toLocaleDateString()
+            render: (text) => {
+                const date = new Date(text);
+                return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+            }
         },
         {
             title: 'Opponent',
@@ -83,10 +88,11 @@ const MatchHistoryPage = () => {
         }
     ];
 
+
     return (
         <PageWrapper>
             <Title level={2} style={{color: '#4a148c', marginBottom: '24px'}}>Match History</Title>
-            {loading ? (
+            {loadingHistory ? (
                 <Spin size="large"/>
             ) : (
                 <StyledTable

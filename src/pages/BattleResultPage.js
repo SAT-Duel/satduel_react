@@ -182,7 +182,17 @@ function BattleResultPage() {
     const user2Score = calculateScore(results.user2_results);
     const winner = user1Score > user2Score ? results.user1_results[0].user.username :
                    user2Score > user1Score ? results.user2_results[0].user.username : 'Tie';
-
+    const setWinner = async (winner) => {
+        try {
+            await axios.post('/api/match/set_winner/', {
+                room_id: roomId,
+                winner: winner
+            });
+        }catch (err) {
+            console.error('Error setting winner:', err);
+        }
+    }
+    setWinner(winner);
     return (
         <PageBackground>
             <ResultPageContainer>

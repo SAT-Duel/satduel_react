@@ -12,6 +12,7 @@ import FriendRequestPage from "../pages/FriendRequestPage";
 import MainLayout from "../layout/MainLayout";
 import SecondaryLayout from "../layout/SecondaryLayout";
 import BattleResultPage from "../pages/BattleResultPage";
+import MatchLoadingPage from "../pages/MatchLoadingPage";
 
 function Router({setRoomId, RoomId}) {
     return (
@@ -33,6 +34,7 @@ function Router({setRoomId, RoomId}) {
                 <Route path="/match" element={<Match setRoomId={setRoomId}/>}/>
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
                 <Route path="/battle_result/:roomId" element={<BattleResultPage/>}/>
+                <Route path="/match-loading/:roomId" element={<MatchLoadingPage />} />
             </Route>
         </Routes>
     );
