@@ -14,7 +14,7 @@ import SecondaryLayout from "../layout/SecondaryLayout";
 import BattleResultPage from "../pages/BattleResultPage";
 import MatchLoadingPage from "../pages/MatchLoadingPage";
 
-function Router({setRoomId, RoomId}) {
+function Router() {
     return (
         <Routes>
             {/* Routes using MainLayout */}
@@ -31,7 +31,7 @@ function Router({setRoomId, RoomId}) {
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
                 <Route path="/about" element={<AboutPage/>}/>
-                <Route path="/match" element={<Match setRoomId={setRoomId}/>}/>
+                <Route path="/match" element={<Match/>}/>
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
                 <Route path="/battle_result/:roomId" element={<BattleResultPage/>}/>
                 <Route path="/match-loading/:roomId" element={<MatchLoadingPage />} />

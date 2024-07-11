@@ -1,25 +1,54 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
 import { Form, Input, Button, Card, Typography, Space } from 'antd';
-// import 'antd/dist/antd.css'; // Import Ant Design styles
 
 const { Title } = Typography;
+
+const containerStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    background: '#f0f2f5',
+};
+
+const cardStyle = {
+    width: 400,
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    borderRadius: '8px',
+    padding: '20px',
+    backgroundColor: '#ffffff'
+};
+
+const titleStyle = {
+    textAlign: 'center',
+    marginBottom: '20px',
+};
+
+const errorStyle = {
+    color: 'red',
+    textAlign: 'center',
+};
 
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const { login } = useAuth();
-
+    const { login, loading, user } = useAuth();
+    useEffect(() => {
+        if (!loading && user) {
+            navigate('/');
+        }
+    }, [user, navigate, loading]);
     const handleLogin = async () => {
         let userData = null;
         try {
             const response = await axios.post('/api/login/', {
-                username: username,
-                password: password
+                username,
+                password
             });
             if (response.status === 200) {
                 userData = response.data;
@@ -34,8 +63,8 @@ function Login() {
         }
         try {
             const response = await axios.post('/api/token/', {
-                username: username,
-                password: password
+                username,
+                password
             });
             const refreshToken = response.data.refresh;
             if (response.status === 200) {
@@ -57,10 +86,10 @@ function Login() {
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f0f2f5' }}>
-            <Card style={{ width: 400 }}>
+        <div style={containerStyle}>
+            <Card style={cardStyle}>
                 <Space direction="vertical" style={{ width: '100%' }}>
-                    <Title level={2} style={{ textAlign: 'center' }}>Login</Title>
+                    <Title level={2} style={titleStyle}>Login</Title>
                     <Form
                         name="login"
                         initialValues={{ remember: true }}
@@ -88,7 +117,7 @@ function Login() {
                             />
                         </Form.Item>
 
-                        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+                        {error && <p style={errorStyle}>{error}</p>}
 
                         <Form.Item>
                             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
