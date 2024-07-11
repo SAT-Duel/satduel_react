@@ -128,7 +128,7 @@ const sentences = [
     "Preparing your battle arena..."
 ];
 
-const Match = ({setRoomId}) => {
+const Match = () => {
     const {token, loading} = useAuth();
     const [matching, setMatching] = useState(false);
     const [roomId, setRoomIdInternal] = useState(null);
@@ -147,10 +147,11 @@ const Match = ({setRoomId}) => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            setRoomId(response.data.id);
             setRoomIdInternal(response.data.id);
+            if (response.data.full === 'true') {
+                navigate(`/match-loading/${response.data.id}`);
+            }
             setMatching(true);
-            console.log(response.data);
             await getStatus();
         } catch (err) {
             console.error('Error making a match:', err);

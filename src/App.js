@@ -9,10 +9,9 @@ function App() {
         token: {colorBgContainer, borderRadiusLG},
     } = theme.useToken();
 
-    const [RoomId, setRoomId] = useState(null)
     const {Header, Content, Footer} = Layout;
     return (
-        <Router RoomId={RoomId} setRoomId={setRoomId}/>
+        <Router />
     );
 }
 
