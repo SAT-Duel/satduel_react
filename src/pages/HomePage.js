@@ -30,7 +30,7 @@ const HeroSection = styled.div`
 `;
 
 const GradientText = styled.span`
-    background: linear-gradient(90deg, #0036a1, #00d2ff);
+    background: linear-gradient(90deg, #c453f5, #69c4f5);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 `;
@@ -163,10 +163,10 @@ function HomePage() {
         <Layout>
             <HeroSection>
                 <Title level={1} style={{fontSize: '4rem', marginBottom: '20px'}}>
-                    Elevate Your SAT Prep with <GradientText>Duels</GradientText>
+                    <span style={{color: '#FFFFFF'}}>Elevate Your SAT Prep with </span><GradientText>Duels</GradientText>
                 </Title>
                 <Paragraph style={{fontSize: '1.5rem', maxWidth: '600px', marginBottom: '40px'}}>
-                    Immerse yourself in a <GradientText>futuristic</GradientText> learning experience designed to <GradientText>boost</GradientText> your SAT scores.
+                    <span style={{color: '#FFFFFF'}}> Immerse yourself in a </span><GradientText>futuristic</GradientText> <span style={{color: '#FFFFFF'}}> learning experience designed to </span> <GradientText>boost</GradientText> <span style={{color: '#FFFFFF'}}> your SAT scores. </span>
                 </Paragraph>
                 <Row gutter={16}>
                     <Col>

@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import {useNavigate} from 'react-router-dom';
-import {useAuth} from '../context/AuthContext';
-import {Form, Input, Button, Card, Typography, Space, Select} from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Form, Input, Button, Card, Typography, Space, Select, message } from 'antd';
 
-const {Title} = Typography;
-const {Option} = Select;
+const { Title } = Typography;
+const { Option } = Select;
 
 function Register() {
     const [formData, setFormData] = useState({
@@ -19,10 +19,10 @@ function Register() {
     const [error, setError] = useState(null);
 
     const navigate = useNavigate();
-    const {login} = useAuth();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
-        setFormData({...formData, [e.target.name]: e.target.value});
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (values) => {
@@ -31,9 +31,15 @@ function Register() {
             const response = await axios.post('/api/register/', values);
             userData = response.data;
         } catch (error) {
-            alert(error.response ? error.response.data.error : "Registration failed");
-            if (error.response && error.response.status === 401) {
-                setError(error.response.data.error);
+            if (error.response) {
+                const errorData = error.response.data;
+                if (errorData.username) {
+                    message.error(errorData.username[0]);
+                } else {
+                    message.error(errorData.error || "Registration failed");
+                }
+            } else {
+                message.error("Registration failed");
             }
             return;
         }
@@ -43,10 +49,10 @@ function Register() {
                 password: values.password
             });
             login(userData, response.data.access);
-            alert("Registration successful");
+            message.success("Registration successful", 2);
             navigate('/');
         } catch (error) {
-            alert(error.response ? error.response.data.error : "Registration failed");
+            message.error(error.response ? error.response.data.error : "Registration failed");
             if (error.response && error.response.status === 401) {
                 setError(error.response.data.error);
             }
@@ -61,9 +67,9 @@ function Register() {
             height: '100vh',
             background: '#f0f2f5'
         }}>
-            <Card style={{width: 400}}>
-                <Space direction="vertical" style={{width: '100%'}}>
-                    <Title level={2} style={{textAlign: 'center'}}>Register</Title>
+            <Card style={{ width: 400 }}>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                    <Title level={2} style={{ textAlign: 'center' }}>Register</Title>
                     <Form
                         name="register"
                         initialValues={formData}
@@ -71,38 +77,38 @@ function Register() {
                     >
                         <Form.Item
                             name="username"
-                            rules={[{required: true, message: 'Please input your username!'}]}
+                            rules={[{ required: true, message: 'Please input your username!' }]}
                         >
-                            <Input placeholder="Username" onChange={handleChange}/>
+                            <Input placeholder="Username" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
                             name="email"
-                            rules={[{required: true, message: 'Please input your email!'}]}
+                            rules={[{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'Please input a valid email!' }]}
                         >
-                            <Input type="email" placeholder="Email" onChange={handleChange}/>
+                            <Input type="email" placeholder="Email" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
                             name="first_name"
-                            rules={[{required: true, message: 'Please input your first name!'}]}
+                            rules={[{ required: true, message: 'Please input your first name!' }]}
                         >
-                            <Input placeholder="First Name" onChange={handleChange}/>
+                            <Input placeholder="First Name" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
                             name="last_name"
-                            rules={[{required: true, message: 'Please input your last name!'}]}
+                            rules={[{ required: true, message: 'Please input your last name!' }]}
                         >
-                            <Input placeholder="Last Name" onChange={handleChange}/>
+                            <Input placeholder="Last Name" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
                             name="password"
-                            rules={[{required: true, message: 'Please input your password!'}]}
+                            rules={[{ required: true, message: 'Please input your password!' }]}
                         >
-                            <Input.Password placeholder="Password" onChange={handleChange}/>
+                            <Input.Password placeholder="Password" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
                             name="grade"
                             label="Select Grade"
-                            rules={[{required: true, message: 'Please select your grade!'}]}
+                            rules={[{ required: true, message: 'Please select your grade!' }]}
                         >
                             <Select placeholder="Select Grade" onChange={(value) => setFormData({ ...formData, grade: value })}>
                                 {[...Array(12)].map((_, i) => (
@@ -110,9 +116,9 @@ function Register() {
                                 ))}
                             </Select>
                         </Form.Item>
-                        {error && <p style={{color: 'red', textAlign: 'center'}}>{error}</p>}
+                        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" style={{width: '100%'}}>
+                            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
                                 Register
                             </Button>
                         </Form.Item>
