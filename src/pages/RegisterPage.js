@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -63,9 +63,9 @@ function Register() {
             return;
         }
 
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
         if (!passwordRegex.test(values.password)) {
-            setError("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character");
+            setError("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number");
             return;
         }
 
@@ -110,7 +110,8 @@ function Register() {
                             name="username"
                             rules={[
                                 { required: true, message: 'Please input your username!' },
-                                { max: 10, message: 'Username cannot be longer than 10 characters!' }
+                                { max: 10, message: 'Username cannot be longer than 10 characters!' },
+                                { pattern: /^[a-zA-Z0-9_]+$/, message: 'Username can only include letters, numbers, and underscores, with no spaces.' }
                             ]}
                         >
                             <Input placeholder="Username" onChange={handleChange} />
@@ -138,8 +139,8 @@ function Register() {
                             rules={[
                                 { required: true, message: 'Please input your password!' },
                                 {
-                                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                                    message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character'
+                                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
+                                    message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number'
                                 }
                             ]}
                         >

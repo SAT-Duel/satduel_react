@@ -153,6 +153,7 @@ const Match = () => {
             }
             setMatching(true);
             await getStatus();
+            startMatchingTimeout();
         } catch (err) {
             console.error('Error making a match:', err);
             message.error(err.response.data.error || 'An error occurred while making a match.');
@@ -194,6 +195,7 @@ const Match = () => {
         } catch (err) {
         }
     };
+
     const handleCancel = async () => {
         try {
             await axios.post('/api/match/cancel_match/', {
@@ -206,6 +208,15 @@ const Match = () => {
             console.error('Error canceling the match:', err);
             message.error(err.response.data.error || 'An error occurred while canceling the match.');
         }
+    };
+
+    const startMatchingTimeout = () => {
+        setTimeout(async () => {
+            if (matching) {
+                await handleCancel();
+                message.info('We can\'t find you an opponent. Please try again later.');
+            }
+        }, 1);
     };
 
     useEffect(() => {
@@ -234,6 +245,17 @@ const Match = () => {
             rejoinRoom();
         }
     }, [loading]);
+
+    useEffect(() => {
+        const handleBeforeUnload = async (event) => {
+            if (matching) {
+                await handleCancel();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [matching]);
 
     return (
         <Container>
