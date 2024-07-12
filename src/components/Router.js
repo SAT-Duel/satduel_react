@@ -13,6 +13,7 @@ import MainLayout from "../layout/MainLayout";
 import SecondaryLayout from "../layout/SecondaryLayout";
 import BattleResultPage from "../pages/BattleResultPage";
 import MatchLoadingPage from "../pages/MatchLoadingPage";
+import TrainerPage from "../pages/TrainerPage";
 
 function Router() {
     return (
@@ -35,6 +36,7 @@ function Router() {
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
                 <Route path="/battle_result/:roomId" element={<BattleResultPage/>}/>
                 <Route path="/match-loading/:roomId" element={<MatchLoadingPage />} />
+                <Route path="/trainer" element={<TrainerPage/>}/>
             </Route>
         </Routes>
     );

@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Error getting user from cookie', error);
         }
         setLoading(false);
-    }, []);
+    },[loading]);
 
     useEffect(() => {
         if (token) {

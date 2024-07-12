@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import {useAuth} from '../context/AuthContext';
-import {useNavigate, Link} from 'react-router-dom';
-import {Menu} from 'antd';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import { Menu, Button, Drawer } from 'antd';
 import {
     TeamOutlined,
     LoginOutlined,
@@ -10,29 +10,47 @@ import {
     InfoCircleOutlined,
     QuestionCircleOutlined,
     UserAddOutlined,
+    MenuOutlined,
 } from '@ant-design/icons';
-import {Row, Col} from 'antd';
+import { Row, Col } from 'antd';
 import SearchUser from "./SearchUser";
 import styled from "styled-components";
 
-// const Logo = styled(Link)`
-//     font-size: 24px;
-//     font-weight: bold;
-//     color: #1890ff;
-//     margin-right: 24px;
-//     white-space: nowrap; /* Prevent text from wrapping */
-// `;
+const StyledNavbar = styled.div`
+  .ant-row {
+    width: 100%;
+  }
+
+  @media (max-width: 1100px) {
+    .desktop-menu {
+      display: none;
+    }
+    .mobile-menu {
+      display: block;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .desktop-menu {
+      display: block;
+    }
+    .mobile-menu {
+      display: none;
+    }
+  }
+`;
 
 function Navbar() {
-    const {user, logout, loading} = useAuth();
+    const { user, logout, loading } = useAuth();
     const navigate = useNavigate();
     const [username, setUsername] = useState('');
-    const [userItem, setUserItem] = useState([]);
+    const [visible, setVisible] = useState(false);
+
     const userItems = [
         {
             label: 'Hello ' + username + '!',
             key: 'User',
-            icon: <UserOutlined/>,
+            icon: <UserOutlined />,
             children: [
                 {
                     label: 'Profile',
@@ -51,47 +69,50 @@ function Navbar() {
                 },
             ],
         },
-    ]
+    ];
+
     const anonymousItems = [
         {
             label: 'Login',
             key: 'Login',
-            icon: <LoginOutlined/>,
+            icon: <LoginOutlined />,
             onClick: () => navigate('/login'),
         },
         {
             label: 'Signup',
             key: 'Signup',
-            icon: <UserAddOutlined/>,
+            icon: <UserAddOutlined />,
             onClick: () => navigate('/register'),
         },
-    ]
+    ];
+
     const items = [
         {
             label: 'Home',
             key: 'Home',
-            icon: <HomeOutlined/>,
+            icon: <HomeOutlined />,
             onClick: () => navigate('/'),
         },
         {
             label: 'About',
             key: 'About',
-            icon: <InfoCircleOutlined/>,
+            icon: <InfoCircleOutlined />,
             onClick: () => navigate('/about'),
         },
         {
-            label: 'Practice Questions',
-            key: 'Questions',
-            icon: <QuestionCircleOutlined/>,
-            onClick: () => navigate('/questions'),
+            label: 'SAT Trainer',
+            key: 'Trainer',
+            icon: <QuestionCircleOutlined />,
+            onClick: () => navigate('/trainer'),
         },
         {
             label: 'Match',
             key: 'Match',
-            icon: <TeamOutlined/>,
+            icon: <TeamOutlined />,
             onClick: () => navigate('/match'),
         },
     ];
+
     const handleLogout = async () => {
         await logout();
         navigate('/login');
@@ -103,21 +124,47 @@ function Navbar() {
         }
     }, [loading, user]);
 
-    return (
-        <div className="navbar" style={{width: '100%'}}>
-            <Row justify="space-between" align="middle">
-                <Col offset="1" span="11">
-                    <Menu mode="horizontal" items={items}/>
-                </Col>
-                <Col offset="3" span="5">
-                    <SearchUser/>
-                </Col>
-                <Col span="4">
-                    <Menu mode="horizontal" className="user-menu" items={user ? userItems : anonymousItems}/>
-                </Col>
-            </Row>
-        </div>
+    const showDrawer = () => {
+        setVisible(true);
+    };
 
+    const onClose = () => {
+        setVisible(false);
+    };
+
+    return (
+        <StyledNavbar>
+            <div className="navbar" style={{ width: '100%' }}>
+                <Row justify="space-between" align="middle">
+                    <Col xs={20} sm={20} md={11} lg={11} xl={11} offset={1} className="desktop-menu">
+                        <Menu mode="horizontal" items={items} />
+                    </Col>
+                    <Col xs={2} sm={2} md={0} lg={0} xl={0} className="mobile-menu">
+                        <Button type="primary" onClick={showDrawer}>
+                            <MenuOutlined />
+                        </Button>
+                    </Col>
+                    <Col xs={0} sm={0} md={5} lg={5} xl={5} offset={3}>
+                        <SearchUser />
+                    </Col>
+                    <Col xs={0} sm={0} md={4} lg={4} xl={4}>
+                        <Menu mode="horizontal" className="user-menu" items={user ? userItems : anonymousItems} />
+                    </Col>
+                </Row>
+            </div>
+
+            <Drawer
+                title="Menu"
+                placement="left"
+                onClose={onClose}
+                visible={visible}
+            >
+                <Menu mode="vertical" items={items.concat(user ? userItems : anonymousItems)} />
+                <div style={{ marginTop: '20px' }}>
+                    <SearchUser />
+                </div>
+            </Drawer>
+        </StyledNavbar>
     );
 }
 
