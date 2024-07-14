@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,32 @@ import { Form, Input, Button, Card, Typography, Space, Select, message } from 'a
 const { Title } = Typography;
 const { Option } = Select;
 
+const containerStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    background: '#f0f2f5',
+};
+
+const cardStyle = {
+    width: 400,
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    borderRadius: '8px',
+    padding: '20px',
+    backgroundColor: '#ffffff'
+};
+
+const titleStyle = {
+    textAlign: 'center',
+    marginBottom: '20px',
+};
+
+const errorStyle = {
+    color: 'red',
+    textAlign: 'center',
+};
+
 function Register() {
     const [formData, setFormData] = useState({
         username: '',
@@ -14,32 +40,45 @@ function Register() {
         first_name: '',
         last_name: '',
         password: '',
+        confirmPassword: '',
         grade: ''
     });
     const [error, setError] = useState(null);
-
     const navigate = useNavigate();
-    const { login } = useAuth();
+  
+    const { login, loading, user } = useAuth();
+
+    useEffect(() => {
+        if (!loading && user) {
+            navigate('/');
+        }
+    }, [user, navigate, loading]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (values) => {
+        if (values.password !== values.confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(values.password)) {
+            setError("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number");
+            return;
+        }
+
         let userData = null;
         try {
             const response = await axios.post('/api/register/', values);
             userData = response.data;
+            message.success("Registration successful");
         } catch (error) {
-            if (error.response) {
-                const errorData = error.response.data;
-                if (errorData.username) {
-                    message.error(errorData.username[0]);
-                } else {
-                    message.error(errorData.error || "Registration failed");
-                }
-            } else {
-                message.error("Registration failed");
+            message.error(error.response ? error.response.data.error : "Registration failed");
+            if (error.response && error.response.status === 401) {
+                setError(error.response.data.error);
             }
             return;
         }
@@ -48,11 +87,10 @@ function Register() {
                 username: values.username,
                 password: values.password
             });
-            login(userData, response.data.access);
-            message.success("Registration successful", 2);
+            login(userData, response.data.access, response.data.refresh);
             navigate('/');
         } catch (error) {
-            message.error(error.response ? error.response.data.error : "Registration failed");
+            message.error(error.response ? error.response.data.error : "Login failed");
             if (error.response && error.response.status === 401) {
                 setError(error.response.data.error);
             }
@@ -60,16 +98,10 @@ function Register() {
     };
 
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-            background: '#f0f2f5'
-        }}>
-            <Card style={{ width: 400 }}>
+        <div style={containerStyle}>
+            <Card style={cardStyle}>
                 <Space direction="vertical" style={{ width: '100%' }}>
-                    <Title level={2} style={{ textAlign: 'center' }}>Register</Title>
+                    <Title level={2} style={titleStyle}>Register</Title>
                     <Form
                         name="register"
                         initialValues={formData}
@@ -77,14 +109,17 @@ function Register() {
                     >
                         <Form.Item
                             name="username"
-                            rules={[{ required: true, message: 'Please input your username!' }]}
+                            rules={[
+                                { required: true, message: 'Please input your username!' },
+                                { max: 10, message: 'Username cannot be longer than 10 characters!' },
+                                { pattern: /^[a-zA-Z0-9_]+$/, message: 'Username can only include letters, numbers, and underscores, with no spaces.' }
+                            ]}
                         >
                             <Input placeholder="Username" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
                             name="email"
-                            rules={[{ required: true, message: 'Please input your email!' }, { type: 'email', message: 'Please input a valid email!' }]}
-                        >
+                            rules={[{ required: true, message: 'Please input your email!' }]}                        >
                             <Input type="email" placeholder="Email" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
@@ -101,9 +136,21 @@ function Register() {
                         </Form.Item>
                         <Form.Item
                             name="password"
-                            rules={[{ required: true, message: 'Please input your password!' }]}
+                            rules={[
+                                { required: true, message: 'Please input your password!' },
+                                {
+                                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
+                                    message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number'
+                                }
+                            ]}
                         >
                             <Input.Password placeholder="Password" onChange={handleChange} />
+                        </Form.Item>
+                        <Form.Item
+                            name="confirmPassword"
+                            rules={[{ required: true, message: 'Please confirm your password!' }]}
+                        >
+                            <Input.Password placeholder="Confirm Password" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item
                             name="grade"
@@ -116,7 +163,7 @@ function Register() {
                                 ))}
                             </Select>
                         </Form.Item>
-                        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+                        {error && <p style={errorStyle}>{error}</p>}
                         <Form.Item>
                             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
                                 Register

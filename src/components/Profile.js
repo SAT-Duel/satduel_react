@@ -50,7 +50,15 @@ function Profile({ user_id = null }) {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            setProfile(response.data);
+
+            // Condense multiple newlines into a single newline
+            const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
+            setProfile(prevProfile => ({
+                ...prevProfile,
+                ...response.data,
+                biography: condensedBiography
+            }));
+
             setLoadingProfile(false);
         } catch (err) {
             console.error('Error fetching profile:', err);
@@ -71,7 +79,14 @@ function Profile({ user_id = null }) {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            setProfile(response.data);
+
+            // Condense multiple newlines into a single newline
+            const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
+            setProfile(prevProfile => ({
+                ...prevProfile,
+                biography: condensedBiography
+            }));
+
             message.success('Biography updated successfully');
         } catch (error) {
             console.error('Error updating biography:', error);
@@ -131,10 +146,17 @@ function Profile({ user_id = null }) {
                         <Form.Item
                             name="biography"
                             label="Biography"
-                            rules={[{ required: true, message: 'Please enter your biography' }]}
+                            rules={[
+                                { required: true, message: 'Please enter your biography' },
+                                { max: 5000, message: 'Biography cannot be longer than 5000 characters' }
+                            ]}
                             labelCol={{ style: blueStyles.formItemLabel }}
                         >
-                            <Input.TextArea rows={4} defaultValue={profile.biography} />
+                            <Input.TextArea
+                                rows={4}
+                                maxLength={5000}
+                                autoSize={{ minRows: 4, maxRows: 10 }}
+                            />
                         </Form.Item>
                         <Form.Item>
                             <Button

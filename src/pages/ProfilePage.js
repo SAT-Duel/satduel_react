@@ -1,13 +1,16 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import Profile from "../components/Profile";
 import { Tabs } from "antd";
 import FriendList from "../components/FriendList";
-import BattleHistoryPage from "./BattleHistoryPage";
-
+import BattleHistory from "../components/BattleHistory";
 function ProfilePage() {
     const { userId } = useParams();
     const isOwnProfile = !userId;
+
+    useEffect(() => {
+        console.log('userId:', userId);
+    }, [userId]);
 
     const items = [
         {
@@ -18,7 +21,7 @@ function ProfilePage() {
         {
             label: 'Match History',
             key: '2',
-            children: <BattleHistoryPage/>
+            children: <BattleHistory user_id={userId}/>
         },
         ...(isOwnProfile ? [{
             label: 'Friends',

@@ -1,34 +1,39 @@
-import React, {useState} from 'react';
-import {Input, List, Button, message, Select, Opt} from 'antd';
+import React, { useState } from 'react';
+import { Select, message } from 'antd';
 import axios from 'axios';
-import {useAuth} from '../context/AuthContext';
-import {Link, useNavigate} from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SearchUsers = () => {
-    const {token} = useAuth();
+    const { token } = useAuth();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
-
-    const {Option} = Select;
+    const { Option } = Select;
     const navigate = useNavigate();
 
-    const handleSearch = async () => {
-        try {
-            const response = await axios.get(`/api/profile/search/?q=${query}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            setResults(response.data);
-        } catch (error) {
-            console.error('Error searching users:', error);
-            message.error('Failed to search users.');
+    const handleSearch = async (value) => {
+        setQuery(value); // Update the query state with the current search input
+        if (value) {
+            try {
+                const response = await axios.get(`/api/profile/search/?q=${value}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                setResults(response.data.slice(0, 10)); // Limit results to first 10 users
+            } catch (error) {
+                console.error('Error searching users:', error);
+                message.error('Failed to search users.');
+            }
+        } else {
+            setResults([]);
         }
     };
+
     const handleSelect = (value, option) => {
         navigate(`/profile/${option.key}`);
-        setQuery('');  // Clear the input
-        setResults([]);  // Clear the results
+        setQuery(''); // Clear the input
+        setResults([]); // Clear the results
     };
 
     return (
@@ -36,10 +41,12 @@ const SearchUsers = () => {
             <Select
                 showSearch
                 placeholder="Search for users"
-                style={{width: 300}}
+                style={{ width: 300 }}
+                value={query}
                 onSearch={handleSearch}
                 onChange={value => setQuery(value)}
                 onSelect={handleSelect}
+                filterOption={false} // Disable default filtering behavior
             >
                 {results.map(user => (
                     <Option key={user.id} value={user.username}>

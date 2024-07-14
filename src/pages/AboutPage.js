@@ -80,7 +80,7 @@ const valuesIcons = {
 
 function AboutPage() {
     useEffect(() => {
-        Aos.init({ duration: 1000 });
+        Aos.init({ duration: 1000, once: true });
     }, []);
 
     const teamMembers = [
@@ -120,7 +120,7 @@ function AboutPage() {
             <ContentSection>
                 <Content style={{ padding: '0 50px', maxWidth: '1200px', margin: '0 auto' }}>
                     <Row gutter={[48, 48]}>
-                        <Col xs={24} md={8} data-aos="fade-up">
+                        <Col xs={24} md={8} data-aos="fade-up" data-aos-delay="100">
                             <StyledCard>
                                 <IconWrapper>
                                     <HistoryOutlined />
@@ -132,7 +132,7 @@ function AboutPage() {
                                 </Paragraph>
                             </StyledCard>
                         </Col>
-                        <Col xs={24} md={8} data-aos="fade-up">
+                        <Col xs={24} md={8} data-aos="fade-up" data-aos-delay="200">
                             <StyledCard>
                                 <IconWrapper>
                                     <TrophyOutlined />
@@ -144,7 +144,7 @@ function AboutPage() {
                                 </Paragraph>
                             </StyledCard>
                         </Col>
-                        <Col xs={24} md={8} data-aos="fade-up">
+                        <Col xs={24} md={8} data-aos="fade-up" data-aos-delay="300">
                             <StyledCard>
                                 <IconWrapper>
                                     <TeamOutlined />
@@ -165,7 +165,7 @@ function AboutPage() {
                     </Title>
                     <Row gutter={[24, 24]} justify="center">
                         {teamMembers.map((member, index) => (
-                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up">
+                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up" data-aos-delay={`${index * 100}`}>
                                 <TeamMemberCard>
                                     <Avatar size={128} src={member.avatar} />
                                     <Title level={4} style={{ marginTop: '20px', marginBottom: '5px' }}>{member.name}</Title>
@@ -182,7 +182,7 @@ function AboutPage() {
                     </Title>
                     <Row gutter={[24, 24]}>
                         {['Innovation', 'Excellence', 'Accessibility', 'Engagement'].map((value, index) => (
-                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up">
+                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up" data-aos-delay={`${index * 100}`}>
                                 <ValuesCard>
                                     {valuesIcons[value]}
                                     <Title level={4} style={{ marginTop: '20px' }}>{value}</Title>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from "axios";
 import Cookies from 'js-cookie';
+import {message} from 'antd';
 
 const AuthContext = createContext(null);
 
@@ -14,6 +15,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setToken(accessToken);
         setRefreshToken(refreshToken);
+        console.log(refreshToken)
         Cookies.set('accessToken', JSON.stringify(accessToken), { expires: 1, secure: true });
         Cookies.set('refreshToken', JSON.stringify(refreshToken), { expires: 7, secure: true });
         Cookies.set('user', JSON.stringify(userData), { expires: 7, secure: true });
@@ -28,7 +30,7 @@ export const AuthProvider = ({ children }) => {
             Cookies.remove('accessToken');
             Cookies.remove('refreshToken');
             Cookies.remove('user');
-            alert(response.data.message);
+            message.success(response.data.message);
         } catch (error) {
             console.error('Logout failed', error);
         }
@@ -60,7 +62,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Error getting user from cookie', error);
         }
         setLoading(false);
-    }, []);
+    },[loading]);
 
     useEffect(() => {
         if (token) {

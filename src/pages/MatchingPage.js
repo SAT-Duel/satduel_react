@@ -128,7 +128,7 @@ const sentences = [
     "Preparing your battle arena..."
 ];
 
-const Match = ({setRoomId}) => {
+const Match = () => {
     const {token, loading} = useAuth();
     const [matching, setMatching] = useState(false);
     const [roomId, setRoomIdInternal] = useState(null);
@@ -147,11 +147,13 @@ const Match = ({setRoomId}) => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            setRoomId(response.data.id);
             setRoomIdInternal(response.data.id);
+            if (response.data.full === 'true') {
+                navigate(`/match-loading/${response.data.id}`);
+            }
             setMatching(true);
-            console.log(response.data);
             await getStatus();
+            startMatchingTimeout();
         } catch (err) {
             console.error('Error making a match:', err);
             message.error(err.response.data.error || 'An error occurred while making a match.');
@@ -193,6 +195,7 @@ const Match = ({setRoomId}) => {
         } catch (err) {
         }
     };
+
     const handleCancel = async () => {
         try {
             await axios.post('/api/match/cancel_match/', {
@@ -205,6 +208,15 @@ const Match = ({setRoomId}) => {
             console.error('Error canceling the match:', err);
             message.error(err.response.data.error || 'An error occurred while canceling the match.');
         }
+    };
+
+    const startMatchingTimeout = () => {
+        setTimeout(async () => {
+            if (matching) {
+                await handleCancel();
+                message.info('We can\'t find you an opponent. Please try again later.');
+            }
+        }, 1);
     };
 
     useEffect(() => {
@@ -233,6 +245,17 @@ const Match = ({setRoomId}) => {
             rejoinRoom();
         }
     }, [loading]);
+
+    useEffect(() => {
+        const handleBeforeUnload = async (event) => {
+            if (matching) {
+                await handleCancel();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [matching]);
 
     return (
         <Container>
