@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Form, Input, Button, Card, Typography, Space, Select, message } from 'antd';
+import {useNavigate} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
+import {Form, Input, Button, Card, Typography, Space, Select, message} from 'antd';
+import api from "../components/api";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -31,6 +32,7 @@ const titleStyle = {
 const errorStyle = {
     color: 'red',
     textAlign: 'center',
+    whitespace: 'pre-wrap',
 };
 
 function Register() {
@@ -45,7 +47,6 @@ function Register() {
     });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-  
     const { login, loading, user } = useAuth();
 
     useEffect(() => {
@@ -55,7 +56,7 @@ function Register() {
     }, [user, navigate, loading]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFormData({...formData, [e.target.name]: e.target.value});
     };
 
     const handleSubmit = async (values) => {
@@ -69,38 +70,32 @@ function Register() {
             setError("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number");
             return;
         }
-
-        let userData = null;
+        const payload = {
+            username: values.username,
+            email: values.email,
+            first_name: values.first_name,
+            last_name: values.last_name,
+            password1: values.password,
+            password2: values.confirmPassword,
+            grade: values.grade
+        };
         try {
-            const response = await axios.post('/api/register/', values);
-            userData = response.data;
+            await api.post('/api/register/', payload);
             message.success("Registration successful");
+            navigate('/email_verification');
         } catch (error) {
-            message.error(error.response ? error.response.data.error : "Registration failed");
-            if (error.response && error.response.status === 401) {
-                setError(error.response.data.error);
-            }
-            return;
-        }
-        try {
-            const response = await axios.post('/api/token/', {
-                username: values.username,
-                password: values.password
+            const errors = error.response.data;
+            const errorList = Object.values(errors).flat();
+            errorList.forEach((error) => {
+                message.error(error);
             });
-            login(userData, response.data.access, response.data.refresh);
-            navigate('/');
-        } catch (error) {
-            message.error(error.response ? error.response.data.error : "Login failed");
-            if (error.response && error.response.status === 401) {
-                setError(error.response.data.error);
-            }
         }
     };
 
     return (
         <div style={containerStyle}>
             <Card style={cardStyle}>
-                <Space direction="vertical" style={{ width: '100%' }}>
+                <Space direction="vertical" style={{width: '100%'}}>
                     <Title level={2} style={titleStyle}>Register</Title>
                     <Form
                         name="register"
@@ -110,54 +105,59 @@ function Register() {
                         <Form.Item
                             name="username"
                             rules={[
-                                { required: true, message: 'Please input your username!' },
-                                { max: 10, message: 'Username cannot be longer than 10 characters!' },
-                                { pattern: /^[a-zA-Z0-9_]+$/, message: 'Username can only include letters, numbers, and underscores, with no spaces.' }
+                                {required: true, message: 'Please input your username!'},
+                                {max: 10, message: 'Username cannot be longer than 10 characters!'},
+                                {
+                                    pattern: /^[a-zA-Z0-9_]+$/,
+                                    message: 'Username can only include letters, numbers, and underscores, with no spaces.'
+                                }
                             ]}
                         >
-                            <Input placeholder="Username" onChange={handleChange} />
+                            <Input placeholder="Username" onChange={handleChange}/>
                         </Form.Item>
                         <Form.Item
                             name="email"
-                            rules={[{ required: true, message: 'Please input your email!' }]}                        >
-                            <Input type="email" placeholder="Email" onChange={handleChange} />
+                            rules={[{required: true, message: 'Please input your email!'}]}
+                        >
+                            <Input type="email" placeholder="Email" onChange={handleChange}/>
                         </Form.Item>
                         <Form.Item
                             name="first_name"
-                            rules={[{ required: true, message: 'Please input your first name!' }]}
+                            rules={[{required: true, message: 'Please input your first name!'}]}
                         >
-                            <Input placeholder="First Name" onChange={handleChange} />
+                            <Input placeholder="First Name" onChange={handleChange}/>
                         </Form.Item>
                         <Form.Item
                             name="last_name"
-                            rules={[{ required: true, message: 'Please input your last name!' }]}
+                            rules={[{required: true, message: 'Please input your last name!'}]}
                         >
-                            <Input placeholder="Last Name" onChange={handleChange} />
+                            <Input placeholder="Last Name" onChange={handleChange}/>
                         </Form.Item>
                         <Form.Item
                             name="password"
                             rules={[
-                                { required: true, message: 'Please input your password!' },
+                                {required: true, message: 'Please input your password!'},
                                 {
                                     pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
                                     message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number'
                                 }
                             ]}
                         >
-                            <Input.Password placeholder="Password" onChange={handleChange} />
+                            <Input.Password placeholder="Password" onChange={handleChange}/>
                         </Form.Item>
                         <Form.Item
                             name="confirmPassword"
-                            rules={[{ required: true, message: 'Please confirm your password!' }]}
+                            rules={[{required: true, message: 'Please confirm your password!'}]}
                         >
-                            <Input.Password placeholder="Confirm Password" onChange={handleChange} />
+                            <Input.Password placeholder="Confirm Password" onChange={handleChange}/>
                         </Form.Item>
                         <Form.Item
                             name="grade"
                             label="Select Grade"
-                            rules={[{ required: true, message: 'Please select your grade!' }]}
+                            rules={[{required: true, message: 'Please select your grade!'}]}
                         >
-                            <Select placeholder="Select Grade" onChange={(value) => setFormData({ ...formData, grade: value })}>
+                            <Select placeholder="Select Grade"
+                                    onChange={(value) => setFormData({...formData, grade: value})}>
                                 {[...Array(12)].map((_, i) => (
                                     <Option key={i} value={i + 1}>{i + 1}</Option>
                                 ))}
@@ -165,7 +165,7 @@ function Register() {
                         </Form.Item>
                         {error && <p style={errorStyle}>{error}</p>}
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+                            <Button type="primary" htmlType="submit" style={{width: '100%'}}>
                                 Register
                             </Button>
                         </Form.Item>

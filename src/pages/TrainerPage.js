@@ -9,6 +9,7 @@ import {
     StarOutlined, CrownOutlined, TeamOutlined, BulbOutlined, SmileOutlined, RiseOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
+import {Link} from "react-router-dom";
 
 const {Content} = Layout;
 const {Title, Paragraph} = Typography;
@@ -143,11 +144,11 @@ const AdvantageCard = styled(Card)`
     }
 `;
 
-// const IconWrapper = styled.div`
-//   font-size: 48px;
-//   margin-bottom: 20px;
-//   color: #0072ff;
-// `;
+const IconWrapperAdvantage = styled.div`
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #0072ff;
+`;
 
 const TrainerPage = () => {
     const advantages = [
@@ -176,21 +177,24 @@ const TrainerPage = () => {
     const trainingModes = [
         {
             icon: <RocketOutlined/>,
-            title: "Rapid Booster",
+            title: "Infinite Questions",
             description: "Accelerate your learning with quick, focused practice sessions.",
-            gradient: "linear-gradient(135deg, #FF4E50 0%, #F9D423 100%)"
+            gradient: "linear-gradient(135deg, #FF4E50 0%, #F9D423 100%)",
+            link: "/infinite_questions"
         },
         {
             icon: <ThunderboltOutlined/>,
             title: "Power Sprint",
             description: "Intense, timed challenges to sharpen your skills under pressure.",
-            gradient: "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)"
+            gradient: "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)",
+            link: "/power_sprint"
         },
         {
             icon: <FireOutlined/>,
-            title: "Mastery Forge",
+            title: "SAT Survival",
             description: "Build unbreakable knowledge through progressive difficulty levels.",
-            gradient: "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)"
+            gradient: "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)",
+            link: "/sat_survival"
         }
     ];
 
@@ -215,9 +219,9 @@ const TrainerPage = () => {
                                 <IconWrapper>{mode.icon}</IconWrapper>
                                 <CardTitle level={3}>{mode.title}</CardTitle>
                                 <CardDescription>{mode.description}</CardDescription>
-                                <StyledButton size="large">
-                                    Start Training
-                                </StyledButton>
+                                <Link to={mode.link}>
+                                    <StyledButton size="large">Start Training</StyledButton>
+                                </Link>
                             </StyledCard>
                         </Col>
                     ))}
@@ -229,7 +233,7 @@ const TrainerPage = () => {
                         {advantages.map((advantage, index) => (
                             <Col xs={24} sm={12} md={6} key={index}>
                                 <AdvantageCard>
-                                    <IconWrapper>{advantage.icon}</IconWrapper>
+                                    <IconWrapperAdvantage>{advantage.icon}</IconWrapperAdvantage>
                                     <Title level={4}>{advantage.title}</Title>
                                     <Paragraph>{advantage.description}</Paragraph>
                                 </AdvantageCard>
