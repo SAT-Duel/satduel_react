@@ -45,6 +45,7 @@ function Register() {
     });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+  
     const { login, loading, user } = useAuth();
 
     useEffect(() => {
@@ -118,8 +119,7 @@ function Register() {
                         </Form.Item>
                         <Form.Item
                             name="email"
-                            rules={[{ required: true, message: 'Please input your email!' }]}
-                        >
+                            rules={[{ required: true, message: 'Please input your email!' }]}                        >
                             <Input type="email" placeholder="Email" onChange={handleChange} />
                         </Form.Item>
                         <Form.Item

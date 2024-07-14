@@ -16,6 +16,12 @@ const PageHeader = styled.div`
     position: relative;
 `;
 
+const GradientText = styled.span`
+    background: linear-gradient(90deg, #da33ff, #33FFF3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+`;
+
 const ContentSection = styled.div`
     padding: 50px 0;
     background-color: #f9f9f9;
@@ -103,13 +109,14 @@ function AboutPage() {
     return (
         <Layout>
             <PageHeader>
-                <Title level={1} style={{color: 'white', marginBottom: '20px'}}>About Us</Title>
-                <Paragraph style={{color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto'}}>
+            <Title level={1} style={{ color: 'white', marginBottom: '20px' }}>
+                <GradientText>About Us</GradientText>
+            </Title>
+            <Paragraph style={{ color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}>
                     We're on a mission to revolutionize SAT preparation through innovative technology and engaging
-                    learning experiences.
-                </Paragraph>
-            </PageHeader>
-
+                    learning experiences.x
+            </Paragraph>
+        </PageHeader>
             <ContentSection>
                 <Content style={{ padding: '0 50px', maxWidth: '1200px', margin: '0 auto' }}>
                     <Row gutter={[48, 48]}>
