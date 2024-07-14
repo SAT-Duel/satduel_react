@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
-import { Form, Input, Button, Card, Typography, Space } from 'antd';
+import {Form, Input, Button, Card, Typography, Space, message} from 'antd';
 
 const { Title } = Typography;
 
@@ -56,6 +56,7 @@ function Login() {
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 setError('Invalid username or password');
+                message.error(error.response.data.error)
             } else {
                 setError('An error occurred during login');
             }

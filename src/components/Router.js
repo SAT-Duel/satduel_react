@@ -14,6 +14,9 @@ import SecondaryLayout from "../layout/SecondaryLayout";
 import BattleResultPage from "../pages/BattleResultPage";
 import MatchLoadingPage from "../pages/MatchLoadingPage";
 import TrainerPage from "../pages/TrainerPage";
+import InfiniteQuestionPage from "../pages/InfiniteQuestionPage";
+import ConfirmEmail from "./ConfirmEmail";
+import EmailVerificationPage from "../pages/EmailVerificationPage";
 
 function Router() {
     return (
@@ -31,12 +34,15 @@ function Router() {
                 <Route path="/" element={<HomePage/>}/>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
+                <Route path="/confirm-email/:key" element={<ConfirmEmail/>}/>
+                <Route path="/email_verification" element={<EmailVerificationPage/>}/>
                 <Route path="/about" element={<AboutPage/>}/>
                 <Route path="/match" element={<Match/>}/>
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
                 <Route path="/battle_result/:roomId" element={<BattleResultPage/>}/>
-                <Route path="/match-loading/:roomId" element={<MatchLoadingPage />} />
+                <Route path="/match-loading/:roomId" element={<MatchLoadingPage/>}/>
                 <Route path="/trainer" element={<TrainerPage/>}/>
+                <Route path="/infinite_questions" element={<InfiniteQuestionPage/>}/>
             </Route>
         </Routes>
     );
