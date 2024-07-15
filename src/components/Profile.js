@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import { useAuth } from "../context/AuthContext";
-import { Card, Form, Input, Button, message } from "antd";
-import { blue } from '@ant-design/colors';
+import {useAuth} from "../context/AuthContext";
+import {Card, Form, Input, Button, message} from "antd";
+import {blue} from '@ant-design/colors';
 
 const blueStyles = {
     card: {
@@ -29,7 +29,7 @@ const blueStyles = {
     }
 };
 
-function Profile({ user_id = null }) {
+function Profile({user_id = null}) {
     const [profile, setProfile] = useState({
         user: {
             username: '',
@@ -39,35 +39,34 @@ function Profile({ user_id = null }) {
         grade: ''
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
-    const { token, loading } = useAuth();
+    const {token, loading} = useAuth();
     const isOwnProfile = user_id === null;
 
-    const fetchProfile = async () => {
-        try {
-            const url = isOwnProfile ? '/api/profile/' : `/api/profile/view_profile/${user_id}/`;
-            const response = await axios.get(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            // Condense multiple newlines into a single newline
-            const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
-            setProfile(prevProfile => ({
-                ...prevProfile,
-                ...response.data,
-                biography: condensedBiography
-            }));
-
-            setLoadingProfile(false);
-        } catch (err) {
-            console.error('Error fetching profile:', err);
-            message.error('Failed to load profile');
-            setLoadingProfile(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const url = isOwnProfile ? '/api/profile/' : `/api/profile/view_profile/${user_id}/`;
+                const response = await axios.get(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                // Condense multiple newlines into a single newline
+                const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
+                setProfile(prevProfile => ({
+                    ...prevProfile,
+                    ...response.data,
+                    biography: condensedBiography
+                }));
+
+                setLoadingProfile(false);
+            } catch (err) {
+                console.error('Error fetching profile:', err);
+                message.error('Failed to load profile');
+                setLoadingProfile(false);
+            }
+        };
         if (!loading) fetchProfile();
     }, [user_id, token, loading]);
 
@@ -97,7 +96,7 @@ function Profile({ user_id = null }) {
     const sendFriendRequest = async () => {
         try {
             await axios.post('/api/profile/send_friend_request/',
-                { to_user_id: user_id },
+                {to_user_id: user_id},
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -140,22 +139,22 @@ function Profile({ user_id = null }) {
                 <Card title="Edit Biography" style={blueStyles.card} headStyle={blueStyles.cardHeader}>
                     <Form
                         name="biography"
-                        initialValues={{ biography: profile.biography }}
+                        initialValues={{biography: profile.biography}}
                         onFinish={onFinish}
                     >
                         <Form.Item
                             name="biography"
                             label="Biography"
                             rules={[
-                                { required: true, message: 'Please enter your biography' },
-                                { max: 5000, message: 'Biography cannot be longer than 5000 characters' }
+                                {required: true, message: 'Please enter your biography'},
+                                {max: 5000, message: 'Biography cannot be longer than 5000 characters'}
                             ]}
-                            labelCol={{ style: blueStyles.formItemLabel }}
+                            labelCol={{style: blueStyles.formItemLabel}}
                         >
                             <Input.TextArea
                                 rows={4}
                                 maxLength={5000}
-                                autoSize={{ minRows: 4, maxRows: 10 }}
+                                autoSize={{minRows: 4, maxRows: 10}}
                             />
                         </Form.Item>
                         <Form.Item>

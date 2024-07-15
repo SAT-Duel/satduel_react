@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {Layout, message, Spin, Table, Typography} from 'antd';
-import {useAuth} from '../context/AuthContext';
+import React, { useEffect, useState } from 'react';
+import { Layout, message, Spin, Table, Typography } from 'antd';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import styled from 'styled-components';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -38,30 +38,30 @@ const MatchHistory = ({ user_id = null }) => {
     const isOwnHistory = user_id === null;
 
     useEffect(() => {
+        const fetchMatchHistory = async () => {
+            try {
+                const url = isOwnHistory ? '/api/match/get_match_history/' : `/api/match/get_match_history/${user_id}/`;
+                const response = await axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                setMatches(response.data);
+                if (!isOwnHistory && response.data.length > 0) {
+                    const viewingUser = user_id.toString() === response.data[0].user1.id.toString() ? response.data[0].user1 : response.data[0].user2;
+                    setViewingUser(viewingUser);
+                }
+                setLoadingHistory(false);
+            } catch (error) {
+                message.error(error.response?.data?.error || 'Failed to load match history. Please try again later.');
+                setLoadingHistory(false);
+            }
+        };
+
         if (!loading) {
             fetchMatchHistory();
         }
-    }, [loading]);
-
-    const fetchMatchHistory = async () => {
-        try {
-            const url = isOwnHistory ? '/api/match/get_match_history/' : `/api/match/get_match_history/${user_id}/`;
-            const response = await axios.get(url, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            setMatches(response.data);
-            if (!isOwnHistory && response.data.length > 0) {
-                const viewingUser = user_id.toString() === response.data[0].user1.id.toString() ? response.data[0].user1 : response.data[0].user2;
-                setViewingUser(viewingUser);
-            }
-            setLoadingHistory(false);
-        } catch (error) {
-            message.error(error.response?.data?.error || 'Failed to load match history. Please try again later.');
-            setLoadingHistory(false);
-        }
-    };
+    }, [token, user_id, loading, isOwnHistory]);
 
     const columns = [
         {
@@ -78,7 +78,7 @@ const MatchHistory = ({ user_id = null }) => {
             key: 'opponent',
             render: (text, record) => {
                 const currentUser = isOwnHistory ? user : viewingUser;
-                return record.user1.username === currentUser.username ? record.user2.username : record.user1.username
+                return record.user1.username === currentUser.username ? record.user2.username : record.user1.username;
             }
         },
         {
@@ -87,7 +87,7 @@ const MatchHistory = ({ user_id = null }) => {
             render: (text, record) => {
                 const currentUser = isOwnHistory ? user : viewingUser;
                 const isUser1 = record.user1.username === currentUser.username;
-                return record.winner === null ? 'Draw' : record.winner === (isUser1 ? record.user1.id : record.user2.id) ? 'Win' : 'Loss'
+                return record.winner === null ? 'Draw' : record.winner === (isUser1 ? record.user1.id : record.user2.id) ? 'Win' : 'Loss';
             }
         },
         {
@@ -96,7 +96,7 @@ const MatchHistory = ({ user_id = null }) => {
             render: (text, record) => {
                 const currentUser = isOwnHistory ? user : viewingUser;
                 const isUser1 = record.user1.username === currentUser.username;
-                return isUser1 ? `${record.user1_score} - ${record.user2_score}` : `${record.user2_score} - ${record.user1_score}`
+                return isUser1 ? `${record.user1_score} - ${record.user2_score}` : `${record.user2_score} - ${record.user1_score}`;
             }
         }
     ];
