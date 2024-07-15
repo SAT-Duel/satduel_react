@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import Question from '../components/Question';
 import axios from "axios";
-import PowerSprintHome from "./PowerSprintHome";
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const PageContainer = styled.div`
     display: flex;
@@ -105,6 +105,7 @@ const NextButton = styled.button`
     }
 `;
 
+
 const TimeUpMessage = styled.h2`
     color: #4b0082;
     text-align: center;
@@ -112,10 +113,13 @@ const TimeUpMessage = styled.h2`
     font-size: 2rem;
 `;
 
-function PowerSprintPage() {   const [gameSettings, setGameSettings] = useState(null);
+function PowerSprintPage() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [gameSettings, setGameSettings] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
-    const [loading, setLoading] = useState(false);  // Changed to false initially
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [stats, setStats] = useState({
         questionsAnswered: 0,
@@ -126,13 +130,41 @@ function PowerSprintPage() {   const [gameSettings, setGameSettings] = useState(
     const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [fadeOutQuestion, setFadeOutQuestion] = useState(false);
     const [hideQuestion, setHideQuestion] = useState(false);
+    const [showNextButton, setShowNextButton] = useState(false);
 
-    const handleStartGame = (settings) => {
-        setGameSettings(settings);
-        setTimeLeft(settings.timer);
-        setIsTimerRunning(true);
-        fetchNextQuestion(settings.difficulty);
-    };
+    const fetchNextQuestion = useCallback(async (difficulty) => {
+        if (!isTimerRunning) return;
+
+        try {
+            setLoading(true);
+            const response = await axios.get(`/api/questions/?num=1&difficulty=${difficulty}`);
+            setCurrentQuestion(response.data[0]);
+            setQuestionStatus('Blank');
+            setShowNextButton(false);
+        } catch (error) {
+            setError(`An error occurred: ${error.response ? error.response.data : 'Server unreachable'}`);
+            console.error("Error fetching question:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [isTimerRunning]);
+
+    useEffect(() => {
+        if (location.state && location.state.gameSettings) {
+            setGameSettings(location.state.gameSettings);
+            setTimeLeft(location.state.gameSettings.timer);
+            setIsTimerRunning(true);
+        } else {
+            navigate('/'); // Redirect to home if no game settings
+        }
+    }, [location, navigate]);
+
+    useEffect(() => {
+        if (gameSettings && isTimerRunning) {
+            fetchNextQuestion(gameSettings.difficulty);
+        }
+    }, [gameSettings, isTimerRunning, fetchNextQuestion]);
+
     useEffect(() => {
         if (isTimerRunning && timeLeft > 0) {
             const timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -144,23 +176,7 @@ function PowerSprintPage() {   const [gameSettings, setGameSettings] = useState(
         }
     }, [timeLeft, isTimerRunning]);
 
-    const fetchNextQuestion = useCallback(async (difficulty) => {
-        if (!isTimerRunning) return;
-
-        try {
-            setLoading(true);
-            const response = await axios.get(`/api/questions/?num=1&difficulty=${difficulty}`);
-            setCurrentQuestion(response.data[0]);
-            setQuestionStatus('Blank');
-        } catch (error) {
-            setError(`An error occurred: ${error.response ? error.response.data : 'Server unreachable'}`);
-            console.error("Error fetching question:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [isTimerRunning]);
-
-        const handleQuestionSubmit = async (id, choice) => {
+    const handleQuestionSubmit = async (id, choice) => {
         if (!isTimerRunning) return;
 
         try {
@@ -171,6 +187,7 @@ function PowerSprintPage() {   const [gameSettings, setGameSettings] = useState(
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
             updateStats(isCorrect);
+            setShowNextButton(true);
         } catch (error) {
             setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
         }
@@ -190,15 +207,20 @@ function PowerSprintPage() {   const [gameSettings, setGameSettings] = useState(
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
-    if (loading) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
-    if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
+    const exportStats = () => {
+        const dataStr = JSON.stringify(stats);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = 'game_stats.json';
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    };
 
     if (!gameSettings) {
-        return <PowerSprintHome onStartGame={handleStartGame} />;
+        return <PageContainer><p>Please initialize PowerSprint through start page</p></PageContainer>;
     }
-
-    if (loading) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
-    if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
 
     return (
         <PageContainer>
@@ -206,19 +228,28 @@ function PowerSprintPage() {   const [gameSettings, setGameSettings] = useState(
                 {!hideQuestion && (
                     <QuestionContainer fadeOut={fadeOutQuestion}>
                         <Timer isLow={timeLeft <= 60}>{formatTime(timeLeft)}</Timer>
-                        {currentQuestion && (
-                            <Question
-                                questionData={currentQuestion}
-                                onSubmit={handleQuestionSubmit}
-                                status={questionStatus}
-                                questionNumber={stats.questionsAnswered + 1}
-                                disabled={!isTimerRunning}
-                            />
-                        )}
-                        {questionStatus !== 'Blank' && (
-                            <NextButton onClick={() => fetchNextQuestion(gameSettings.difficulty)} disabled={!isTimerRunning}>
-                                {isTimerRunning ? 'Next Question' : 'Time\'s Up!'}
-                            </NextButton>
+                        {loading ? (
+                            <p>Loading question... Please wait...</p>
+                        ) : error ? (
+                            <p>Error loading question: {error}</p>
+                        ) : currentQuestion && (
+                            <>
+                                <Question
+                                    questionData={currentQuestion}
+                                    onSubmit={handleQuestionSubmit}
+                                    status={questionStatus}
+                                    questionNumber={stats.questionsAnswered + 1}
+                                    disabled={!isTimerRunning || showNextButton}
+                                />
+                                {showNextButton && (
+                                    <NextButton
+                                        onClick={() => fetchNextQuestion(gameSettings.difficulty)}
+                                        disabled={!isTimerRunning}
+                                    >
+                                        Next Question
+                                    </NextButton>
+                                )}
+                            </>
                         )}
                     </QuestionContainer>
                 )}
@@ -245,6 +276,11 @@ function PowerSprintPage() {   const [gameSettings, setGameSettings] = useState(
                                 : 'N/A'}
                         </StatValue>
                     </StatItem>
+                    {!isTimerRunning && (
+                        <NextButton onClick={exportStats}>
+                            Download Stats
+                        </NextButton>
+                    )}
                 </StatsContainer>
             </ContentWrapper>
         </PageContainer>

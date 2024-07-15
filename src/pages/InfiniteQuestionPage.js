@@ -106,7 +106,7 @@ function InfiniteQuestionsPage() {
 
     useEffect(() => {
         fetchNextQuestion();
-    }, [fetchNextQuestion]);
+    }, []);
 
     const handleQuestionSubmit = async (id, choice) => {
         try {

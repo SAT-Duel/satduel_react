@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Select, Button, Typography } from 'antd';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -46,7 +47,7 @@ function PowerSprintHome({ onStartGame }) {
     const [timerSetting, setTimerSetting] = useState('rapid');
     const [customMinutes, setCustomMinutes] = useState(5);
     const [customSeconds, setCustomSeconds] = useState(0);
-
+    const navigate = useNavigate();
     const handleSubmit = (e) => {
         e.preventDefault();
         const gameSettings = {
@@ -55,7 +56,7 @@ function PowerSprintHome({ onStartGame }) {
                 ? customMinutes * 60 + customSeconds
                 : getPresetTime(timerSetting),
         };
-        onStartGame(gameSettings);
+        navigate('/power_sprint', { state: { gameSettings } });
     };
 
     const getPresetTime = (preset) => {
@@ -148,9 +149,9 @@ function PowerSprintHome({ onStartGame }) {
                     )}
 
                     <Form.Item>
-                        <Button type="primary" htmlType="submit" style={{ width: '100%' }} onClick={startMatch}>
-                    Start Game
-                </Button>
+                        <Button type="primary" htmlType="submit" style={{ width: '100%' }} onClick={handleSubmit}>
+                            Start Game
+                        </Button>
                     </Form.Item>
                 </StyledForm>
             </FormContainer>

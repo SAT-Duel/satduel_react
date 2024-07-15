@@ -17,6 +17,10 @@ import TrainerPage from "../pages/TrainerPage";
 import InfiniteQuestionPage from "../pages/InfiniteQuestionPage";
 import ConfirmEmail from "./ConfirmEmail";
 import EmailVerificationPage from "../pages/EmailVerificationPage";
+import PowerSprintHome from "../pages/PowerSprintHome";
+import PowerSprintPage from "../pages/PowerSprintPage";
+import SATSurvivalHomepage from "../pages/SATSurvivalHomepage";
+import SATSurvivalPage from "../pages/SATSurvivalPage";
 
 function Router() {
     return (
@@ -43,6 +47,10 @@ function Router() {
                 <Route path="/match-loading/:roomId" element={<MatchLoadingPage/>}/>
                 <Route path="/trainer" element={<TrainerPage/>}/>
                 <Route path="/infinite_questions" element={<InfiniteQuestionPage/>}/>
+                <Route path="/power_sprint_home" element={<PowerSprintHome/>}/>
+                <Route path="/power_sprint" element={<PowerSprintPage/>}/>
+                <Route path={"/sat_survival_home"} element={<SATSurvivalHomepage/>}/>
+                <Route path={"/sat_survival"} element={<SATSurvivalPage/>}/>
             </Route>
         </Routes>
     );

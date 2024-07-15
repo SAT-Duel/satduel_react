@@ -187,7 +187,7 @@ const TrainerPage = () => {
             title: "Power Sprint",
             description: "Intense, timed challenges to sharpen your skills under pressure.",
             gradient: "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)",
-            link: "/power_sprint"
+            link: "/power_sprint_home"
         },
         {
             icon: <FireOutlined/>,
