@@ -16,12 +16,6 @@ const PageHeader = styled.div`
     position: relative;
 `;
 
-const GradientText = styled.span`
-    background: linear-gradient(90deg, #da33ff, #33FFF3);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-`;
-
 const ContentSection = styled.div`
     padding: 50px 0;
     background-color: #f9f9f9;

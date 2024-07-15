@@ -68,7 +68,7 @@ function Profile({user_id = null}) {
             }
         };
         if (!loading) fetchProfile();
-    }, [user_id, token, loading]);
+    }, [user_id, token, loading, isOwnProfile]);
 
     const onFinish = async (values) => {
         if (!isOwnProfile) return;
