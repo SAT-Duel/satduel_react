@@ -12,7 +12,7 @@ const ConfirmEmail = () => {
     useEffect(() => {
         const confirmEmail = async () => {
             try {
-                const response = await axios.post('/auth/registration/verify-email/', {
+                await axios.post('/auth/registration/verify-email/', {
                     key: key
                 });
                 message.success('Email confirmed successfully!');

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Typography, Layout, Spin, message } from 'antd';
-import { useAuth } from '../context/AuthContext';
+import React, {useEffect, useState} from 'react';
+import {Layout, message, Spin, Table, Typography} from 'antd';
+import {useAuth} from '../context/AuthContext';
 import axios from 'axios';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -78,8 +78,7 @@ const MatchHistory = ({ user_id = null }) => {
             key: 'opponent',
             render: (text, record) => {
                 const currentUser = isOwnHistory ? user : viewingUser;
-                const opponentName = record.user1.username === currentUser.username ? record.user2.username : record.user1.username;
-                return opponentName
+                return record.user1.username === currentUser.username ? record.user2.username : record.user1.username
             }
         },
         {
@@ -88,8 +87,7 @@ const MatchHistory = ({ user_id = null }) => {
             render: (text, record) => {
                 const currentUser = isOwnHistory ? user : viewingUser;
                 const isUser1 = record.user1.username === currentUser.username;
-                const result = record.winner === null ? 'Draw' : record.winner === (isUser1 ? record.user1.id : record.user2.id) ? 'Win' : 'Loss';
-                return result
+                return record.winner === null ? 'Draw' : record.winner === (isUser1 ? record.user1.id : record.user2.id) ? 'Win' : 'Loss'
             }
         },
         {
@@ -98,8 +96,7 @@ const MatchHistory = ({ user_id = null }) => {
             render: (text, record) => {
                 const currentUser = isOwnHistory ? user : viewingUser;
                 const isUser1 = record.user1.username === currentUser.username;
-                const score = isUser1 ? `${record.user1_score} - ${record.user2_score}` : `${record.user2_score} - ${record.user1_score}`;
-                return score
+                return isUser1 ? `${record.user1_score} - ${record.user2_score}` : `${record.user2_score} - ${record.user1_score}`
             }
         }
     ];

@@ -1,17 +1,13 @@
 import React from 'react';
-import {Col, Divider, Layout, Row, theme, Typography, Space } from 'antd';
+import {Col, Divider, Layout, Row, Typography, Space } from 'antd';
 import Navbar from "../components/Navbar";
 import {Link, Outlet} from 'react-router-dom';
 import { FacebookOutlined, TwitterOutlined, InstagramOutlined, LinkedinOutlined } from '@ant-design/icons';
 
 const {Header, Content, Footer} = Layout;
 
-const SecondaryLayout = ({children}) => {
-    const {
-        token: {colorBgContainer, borderRadiusLG},
-    } = theme.useToken();
+const SecondaryLayout = () => {
     const {Title, Paragraph} = Typography;
-
     return (
         <Layout>
             <Header className="site-layout-header">

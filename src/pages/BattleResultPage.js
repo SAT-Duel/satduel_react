@@ -163,6 +163,7 @@ function BattleResultPage() {
     const [results, setResults] = useState(null);
     const navigate = useNavigate();
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchResults = async () => {
         try {
             const response = await axios.post('/api/match/get_results/', {
@@ -178,7 +179,7 @@ function BattleResultPage() {
         if (!loading) {
             fetchResults();
         }
-    }, [roomId, loading]);
+    }, [roomId, loading, fetchResults]);
 
     if (!results) {
         return <PageBackground><ResultPageContainer>Loading...</ResultPageContainer></PageBackground>;

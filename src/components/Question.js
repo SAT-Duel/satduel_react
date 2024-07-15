@@ -5,7 +5,7 @@ import styled, {keyframes} from 'styled-components';
 import {useAuth} from "../context/AuthContext";
 import axios from "axios";
 import 'katex/dist/katex.min.css';
-import {InlineMath, BlockMath} from 'react-katex';
+import {InlineMath} from 'react-katex';
 
 const fadeIn = keyframes`
     from {
@@ -129,6 +129,7 @@ function Question({questionData, onSubmit, status, questionNumber}) {
     const [answerChoice, setAnswerChoice] = useState(null);
     const [explanation, setExplanation] = useState(null);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const getAnswer = async () => {
         try {
             const response = await axios.post('/api/get_answer/', {question_id: id});
@@ -163,7 +164,7 @@ function Question({questionData, onSubmit, status, questionNumber}) {
         };
 
         fetchAnswer();
-    }, [status, note]);
+    }, [status, note, getAnswer, answer, answerChoice, loading]);
 
     const handleSubmit = () => {
         if (selectedChoice) {

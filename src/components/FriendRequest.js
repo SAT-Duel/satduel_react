@@ -22,7 +22,7 @@ const FriendRequests = () => {
             }
         };
         if(!loading) fetchFriendRequests();
-    }, [token]);
+    }, [loading, token]);
 
     const respondToRequest = async (requestId, status) => {
         try {

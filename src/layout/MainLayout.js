@@ -6,7 +6,7 @@ import {FacebookOutlined, InstagramOutlined, LinkedinOutlined, TwitterOutlined} 
 
 const {Header, Content, Footer} = Layout;
 
-const MainLayout = ({children}) => {
+const MainLayout = () => {
     const {
         token: {colorBgContainer, borderRadiusLG},
     } = theme.useToken();
