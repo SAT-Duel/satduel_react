@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import styled from 'styled-components';
 import Question from '../components/Question';
 import axios from "axios";
@@ -86,11 +86,7 @@ function InfiniteQuestionsPage() {
         correctAnswers: 0,
         streak: 0,
     });
-
-
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const fetchNextQuestion = useCallback(async () => {
+    const fetchNextQuestion = async () => {
         try {
             setLoading(true);
             const response = await axios.get('/api/questions/?num=1');
@@ -102,11 +98,13 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoading(false);
         }
-    });
+    };
+
+    const fetchNextQuestionRef = useRef(fetchNextQuestion);
 
     useEffect(() => {
-        fetchNextQuestion();
-    }, [fetchNextQuestion]);
+        fetchNextQuestionRef.current();
+    }, []);
 
     const handleQuestionSubmit = async (id, choice) => {
         try {

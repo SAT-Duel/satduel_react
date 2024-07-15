@@ -163,23 +163,23 @@ function BattleResultPage() {
     const [results, setResults] = useState(null);
     const navigate = useNavigate();
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const fetchResults = async () => {
-        try {
-            const response = await axios.post('/api/match/get_results/', {
-                room_id: roomId,
-            });
-            setResults(response.data);
-        } catch (err) {
-            console.error('Error fetching results:', err);
-        }
-    };
 
     useEffect(() => {
+        const fetchResults = async () => {
+            try {
+                const response = await axios.post('/api/match/get_results/', {
+                    room_id: roomId,
+                });
+                setResults(response.data);
+            } catch (err) {
+                console.error('Error fetching results:', err);
+            }
+        };
+
         if (!loading) {
             fetchResults();
         }
-    }, [roomId, loading, fetchResults]);
+    }, [roomId, loading]);
 
     if (!results) {
         return <PageBackground><ResultPageContainer>Loading...</ResultPageContainer></PageBackground>;
