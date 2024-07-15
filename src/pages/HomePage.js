@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {Link} from 'react-router-dom';
-import {Layout, Typography, Button, Row, Col, Card, Divider, Statistic, Avatar, Rate, Steps} from 'antd';
+import {Layout, Typography, Button, Row, Col, Card, Divider, Statistic, Avatar, Rate} from 'antd';
 import {
     ArrowDownOutlined,
     RocketOutlined,

@@ -194,7 +194,7 @@ const TrainerPage = () => {
             title: "SAT Survival",
             description: "Build unbreakable knowledge through progressive difficulty levels.",
             gradient: "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)",
-            link: "/sat_survival"
+            link: "/sat_survival_home"
         }
     ];
 

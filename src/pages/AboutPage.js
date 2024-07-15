@@ -110,7 +110,7 @@ function AboutPage() {
         <Layout>
             <PageHeader>
             <Title level={1} style={{ color: 'white', marginBottom: '20px' }}>
-                <GradientText>About Us</GradientText>
+                About Us
             </Title>
             <Paragraph style={{ color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}>
                     We're on a mission to revolutionize SAT preparation through innovative technology and engaging

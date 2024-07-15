@@ -247,7 +247,7 @@ const Match = () => {
     }, [loading]);
 
     useEffect(() => {
-        const handleBeforeUnload = async (event) => {
+        const handleBeforeUnload = async () => {
             if (matching) {
                 await handleCancel();
             }

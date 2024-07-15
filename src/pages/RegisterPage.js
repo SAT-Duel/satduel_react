@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import {Form, Input, Button, Card, Typography, Space, Select, message} from 'antd';
 import api from "../components/api";
+import GoogleLogin from "../components/GoogleLogin";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -47,7 +47,7 @@ function Register() {
     });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const { login, loading, user } = useAuth();
+    const { loading, user } = useAuth();
 
     useEffect(() => {
         if (!loading && user) {
@@ -170,6 +170,7 @@ function Register() {
                             </Button>
                         </Form.Item>
                     </Form>
+                    <GoogleLogin/>
                 </Space>
             </Card>
         </div>

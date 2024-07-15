@@ -17,6 +17,8 @@ import TrainerPage from "../pages/TrainerPage";
 import InfiniteQuestionPage from "../pages/InfiniteQuestionPage";
 import ConfirmEmail from "./ConfirmEmail";
 import EmailVerificationPage from "../pages/EmailVerificationPage";
+import SATSurvivalHomepage from "../pages/SATSurvivalHomepage";
+import SATSurvivalPage from "../pages/SATSurvivalPage";
 
 function Router() {
     return (
@@ -36,6 +38,7 @@ function Router() {
                 <Route path="/register" element={<RegisterPage/>}/>
                 <Route path="/confirm-email/:key" element={<ConfirmEmail/>}/>
                 <Route path="/email_verification" element={<EmailVerificationPage/>}/>
+
                 <Route path="/about" element={<AboutPage/>}/>
                 <Route path="/match" element={<Match/>}/>
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
@@ -43,6 +46,8 @@ function Router() {
                 <Route path="/match-loading/:roomId" element={<MatchLoadingPage/>}/>
                 <Route path="/trainer" element={<TrainerPage/>}/>
                 <Route path="/infinite_questions" element={<InfiniteQuestionPage/>}/>
+                <Route path="/sat_survival_home" element={<SATSurvivalHomepage/>}/>
+                <Route path="/sat_survival" element={<SATSurvivalPage/>}/>
             </Route>
         </Routes>
     );
