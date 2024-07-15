@@ -75,6 +75,38 @@ const NextButton = styled.button`
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 `;
+const EndButton = styled.button`
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 24px;
+    margin-left: 12px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+`;
+
+const SummaryContainer = styled.div`
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    width: 80%;
+    max-width: 500px;
+    height: 300px;
+    max-height: 80vh;
+    overflow: auto;
+`;
 
 function InfiniteQuestionsPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -86,11 +118,10 @@ function InfiniteQuestionsPage() {
         correctAnswers: 0,
         streak: 0,
     });
+    const [isFinished, setIsFinished] = useState(false);
 
-
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchNextQuestion = useCallback(async () => {
+        if (isFinished) return;
         try {
             setLoading(true);
             const response = await axios.get('/api/questions/?num=1');
@@ -102,13 +133,14 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoading(false);
         }
-    });
+    }, [isFinished]);
 
     useEffect(() => {
         fetchNextQuestion();
-    }, []);
+    }, [fetchNextQuestion]);
 
     const handleQuestionSubmit = async (id, choice) => {
+        if (isFinished) return;
         try {
             const response = await axios.post('/api/check_answer/', {
                 question_id: id,
@@ -130,26 +162,61 @@ function InfiniteQuestionsPage() {
         }));
     };
 
-    if (loading) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
+    const handleEndEarly = () => {
+        setIsFinished(true);
+    };
+
+    if (loading && !isFinished) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
     if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
 
     return (
         <PageContainer>
             <ContentWrapper>
-                <QuestionContainer>
-                    {currentQuestion && (
-                        <Question
-                            questionData={currentQuestion}
-                            onSubmit={handleQuestionSubmit}
-                            status={questionStatus}
-                            questionNumber={stats.questionsAnswered + 1}
-                        />
-                    )}
-                    {questionStatus !== 'Blank' && (
-                        <NextButton onClick={fetchNextQuestion}>Next Question</NextButton>
-                    )}
-                </QuestionContainer>
-                <StatsContainer>
+                {!isFinished ? (
+                    <QuestionContainer>
+                        {currentQuestion && (
+                            <Question
+                                questionData={currentQuestion}
+                                onSubmit={handleQuestionSubmit}
+                                status={questionStatus}
+                                questionNumber={stats.questionsAnswered + 1}
+                            />
+                        )}
+                        {questionStatus !== 'Blank' && (
+                            <>
+                                <NextButton onClick={fetchNextQuestion}>Next Question</NextButton>
+                                <EndButton onClick={handleEndEarly}>End Quiz</EndButton>
+                            </>
+                        )}
+                    </QuestionContainer>
+                ) : (
+                    <SummaryContainer>
+                        <StatsTitle>Quiz Summary</StatsTitle>
+                        <StatItem>
+                            <StatLabel>Total Questions Answered:</StatLabel>
+                            <StatValue>{stats.questionsAnswered}</StatValue>
+                        </StatItem>
+                        <StatItem>
+                            <StatLabel>Correct Answers:</StatLabel>
+                            <StatValue>{stats.correctAnswers}</StatValue>
+                        </StatItem>
+                        <StatItem>
+                            <StatLabel>Final Streak:</StatLabel>
+                            <StatValue>{stats.streak}</StatValue>
+                        </StatItem>
+                        <StatItem>
+                            <StatLabel>Final Accuracy:</StatLabel>
+                            <StatValue>
+                                {stats.questionsAnswered > 0
+                                    ? `${((stats.correctAnswers / stats.questionsAnswered) * 100).toFixed(1)}%`
+                                    : 'N/A'}
+                            </StatValue>
+                        </StatItem>
+                    </SummaryContainer>
+                )}
+
+                {!isFinished && (
+                    <StatsContainer>
                     <StatsTitle>Your Stats</StatsTitle>
                     <StatItem>
                         <StatLabel>Questions Answered:</StatLabel>
@@ -172,6 +239,7 @@ function InfiniteQuestionsPage() {
                         </StatValue>
                     </StatItem>
                 </StatsContainer>
+                )}
             </ContentWrapper>
         </PageContainer>
     );
