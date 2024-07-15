@@ -113,7 +113,7 @@ const renderWithMath = (text) => {
     const parts = text.split(/(\$.*?\$)/);
     return parts.map((part, index) => {
         if (part.startsWith('$') && part.endsWith('$')) {
-            return <InlineMath key={index} math={part.slice(1, -1)} />;
+            return <InlineMath key={index} math={part.slice(1, -1)}/>;
         }
         return part;
     });
@@ -129,26 +129,25 @@ function Question({questionData, onSubmit, status, questionNumber}) {
     const [answerChoice, setAnswerChoice] = useState(null);
     const [explanation, setExplanation] = useState(null);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const getAnswer = async () => {
-        try {
-            const response = await axios.post('/api/get_answer/', {question_id: id});
-            setAnswer(response.data.answer);
-            setExplanation(response.data.explanation);
-            setAnswerChoice(response.data.answer_choice);
-        } catch (error) {
-            if (error.response && error.response.status === 404) {
-                console.log('Question does not exist');
-            } else {
-                console.log('An error occurred');
-            }
-            setAnswer(null);
-            setExplanation(null);
-            setAnswerChoice(null);
-        }
-    };
 
     useEffect(() => {
+        const getAnswer = async () => {
+            try {
+                const response = await axios.post('/api/get_answer/', {question_id: id});
+                setAnswer(response.data.answer);
+                setExplanation(response.data.explanation);
+                setAnswerChoice(response.data.answer_choice);
+            } catch (error) {
+                if (error.response && error.response.status === 404) {
+                    console.log('Question does not exist');
+                } else {
+                    console.log('An error occurred');
+                }
+                setAnswer(null);
+                setExplanation(null);
+                setAnswerChoice(null);
+            }
+        };
         const fetchAnswer = async () => {
             if (status === 'Correct' || status === 'Incorrect') {
                 await getAnswer();
@@ -164,7 +163,7 @@ function Question({questionData, onSubmit, status, questionNumber}) {
         };
 
         fetchAnswer();
-    }, [status, note, getAnswer, answer, answerChoice, loading]);
+    }, [status, note, answer, answerChoice, loading]);
 
     const handleSubmit = () => {
         if (selectedChoice) {
@@ -207,7 +206,7 @@ function Question({questionData, onSubmit, status, questionNumber}) {
             </StyledRadioGroup>
             {note && (
                 <Note correct={status === 'Correct'}>
-                    {status === 'Correct' ? <CheckCircleOutlined /> : <CloseCircleOutlined />} {note}
+                    {status === 'Correct' ? <CheckCircleOutlined/> : <CloseCircleOutlined/>} {note}
                 </Note>
             )}
             {explanation && <Explanation>{renderWithMath(explanation)}</Explanation>}
