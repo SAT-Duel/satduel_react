@@ -8,13 +8,11 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
-    const [refreshToken, setRefreshToken] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const login = async (userData, accessToken, refreshToken) => {
         setUser(userData);
         setToken(accessToken);
-        setRefreshToken(refreshToken);
         console.log(refreshToken)
         Cookies.set('accessToken', JSON.stringify(accessToken), { expires: 1, secure: true });
         Cookies.set('refreshToken', JSON.stringify(refreshToken), { expires: 7, secure: true });
@@ -26,7 +24,6 @@ export const AuthProvider = ({ children }) => {
             let response = await axios.post('/api/logout/');
             setUser(null);
             setToken(null);
-            setRefreshToken(null);
             Cookies.remove('accessToken');
             Cookies.remove('refreshToken');
             Cookies.remove('user');
@@ -36,6 +33,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const refreshAccessToken = async () => {
         try {
             const response = await axios.post('/api/token/refresh/', {
@@ -53,10 +51,8 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         try {
             const accessTokenFromCookie = JSON.parse(Cookies.get('accessToken'));
-            const refreshTokenFromCookie = JSON.parse(Cookies.get('refreshToken'));
             const userFromCookie = JSON.parse(Cookies.get('user'));
             setToken(accessTokenFromCookie);
-            setRefreshToken(refreshTokenFromCookie);
             setUser(userFromCookie);
         } catch (error) {
             console.error('Error getting user from cookie', error);
@@ -72,7 +68,7 @@ export const AuthProvider = ({ children }) => {
             const timer = setTimeout(refreshAccessToken, timeout);
             return () => clearTimeout(timer);
         }
-    }, [token]);
+    }, [refreshAccessToken, token]);
 
     return (
         <AuthContext.Provider value={{ user, login, logout, token, loading }}>

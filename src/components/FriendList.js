@@ -24,7 +24,7 @@ const FriendsList = () => {
         };
 
         if (!loading) fetchFriends();
-    }, [token]);
+    }, [loading, token]);
 
     return (
         <Card title="Friends List">

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Layout, Menu, Card, Typography, Button, Space, Divider } from 'antd';
+import { Layout, Card, Typography, Button, Space, Divider } from 'antd';
 import { MailOutlined, CheckCircleOutlined } from '@ant-design/icons';
 
-const { Header, Content, Footer } = Layout;
+const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 const EmailVerificationPage = () => {

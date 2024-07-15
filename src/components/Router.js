@@ -17,8 +17,6 @@ import TrainerPage from "../pages/TrainerPage";
 import InfiniteQuestionPage from "../pages/InfiniteQuestionPage";
 import ConfirmEmail from "./ConfirmEmail";
 import EmailVerificationPage from "../pages/EmailVerificationPage";
-import PowerSprintPage from "../pages/PowerSprintPage";
-import PowerSprintHome from "../pages/PowerSprintHome";
 
 function Router() {
     return (
@@ -45,8 +43,6 @@ function Router() {
                 <Route path="/match-loading/:roomId" element={<MatchLoadingPage/>}/>
                 <Route path="/trainer" element={<TrainerPage/>}/>
                 <Route path="/infinite_questions" element={<InfiniteQuestionPage/>}/>
-                <Route path="/power_sprint" element={<PowerSprintPage/>}/>
-                <Route path="/PowerSprintHome" element={<PowerSprintHome/>}/>
             </Route>
         </Routes>
     );

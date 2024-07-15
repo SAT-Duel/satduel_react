@@ -87,9 +87,7 @@ function InfiniteQuestionsPage() {
         streak: 0,
     });
 
-    useEffect(() => {
-        fetchNextQuestion();
-    }, []);
+
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchNextQuestion = useCallback(async () => {
@@ -105,6 +103,10 @@ function InfiniteQuestionsPage() {
             setLoading(false);
         }
     });
+
+    useEffect(() => {
+        fetchNextQuestion();
+    }, [fetchNextQuestion]);
 
     const handleQuestionSubmit = async (id, choice) => {
         try {
