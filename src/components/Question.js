@@ -163,7 +163,7 @@ function Question({questionData, onSubmit, status, questionNumber}) {
         };
 
         fetchAnswer();
-    }, [status, note, answer, answerChoice, loading]);
+    }, [status, note, answer, answerChoice, loading, id]);
 
     const handleSubmit = () => {
         if (selectedChoice) {

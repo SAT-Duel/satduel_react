@@ -62,17 +62,6 @@ const DuelBattle = () => {
     const [timeLeft, setTimeLeft] = useState(null);
     const navigate = useNavigate();
 
-    const endMatch = async () => {
-            try{
-                await axios.post('/api/match/end_match/', {
-                    room_id: roomId
-                });
-            } catch
-                (err) {
-                message.error(err.response.data.error || 'An error occurred while ending the match.');
-            }
-        }
-    ;
 
     useEffect(() => {
         const fetchEndTime = async () => {
@@ -88,9 +77,19 @@ const DuelBattle = () => {
         };
 
         fetchEndTime();
-    }, []);
+    }, [roomId]);
 
     useEffect(() => {
+        const endMatch = async () => {
+            try {
+                await axios.post('/api/match/end_match/', {
+                    room_id: roomId
+                });
+            } catch
+                (err) {
+                message.error(err.response.data.error || 'An error occurred while ending the match.');
+            }
+        };
         if (endTime) {
             const timer = setInterval(() => {
                 const now = new Date();
@@ -102,13 +101,13 @@ const DuelBattle = () => {
                     clearInterval(timer);
                     setTimeLeft(0);
                     endMatch();
-                navigate(`/battle_result/${roomId}`); // Replace with your desired route
+                    navigate(`/battle_result/${roomId}`); // Replace with your desired route
                 }
             }, 500);
 
             return () => clearInterval(timer);
         }
-    }, [endTime, navigate]);
+    }, [endTime, navigate, roomId]);
 
     const formatTime = (seconds) => {
         if (seconds === null) return '--:--';
@@ -143,18 +142,19 @@ const DuelBattle = () => {
     };
 
     // Combine tracked questions with their full details
-    const combineQuestionsWithDetails = async (trackedQuestions, token) => {
-        const questionPromises = trackedQuestions.map(async (trackedQuestion) => {
-            const questionDetails = await fetchQuestionDetails(trackedQuestion.question, token);
-            return {
-                ...trackedQuestion,
-                questionDetails
-            };
-        });
-        return Promise.all(questionPromises);
-    };
+
 
     useEffect(() => {
+        const combineQuestionsWithDetails = async (trackedQuestions, token) => {
+            const questionPromises = trackedQuestions.map(async (trackedQuestion) => {
+                const questionDetails = await fetchQuestionDetails(trackedQuestion.question, token);
+                return {
+                    ...trackedQuestion,
+                    questionDetails
+                };
+            });
+            return Promise.all(questionPromises);
+        };
         const fetchQuestions = async () => {
             try {
                 const trackedQuestions = await fetchTrackedQuestions(roomId, token);

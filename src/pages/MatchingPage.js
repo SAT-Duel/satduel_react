@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
 import {useNavigate} from 'react-router-dom';
@@ -179,22 +179,8 @@ const Match = () => {
         }
     };
 
-    const rejoinRoom = async () => {
-        try {
-            const response = await axios.get('/api/match/rejoin/', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.data.battle_room_id) {
-                navigate(`/duel_battle/${response.data.battle_room_id}`);
-            } else if (response.data.searching_room_id) {
-                setMatching(true);
-                setRoomIdInternal(response.data.searching_room_id);
-            }
-        } catch (err) {
-        }
-    };
+    const getStatusRef = useRef(getStatus)
+
 
     const handleCancel = async () => {
         try {
@@ -210,6 +196,8 @@ const Match = () => {
         }
     };
 
+    const handleCancelRef = useRef(handleCancel);
+
     const startMatchingTimeout = () => {
         setTimeout(async () => {
             if (matching) {
@@ -222,7 +210,7 @@ const Match = () => {
     useEffect(() => {
         if (roomId) {
             const interval = setInterval(async () => {
-                await getStatus();
+                await getStatusRef.current();
             }, 1000);
             return () => clearInterval(interval);
         }
@@ -241,15 +229,31 @@ const Match = () => {
     }, [matching]);
 
     useEffect(() => {
+        const rejoinRoom = async () => {
+            try {
+                const response = await axios.get('/api/match/rejoin/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.data.battle_room_id) {
+                    navigate(`/duel_battle/${response.data.battle_room_id}`);
+                } else if (response.data.searching_room_id) {
+                    setMatching(true);
+                    setRoomIdInternal(response.data.searching_room_id);
+                }
+            } catch (err) {
+            }
+        };
         if (!loading) {
             rejoinRoom();
         }
-    }, [loading]);
+    }, [loading, navigate, token]);
 
     useEffect(() => {
         const handleBeforeUnload = async () => {
             if (matching) {
-                await handleCancel();
+                await handleCancelRef.current();
             }
         };
 
