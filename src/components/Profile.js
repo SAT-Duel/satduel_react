@@ -45,7 +45,8 @@ function Profile({user_id = null}) {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const url = isOwnProfile ? '/api/profile/' : `/api/profile/view_profile/${user_id}/`;
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const url = isOwnProfile ? `${baseUrl}/api/profile/` : `${baseUrl}/api/profile/view_profile/${user_id}/`;
                 const response = await axios.get(url, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -73,7 +74,8 @@ function Profile({user_id = null}) {
     const onFinish = async (values) => {
         if (!isOwnProfile) return;
         try {
-            const response = await axios.patch('/api/profile/update_biography/', values, {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.patch(`${baseUrl}/api/profile/update_biography/`, values, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -95,7 +97,8 @@ function Profile({user_id = null}) {
 
     const sendFriendRequest = async () => {
         try {
-            await axios.post('/api/profile/send_friend_request/',
+            const baseUrl = process.env.REACT_APP_API_URL;
+            await axios.post(`${baseUrl}/api/profile/send_friend_request/`,
                 {to_user_id: user_id},
                 {
                     headers: {

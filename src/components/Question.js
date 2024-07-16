@@ -133,7 +133,8 @@ function Question({questionData, onSubmit, status, questionNumber}) {
     useEffect(() => {
         const getAnswer = async () => {
             try {
-                const response = await axios.post('/api/get_answer/', {question_id: id});
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.post(`${baseUrl}/api/get_answer/`, {question_id: id});
                 setAnswer(response.data.answer);
                 setExplanation(response.data.explanation);
                 setAnswerChoice(response.data.answer_choice);

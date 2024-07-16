@@ -40,7 +40,8 @@ const MatchHistory = ({ user_id = null }) => {
     useEffect(() => {
         const fetchMatchHistory = async () => {
             try {
-                const url = isOwnHistory ? '/api/match/get_match_history/' : `/api/match/get_match_history/${user_id}/`;
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const url = isOwnHistory ? `${baseUrl}/api/match/get_match_history/` : `${baseUrl}/api/match/get_match_history/${user_id}/`;
                 const response = await axios.get(url, {
                     headers: {
                         Authorization: `Bearer ${token}`

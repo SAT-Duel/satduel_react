@@ -74,7 +74,8 @@ const MatchLoadingPage = () => {
     useEffect(() => {
         const fetchMatchInfo = async () => {
             try {
-                const response = await axios.post(`/api/match/info/`, {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.post(`${baseUrl}/api/match/info/`, {
                     room_id: roomId
                 }, {
                     headers: {'Authorization': `Bearer ${token}`}

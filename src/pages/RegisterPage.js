@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import {Form, Input, Button, Card, Typography, Space, Select, message} from 'antd';
 import api from "../components/api";
 import GoogleLogin from "../components/GoogleLogin";
 
-const { Title } = Typography;
-const { Option } = Select;
+const {Title} = Typography;
+const {Option} = Select;
 
 const containerStyle = {
     display: 'flex',
@@ -47,7 +47,7 @@ function Register() {
     });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const { loading, user } = useAuth();
+    const {loading, user} = useAuth();
 
     useEffect(() => {
         if (!loading && user) {
@@ -80,7 +80,8 @@ function Register() {
             grade: values.grade
         };
         try {
-            await api.post('/api/register/', payload);
+            const baseUrl = process.env.REACT_APP_API_URL;
+            await api.post(`${baseUrl}/api/register/`, payload);
             message.success("Registration successful");
             navigate('/email_verification');
         } catch (error) {
