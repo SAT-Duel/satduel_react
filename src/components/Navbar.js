@@ -10,7 +10,7 @@ import {
     InfoCircleOutlined,
     QuestionCircleOutlined,
     UserAddOutlined,
-    MenuOutlined,
+    MenuOutlined, FireOutlined,
 } from '@ant-design/icons';
 import { Row, Col } from 'antd';
 import SearchUser from "./SearchUser";
@@ -111,6 +111,12 @@ function Navbar() {
             icon: <TeamOutlined />,
             onClick: () => navigate('/match'),
         },
+        {
+            label: "Tournament",
+            key: 'Tournament',
+            icon: <FireOutlined/>,
+            onClick: () => navigate('/tournament'),
+        }
     ];
 
     const handleLogout = async () => {

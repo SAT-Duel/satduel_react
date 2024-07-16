@@ -21,6 +21,7 @@ import PowerSprintHome from "../pages/PowerSprintHome";
 import PowerSprintPage from "../pages/PowerSprintPage";
 import SATSurvivalHomepage from "../pages/SATSurvivalHomepage";
 import SATSurvivalPage from "../pages/SATSurvivalPage";
+import TournamentPage from "../pages/TournamentPage";
 
 function Router() {
     return (
@@ -51,6 +52,7 @@ function Router() {
                 <Route path="/power_sprint" element={<PowerSprintPage/>}/>
                 <Route path={"/sat_survival_home"} element={<SATSurvivalHomepage/>}/>
                 <Route path={"/sat_survival"} element={<SATSurvivalPage/>}/>
+                <Route path="/tournament" element={<TournamentPage/>}/>
             </Route>
         </Routes>
     );
