@@ -171,7 +171,7 @@ function HomePage() {
                 <Row gutter={16}>
                     <Col>
                         <StyledButton>
-                            <Link to="/questions">Start Practice</Link>
+                            <Link to="/trainer">Start Practice</Link>
                         </StyledButton>
                     </Col>
                     <Col>

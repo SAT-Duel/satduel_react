@@ -10,7 +10,8 @@ const FriendRequests = () => {
     useEffect(() => {
         const fetchFriendRequests = async () => {
             try {
-                const response = await axios.get('/api/profile/friend_requests/', {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.get(`${baseUrl}/api/profile/friend_requests/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -26,7 +27,8 @@ const FriendRequests = () => {
 
     const respondToRequest = async (requestId, status) => {
         try {
-            await axios.post(`/api/profile/respond_friend_request/${requestId}/`, { status }, {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            await axios.post(`${baseUrl}/api/profile/respond_friend_request/${requestId}/`, { status }, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

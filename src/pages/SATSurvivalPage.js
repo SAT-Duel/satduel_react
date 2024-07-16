@@ -60,7 +60,8 @@ function SATSurvivalPage() {
     const fetchNextQuestion = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/questions/?num=1');
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.get(`${baseUrl}/api/questions/?num=1`);
             setCurrentQuestion(response.data[0]);
             setQuestionStatus('Blank');
         } catch (error) {
@@ -77,7 +78,8 @@ function SATSurvivalPage() {
 
     const handleQuestionSubmit = async (id, choice) => {
         try {
-            const response = await axios.post('/api/check_answer/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.post(`${baseUrl}/api/check_answer/`, {
                 question_id: id,
                 selected_choice: choice
             });

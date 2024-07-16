@@ -15,7 +15,8 @@ const SearchUsers = () => {
         setQuery(value); // Update the query state with the current search input
         if (value) {
             try {
-                const response = await axios.get(`/api/profile/search/?q=${value}`, {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.get(`${baseUrl}/api/profile/search/?q=${value}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

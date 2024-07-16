@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 
 const fetchOpponentProgress = async ({ roomId, token, setOpponentProgress }) => {
     try {
-        const response = await axios.post('/api/match/get_opponent_progress/', {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        const response = await axios.post(`${baseUrl}/api/match/get_opponent_progress/`, {
             room_id: roomId,
         }, {
             headers: {

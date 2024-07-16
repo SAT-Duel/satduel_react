@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from "axios";
 import Cookies from 'js-cookie';
-import {message} from 'antd';
+import { message } from 'antd';
 
 const AuthContext = createContext(null);
 
@@ -21,7 +21,8 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            let response = await axios.post('/api/logout/');
+            const baseUrl = process.env.REACT_APP_API_URL;
+            let response = await axios.post(`${baseUrl}/api/logout/`);
             setUser(null);
             setToken(null);
             Cookies.remove('accessToken');
@@ -36,7 +37,8 @@ export const AuthProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const refreshAccessToken = async () => {
         try {
-            const response = await axios.post('/api/token/refresh/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.post(`${baseUrl}/api/token/refresh/`, {
                 refresh: JSON.parse(Cookies.get('refreshToken'))
             });
             const newAccessToken = response.data.access;
@@ -58,7 +60,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Error getting user from cookie', error);
         }
         setLoading(false);
-    },[loading]);
+    }, [loading]);
 
     useEffect(() => {
         if (token) {

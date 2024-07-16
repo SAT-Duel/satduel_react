@@ -50,7 +50,6 @@ const TimeDisplay = styled.div`
     margin-top: 16px;
 `;
 
-
 const DuelBattle = () => {
     const {token, loading} = useAuth(); // Get the token from the AuthContext
     const {roomId} = useParams(); // Get the roomId from the URL params
@@ -62,11 +61,11 @@ const DuelBattle = () => {
     const [timeLeft, setTimeLeft] = useState(null);
     const navigate = useNavigate();
 
-
     useEffect(() => {
         const fetchEndTime = async () => {
             try {
-                const response = await axios.post('/api/match/get_end_time/',
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.post(`${baseUrl}/api/match/get_end_time/`,
                     {
                         room_id: roomId
                     });
@@ -82,11 +81,11 @@ const DuelBattle = () => {
     useEffect(() => {
         const endMatch = async () => {
             try {
-                await axios.post('/api/match/end_match/', {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                await axios.post(`${baseUrl}/api/match/end_match/`, {
                     room_id: roomId
                 });
-            } catch
-                (err) {
+            } catch (err) {
                 message.error(err.response.data.error || 'An error occurred while ending the match.');
             }
         };
@@ -119,7 +118,8 @@ const DuelBattle = () => {
     useOpponentProgress(roomId, setOpponentProgress);
 
     const fetchTrackedQuestions = async (roomId, token) => {
-        const response = await axios.post('/api/match/questions/', {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        const response = await axios.post(`${baseUrl}/api/match/questions/`, {
             room_id: roomId
         }, {
             headers: {
@@ -131,7 +131,8 @@ const DuelBattle = () => {
 
     // Fetch full question details for a given question ID
     const fetchQuestionDetails = async (questionId, token) => {
-        const response = await axios.post('/api/get_question/', {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        const response = await axios.post(`${baseUrl}/api/get_question/`, {
             question_id: questionId
         }, {
             headers: {
@@ -142,8 +143,6 @@ const DuelBattle = () => {
     };
 
     // Combine tracked questions with their full details
-
-
     useEffect(() => {
         const combineQuestionsWithDetails = async (trackedQuestions, token) => {
             const questionPromises = trackedQuestions.map(async (trackedQuestion) => {
@@ -180,15 +179,17 @@ const DuelBattle = () => {
     }, [roomId, token, loading]);
 
     const checkAnswer = async (id, choice) => {
-        console.log(`Question: ${id}, Chosen answer: ${choice}`);
-        const response = await axios.post('/api/check_answer/', {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        const response = await axios.post(`${baseUrl}/api/check_answer/`, {
             question_id: id,
             selected_choice: choice
         });
         return response.data.result;
     };
+
     const updateStatus = async (tracked_question_id, result) => {
-        const response = await axios.post('/api/match/update/', {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        const response = await axios.post(`${baseUrl}/api/match/update/`, {
                 tracked_question_id: tracked_question_id,
                 result: result
             },
@@ -204,7 +205,8 @@ const DuelBattle = () => {
             ));
         }
         console.log(response.data);
-    }
+    };
+
     const handleQuestionSubmit = async (id, choice) => {
         const trackedQuestionId = trackedQuestionMap[id]; // Get the tracked question ID from the map
         const result = await checkAnswer(id, choice);
@@ -217,7 +219,6 @@ const DuelBattle = () => {
     if (endTime === null) {
         return <div>Loading battle information...</div>;
     }
-
 
     return (
         <DuelBattleContainer>

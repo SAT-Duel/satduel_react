@@ -1,18 +1,19 @@
 // src/ConfirmEmail.js
-import React, {useEffect, useState} from 'react';
-import {useParams, useNavigate} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import {message, Spin} from 'antd';
+import { message, Spin } from 'antd';
 
 const ConfirmEmail = () => {
-    const {key} = useParams();
+    const { key } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const confirmEmail = async () => {
             try {
-                await axios.post('/auth/registration/verify-email/', {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                await axios.post(`${baseUrl}/auth/registration/verify-email/`, {
                     key: key
                 });
                 message.success('Email confirmed successfully!');
@@ -28,8 +29,8 @@ const ConfirmEmail = () => {
     }, [key, navigate]);
 
     return (
-        <div style={{textAlign: 'center', marginTop: '50px'}}>
-            {loading ? <Spin size="large"/> : null}
+        <div style={{ textAlign: 'center', marginTop: '50px' }}>
+            {loading ? <Spin size="large" /> : null}
         </div>
     );
 };

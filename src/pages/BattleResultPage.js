@@ -163,11 +163,11 @@ function BattleResultPage() {
     const [results, setResults] = useState(null);
     const navigate = useNavigate();
 
-
     useEffect(() => {
         const fetchResults = async () => {
             try {
-                const response = await axios.post('/api/match/get_results/', {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.post(`${baseUrl}/api/match/get_results/`, {
                     room_id: roomId,
                 });
                 setResults(response.data);
@@ -193,19 +193,23 @@ function BattleResultPage() {
     const user2Score = calculateScore(results.user2_results);
     const winner = user1Score > user2Score ? results.user1_results[0].user.username :
         user2Score > user1Score ? results.user2_results[0].user.username : 'Tie';
+
     const setWinner = async (winner) => {
         try {
-            await axios.post('/api/match/set_winner/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            await axios.post(`${baseUrl}/api/match/set_winner/`, {
                 room_id: roomId,
                 winner: winner
             });
         } catch (err) {
             console.error('Error setting winner:', err);
         }
-    }
+    };
+
     const setScore = async () => {
         try {
-            await axios.post('/api/match/set_score/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            await axios.post(`${baseUrl}/api/match/set_score/`, {
                 room_id: roomId,
                 user1_score: user1Score,
                 user2_score: user2Score,
@@ -213,9 +217,11 @@ function BattleResultPage() {
         } catch (err) {
             console.error('Error setting score:', err);
         }
-    }
+    };
+
     setScore();
     setWinner(winner);
+
     return (
         <PageBackground>
             <ResultPageContainer>

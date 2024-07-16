@@ -142,7 +142,8 @@ const Match = () => {
         }
 
         try {
-            const response = await axios.get('/api/match/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.get(`${baseUrl}/api/match/`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -163,7 +164,8 @@ const Match = () => {
 
     const getStatus = async () => {
         try {
-            const response = await axios.get('/api/match/status/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.get(`${baseUrl}/api/match/status/`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
@@ -184,7 +186,8 @@ const Match = () => {
 
     const handleCancel = async () => {
         try {
-            await axios.post('/api/match/cancel_match/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            await axios.post(`${baseUrl}/api/match/cancel_match/`, {
                 room_id: roomId
             });
             setMatching(false);
@@ -231,7 +234,8 @@ const Match = () => {
     useEffect(() => {
         const rejoinRoom = async () => {
             try {
-                const response = await axios.get('/api/match/rejoin/', {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.get(`${baseUrl}/api/match/rejoin/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

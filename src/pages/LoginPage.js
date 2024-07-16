@@ -38,15 +38,18 @@ function Login() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const { login, loading, user } = useAuth();
+
     useEffect(() => {
         if (!loading && user) {
             navigate('/');
         }
     }, [user, navigate, loading]);
+
     const handleLogin = async () => {
         let userData = null;
         try {
-            const response = await axios.post('/api/login/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.post(`${baseUrl}/api/login/`, {
                 username,
                 password
             });
@@ -56,14 +59,15 @@ function Login() {
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 setError('Invalid username or password');
-                message.error(error.response.data.error)
+                message.error(error.response.data.error);
             } else {
                 setError('An error occurred during login');
             }
             return;
         }
         try {
-            const response = await axios.post('/api/token/', {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const response = await axios.post(`${baseUrl}/api/token/`, {
                 username,
                 password
             });

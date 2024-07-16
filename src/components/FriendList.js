@@ -11,7 +11,8 @@ const FriendsList = () => {
     useEffect(() => {
         const fetchFriends = async () => {
             try {
-                const response = await axios.get('/api/profile/friends/', {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.get(`${baseUrl}/api/profile/friends/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
