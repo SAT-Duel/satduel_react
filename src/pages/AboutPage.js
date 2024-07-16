@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Layout, Typography, Row, Col, Card, Avatar, Divider } from 'antd';
+import { Layout, Typography, Row, Col, Card, Avatar, Divider, Form, Input, Button } from 'antd';
 import { TeamOutlined, TrophyOutlined, HistoryOutlined, BulbOutlined, StarOutlined, GlobalOutlined, HeartOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import Aos from 'aos';
@@ -7,6 +7,7 @@ import 'aos/dist/aos.css';
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
+const { TextArea } = Input;
 
 const PageHeader = styled.div`
     background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
@@ -65,6 +66,15 @@ const ValuesCard = styled(Card)`
     }
 `;
 
+const ContactForm = styled(Form)`
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+`;
+
 const valuesIcons = {
     Innovation: <BulbOutlined style={{ fontSize: '3rem', color: '#ff5733' }} />,
     Excellence: <StarOutlined style={{ fontSize: '3rem', color: '#ffbd33' }} />,
@@ -100,17 +110,21 @@ function AboutPage() {
         },
     ];
 
+    const onFinish = (values) => {
+        console.log('Received values:', values);
+    };
+
     return (
         <Layout>
             <PageHeader>
-            <Title level={1} style={{ color: 'white', marginBottom: '20px' }}>
-                About Us
-            </Title>
-            <Paragraph style={{ color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}>
+                <Title level={1} style={{ color: 'white', marginBottom: '20px' }}>
+                    About Us
+                </Title>
+                <Paragraph style={{ color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}>
                     We're on a mission to revolutionize SAT preparation through innovative technology and engaging
-                    learning experiences.x
-            </Paragraph>
-        </PageHeader>
+                    learning experiences.
+                </Paragraph>
+            </PageHeader>
             <ContentSection>
                 <Content style={{ padding: '0 50px', maxWidth: '1200px', margin: '0 auto' }}>
                     <Row gutter={[48, 48]}>
@@ -187,6 +201,79 @@ function AboutPage() {
                                 </ValuesCard>
                             </Col>
                         ))}
+                    </Row>
+
+                    <Divider id="contact-us"/>
+
+                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
+                        Contact Us
+                    </Title>
+                    <Row justify="center">
+                        <Col xs={24} md={12}>
+                            <ContactForm layout="vertical" onFinish={onFinish} data-aos="fade-up">
+                                <Form.Item
+                                    label="Name"
+                                    name="name"
+                                    rules={[{ required: true, message: 'Please enter your name' }]}
+                                >
+                                    <Input placeholder="Your Name" />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Email"
+                                    name="email"
+                                    rules={[
+                                        { required: true, message: 'Please enter your email' },
+                                        { type: 'email', message: 'Please enter a valid email' }
+                                    ]}
+                                >
+                                    <Input placeholder="Your Email" />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Message"
+                                    name="message"
+                                    rules={[{ required: true, message: 'Please enter your message' }]}
+                                >
+                                    <TextArea rows={4} placeholder="Your Message" />
+                                </Form.Item>
+                                <Form.Item>
+                                    <Button type="primary" htmlType="submit" block>
+                                        Send Message
+                                    </Button>
+                                </Form.Item>
+                            </ContactForm>
+                        </Col>
+                    </Row>
+
+                    <Divider id="faq"/>
+
+                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
+                        Frequently Asked Questions
+                    </Title>
+                    <Row gutter={[24, 24]}>
+                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="100">
+                            <StyledCard>
+                                <Title level={4}>What is the best way to contact you?</Title>
+                                <Paragraph>You can contact us using the form above or via email at contact@oursite.com.</Paragraph>
+                            </StyledCard>
+                        </Col>
+                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="200">
+                            <StyledCard>
+                                <Title level={4}>How long does it take to get a response?</Title>
+                                <Paragraph>We aim to respond to all inquiries within 24-48 hours.</Paragraph>
+                            </StyledCard>
+                        </Col>
+                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="300">
+                            <StyledCard>
+                                <Title level={4}>Can I visit your office?</Title>
+                                <Paragraph>Currently, we are an online-only company and do not have physical offices for visits.</Paragraph>
+                            </StyledCard>
+                        </Col>
+                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="400">
+                            <StyledCard>
+                                <Title level={4}>Do you offer customer support?</Title>
+                                <Paragraph>Yes, our customer support team is available to help with any issues or questions you may have.</Paragraph>
+                            </StyledCard>
+                        </Col>
                     </Row>
                 </Content>
             </ContentSection>

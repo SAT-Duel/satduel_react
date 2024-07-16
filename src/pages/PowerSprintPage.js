@@ -79,6 +79,14 @@ const Timer = styled.div`
     margin-bottom: 20px;
 `;
 
+
+const TimeUpMessage = styled.h2`
+    color: #4b0082;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2rem;
+`;
+
 const NextButton = styled.button`
     background-color: #4b0082;
     color: white;
