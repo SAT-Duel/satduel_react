@@ -113,13 +113,6 @@ const NextButton = styled.button`
     }
 `;
 
-const TimeUpMessage = styled.h2`
-    color: #4b0082;
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 2rem;
-`;
-
 function PowerSprintPage() {
     const location = useLocation();
     const navigate = useNavigate();
