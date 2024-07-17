@@ -3,7 +3,7 @@ import {Col, Divider, Layout, Row, theme, Typography, Space} from 'antd';
 import Navbar from '../components/Navbar';
 import {Link, Outlet} from 'react-router-dom';
 import {FacebookOutlined, InstagramOutlined, LinkedinOutlined, TwitterOutlined} from "@ant-design/icons";
-
+import SATFooter from '../components/SATFooter';
 const {Header, Content, Footer} = Layout;
 
 const MainLayout = () => {
@@ -29,7 +29,7 @@ const MainLayout = () => {
                     <Outlet/>
                 </div>
             </Content>
-            <Footer style={{textAlign: 'center', background: '#001529', color: 'white', padding: '40px 0'}}>
+            <SATFooter style={{textAlign: 'center', background: '#001529', color: 'white', padding: '40px 0'}}>
                 <div style={{maxWidth: '1200px', margin: '0 auto', padding: '0 20px'}}>
                     <Row justify="space-between" align="top" gutter={[24, 24]}>
                         <Col xs={24} sm={8}>
@@ -62,7 +62,7 @@ const MainLayout = () => {
                         © 2024 SAT Prep Platform. All rights reserved.
                     </Paragraph>
                 </div>
-            </Footer>
+            </SATFooter>
         </Layout>
     );
 };
