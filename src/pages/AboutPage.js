@@ -203,78 +203,84 @@ function AboutPage() {
                         ))}
                     </Row>
 
-                    <Divider id="contact-us"/>
+                    <Divider />
 
-                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
-                        Contact Us
-                    </Title>
-                    <Row justify="center">
-                        <Col xs={24} md={12}>
-                            <ContactForm layout="vertical" onFinish={onFinish} data-aos="fade-up">
-                                <Form.Item
-                                    label="Name"
-                                    name="name"
-                                    rules={[{ required: true, message: 'Please enter your name' }]}
-                                >
-                                    <Input placeholder="Your Name" />
-                                </Form.Item>
-                                <Form.Item
-                                    label="Email"
-                                    name="email"
-                                    rules={[
-                                        { required: true, message: 'Please enter your email' },
-                                        { type: 'email', message: 'Please enter a valid email' }
-                                    ]}
-                                >
-                                    <Input placeholder="Your Email" />
-                                </Form.Item>
-                                <Form.Item
-                                    label="Message"
-                                    name="message"
-                                    rules={[{ required: true, message: 'Please enter your message' }]}
-                                >
-                                    <TextArea rows={4} placeholder="Your Message" />
-                                </Form.Item>
-                                <Form.Item>
-                                    <Button type="primary" htmlType="submit" block>
-                                        Send Message
-                                    </Button>
-                                </Form.Item>
-                            </ContactForm>
-                        </Col>
-                    </Row>
+                    <div>
+                        <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
+                            Contact Us
+                        </Title>
+                        <Row justify="center">
+                            <Col xs={24} md={12}>
+                                <ContactForm layout="vertical" onFinish={onFinish} data-aos="fade-up">
+                                    <Form.Item
+                                        label="Name"
+                                        name="name"
+                                        rules={[{ required: true, message: 'Please enter your name' }]}
+                                    >
+                                        <Input placeholder="Your Name" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Email"
+                                        name="email"
+                                        rules={[
+                                            { required: true, message: 'Please enter your email' },
+                                            { type: 'email', message: 'Please enter a valid email' }
+                                        ]}
+                                    >
+                                        <Input placeholder="Your Email" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Message"
+                                        name="message"
+                                        rules={[{ required: true, message: 'Please enter your message' }]}
+                                    >
+                                        <TextArea rows={4} placeholder="Your Message" />
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button type="primary" htmlType="submit" block>
+                                            Send Message
+                                        </Button>
+                                    </Form.Item>
+                                </ContactForm>
+                            </Col>
+                        </Row>
+                    </div>
 
-                    <Divider id="faq"/>
+                    <Divider/>
 
-                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
-                        Frequently Asked Questions
-                    </Title>
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="100">
-                            <StyledCard>
-                                <Title level={4}>What is the best way to contact you?</Title>
-                                <Paragraph>You can contact us using the form above or via email at contact@oursite.com.</Paragraph>
-                            </StyledCard>
-                        </Col>
-                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="200">
-                            <StyledCard>
-                                <Title level={4}>How long does it take to get a response?</Title>
-                                <Paragraph>We aim to respond to all inquiries within 24-48 hours.</Paragraph>
-                            </StyledCard>
-                        </Col>
-                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="300">
-                            <StyledCard>
-                                <Title level={4}>Can I visit your office?</Title>
-                                <Paragraph>Currently, we are an online-only company and do not have physical offices for visits.</Paragraph>
-                            </StyledCard>
-                        </Col>
-                        <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="400">
-                            <StyledCard>
-                                <Title level={4}>Do you offer customer support?</Title>
-                                <Paragraph>Yes, our customer support team is available to help with any issues or questions you may have.</Paragraph>
-                            </StyledCard>
-                        </Col>
-                    </Row>
+                    <div id="contact-us">
+                        <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
+                            Frequently Asked Questions
+                        </Title>
+                        <Row gutter={[24, 24]}>
+                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="100">
+                                <StyledCard>
+                                    <Title level={4}>What is the best way to contact you?</Title>
+                                    <Paragraph>You can contact us using the form above or via email at contact@oursite.com.</Paragraph>
+                                </StyledCard>
+                            </Col>
+                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="200">
+                                <StyledCard>
+                                    <Title level={4}>How long does it take to get a response?</Title>
+                                    <Paragraph>We aim to respond to all inquiries within 24-48 hours.</Paragraph>
+                                </StyledCard>
+                            </Col>
+                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="300">
+                                <StyledCard>
+                                    <Title level={4}>Can I visit your office?</Title>
+                                    <Paragraph>Currently, we are an online-only company and do not have physical offices for visits.</Paragraph>
+                                </StyledCard>
+                            </Col>
+                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="400">
+                                <StyledCard>
+                                    <Title level={4}>Do you offer customer support?</Title>
+                                    <Paragraph>Yes, our customer support team is available to help with any issues or questions you may have.</Paragraph>
+                                </StyledCard>
+                            </Col>
+                        </Row>
+                    </div>
+                    <div id="faq">
+                    </div>
                 </Content>
             </ContentSection>
         </Layout>
