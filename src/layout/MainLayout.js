@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import {Link, Outlet} from 'react-router-dom';
 import {FacebookOutlined, InstagramOutlined, LinkedinOutlined, TwitterOutlined} from "@ant-design/icons";
 import SATFooter from '../components/SATFooter';
-const {Header, Content, Footer} = Layout;
+const {Header, Content} = Layout;
 
 const MainLayout = () => {
     const {
