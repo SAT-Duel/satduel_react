@@ -151,9 +151,9 @@ const Match = () => {
             setRoomIdInternal(response.data.id);
             if (response.data.full === 'true') {
                 navigate(`/match-loading/${response.data.id}`);
+                return;
             }
             setMatching(true);
-            await getStatus();
             startMatchingTimeout();
         } catch (err) {
             console.error('Error making a match:', err);
@@ -162,26 +162,7 @@ const Match = () => {
         }
     };
 
-    const getStatus = async () => {
-        try {
-            const baseUrl = process.env.REACT_APP_API_URL;
-            const response = await axios.get(`${baseUrl}/api/match/status/`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                params: {
-                    room_id: roomId
-                }
-            });
-            if (response.data.status === 'full') {
-                navigate(`/match-loading/${roomId}`);
-            }
-        } catch (err) {
-            console.error('Error checking room status:', err);
-        }
-    };
 
-    const getStatusRef = useRef(getStatus)
 
 
     const handleCancel = async () => {
@@ -211,9 +192,28 @@ const Match = () => {
     };
 
     useEffect(() => {
+        const getStatus = async () => {
+            try {
+                const baseUrl = process.env.REACT_APP_API_URL;
+                const response = await axios.get(`${baseUrl}/api/match/status/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    params: {
+                        room_id: roomId
+                    }
+                });
+                console.log(roomId)
+                if (response.data.status === 'full') {
+                    navigate(`/match-loading/${roomId}`);
+                }
+            } catch (err) {
+                console.error('Error checking room status:', err);
+            }
+        };
         if (roomId) {
             const interval = setInterval(async () => {
-                await getStatusRef.current();
+                await getStatus();
             }, 1000);
             return () => clearInterval(interval);
         }
