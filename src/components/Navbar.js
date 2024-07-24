@@ -10,7 +10,7 @@ import {
     InfoCircleOutlined,
     QuestionCircleOutlined,
     UserAddOutlined,
-    MenuOutlined, FireOutlined,
+    MenuOutlined, FireOutlined,RiseOutlined
 } from '@ant-design/icons';
 import { Row, Col } from 'antd';
 import SearchUser from "./SearchUser";
@@ -116,6 +116,12 @@ function Navbar() {
             key: 'Tournament',
             icon: <FireOutlined/>,
             onClick: () => navigate('/tournament'),
+        },
+        {
+            label: "Ranking",
+            key: 'Ranking',
+            icon: <RiseOutlined />,
+            onClick: () => navigate('/ranking'),
         }
     ];
 
