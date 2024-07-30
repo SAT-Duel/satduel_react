@@ -23,6 +23,8 @@ import SATSurvivalHomepage from "../pages/SATSurvivalHomepage";
 import SATSurvivalPage from "../pages/SATSurvivalPage";
 import TournamentPage from "../pages/TournamentPage";
 import RankingPage from "../pages/RankingPage";
+import TournamentListPage from "../pages/TournamentListPage";
+import TournamentDetailPage from "../pages/TournamentDetailPage";
 
 function Router() {
     return (
@@ -55,6 +57,8 @@ function Router() {
                 <Route path={"/sat_survival"} element={<SATSurvivalPage/>}/>
                 <Route path="/tournament" element={<TournamentPage/>}/>
                 <Route path="/ranking" element={<RankingPage/>}/>
+                <Route path="/tournaments" element={<TournamentListPage/>}/>
+                <Route path="/tournament/:tournamentId" element={<TournamentDetailPage/>}/>
             </Route>
         </Routes>
     );

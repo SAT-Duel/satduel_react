@@ -11,9 +11,9 @@ const TournamentPageContainer = styled.div`
 `;
 
 const HeroSection = styled.div`
-    background: linear-gradient(135deg, #4b0082 0%, #9400d3 100%);
+    background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
     padding: 60px 20px;
-    color: white;
+    margin-bottom: 50px;
     text-align: center;
 `;
 
@@ -100,9 +100,9 @@ function TournamentPage() {
                 <Paragraph style={{fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '30px'}}>
                     Elevate your scores with our innovative, engaging, and personalized tournament mode.
                 </Paragraph>
-                <Link to="/search-tournaments">
+                <Link to="/tournaments">
                     <CTAButton type="primary" size="large">
-                        Search for a Tournament
+                        View All Tournaments
                     </CTAButton>
                 </Link>
             </HeroSection>
