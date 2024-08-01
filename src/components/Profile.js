@@ -1,32 +1,30 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import {useAuth} from "../context/AuthContext";
-import {Card, Form, Input, Button, message} from "antd";
-import {blue} from '@ant-design/colors';
+import {Card, Form, Input, Button, message, Row, Col, Statistic} from "antd";
+import { UserOutlined, TrophyOutlined, FireOutlined } from '@ant-design/icons';
 
-const blueStyles = {
-    card: {
-        backgroundColor: blue[0],
-        border: `1px solid ${blue[3]}`
-    },
-    cardHeader: {
-        backgroundColor: blue[3],
-        color: 'white'
-    },
-    buttonPrimary: {
-        backgroundColor: blue[5],
-        borderColor: blue[5]
-    },
-    buttonPrimaryHover: {
-        backgroundColor: blue[7],
-        borderColor: blue[7]
-    },
-    text: {
-        color: blue[7]
-    },
-    formItemLabel: {
-        color: blue[7]
-    }
+const gradientStyle = {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white'
+};
+
+const cardStyle = {
+    borderRadius: '15px',
+    overflow: 'hidden',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    marginBottom: '20px'
+};
+const whiteTextStyle = {
+    color: 'white'
+};
+
+const iconStyle = {
+    fontSize: '24px',
+    background: '#fff',
+    borderRadius: '50%',
+    padding: '8px',
+    marginRight: '8px'
 };
 
 function Profile({user_id = null}) {
@@ -36,7 +34,8 @@ function Profile({user_id = null}) {
             email: '',
         },
         biography: '',
-        grade: ''
+        grade: '',
+        max_streak: ''
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
     const {token, loading} = useAuth();
@@ -53,7 +52,6 @@ function Profile({user_id = null}) {
                     }
                 });
 
-                // Condense multiple newlines into a single newline
                 const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
                 setProfile(prevProfile => ({
                     ...prevProfile,
@@ -81,7 +79,6 @@ function Profile({user_id = null}) {
                 }
             });
 
-            // Condense multiple newlines into a single newline
             const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
             setProfile(prevProfile => ({
                 ...prevProfile,
@@ -114,32 +111,58 @@ function Profile({user_id = null}) {
     };
 
     return (
-        <div>
+        <div style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
             <Card
-                title={isOwnProfile ? "My Profile" : `${profile.user?.username}'s Profile`}
+                title={<span style={whiteTextStyle}>{isOwnProfile ? "My Profile" : `${profile.user?.username}'s Profile`}</span>}
                 loading={loadingProfile}
                 extra={!isOwnProfile && (
                     <Button
                         type="primary"
                         onClick={sendFriendRequest}
-                        style={blueStyles.buttonPrimary}
-                        onMouseOver={(e) => e.currentTarget.style = blueStyles.buttonPrimaryHover}
-                        onMouseOut={(e) => e.currentTarget.style = blueStyles.buttonPrimary}
+                        style={{...gradientStyle, border: 'none'}}
                     >
                         Add Friend
                     </Button>
                 )}
-                style={blueStyles.card}
-                headStyle={blueStyles.cardHeader}
+                style={{...cardStyle, ...gradientStyle}}
+                headStyle={{...gradientStyle, borderBottom: 'none'}}
             >
-                <p style={blueStyles.text}><strong>Username:</strong> {profile.user?.username}</p>
-                <p style={blueStyles.text}><strong>Email:</strong> {profile.user?.email}</p>
-                <p style={blueStyles.text}><strong>Biography:</strong></p>
-                <p className="paragraph" style={blueStyles.text}>{profile.biography}</p>
-                <p style={blueStyles.text}><strong>Grade:</strong> {profile.grade}</p>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Statistic
+                            title={<span style={whiteTextStyle}>Username</span>}
+                            value={profile.user?.username}
+                            prefix={<UserOutlined style={{...iconStyle, color: '#1890ff'}} />}
+                            valueStyle={whiteTextStyle}
+                        />
+                    </Col>
+                    <Col span={12}>
+                        <Statistic
+                            title={<span style={whiteTextStyle}>Grade</span>}
+                            value={profile.grade}
+                            prefix={<TrophyOutlined style={{...iconStyle, color: '#FFA500'}} />}
+                            valueStyle={whiteTextStyle}
+                        />
+                    </Col>
+                </Row>
+                <Row gutter={16} style={{marginTop: '20px'}}>
+                    <Col span={12}>
+                        <Statistic
+                            title={<span style={whiteTextStyle}>Max Win-Streak</span>}
+                            value={profile.max_streak}
+                            prefix={<FireOutlined style={{...iconStyle, color: '#ff4d4f'}} />}
+                            valueStyle={whiteTextStyle}
+                        />
+                    </Col>
+                </Row>
             </Card>
+
+            <Card title="Biography" style={cardStyle}>
+                <p>{profile.biography}</p>
+            </Card>
+
             {isOwnProfile && (
-                <Card title="Edit Biography" style={blueStyles.card} headStyle={blueStyles.cardHeader}>
+                <Card title="Edit Biography" style={cardStyle}>
                     <Form
                         name="biography"
                         initialValues={{biography: profile.biography}}
@@ -147,12 +170,10 @@ function Profile({user_id = null}) {
                     >
                         <Form.Item
                             name="biography"
-                            label="Biography"
                             rules={[
                                 {required: true, message: 'Please enter your biography'},
                                 {max: 5000, message: 'Biography cannot be longer than 5000 characters'}
                             ]}
-                            labelCol={{style: blueStyles.formItemLabel}}
                         >
                             <Input.TextArea
                                 rows={4}
@@ -164,9 +185,7 @@ function Profile({user_id = null}) {
                             <Button
                                 type="primary"
                                 htmlType="submit"
-                                style={blueStyles.buttonPrimary}
-                                onMouseOver={(e) => e.currentTarget.style = blueStyles.buttonPrimaryHover}
-                                onMouseOut={(e) => e.currentTarget.style = blueStyles.buttonPrimary}
+                                style={{...gradientStyle, border: 'none'}}
                             >
                                 Update Biography
                             </Button>

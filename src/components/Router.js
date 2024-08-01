@@ -23,6 +23,8 @@ import SATSurvivalHomepage from "../pages/SATSurvivalHomepage";
 import SATSurvivalPage from "../pages/SATSurvivalPage";
 import TournamentPage from "../pages/TournamentPage";
 import RankingPage from "../pages/RankingPage";
+import BotTrainingPage from "../pages/BotTrainingPage";
+import BotGamePage from "../pages/BotGamePage";
 
 function Router() {
     return (
@@ -30,9 +32,8 @@ function Router() {
             {/* Routes using MainLayout */}
             <Route element={<MainLayout/>}>
                 <Route path="/questions" element={<QuestionsPage/>}/>
-                <Route path="/profile" element={<ProfilePage/>}/>
-                <Route path="/profile/:userId" element={<ProfilePage/>}/>
                 <Route path="/friend_requests" element={<FriendRequestPage/>}/>
+
             </Route>
 
             {/* Routes using SecondaryLayout */}
@@ -55,6 +56,10 @@ function Router() {
                 <Route path={"/sat_survival"} element={<SATSurvivalPage/>}/>
                 <Route path="/tournament" element={<TournamentPage/>}/>
                 <Route path="/ranking" element={<RankingPage/>}/>
+                <Route path="/bot_training" element={<BotTrainingPage/>}/>
+                <Route path="/profile" element={<ProfilePage/>}/>
+                <Route path="/profile/:userId" element={<ProfilePage/>}/>
+                <Route path="/bot_training/start" element={<BotGamePage />} />
             </Route>
         </Routes>
     );
