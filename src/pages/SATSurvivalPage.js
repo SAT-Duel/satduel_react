@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import styled from 'styled-components';
-import { Card, Typography, Modal, Button } from 'antd';
+import {Card, Typography, Modal, Button} from 'antd';
 import Question from '../components/Question';
 import axios from "axios";
+import {useAuth} from "../context/AuthContext";
 
-const { Title, Text } = Typography;
+const {Title, Text} = Typography;
 
 const PageContainer = styled.div`
     display: flex;
@@ -56,6 +57,7 @@ function SATSurvivalPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [gameOver, setGameOver] = useState(false);
+    const {token} = useAuth();
 
     const fetchNextQuestion = useCallback(async () => {
         try {
@@ -91,6 +93,11 @@ function SATSurvivalPage() {
             } else {
                 setQuestionStatus('Incorrect');
                 setGameOver(true);
+                await axios.patch(`${baseUrl}/api/profile/update_streak/`, {
+                    max_streak: streak
+                }, {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
             }
         } catch (error) {
             setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
