@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import styled from 'styled-components';
 import Question from '../components/Question';
 import axios from "axios";
+import {useAuth} from "../context/AuthContext";
 
 const PageContainer = styled.div`
     display: flex;
@@ -75,6 +76,7 @@ const NextButton = styled.button`
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 `;
+
 const EndButton = styled.button`
     background-color: #dc3545;
     color: white;
@@ -108,11 +110,10 @@ const SummaryContainer = styled.div`
     overflow: auto;
 `;
 
-
 function InfiniteQuestionsPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
-    const [loading, setLoading] = useState(true);
+    const [loadingQuestions, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [stats, setStats] = useState({
         questionsAnswered: 0,
@@ -120,12 +121,31 @@ function InfiniteQuestionsPage() {
         streak: 0,
     });
     const [isFinished, setIsFinished] = useState(false);
+    const {token, loading} = useAuth();
+
+    const baseUrl = process.env.REACT_APP_API_URL;
+
+    const saveStats = useCallback(async (statsToSave) => {
+        console.log('called')
+        try {
+            const payload = {
+                correct_number: statsToSave.correctAnswers,
+                incorrect: statsToSave.questionsAnswered - statsToSave.correctAnswers,
+                current_streak: statsToSave.streak,
+            };
+            console.log("Saving stats:", payload);
+            await axios.post(`${baseUrl}/api/trainer/set_infinite_question_stats/`, payload, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+        } catch (error) {
+            console.error('Error saving stats:', error.response ? error.response.data : error);
+        }
+    }, [baseUrl, token]);
 
     const fetchNextQuestion = useCallback(async () => {
         if (isFinished) return;
         try {
             setLoading(true);
-            const baseUrl = process.env.REACT_APP_API_URL;
             const response = await axios.get(`${baseUrl}/api/questions/?num=1`);
             setCurrentQuestion(response.data[0]);
             setQuestionStatus('Blank');
@@ -135,16 +155,38 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoading(false);
         }
-    }, [isFinished]);
+    }, [baseUrl, isFinished]);
+
+    const fetchStats = useCallback(async () => {
+        try {
+            const response = await axios.get(`${baseUrl}/api/trainer/infinite_question_stats/`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            const statsData = response.data;
+            setStats({
+                questionsAnswered: statsData.correct_number + statsData.incorrect_number,
+                correctAnswers: statsData.correct_number,
+                streak: statsData.current_streak,
+            });
+        } catch (error) {
+            setError('Error fetching stats: ' + (error.response ? error.response.data : 'Server unreachable'));
+        }
+    }, [baseUrl, token]);
 
     useEffect(() => {
-        fetchNextQuestion();
-    }, [fetchNextQuestion]);
+        if (!loading) {
+            fetchNextQuestion();
+            fetchStats();
+        }
+    }, [loading, fetchNextQuestion, fetchStats]);
+
+    // useEffect(() => {
+    //     saveStats(stats);
+    // }, [stats, saveStats]);
 
     const handleQuestionSubmit = async (id, choice) => {
         if (isFinished) return;
         try {
-            const baseUrl = process.env.REACT_APP_API_URL;
             const response = await axios.post(`${baseUrl}/api/check_answer/`, {
                 question_id: id,
                 selected_choice: choice
@@ -158,18 +200,23 @@ function InfiniteQuestionsPage() {
     };
 
     const updateStats = (isCorrect) => {
-        setStats(prevStats => ({
-            questionsAnswered: prevStats.questionsAnswered + 1,
-            correctAnswers: isCorrect ? prevStats.correctAnswers + 1 : prevStats.correctAnswers,
-            streak: isCorrect ? prevStats.streak + 1 : 0,
-        }));
+        setStats(prevStats => {
+            const newStats = {
+                questionsAnswered: prevStats.questionsAnswered + 1,
+                correctAnswers: isCorrect ? prevStats.correctAnswers + 1 : prevStats.correctAnswers,
+                streak: isCorrect ? prevStats.streak + 1 : 0,
+            };
+            saveStats(newStats);
+            return newStats;
+        });
     };
 
     const handleEndEarly = () => {
         setIsFinished(true);
+        saveStats(stats);
     };
 
-    if (loading && !isFinished) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
+    if (loadingQuestions && !isFinished) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
     if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
 
     return (

@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {createContext, useContext, useState, useEffect} from 'react';
 import axios from "axios";
 import Cookies from 'js-cookie';
-import { message } from 'antd';
+import {message} from 'antd';
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({children}) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -13,10 +13,9 @@ export const AuthProvider = ({ children }) => {
     const login = async (userData, accessToken, refreshToken) => {
         setUser(userData);
         setToken(accessToken);
-        console.log(refreshToken)
-        Cookies.set('accessToken', JSON.stringify(accessToken), { expires: 1, secure: true });
-        Cookies.set('refreshToken', JSON.stringify(refreshToken), { expires: 7, secure: true });
-        Cookies.set('user', JSON.stringify(userData), { expires: 7, secure: true });
+        Cookies.set('accessToken', JSON.stringify(accessToken), {expires: 1, secure: true});
+        Cookies.set('refreshToken', JSON.stringify(refreshToken), {expires: 7, secure: true});
+        Cookies.set('user', JSON.stringify(userData), {expires: 7, secure: true});
     };
 
     const logout = async () => {
@@ -43,7 +42,7 @@ export const AuthProvider = ({ children }) => {
             });
             const newAccessToken = response.data.access;
             setToken(newAccessToken);
-            Cookies.set('accessToken', JSON.stringify(newAccessToken), { expires: 1, secure: true });
+            Cookies.set('accessToken', JSON.stringify(newAccessToken), {expires: 1, secure: true});
         } catch (error) {
             console.error('Error refreshing access token', error);
             logout();
@@ -73,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     }, [refreshAccessToken, token]);
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, token, loading }}>
+        <AuthContext.Provider value={{user, login, logout, token, loading}}>
             {children}
         </AuthContext.Provider>
     );

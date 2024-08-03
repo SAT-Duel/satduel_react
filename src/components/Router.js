@@ -22,6 +22,13 @@ import PowerSprintPage from "../pages/PowerSprintPage";
 import SATSurvivalHomepage from "../pages/SATSurvivalHomepage";
 import SATSurvivalPage from "../pages/SATSurvivalPage";
 import TournamentPage from "../pages/TournamentPage";
+import RankingPage from "../pages/RankingPage";
+import TournamentListPage from "../pages/TournamentListPage";
+import TournamentDetailPage from "../pages/TournamentDetailPage";
+import TournamentQuestionPage from "../pages/TournamentQuestionPage";
+import CreateTournamentPage from "../pages/CreateTournamentPage";
+import BotTrainingPage from "../pages/BotTrainingPage";
+import BotGamePage from "../pages/BotGamePage";
 
 function Router() {
     return (
@@ -29,8 +36,6 @@ function Router() {
             {/* Routes using MainLayout */}
             <Route element={<MainLayout/>}>
                 <Route path="/questions" element={<QuestionsPage/>}/>
-                <Route path="/profile" element={<ProfilePage/>}/>
-                <Route path="/profile/:userId" element={<ProfilePage/>}/>
                 <Route path="/friend_requests" element={<FriendRequestPage/>}/>
             </Route>
 
@@ -53,6 +58,16 @@ function Router() {
                 <Route path={"/sat_survival_home"} element={<SATSurvivalHomepage/>}/>
                 <Route path={"/sat_survival"} element={<SATSurvivalPage/>}/>
                 <Route path="/tournament" element={<TournamentPage/>}/>
+                <Route path="/ranking" element={<RankingPage/>}/>
+                <Route path="/bot_training" element={<BotTrainingPage/>}/>
+                <Route path="/profile" element={<ProfilePage/>}/>
+                <Route path="/profile/:userId" element={<ProfilePage/>}/>
+                <Route path="/bot_training/start" element={<BotGamePage />} />
+                <Route path="/tournaments" element={<TournamentListPage/>}/>
+                <Route path="/tournament/:tournamentId" element={<TournamentDetailPage/>}/>
+                <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
+                <Route path="/create_tournament" element={<CreateTournamentPage/>}/>
+
             </Route>
         </Routes>
     );
