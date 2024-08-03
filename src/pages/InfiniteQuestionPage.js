@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import styled from 'styled-components';
 import Question from '../components/Question';
 import axios from "axios";
+import {useAuth} from "../context/AuthContext";
 
 const PageContainer = styled.div`
     display: flex;
@@ -108,11 +109,10 @@ const SummaryContainer = styled.div`
     overflow: auto;
 `;
 
-
 function InfiniteQuestionsPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
-    const [loading, setLoading] = useState(true);
+    const [loadingQuestions, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [stats, setStats] = useState({
         questionsAnswered: 0,
@@ -120,12 +120,30 @@ function InfiniteQuestionsPage() {
         streak: 0,
     });
     const [isFinished, setIsFinished] = useState(false);
+    const {token, loading} = useAuth();
+
+    const baseUrl = process.env.REACT_APP_API_URL;
+
+    const saveStats = useCallback(async () => {
+        try {
+            const payload = {
+                correct_number: stats.correctAnswers,
+                incorrect: stats.questionsAnswered - stats.correctAnswers,
+                current_streak: stats.streak,
+            };
+            console.log("Saving stats:", payload);
+            await axios.post(`${baseUrl}/api/trainer/set_infinite_question_stats/`, payload, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+        } catch (error) {
+            console.error('Error saving stats:', error.response ? error.response.data : error);
+        }
+    }, [stats, baseUrl, token]);
 
     const fetchNextQuestion = useCallback(async () => {
         if (isFinished) return;
         try {
             setLoading(true);
-            const baseUrl = process.env.REACT_APP_API_URL;
             const response = await axios.get(`${baseUrl}/api/questions/?num=1`);
             setCurrentQuestion(response.data[0]);
             setQuestionStatus('Blank');
@@ -135,23 +153,44 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoading(false);
         }
-    }, [isFinished]);
+    },[baseUrl, isFinished, saveStats]);
+
+    const fetchStats = useCallback(async () => {
+        try {
+            const response = await axios.get(`${baseUrl}/api/trainer/infinite_question_stats/`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            const statsData = response.data;
+            setStats({
+                questionsAnswered: statsData.correct_number + statsData.incorrect_number,
+                correctAnswers: statsData.correct_number,
+                streak: statsData.current_streak,
+            });
+        } catch (error) {
+            setError('Error fetching stats: ' + (error.response ? error.response.data : 'Server unreachable'));
+        }
+    }, [baseUrl, token]);
 
     useEffect(() => {
-        fetchNextQuestion();
-    }, [fetchNextQuestion]);
+        if (!loading) {
+            fetchNextQuestion();
+            fetchStats();
+        }
+    }, [loading]);
+
 
     const handleQuestionSubmit = async (id, choice) => {
         if (isFinished) return;
         try {
-            const baseUrl = process.env.REACT_APP_API_URL;
             const response = await axios.post(`${baseUrl}/api/check_answer/`, {
                 question_id: id,
                 selected_choice: choice
             });
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
-            updateStats(isCorrect);
+            await updateStats(isCorrect);
+            console.log('called');
+            saveStats();
         } catch (error) {
             setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
         }
@@ -167,9 +206,11 @@ function InfiniteQuestionsPage() {
 
     const handleEndEarly = () => {
         setIsFinished(true);
+        saveStats();
     };
 
-    if (loading && !isFinished) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
+    if (loadingQuestions && !isFinished) return <PageContainer><p>Loading question... Please wait...</p>
+    </PageContainer>;
     if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
 
     return (
