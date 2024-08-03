@@ -76,6 +76,7 @@ const NextButton = styled.button`
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 `;
+
 const EndButton = styled.button`
     background-color: #dc3545;
     color: white;
@@ -124,12 +125,13 @@ function InfiniteQuestionsPage() {
 
     const baseUrl = process.env.REACT_APP_API_URL;
 
-    const saveStats = useCallback(async () => {
+    const saveStats = useCallback(async (statsToSave) => {
+        console.log('called')
         try {
             const payload = {
-                correct_number: stats.correctAnswers,
-                incorrect: stats.questionsAnswered - stats.correctAnswers,
-                current_streak: stats.streak,
+                correct_number: statsToSave.correctAnswers,
+                incorrect: statsToSave.questionsAnswered - statsToSave.correctAnswers,
+                current_streak: statsToSave.streak,
             };
             console.log("Saving stats:", payload);
             await axios.post(`${baseUrl}/api/trainer/set_infinite_question_stats/`, payload, {
@@ -138,7 +140,7 @@ function InfiniteQuestionsPage() {
         } catch (error) {
             console.error('Error saving stats:', error.response ? error.response.data : error);
         }
-    }, [stats, baseUrl, token]);
+    }, [baseUrl, token]);
 
     const fetchNextQuestion = useCallback(async () => {
         if (isFinished) return;
@@ -153,7 +155,7 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoading(false);
         }
-    },[baseUrl, isFinished, saveStats]);
+    }, [baseUrl, isFinished]);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -176,8 +178,11 @@ function InfiniteQuestionsPage() {
             fetchNextQuestion();
             fetchStats();
         }
-    }, [loading]);
+    }, [loading, fetchNextQuestion, fetchStats]);
 
+    // useEffect(() => {
+    //     saveStats(stats);
+    // }, [stats, saveStats]);
 
     const handleQuestionSubmit = async (id, choice) => {
         if (isFinished) return;
@@ -188,29 +193,30 @@ function InfiniteQuestionsPage() {
             });
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
-            await updateStats(isCorrect);
-            console.log('called');
-            saveStats();
+            updateStats(isCorrect);
         } catch (error) {
             setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
         }
     };
 
     const updateStats = (isCorrect) => {
-        setStats(prevStats => ({
-            questionsAnswered: prevStats.questionsAnswered + 1,
-            correctAnswers: isCorrect ? prevStats.correctAnswers + 1 : prevStats.correctAnswers,
-            streak: isCorrect ? prevStats.streak + 1 : 0,
-        }));
+        setStats(prevStats => {
+            const newStats = {
+                questionsAnswered: prevStats.questionsAnswered + 1,
+                correctAnswers: isCorrect ? prevStats.correctAnswers + 1 : prevStats.correctAnswers,
+                streak: isCorrect ? prevStats.streak + 1 : 0,
+            };
+            saveStats(newStats);
+            return newStats;
+        });
     };
 
     const handleEndEarly = () => {
         setIsFinished(true);
-        saveStats();
+        saveStats(stats);
     };
 
-    if (loadingQuestions && !isFinished) return <PageContainer><p>Loading question... Please wait...</p>
-    </PageContainer>;
+    if (loadingQuestions && !isFinished) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
     if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
 
     return (

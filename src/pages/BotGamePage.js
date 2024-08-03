@@ -33,13 +33,13 @@ const StatsContainer = styled.div`
     height: fit-content;
 `;
 
-const StatsTitle = styled.h2`
-    color: #4b0082;
-    margin-bottom: 24px;
-    font-size: 1.5rem;
-    border-bottom: 2px solid #4b0082;
-    padding-bottom: 10px;
-`;
+// const StatsTitle = styled.h2`
+//     color: #4b0082;
+//     margin-bottom: 24px;
+//     font-size: 1.5rem;
+//     border-bottom: 2px solid #4b0082;
+//     padding-bottom: 10px;
+// `;
 
 const StatItem = styled.div`
     margin-bottom: 16px;

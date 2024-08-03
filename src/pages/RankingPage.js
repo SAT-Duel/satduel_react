@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Layout, Typography, Table, Avatar, Alert} from 'antd';
+import {Typography, Table, Avatar, Alert} from 'antd';
 import {TrophyOutlined, GlobalOutlined} from '@ant-design/icons';
 import styled from 'styled-components';
 import AOS from 'aos';
@@ -48,16 +48,15 @@ const StyledTable = styled(Table)`
 const RankCell = styled.div`
     display: flex;
     align-items: center;
-
-    .rank-number {
-        font-weight: bold;
-        margin-right: 10px;
-    }
-
-    .trophy {
-        color: gold;
-        font-size: 20px;
-    }
+    //.rank-number {
+    //    font-weight: bold;
+    //    margin-right: 10px;
+    //}
+    //
+    //.trophy {
+    //    color: gold;
+    //    font-size: 20px;
+    //}
 `;
 
 const CountryFlag = styled(Avatar)`

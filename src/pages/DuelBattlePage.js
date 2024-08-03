@@ -130,6 +130,7 @@ const DuelBattle = () => {
     };
 
     // Fetch full question details for a given question ID
+    // Todo: Delete this function and send this information using serializer
     const fetchQuestionDetails = async (questionId, token) => {
         const baseUrl = process.env.REACT_APP_API_URL;
         const response = await axios.post(`${baseUrl}/api/get_question/`, {

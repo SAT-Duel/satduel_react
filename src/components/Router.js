@@ -25,6 +25,8 @@ import TournamentPage from "../pages/TournamentPage";
 import RankingPage from "../pages/RankingPage";
 import TournamentListPage from "../pages/TournamentListPage";
 import TournamentDetailPage from "../pages/TournamentDetailPage";
+import TournamentQuestionPage from "../pages/TournamentQuestionPage";
+import CreateTournamentPage from "../pages/CreateTournamentPage";
 import BotTrainingPage from "../pages/BotTrainingPage";
 import BotGamePage from "../pages/BotGamePage";
 
@@ -63,6 +65,9 @@ function Router() {
                 <Route path="/bot_training/start" element={<BotGamePage />} />
                 <Route path="/tournaments" element={<TournamentListPage/>}/>
                 <Route path="/tournament/:tournamentId" element={<TournamentDetailPage/>}/>
+                <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
+                <Route path="/create_tournament" element={<CreateTournamentPage/>}/>
+
             </Route>
         </Routes>
     );
