@@ -6,7 +6,8 @@ import {
     FireOutlined,
     TrophyOutlined,
     UpCircleOutlined,
-    StarOutlined, CrownOutlined, TeamOutlined, BulbOutlined, SmileOutlined, RiseOutlined
+    StarOutlined, CrownOutlined, TeamOutlined, BulbOutlined, SmileOutlined, RiseOutlined,
+    RobotOutlined, ExperimentOutlined, FieldTimeOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import {Link} from "react-router-dom";
@@ -150,6 +151,53 @@ const IconWrapperAdvantage = styled.div`
     color: #0072ff;
 `;
 
+const BotTrainingSection = styled.div`
+    margin-top: 60px;
+    background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+    padding: 40px;
+    border-radius: 20px;
+    color: white;
+`;
+
+const BotTrainingTitle = styled(Title)`
+    color: white !important;
+    text-align: center;
+    margin-bottom: 40px !important;
+`;
+
+const BotTrainingCard = styled(Card)`
+    height: 100%;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+
+    &:hover {
+        transform: translateY(-5px) rotate(-2deg);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .ant-card-meta-title, .ant-card-meta-description {
+        color: white !important;
+    }
+`;
+
+const BotIconWrapper = styled.div`
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: white;
+`;
+
+const BotCardTitle = styled(Title)`
+    color: white !important;
+    margin-bottom: 10px !important;
+`;
+
+const BotCardDescription = styled(Paragraph)`
+    color: rgba(255, 255, 255, 0.8);
+`;
+
 const TrainerPage = () => {
     const advantages = [
         {
@@ -198,6 +246,32 @@ const TrainerPage = () => {
         }
     ];
 
+        const botTrainingModes = [
+    {
+        icon: <RobotOutlined />,
+        title: "AI Opponent",
+        description: "Challenge adaptive AI opponents that match your skill level for realistic SAT practice.",
+        gradient: "linear-gradient(135deg, #00b09b 0%, #96c93d 100%)",
+    },
+    {
+        icon: <ThunderboltOutlined />,
+        title: "Speed Drills",
+        description: "Engage in rapid-fire question sessions to improve your response time and accuracy.",
+        gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    },
+    {
+        icon: <ExperimentOutlined />,
+        title: "Adaptive Learning",
+        description: "Experience personalized question sets that evolve based on your performance and weaknesses.",
+        gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    },
+    {
+        icon: <FieldTimeOutlined />,
+        title: "Timed Challenges",
+        description: "Simulate real SAT time pressure with customizable timed training sessions.",
+        gradient: "linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)",
+    }
+];
     return (
         <Layout>
             <GradientBackground>
@@ -226,7 +300,27 @@ const TrainerPage = () => {
                         </Col>
                     ))}
                 </Row>
-
+                <BotTrainingSection>
+                    <BotTrainingTitle level={2}>Bot Training Academy</BotTrainingTitle>
+                    <Row gutter={[24, 24]}>
+                        {botTrainingModes.map((mode, index) => (
+                            <Col xs={24} sm={12} md={6} key={index}>
+                                <BotTrainingCard gradient={mode.gradient}>
+                                    <BotIconWrapper>{mode.icon}</BotIconWrapper>
+                                    <BotCardTitle level={3}>{mode.title}</BotCardTitle>
+                                    <BotCardDescription>{mode.description}</BotCardDescription>
+                                </BotTrainingCard>
+                            </Col>
+                        ))}
+                    </Row>
+                    <Row justify="center" style={{ marginTop: '30px' }}>
+                        <Col>
+                            <Link to="/bot_training">
+                                <StyledButton size="large">Start Bot Training</StyledButton>
+                            </Link>
+                        </Col>
+                    </Row>
+                </BotTrainingSection>
                 <AdvantageSection>
                     <AdvantageTitle level={2}>Why Fun Learning Works Better</AdvantageTitle>
                     <Row gutter={[24, 24]}>
