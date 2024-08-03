@@ -48,16 +48,15 @@ const StyledTable = styled(Table)`
 const RankCell = styled.div`
     display: flex;
     align-items: center;
-
-    .rank-number {
-        font-weight: bold;
-        margin-right: 10px;
-    }
-
-    .trophy {
-        color: gold;
-        font-size: 20px;
-    }
+    //.rank-number {
+    //    font-weight: bold;
+    //    margin-right: 10px;
+    //}
+    //
+    //.trophy {
+    //    color: gold;
+    //    font-size: 20px;
+    //}
 `;
 
 const CountryFlag = styled(Avatar)`
