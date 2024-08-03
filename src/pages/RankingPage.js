@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Layout, Typography, Table, Avatar, Alert} from 'antd';
+import {Typography, Table, Avatar, Alert} from 'antd';
 import {TrophyOutlined, GlobalOutlined} from '@ant-design/icons';
 import styled from 'styled-components';
 import AOS from 'aos';
