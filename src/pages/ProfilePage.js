@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import Profile from "../components/Profile";
-import { Tabs, Card } from "antd";
+import {Tabs, Card, message} from "antd";
 import FriendList from "../components/FriendList";
 import BattleHistory from "../components/BattleHistory";
+import {useAuth} from "../context/AuthContext";
 
 const { TabPane } = Tabs;
 
@@ -27,11 +28,16 @@ const containerStyle = {
 
 function ProfilePage() {
     const { userId } = useParams();
+    const {token, loading} = useAuth();
     const isOwnProfile = !userId;
+    const navigate = useNavigate();
 
     useEffect(() => {
-        console.log('userId:', userId);
-    }, [userId]);
+        if (!loading && !token){
+            message.error("You need to be logged in to view profiles");
+            navigate('/login');
+        }
+    }, [navigate, token, loading]);
 
     return (
         <div style={containerStyle}>

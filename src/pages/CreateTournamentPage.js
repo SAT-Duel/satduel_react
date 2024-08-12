@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 import {useAuth} from "../context/AuthContext";
+import RichTextEditor from "../RichTextEditor";
 
 const {Title} = Typography;
 const {TextArea} = Input;
@@ -125,27 +126,36 @@ const CreateTournamentPage = () => {
                 <Title level={4}>Questions</Title>
                 {questions.map((question, index) => (
                     <QuestionCard
-                        key={question.id} // Use unique ID for key
+                        key={question.id}
                         title={`Question ${index + 1}`}
-                        extra={<Button type="link" onClick={() => removeQuestion(question.id)}
-                                       icon={<MinusCircleOutlined/>}/>}
+                        extra={<Button type="link" onClick={() => removeQuestion(question.id)} icon={<MinusCircleOutlined/>}/>}
                     >
-                        <Form.Item label="Question Text" required>
-                            <Input onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}/>
-                        </Form.Item>
-                        <Form.Item label="Choice A" required>
-                            <Input onChange={(e) => updateQuestion(question.id, 'choice_a', e.target.value)}/>
-                        </Form.Item>
-                        <Form.Item label="Choice B" required>
-                            <Input onChange={(e) => updateQuestion(question.id, 'choice_b', e.target.value)}/>
-                        </Form.Item>
-                        <Form.Item label="Choice C" required>
-                            <Input onChange={(e) => updateQuestion(question.id, 'choice_c', e.target.value)}/>
-                        </Form.Item>
-                        <Form.Item label="Choice D" required>
-                            <Input onChange={(e) => updateQuestion(question.id, 'choice_d', e.target.value)}/>
-                        </Form.Item>
-                        <Form.Item label="Correct Answer" required>
+                        <RichTextEditor
+                            label="Question Text"
+                            value={question.question || ''}
+                            onChange={(value) => updateQuestion(question.id, 'question', value)}
+                        />
+                        <RichTextEditor
+                            label="Choice A"
+                            value={question.choice_a || ''}
+                            onChange={(value) => updateQuestion(question.id, 'choice_a', value)}
+                        />
+                        <RichTextEditor
+                            label="Choice B"
+                            value={question.choice_b || ''}
+                            onChange={(value) => updateQuestion(question.id, 'choice_b', value)}
+                        />
+                        <RichTextEditor
+                            label="Choice C"
+                            value={question.choice_c || ''}
+                            onChange={(value) => updateQuestion(question.id, 'choice_c', value)}
+                        />
+                        <RichTextEditor
+                            label="Choice D"
+                            value={question.choice_d || ''}
+                            onChange={(value) => updateQuestion(question.id, 'choice_d', value)}
+                        />
+                        <Form.Item label="Correct Answer" rules={[{required: true}]}>
                             <Select onChange={(value) => updateQuestion(question.id, 'answer', value)}>
                                 <Option value="A">A</Option>
                                 <Option value="B">B</Option>
@@ -153,7 +163,7 @@ const CreateTournamentPage = () => {
                                 <Option value="D">D</Option>
                             </Select>
                         </Form.Item>
-                        <Form.Item label="Difficulty" required>
+                        <Form.Item label="Difficulty" rules={[{required: true}]}>
                             <Select onChange={(value) => updateQuestion(question.id, 'difficulty', value)}>
                                 {[1, 2, 3, 4, 5].map(level => (
                                     <Option key={level} value={level}>{level}</Option>
@@ -163,10 +173,11 @@ const CreateTournamentPage = () => {
                         <Form.Item label="Question Type">
                             <Input onChange={(e) => updateQuestion(question.id, 'question_type', e.target.value)}/>
                         </Form.Item>
-                        <Form.Item label="Explanation">
-                            <TextArea rows={2}
-                                      onChange={(e) => updateQuestion(question.id, 'explanation', e.target.value)}/>
-                        </Form.Item>
+                        <RichTextEditor
+                            label="Explanation"
+                            value={question.explanation || ''}
+                            onChange={(value) => updateQuestion(question.id, 'explanation', value)}
+                        />
                     </QuestionCard>
                 ))}
 

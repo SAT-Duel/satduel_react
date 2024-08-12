@@ -1,15 +1,26 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import Router from "./components/Router";
 import './App.css';
 import {ConfigProvider} from "antd";
 import enUS from 'antd/es/locale/en_US';
+import api from './components/api'
+import {ThemeProvider} from "styled-components";
+import theme from "./styles/theme";
+import GlobalStyles from "./styles/globalStyles";
 
 
 function App() {
+    useEffect(() => {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        api.get(`${baseUrl}/api/csrf/`); // This sets the CSRF cookie
+    }, []);
     return (
-        <ConfigProvider locale={enUS}>
-            <Router/>
-        </ConfigProvider>
+        <ThemeProvider theme={theme}>
+            <GlobalStyles/>
+            <ConfigProvider locale={enUS}>
+                <Router/>
+            </ConfigProvider>
+        </ThemeProvider>
     );
 }
 

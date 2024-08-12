@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
 import {Form, Input, Button, Card, Typography, Space, message} from 'antd';
 
@@ -128,6 +128,9 @@ function Login() {
                             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
                                 Login
                             </Button>
+                        </Form.Item>
+                        <Form.Item>
+                            <Link to="/password_reset">Forgot your password?</Link>
                         </Form.Item>
                     </Form>
                 </Space>
