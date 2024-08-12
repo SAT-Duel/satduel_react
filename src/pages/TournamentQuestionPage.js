@@ -85,6 +85,7 @@ const TournamentQuestionPage = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
+            message.success('Tournament ended.');
             navigate(`/tournament/${tournamentId}`);
         } catch (err) {
             message.error(err.response?.data?.error || 'An error occurred while finishing the tournament.');
