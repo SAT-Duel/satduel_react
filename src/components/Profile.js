@@ -43,6 +43,9 @@ function Profile({user_id = null}) {
 
     useEffect(() => {
         const fetchProfile = async () => {
+            if (!token){
+                return;
+            }
             try {
                 const baseUrl = process.env.REACT_APP_API_URL;
                 const url = isOwnProfile ? `${baseUrl}/api/profile/` : `${baseUrl}/api/profile/view_profile/${user_id}/`;
@@ -93,6 +96,10 @@ function Profile({user_id = null}) {
     };
 
     const sendFriendRequest = async () => {
+        if(!token){
+            message.error('You must be logged in to send friend requests');
+            return;
+        }
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
             await axios.post(`${baseUrl}/api/profile/send_friend_request/`,

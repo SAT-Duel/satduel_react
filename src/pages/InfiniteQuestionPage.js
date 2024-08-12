@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import styled from 'styled-components';
 import Question from '../components/Question';
 import axios from "axios";
@@ -122,11 +122,11 @@ function InfiniteQuestionsPage() {
     });
     const [isFinished, setIsFinished] = useState(false);
     const {token, loading} = useAuth();
+    const hasFetchedData = useRef(false);
 
     const baseUrl = process.env.REACT_APP_API_URL;
 
     const saveStats = useCallback(async (statsToSave) => {
-        console.log('called')
         try {
             const payload = {
                 correct_number: statsToSave.correctAnswers,
@@ -174,15 +174,12 @@ function InfiniteQuestionsPage() {
     }, [baseUrl, token]);
 
     useEffect(() => {
-        if (!loading) {
+        if (!loading && !hasFetchedData.current) {
             fetchNextQuestion();
             fetchStats();
+            hasFetchedData.current = true;
         }
     }, [loading, fetchNextQuestion, fetchStats]);
-
-    // useEffect(() => {
-    //     saveStats(stats);
-    // }, [stats, saveStats]);
 
     const handleQuestionSubmit = async (id, choice) => {
         if (isFinished) return;
