@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const SearchUsers = () => {
-    const { token } = useAuth();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const { Option } = Select;

@@ -98,10 +98,6 @@ const FeatureCard = styled(Card)`
         transform: translateY(-5px) rotate(2deg);
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     }
-
-    .ant-statistic-title, .ant-statistic-content {
-        color: white !important;
-    }
 `;
 
 
@@ -168,10 +164,6 @@ const BotTrainingCard = styled(Card)`
     &:hover {
         transform: translateY(-5px) rotate(-2deg);
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .ant-card-meta-title, .ant-card-meta-description {
-        color: white !important;
     }
 `;
 
