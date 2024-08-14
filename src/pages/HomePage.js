@@ -24,20 +24,20 @@ const HeroSection = styled.div`
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #5d75ec 0%, #5f2f8c 100%);
+    background: linear-gradient(75deg, #193557 0%, #2d2653 100%);
     color: white;
     text-align: center;
 `;
 
 const GradientText = styled.span`
-    background: linear-gradient(90deg, #c453f5, #69c4f5);
+    background: linear-gradient(75deg, #8f73ff 0%, #34acfb 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 `;
 
 const StyledButton = styled(Button)`
-    background: transparent;
-    border: 2px solid white;
+    background: linear-gradient(75deg, #366aaf 0%, #4d56ba 100%);
+    border: none;
     color: white;
     font-size: 1.2rem;
     padding: 10px 20px;
@@ -45,8 +45,8 @@ const StyledButton = styled(Button)`
     transition: all 0.3s ease;
 
     &:hover {
-        background: white;
-        color: #0099f7;
+        background: #489cb5;
+        color: white;
         transform: translateY(-3px);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
@@ -171,12 +171,12 @@ function HomePage() {
                 <Row gutter={16}>
                     <Col>
                         <StyledButton>
-                            <Link to="/trainer">Start Practice</Link>
+                           <Link to="/trainer" style={{ fontWeight: 500 }}>Start Practice</Link>
                         </StyledButton>
                     </Col>
                     <Col>
                         <StyledButton>
-                            <Link to="/match">Challenge a Friend</Link>
+                            <Link to="/match" style={{ fontWeight: 500 }}>Challenge a Friend</Link>
                         </StyledButton>
                     </Col>
                 </Row>
