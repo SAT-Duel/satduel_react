@@ -166,7 +166,7 @@ function Question({questionData, onSubmit, status, questionNumber, preview}) {
             }
         };
         fetchAnswer();
-    }, [status, note, answer, answerChoice, loading, id, preview, questionData.answer, questionData.explanation]);
+    }, [status, note, answer, answerChoice, loading, id, preview, questionData.answer, questionData.explanation, questionData.choices]);
 
     const handleSubmit = () => {
         if (selectedChoice) {
