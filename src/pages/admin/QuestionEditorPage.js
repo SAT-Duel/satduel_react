@@ -5,6 +5,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import styled from 'styled-components';
 import Question from '../../components/Question';
+import withAuth from "../../hoc/withAuth";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -136,7 +137,7 @@ const QuestionEditorPage = () => {
                     rules={[{ required: true }]}
                     tooltip="Use \underline{text} to underline, \textit{text} for italics, \textbf{text} for bold. Use $...$ for inline math and $$...$$ for block math."
                 >
-                    <TextArea rows={4} />
+                    <TextArea rows={15} />
                 </Form.Item>
                 <Form.Item name="choice_a" label="Choice A" rules={[{ required: true }]}>
                     <TextArea rows={2} />
@@ -169,7 +170,7 @@ const QuestionEditorPage = () => {
                     <Input />
                 </Form.Item>
                 <Form.Item name="explanation" label="Explanation">
-                    <TextArea rows={4} />
+                    <TextArea rows={15} />
                 </Form.Item>
                 <Form.Item>
                     <PreviewButton type="default" onClick={handlePreview}>
@@ -201,4 +202,4 @@ const QuestionEditorPage = () => {
     );
 };
 
-export default QuestionEditorPage;
+export default withAuth(QuestionEditorPage, true);

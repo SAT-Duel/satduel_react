@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Question from '../components/Question';
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
+import withAuth from "../hoc/withAuth";
 
 const PageContainer = styled.div`
     display: flex;
@@ -289,4 +290,4 @@ function InfiniteQuestionsPage() {
     );
 }
 
-export default InfiniteQuestionsPage;
+export default withAuth(InfiniteQuestionsPage);
