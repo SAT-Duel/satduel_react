@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Layout, Typography, Card, Button, Row, Col, Select, Radio, InputNumber } from 'antd';
-import { RobotOutlined, QuestionCircleOutlined, BookOutlined, FieldTimeOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Layout, Typography, Card, Button, Row, Col, Select, Form } from 'antd';
+import { RobotOutlined } from '@ant-design/icons';
+import styled from 'styled-components';
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -50,7 +50,7 @@ const StyledButton = styled(Button)`
     color: white;
     font-weight: bold;
     transition: all 0.3s ease;
-    padding: 10px 20px; // Adjust padding as needed
+    padding: 10px 20px;
     
     &:hover, &:focus {
         background-color: #008c7a;
@@ -59,53 +59,24 @@ const StyledButton = styled(Button)`
     }
 `;
 
-const StyledRadioButton = styled(Radio.Button)`
-    border-radius: 20px;
-    margin-bottom: 10px;
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    box-sizing: border-box;
-`;
-
-const StyledRadioGroup = styled(Radio.Group)`
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-`;
-
-const BotTrainingPage = () => {
-    const [selectedBot, setSelectedBot] = useState(null);
-    const [selectedMode, setSelectedMode] = useState(null);
-    const [powerSprintTime, setPowerSprintTime] = useState(5);
+const BotTrainingSetup = () => {
+    const [form] = Form.useForm();
     const navigate = useNavigate();
 
     const bots = [
-    { name: 'UFO', score: 1000, speed: 100, solveChance: 50, timeRange: [5, 15] },
-    { name: 'Thomas Tan', score: 1200, speed: 150, solveChance: 70, timeRange: [3, 10] },
-    { name: 'Clement Zhou', score: 1400, speed: 180, solveChance: 85, timeRange: [2, 7] },
-    { name: 'Warren Bei', score: 1600, speed: 200, solveChance: 95, timeRange: [1, 5] },
+        { name: 'Easy Bot', score: 1000, speed: 100, solveChance: 50 },
+        { name: 'Medium Bot', score: 1400, speed: 150, solveChance: 70 },
+        { name: 'Hard Bot', score: 1800, speed: 200, solveChance: 90 },
     ];
 
     const modes = [
-        { name: 'Infinite Questions', icon: <QuestionCircleOutlined /> },
-        { name: 'Power Sprint', icon: <FieldTimeOutlined /> },
-        { name: 'SAT Survival', icon: <BookOutlined /> },
+        { name: 'Quick Sprint', questions: 5, time: 5 },
+        { name: 'Standard Sprint', questions: 10, time: 10 },
+        { name: 'Extended Sprint', questions: 15, time: 15 },
     ];
 
-    const handleStart = () => {
-        if (selectedBot && selectedMode) {
-            const bot = bots.find(b => b.name === selectedBot);
-            const trainingData = {
-                bot: bot,
-                mode: selectedMode,
-                time: selectedMode === 'Power Sprint' ? powerSprintTime : null
-            };
-            navigate('/bot_training/start', { state: trainingData });
-        }
+    const handleStart = (values) => {
+        navigate('/bot_training/start', { state: values });
     };
 
     return (
@@ -122,66 +93,56 @@ const BotTrainingPage = () => {
             </GradientBackground>
 
             <StyledContent>
-                <Row gutter={[24, 24]}>
-                    <Col xs={24} md={12}>
-                        <StyledCard title="Select Your AI Opponent">
-                            <Select
-                                style={{ width: '100%' }}
-                                placeholder="Choose a bot"
-                                onChange={(value) => setSelectedBot(value)}
-                            >
-                                {bots.map((bot, index) => (
-                                    <Option key={index} value={bot.name}>
-                                        <RobotOutlined /> {bot.name} (Score: {bot.score + bot.speed})
-                                        <br />
-                                        <small>Speed: {bot.speed}, Solve Chance: {bot.solveChance}%</small>
-                                    </Option>
-                                ))}
-                            </Select>
-                        </StyledCard>
-                    </Col>
-                    <Col xs={24} md={12}>
-                        <StyledCard title="Select Training Mode">
-                            <StyledRadioGroup onChange={(e) => setSelectedMode(e.target.value)}>
-                                {modes.map((mode, index) => (
-                                    <StyledRadioButton key={index} value={mode.name}>
-                                        {mode.icon} {mode.name}
-                                    </StyledRadioButton>
-                                ))}
-                            </StyledRadioGroup>
-                        </StyledCard>
-                    </Col>
-                </Row>
-                {selectedMode === 'Power Sprint' && (
-                    <Row justify="center" style={{ marginTop: '20px' }}>
-                        <Col>
-                            <Card title="Power Sprint Time">
-                                <InputNumber
-                                    min={1}
-                                    max={60}
-                                    defaultValue={5}
-                                    onChange={(value) => setPowerSprintTime(value)}
-                                    addonAfter="minutes"
-                                />
-                            </Card>
+                <Form form={form} onFinish={handleStart} layout="vertical">
+                    <Row gutter={[24, 24]}>
+                        <Col xs={24} md={12}>
+                            <StyledCard title="Select Your AI Opponent">
+                                <Form.Item
+                                    name="selectedBot"
+                                    rules={[{ required: true, message: 'Please select a bot' }]}
+                                >
+                                    <Select placeholder="Choose a bot">
+                                        {bots.map((bot, index) => (
+                                            <Option key={index} value={bot.name}>
+                                                <RobotOutlined /> {bot.name} (Score: {bot.score})
+                                                <br />
+                                                <small>Speed: {bot.speed}, Solve Chance: {bot.solveChance}%</small>
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </StyledCard>
+                        </Col>
+                        <Col xs={24} md={12}>
+                            <StyledCard title="Select Training Mode">
+                                <Form.Item
+                                    name="selectedMode"
+                                    rules={[{ required: true, message: 'Please select a training mode' }]}
+                                >
+                                    <Select placeholder="Choose a mode">
+                                        {modes.map((mode, index) => (
+                                            <Option key={index} value={mode.name}>
+                                                {mode.name} ({mode.questions} questions in {mode.time} minutes)
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </StyledCard>
                         </Col>
                     </Row>
-                )}
-                <Row justify="center" style={{ marginTop: '30px' }}>
-                    <Col>
-                        <StyledButton
-                            size="large"
-                            onClick={handleStart}
-                            disabled={!selectedBot || !selectedMode}
-                            selected={selectedBot && selectedMode}
-                        >
-                            Start Training
-                        </StyledButton>
-                    </Col>
-                </Row>
+                    <Row justify="center" style={{ marginTop: '30px' }}>
+                        <Col>
+                            <Form.Item>
+                                <StyledButton type="primary" htmlType="submit" size="large">
+                                    Start Training
+                                </StyledButton>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                </Form>
             </StyledContent>
         </Layout>
     );
 };
 
-export default BotTrainingPage;
+export default BotTrainingSetup;

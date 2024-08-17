@@ -31,6 +31,9 @@ import BotTrainingPage from "../pages/BotTrainingPage";
 import BotGamePage from "../pages/BotGamePage";
 import PasswordResetPage from "../pages/PasswordResetPage";
 import PasswordResetConfirmPage from "../pages/PasswordResetConfirmPage";
+import AdminHomepage from "../pages/admin/AdminHomepage";
+import QuestionListPage from "../pages/admin/QuestionListPage";
+import QuestionEditorPage from "../pages/admin/QuestionEditorPage";
 
 function Router() {
     return (
@@ -74,6 +77,10 @@ function Router() {
                 <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
                 <Route path="/create_tournament" element={<CreateTournamentPage/>}/>
 
+                <Route path="/admin" element={<AdminHomepage/>}/>
+                <Route path="/admin/questions" element={<QuestionListPage/>}/>
+                <Route path="/admin/create_question" element={<QuestionEditorPage/>}/>
+                <Route path="/admin/edit_question/:id" element={<QuestionEditorPage/>}/>
             </Route>
         </Routes>
     );

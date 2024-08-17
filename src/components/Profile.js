@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import {useAuth} from "../context/AuthContext";
-import {Card, Form, Input, Button, message, Row, Col, Statistic} from "antd";
+import { useAuth } from "../context/AuthContext";
+import { Card, Form, Input, Button, message, Row, Col, Statistic } from "antd";
 import { UserOutlined, TrophyOutlined, FireOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const gradientStyle = {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -27,7 +28,7 @@ const iconStyle = {
     marginRight: '8px'
 };
 
-function Profile({user_id = null}) {
+function Profile({ user_id = null }) {
     const [profile, setProfile] = useState({
         user: {
             username: '',
@@ -38,12 +39,13 @@ function Profile({user_id = null}) {
         max_streak: ''
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
-    const {token, loading} = useAuth();
+    const { token, loading, user } = useAuth();
+    const navigate = useNavigate();
     const isOwnProfile = user_id === null;
 
     useEffect(() => {
         const fetchProfile = async () => {
-            if (!token){
+            if (!token) {
                 return;
             }
             try {
@@ -96,14 +98,14 @@ function Profile({user_id = null}) {
     };
 
     const sendFriendRequest = async () => {
-        if(!token){
+        if (!token) {
             message.error('You must be logged in to send friend requests');
             return;
         }
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
             await axios.post(`${baseUrl}/api/profile/send_friend_request/`,
-                {to_user_id: user_id},
+                { to_user_id: user_id },
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -117,8 +119,12 @@ function Profile({user_id = null}) {
         }
     };
 
+    const navigateToAdminPage = () => {
+        navigate('/admin');
+    };
+
     return (
-        <div style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
             <Card
                 title={<span style={whiteTextStyle}>{isOwnProfile ? "My Profile" : `${profile.user?.username}'s Profile`}</span>}
                 loading={loadingProfile}
@@ -126,20 +132,20 @@ function Profile({user_id = null}) {
                     <Button
                         type="primary"
                         onClick={sendFriendRequest}
-                        style={{...gradientStyle, border: 'none'}}
+                        style={{ ...gradientStyle, border: 'none' }}
                     >
                         Add Friend
                     </Button>
                 )}
-                style={{...cardStyle, ...gradientStyle}}
-                headStyle={{...gradientStyle, borderBottom: 'none'}}
+                style={{ ...cardStyle, ...gradientStyle }}
+                headStyle={{ ...gradientStyle, borderBottom: 'none' }}
             >
                 <Row gutter={16}>
                     <Col span={12}>
                         <Statistic
                             title={<span style={whiteTextStyle}>Username</span>}
                             value={profile.user?.username}
-                            prefix={<UserOutlined style={{...iconStyle, color: '#1890ff'}} />}
+                            prefix={<UserOutlined style={{ ...iconStyle, color: '#1890ff' }} />}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
@@ -147,17 +153,17 @@ function Profile({user_id = null}) {
                         <Statistic
                             title={<span style={whiteTextStyle}>Grade</span>}
                             value={profile.grade}
-                            prefix={<TrophyOutlined style={{...iconStyle, color: '#FFA500'}} />}
+                            prefix={<TrophyOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
                 </Row>
-                <Row gutter={16} style={{marginTop: '20px'}}>
+                <Row gutter={16} style={{ marginTop: '20px' }}>
                     <Col span={12}>
                         <Statistic
                             title={<span style={whiteTextStyle}>Max Win-Streak</span>}
                             value={profile.max_streak}
-                            prefix={<FireOutlined style={{...iconStyle, color: '#ff4d4f'}} />}
+                            prefix={<FireOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
@@ -172,33 +178,48 @@ function Profile({user_id = null}) {
                 <Card title="Edit Biography" style={cardStyle}>
                     <Form
                         name="biography"
-                        initialValues={{biography: profile.biography}}
+                        initialValues={{ biography: profile.biography }}
                         onFinish={onFinish}
                     >
                         <Form.Item
                             name="biography"
                             rules={[
-                                {required: true, message: 'Please enter your biography'},
-                                {max: 5000, message: 'Biography cannot be longer than 5000 characters'}
+                                { required: true, message: 'Please enter your biography' },
+                                { max: 5000, message: 'Biography cannot be longer than 5000 characters' }
                             ]}
                         >
                             <Input.TextArea
                                 rows={4}
                                 maxLength={5000}
-                                autoSize={{minRows: 4, maxRows: 10}}
+                                autoSize={{ minRows: 4, maxRows: 10 }}
                             />
                         </Form.Item>
                         <Form.Item>
                             <Button
                                 type="primary"
                                 htmlType="submit"
-                                style={{...gradientStyle, border: 'none'}}
+                                style={{ ...gradientStyle, border: 'none' }}
                             >
                                 Update Biography
                             </Button>
                         </Form.Item>
                     </Form>
                 </Card>
+            )}
+
+            {user?.is_admin && (
+                <Button
+                    type="primary"
+                    style={{
+                        ...gradientStyle,
+                        width: '100%',
+                        marginTop: '20px',
+                        border: 'none'
+                    }}
+                    onClick={navigateToAdminPage}
+                >
+                    Admin Page
+                </Button>
             )}
         </div>
     );

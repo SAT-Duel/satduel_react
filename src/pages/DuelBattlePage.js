@@ -133,13 +133,12 @@ const DuelBattle = () => {
     // Todo: Delete this function and send this information using serializer
     const fetchQuestionDetails = async (questionId, token) => {
         const baseUrl = process.env.REACT_APP_API_URL;
-        const response = await axios.post(`${baseUrl}/api/get_question/`, {
-            question_id: questionId
-        }, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await axios.get(`${baseUrl}/api/get_question/${questionId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
         return response.data;
     };
 
