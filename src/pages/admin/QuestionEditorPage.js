@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import { Form, Input, Select, Button, message, Spin, Modal, Typography } from 'antd';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -50,13 +50,7 @@ const QuestionEditorPage = () => {
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewData, setPreviewData] = useState(null);
 
-    useEffect(() => {
-        if (id) {
-            fetchQuestion();
-        }
-    }, [id]);
-
-    const fetchQuestion = async () => {
+    const fetchQuestion = useCallback( async () => {
         try {
             setLoading(true);
             const baseUrl = process.env.REACT_APP_API_URL;
@@ -80,7 +74,13 @@ const QuestionEditorPage = () => {
             message.error('Failed to fetch question data');
             setLoading(false);
         }
-    };
+    }, [form, id]);
+
+    useEffect(() => {
+        if (id) {
+            fetchQuestion();
+        }
+    }, [fetchQuestion, id]);
 
     const onFinish = async (values) => {
         try {

@@ -10,7 +10,7 @@ import {
     InfoCircleOutlined,
     QuestionCircleOutlined,
     UserAddOutlined,
-    MenuOutlined, FireOutlined,RiseOutlined
+    MenuOutlined, FireOutlined
 } from '@ant-design/icons';
 import { Row, Col } from 'antd';
 import SearchUser from "./SearchUser";
