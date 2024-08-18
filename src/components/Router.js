@@ -34,6 +34,7 @@ import PasswordResetConfirmPage from "../pages/PasswordResetConfirmPage";
 import AdminHomepage from "../pages/admin/AdminHomepage";
 import QuestionListPage from "../pages/admin/QuestionListPage";
 import QuestionEditorPage from "../pages/admin/QuestionEditorPage";
+import AdminCreateTournamentPage from "../pages/admin/AdminCreateTournamentPage";
 
 function Router() {
     return (
@@ -81,6 +82,7 @@ function Router() {
                 <Route path="/admin/questions" element={<QuestionListPage/>}/>
                 <Route path="/admin/create_question" element={<QuestionEditorPage/>}/>
                 <Route path="/admin/edit_question/:id" element={<QuestionEditorPage/>}/>
+                <Route path="/admin/create_tournament" element={<AdminCreateTournamentPage/>}/>
             </Route>
         </Routes>
     );

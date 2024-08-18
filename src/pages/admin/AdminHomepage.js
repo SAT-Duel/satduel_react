@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Typography, Card } from 'antd';
-import { FileTextOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { FileTextOutlined, DatabaseOutlined, TrophyOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import withAuth from "../../hoc/withAuth";
 
@@ -59,8 +59,12 @@ const AdminHome = () => {
     };
 
     const handleNavigateToBackend = () => {
-        // Placeholder link, replace with your actual backend database link
         window.location.href = 'https://satduel-e07814415d4e.herokuapp.com/admin/';
+    };
+
+    const handleNavigateToCreateTournament = () => {
+        // Placeholder link, replace with your actual tournament creation link
+        navigate('/admin/create_tournament');
     };
 
     return (
@@ -68,7 +72,7 @@ const AdminHome = () => {
             <ContentWrapper>
                 <HeroTitle level={1}>Admin Tools</HeroTitle>
                 <Row gutter={[24, 24]}>
-                    <Col xs={24} md={12}>
+                    <Col xs={24} md={8}>
                         <StyledCard onClick={handleNavigateToQuestions}>
                             <FileTextOutlined />
                             <Title level={4} style={{ marginTop: '20px', color: '#0B2F7D' }}>Question List</Title>
@@ -77,12 +81,21 @@ const AdminHome = () => {
                             </Paragraph>
                         </StyledCard>
                     </Col>
-                    <Col xs={24} md={12}>
+                    <Col xs={24} md={8}>
                         <StyledCard onClick={handleNavigateToBackend}>
                             <DatabaseOutlined />
                             <Title level={4} style={{ marginTop: '20px', color: '#0B2F7D' }}>Backend Database</Title>
                             <Paragraph style={{ fontSize: '1rem', color: '#4A4A4A' }}>
                                 Access and manage the backend database.
+                            </Paragraph>
+                        </StyledCard>
+                    </Col>
+                    <Col xs={24} md={8}>
+                        <StyledCard onClick={handleNavigateToCreateTournament}>
+                            <TrophyOutlined />
+                            <Title level={4} style={{ marginTop: '20px', color: '#0B2F7D' }}>Create Tournament</Title>
+                            <Paragraph style={{ fontSize: '1rem', color: '#4A4A4A' }}>
+                                Create and manage new tournaments.
                             </Paragraph>
                         </StyledCard>
                     </Col>
