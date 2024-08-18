@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {Card, Select, Pagination, Row, Col, Button, Descriptions} from 'antd';
 import {Link, useNavigate} from 'react-router-dom';
 import {PlusOutlined} from '@ant-design/icons';
@@ -19,14 +19,10 @@ const QuestionListPage = () => {
     const questionTypes = ['Cross-Text Connections', 'Text Structure and Purpose', 'Words in Context', 'Rhetorical Synthesis',
         'Transitions', 'Central Ideas and Details', 'Command of Evidence', 'Inferences', 'Boundaries', 'Form, Structure, and Sense'];
     const difficulties = ['1', '2', '3', '4', '5'];
-
     const navigate = useNavigate();
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    },[]);
 
-    const fetchQuestions = async () => {
+    const fetchQuestions = useCallback(async () => {
         const baseUrl = process.env.REACT_APP_API_URL;
 
         try {
@@ -43,7 +39,12 @@ const QuestionListPage = () => {
         } catch (error) {
             console.error('Error fetching questions:', error);
         }
-    };
+    }, [currentPage, pageSize, selectedDifficulty, selectedType]);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        fetchQuestions();
+    }, [fetchQuestions, currentPage, selectedType, selectedDifficulty]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);

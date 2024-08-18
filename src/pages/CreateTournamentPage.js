@@ -1,15 +1,15 @@
-import React, {useState, useEffect} from 'react';
-import {Form, Input, Button, DatePicker, InputNumber, Switch, Card, Select, Typography, message} from 'antd';
-import {PlusOutlined, MinusCircleOutlined} from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Button, DatePicker, InputNumber, Switch, Card, Select, Typography, message, Modal, Spin } from 'antd';
+import { PlusOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import moment from 'moment';
-import {v4 as uuidv4} from 'uuid';
-import {useAuth} from "../context/AuthContext";
-import RichTextEditor from "../RichTextEditor";
+import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from "../context/AuthContext";
+import Question from "../components/Question"; // Assuming you have a Question component for preview
 
-const {Title} = Typography;
-const {TextArea} = Input;
-const {Option} = Select;
+const { Title, Paragraph } = Typography;
+const { TextArea } = Input;
+const { Option } = Select;
 
 const PageContainer = styled.div`
     max-width: 800px;
@@ -28,13 +28,21 @@ const QuestionCard = styled(Card)`
     margin-bottom: 24px;
 `;
 
+const InstructionText = styled(Paragraph)`
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 24px;
+`;
+
 const CreateTournamentPage = () => {
     const [form] = Form.useForm();
     const [questions, setQuestions] = useState([]);
-    const {user} = useAuth();
+    const [previewVisible, setPreviewVisible] = useState(false);
+    const [previewData, setPreviewData] = useState(null);
+    const { user } = useAuth();
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // Add event listener to warn user about unsaved changes
         const handleBeforeUnload = (e) => {
             e.preventDefault();
             e.returnValue = '';
@@ -46,13 +54,9 @@ const CreateTournamentPage = () => {
         };
     }, []);
 
-    const onFinish = (values) => {
+    const onFinish = async (values) => {
         const durationInSeconds = values.duration * 60;
-
-        // Format the duration as "HH:MM:SS"
         const formattedDuration = new Date(durationInSeconds * 1000).toISOString().substring(11, 19);
-
-        // Format start and end time in a consistent way
         const formattedStartTime = moment(values.start_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
         const formattedEndTime = moment(values.end_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
 
@@ -62,18 +66,17 @@ const CreateTournamentPage = () => {
             end_time: formattedEndTime,
             duration: formattedDuration,
             questions: questions,
-            private: values.private || true, // Ensure 'private' is set to false if undefined
+            private: values.private || true,
         };
 
         console.log('Tournament data:', tournamentData);
-        // Here you would typically send this data to your API
         message.success('Tournament created successfully!');
         form.resetFields();
-        setQuestions([]); // Reset questions after form submission
+        setQuestions([]);
     };
 
     const addQuestion = () => {
-        setQuestions([...questions, {id: uuidv4()}]); // Add a question with a unique ID
+        setQuestions([...questions, { id: uuidv4() }]);
     };
 
     const removeQuestion = (id) => {
@@ -83,43 +86,73 @@ const CreateTournamentPage = () => {
     const updateQuestion = (id, field, value) => {
         const newQuestions = questions.map(question => {
             if (question.id === id) {
-                return {...question, [field]: value};
+                return { ...question, [field]: value };
             }
             return question;
         });
         setQuestions(newQuestions);
     };
 
+    const handlePreview = (question) => {
+        setPreviewData({
+            id: question.id,
+            question: question.question || '',
+            choices: [
+                question.choice_a || '',
+                question.choice_b || '',
+                question.choice_c || '',
+                question.choice_d || ''
+            ],
+            answer: question.answer || '',
+            explanation: question.explanation || '',
+        });
+        setPreviewVisible(true);
+    };
+
+    if (loading) {
+        return <Spin size="large" />;
+    }
+
     return (
         <PageContainer>
             <Title level={2}>Create New Tournament</Title>
+            {/*<InstructionText>*/}
+            {/*    You can use the following commands to format your text with math rendering:*/}
+            {/*    <ul>*/}
+            {/*        <li><strong>Inline Math:</strong> Use <code>$...$</code> to enclose inline math.</li>*/}
+            {/*        <li><strong>Block Math:</strong> Use <code>$$...$$</code> to enclose block math.</li>*/}
+            {/*        <li><strong>Underline:</strong> Use <code>\underline{{text}}</code> to underline text.</li>*/}
+            {/*        <li><strong>Italics:</strong> Use <code>\textit{{text}}</code> to italicize text.</li>*/}
+            {/*        <li><strong>Bold:</strong> Use <code>\textbf{{text}}</code> to bold text.</li>*/}
+            {/*    </ul>*/}
+            {/*</InstructionText>*/}
             <StyledForm
                 form={form}
                 layout="vertical"
                 onFinish={onFinish}
                 initialValues={{
-                    private: !user.is_admin,  // Default to true unless the user is an admin
+                    private: !user.is_admin,
                 }}
             >
-                <Form.Item name="name" label="Tournament Name" rules={[{required: true}]}>
-                    <Input/>
+                <Form.Item name="name" label="Tournament Name" rules={[{ required: true }]}>
+                    <Input />
                 </Form.Item>
-                <Form.Item name="description" label="Description" rules={[{required: true}]}>
-                    <TextArea rows={4}/>
+                <Form.Item name="description" label="Description" rules={[{ required: true }]}>
+                    <TextArea rows={4} />
                 </Form.Item>
-                <Form.Item name="start_time" label="Start Time" rules={[{required: true}]}>
-                    <DatePicker showTime/>
+                <Form.Item name="start_time" label="Start Time" rules={[{ required: true }]}>
+                    <DatePicker showTime />
                 </Form.Item>
-                <Form.Item name="end_time" label="End Time" rules={[{required: true}]}>
-                    <DatePicker showTime/>
+                <Form.Item name="end_time" label="End Time" rules={[{ required: true }]}>
+                    <DatePicker showTime />
                 </Form.Item>
-                <Form.Item name="duration" label="Duration (minutes)" rules={[{required: true}]}>
-                    <InputNumber min={1}/>
+                <Form.Item name="duration" label="Duration (minutes)" rules={[{ required: true }]}>
+                    <InputNumber min={1} />
                 </Form.Item>
                 <Form.Item name="private" label="Private Tournament" valuePropName="checked">
                     <Switch
                         defaultChecked={!user.is_admin}
-                        disabled={!user.is_admin}  // Disable switch if user is not admin
+                        disabled={!user.is_admin}
                     />
                 </Form.Item>
 
@@ -128,61 +161,83 @@ const CreateTournamentPage = () => {
                     <QuestionCard
                         key={question.id}
                         title={`Question ${index + 1}`}
-                        extra={<Button type="link" onClick={() => removeQuestion(question.id)} icon={<MinusCircleOutlined/>}/>}
+                        extra={
+                            <>
+                                <Button type="link" icon={<EyeOutlined />} onClick={() => handlePreview(question)}>
+                                    Preview
+                                </Button>
+                                <Button type="link" onClick={() => removeQuestion(question.id)} icon={<MinusCircleOutlined />} />
+                            </>
+                        }
                     >
-                        <RichTextEditor
-                            label="Question Text"
-                            value={question.question || ''}
-                            onChange={(value) => updateQuestion(question.id, 'question', value)}
-                        />
-                        <RichTextEditor
-                            label="Choice A"
-                            value={question.choice_a || ''}
-                            onChange={(value) => updateQuestion(question.id, 'choice_a', value)}
-                        />
-                        <RichTextEditor
-                            label="Choice B"
-                            value={question.choice_b || ''}
-                            onChange={(value) => updateQuestion(question.id, 'choice_b', value)}
-                        />
-                        <RichTextEditor
-                            label="Choice C"
-                            value={question.choice_c || ''}
-                            onChange={(value) => updateQuestion(question.id, 'choice_c', value)}
-                        />
-                        <RichTextEditor
-                            label="Choice D"
-                            value={question.choice_d || ''}
-                            onChange={(value) => updateQuestion(question.id, 'choice_d', value)}
-                        />
-                        <Form.Item label="Correct Answer" rules={[{required: true}]}>
-                            <Select onChange={(value) => updateQuestion(question.id, 'answer', value)}>
+                        <Form.Item label="Question Text" rules={[{ required: true }]}>
+                            <TextArea
+                                rows={2}
+                                value={question.question || ''}
+                                onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
+                            />
+                        </Form.Item>
+                        <Form.Item label="Choice A" rules={[{ required: true }]}>
+                            <TextArea
+                                rows={1}
+                                value={question.choice_a || ''}
+                                onChange={(e) => updateQuestion(question.id, 'choice_a', e.target.value)}
+                            />
+                        </Form.Item>
+                        <Form.Item label="Choice B" rules={[{ required: true }]}>
+                            <TextArea
+                                rows={1}
+                                value={question.choice_b || ''}
+                                onChange={(e) => updateQuestion(question.id, 'choice_b', e.target.value)}
+                            />
+                        </Form.Item>
+                        <Form.Item label="Choice C" rules={[{ required: true }]}>
+                            <TextArea
+                                rows={1}
+                                value={question.choice_c || ''}
+                                onChange={(e) => updateQuestion(question.id, 'choice_c', e.target.value)}
+                            />
+                        </Form.Item>
+                        <Form.Item label="Choice D" rules={[{ required: true }]}>
+                            <TextArea
+                                rows={1}
+                                value={question.choice_d || ''}
+                                onChange={(e) => updateQuestion(question.id, 'choice_d', e.target.value)}
+                            />
+                        </Form.Item>
+                        <Form.Item label="Correct Answer" rules={[{ required: true }]}>
+                            <Select value={question.answer} onChange={(value) => updateQuestion(question.id, 'answer', value)}>
                                 <Option value="A">A</Option>
                                 <Option value="B">B</Option>
                                 <Option value="C">C</Option>
                                 <Option value="D">D</Option>
                             </Select>
                         </Form.Item>
-                        <Form.Item label="Difficulty" rules={[{required: true}]}>
-                            <Select onChange={(value) => updateQuestion(question.id, 'difficulty', value)}>
+                        <Form.Item label="Difficulty" rules={[{ required: true }]}>
+                            <Select value={question.difficulty} onChange={(value) => updateQuestion(question.id, 'difficulty', value)}>
                                 {[1, 2, 3, 4, 5].map(level => (
                                     <Option key={level} value={level}>{level}</Option>
                                 ))}
                             </Select>
                         </Form.Item>
                         <Form.Item label="Question Type">
-                            <Input onChange={(e) => updateQuestion(question.id, 'question_type', e.target.value)}/>
+                            <Input
+                                value={question.question_type || ''}
+                                onChange={(e) => updateQuestion(question.id, 'question_type', e.target.value)}
+                            />
                         </Form.Item>
-                        <RichTextEditor
-                            label="Explanation"
-                            value={question.explanation || ''}
-                            onChange={(value) => updateQuestion(question.id, 'explanation', value)}
-                        />
+                        <Form.Item label="Explanation">
+                            <TextArea
+                                rows={2}
+                                value={question.explanation || ''}
+                                onChange={(e) => updateQuestion(question.id, 'explanation', e.target.value)}
+                            />
+                        </Form.Item>
                     </QuestionCard>
                 ))}
 
                 <Form.Item>
-                    <Button type="dashed" onClick={addQuestion} block icon={<PlusOutlined/>}>
+                    <Button type="dashed" onClick={addQuestion} block icon={<PlusOutlined />}>
                         Add Question
                     </Button>
                 </Form.Item>
@@ -193,6 +248,24 @@ const CreateTournamentPage = () => {
                     </Button>
                 </Form.Item>
             </StyledForm>
+
+            <Modal
+                title="Question Preview"
+                visible={!!previewVisible}
+                footer={null}
+                onCancel={() => setPreviewVisible(false)}
+                width={800}
+            >
+                {previewData && (
+                    <Question
+                        questionData={previewData}
+                        onSubmit={() => { }} // You can leave this empty or provide a function
+                        status="Correct"
+                        questionNumber={1}
+                        preview={true}
+                    />
+                )}
+            </Modal>
         </PageContainer>
     );
 };
