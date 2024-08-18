@@ -21,10 +21,32 @@ import axios from 'axios';
 import moment from 'moment';
 import RenderWithMath from "../../components/RenderWithMath";
 import withAuth from "../../hoc/withAuth";
+import styled from 'styled-components';
 
 const {Option} = Select;
 const {Title} = Typography;
 const {TextArea} = Input;
+
+const Container = styled.div`
+    padding: 20px;
+`;
+
+const QuestionSelectionTitle = styled(Title)`
+    margin-top: 40px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #0B2F7D;
+`;
+
+const FormContainer = styled.div`
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 0 auto;
+`;
+
 
 const AdminCreateTournamentPage = () => {
     const [questions, setQuestions] = useState([]);
@@ -41,8 +63,12 @@ const AdminCreateTournamentPage = () => {
     const difficulties = ['1', '2', '3', '4', '5'];
 
     const navigate = useNavigate();
-
-
+    // const ScrollToError = () => {
+    //     const form = Form.useFormInstance();
+    //     form.scrollToField(Object.keys(form.getFieldsError().find(({errors}) => errors.length))?.[0], {
+    //         behavior: 'smooth',
+    //     });
+    // };
     const fetchQuestions = useCallback(async () => {
         const baseUrl = process.env.REACT_APP_API_URL;
 
@@ -95,22 +121,35 @@ const AdminCreateTournamentPage = () => {
 
         const durationInSeconds = values.duration * 60;
         const formattedDuration = new Date(durationInSeconds * 1000).toISOString().substring(11, 19);
-        const formattedStartTime = moment(values.start_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-        const formattedEndTime = moment(values.end_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+        const startDate = new Date(values.start_time);
+        const endDate = new Date(values.end_time);
 
+// Ensure 'private' is handled correctly if it's null
+
+
+// Format the dates using toISOString and remove the milliseconds
+        const formattedStartTime = startDate.toISOString().split('.')[0] + 'Z';
+        const formattedEndTime = endDate.toISOString().split('.')[0] + 'Z';
+        console.log(formattedStartTime, formattedEndTime)
+
+        if (values.private === null) {
+            values.private = false;
+        }
         const tournamentData = {
             ...values,
             start_time: formattedStartTime,
             end_time: formattedEndTime,
             duration: formattedDuration,
             question_ids: selectedQuestionIds,
+            private: values.private,
         };
+        console.log(tournamentData)
 
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
-            await axios.post(`${baseUrl}/api/create_tournament_with_questions/`, tournamentData);
+            await axios.post(`${baseUrl}/api/tournaments/admin_create/`, tournamentData);
             message.success('Tournament created successfully!');
-            navigate('/admin/tournaments'); // Redirect to tournaments list after creation
+            navigate('/tournaments'); // Redirect to tournaments list after creation
         } catch (error) {
             console.error('Error creating tournament:', error);
             message.error('Failed to create tournament');
@@ -118,55 +157,56 @@ const AdminCreateTournamentPage = () => {
     };
 
     return (
-        <div style={{padding: '20px'}}>
-            <Title level={2} style={{marginBottom: '20px'}}>Create a New Tournament</Title>
-
+        <Container>
+            <Title level={2} style={{marginBottom: '20px', textAlign: 'center'}}>Create a New Tournament</Title>
             <Form form={form} layout="vertical" onFinish={handleCreateTournament}>
-                <Form.Item name="name" label="Tournament Name" rules={[{required: true}]}>
-                    <Input placeholder="Enter tournament name"/>
-                </Form.Item>
-                <Form.Item name="description" label="Description" rules={[{required: true}]}>
-                    <TextArea rows={4} placeholder="Enter tournament description"/>
-                </Form.Item>
-                <Form.Item name="start_time" label="Start Time" rules={[{required: true}]}>
-                    <DatePicker showTime placeholder="Select start time"/>
-                </Form.Item>
-                <Form.Item name="end_time" label="End Time" rules={[{required: true}]}>
-                    <DatePicker showTime placeholder="Select end time"/>
-                </Form.Item>
-                <Form.Item name="duration" label="Duration (minutes)" rules={[{required: true}]}>
-                    <InputNumber min={1} placeholder="Enter duration in minutes"/>
-                </Form.Item>
-                <Form.Item name="private" label="Private Tournament" valuePropName="checked">
-                    <Switch/>
-                </Form.Item>
+                <FormContainer>
 
-                <div style={{marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <div style={{display: 'flex', gap: '10px'}}>
-                        <Select
-                            style={{width: 200}}
-                            value={selectedType}
-                            onChange={setSelectedType}
-                            placeholder="Select Type"
-                        >
-                            <Option key="any" value="any">Any Type</Option>
-                            {questionTypes.map(type => (
-                                <Option key={type} value={type}>{type}</Option>
-                            ))}
-                        </Select>
-                        <Select
-                            style={{width: 200}}
-                            value={selectedDifficulty}
-                            onChange={setSelectedDifficulty}
-                            placeholder="Select Difficulty"
-                        >
-                            <Option key="any" value="any">Any Difficulty</Option>
-                            {difficulties.map(difficulty => (
-                                <Option key={difficulty} value={difficulty}>{difficulty}</Option>
-                            ))}
-                        </Select>
-                        <Button type="primary" onClick={handleSearch}>Search</Button>
-                    </div>
+                    <Form.Item name="name" label="Tournament Name" rules={[{required: true}]}>
+                        <Input placeholder="Enter tournament name"/>
+                    </Form.Item>
+                    <Form.Item name="description" label="Description" rules={[{required: true}]}>
+                        <TextArea rows={4} placeholder="Enter tournament description"/>
+                    </Form.Item>
+                    <Form.Item name="start_time" label="Start Time" rules={[{required: true}]}>
+                        <DatePicker showTime placeholder="Select start time"/>
+                    </Form.Item>
+                    <Form.Item name="end_time" label="End Time" rules={[{required: true}]}>
+                        <DatePicker showTime placeholder="Select end time"/>
+                    </Form.Item>
+                    <Form.Item name="duration" label="Duration (minutes)" rules={[{required: true}]}>
+                        <InputNumber min={1} placeholder="Enter duration in minutes" style={{width: '100%'}}/>
+                    </Form.Item>
+                    <Form.Item name="private" label="Private Tournament" valuePropName="checked">
+                        <Switch defaultChecked={false}/>
+                    </Form.Item>
+                </FormContainer>
+
+                <QuestionSelectionTitle level={4}>Select Questions for the Tournament</QuestionSelectionTitle>
+                <div style={{marginBottom: 20, display: 'flex', justifyContent: 'center', gap: '10px'}}>
+                    <Select
+                        style={{width: 200}}
+                        value={selectedType}
+                        onChange={setSelectedType}
+                        placeholder="Select Type"
+                    >
+                        <Option key="any" value="any">Any Type</Option>
+                        {questionTypes.map(type => (
+                            <Option key={type} value={type}>{type}</Option>
+                        ))}
+                    </Select>
+                    <Select
+                        style={{width: 200}}
+                        value={selectedDifficulty}
+                        onChange={setSelectedDifficulty}
+                        placeholder="Select Difficulty"
+                    >
+                        <Option key="any" value="any">Any Difficulty</Option>
+                        {difficulties.map(difficulty => (
+                            <Option key={difficulty} value={difficulty}>{difficulty}</Option>
+                        ))}
+                    </Select>
+                    <Button type="primary" onClick={handleSearch}>Search</Button>
                 </div>
 
                 <Row gutter={[16, 16]}>
@@ -236,7 +276,7 @@ const AdminCreateTournamentPage = () => {
                     </Form.Item>
                 </div>
             </Form>
-        </div>
+        </Container>
     );
 };
 
