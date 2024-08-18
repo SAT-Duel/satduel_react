@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from "../context/AuthContext";
 import Question from "../components/Question"; // Assuming you have a Question component for preview
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -28,19 +28,12 @@ const QuestionCard = styled(Card)`
     margin-bottom: 24px;
 `;
 
-const InstructionText = styled(Paragraph)`
-    font-size: 0.9rem;
-    color: #888;
-    margin-bottom: 24px;
-`;
-
 const CreateTournamentPage = () => {
     const [form] = Form.useForm();
     const [questions, setQuestions] = useState([]);
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewData, setPreviewData] = useState(null);
-    const { user } = useAuth();
-    const [loading, setLoading] = useState(false);
+    const { user, loading } = useAuth();
 
     useEffect(() => {
         const handleBeforeUnload = (e) => {
