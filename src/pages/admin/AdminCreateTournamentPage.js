@@ -1,8 +1,24 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {Card, Select, Pagination, Row, Col, Button, Descriptions, Form, Input, Typography, message} from 'antd';
+import {
+    Card,
+    Select,
+    Pagination,
+    Row,
+    Col,
+    Button,
+    Descriptions,
+    Form,
+    Input,
+    DatePicker,
+    InputNumber,
+    Switch,
+    Typography,
+    message
+} from 'antd';
 import {useNavigate} from 'react-router-dom';
 import {PlusOutlined, DeleteOutlined} from '@ant-design/icons';
 import axios from 'axios';
+import moment from 'moment';
 import RenderWithMath from "../../components/RenderWithMath";
 import withAuth from "../../hoc/withAuth";
 
@@ -25,6 +41,7 @@ const AdminCreateTournamentPage = () => {
     const difficulties = ['1', '2', '3', '4', '5'];
 
     const navigate = useNavigate();
+
 
     const fetchQuestions = useCallback(async () => {
         const baseUrl = process.env.REACT_APP_API_URL;
@@ -76,8 +93,16 @@ const AdminCreateTournamentPage = () => {
     const handleCreateTournament = async (values) => {
         const selectedQuestionIds = selectedQuestions.map(q => q.id);
 
+        const durationInSeconds = values.duration * 60;
+        const formattedDuration = new Date(durationInSeconds * 1000).toISOString().substring(11, 19);
+        const formattedStartTime = moment(values.start_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+        const formattedEndTime = moment(values.end_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+
         const tournamentData = {
             ...values,
+            start_time: formattedStartTime,
+            end_time: formattedEndTime,
+            duration: formattedDuration,
             question_ids: selectedQuestionIds,
         };
 
@@ -97,11 +122,23 @@ const AdminCreateTournamentPage = () => {
             <Title level={2} style={{marginBottom: '20px'}}>Create a New Tournament</Title>
 
             <Form form={form} layout="vertical" onFinish={handleCreateTournament}>
-                <Form.Item name="title" label="Tournament Title" rules={[{required: true}]}>
-                    <Input placeholder="Enter tournament title"/>
+                <Form.Item name="name" label="Tournament Name" rules={[{required: true}]}>
+                    <Input placeholder="Enter tournament name"/>
                 </Form.Item>
-                <Form.Item name="description" label="Tournament Description" rules={[{required: true}]}>
+                <Form.Item name="description" label="Description" rules={[{required: true}]}>
                     <TextArea rows={4} placeholder="Enter tournament description"/>
+                </Form.Item>
+                <Form.Item name="start_time" label="Start Time" rules={[{required: true}]}>
+                    <DatePicker showTime placeholder="Select start time"/>
+                </Form.Item>
+                <Form.Item name="end_time" label="End Time" rules={[{required: true}]}>
+                    <DatePicker showTime placeholder="Select end time"/>
+                </Form.Item>
+                <Form.Item name="duration" label="Duration (minutes)" rules={[{required: true}]}>
+                    <InputNumber min={1} placeholder="Enter duration in minutes"/>
+                </Form.Item>
+                <Form.Item name="private" label="Private Tournament" valuePropName="checked">
+                    <Switch/>
                 </Form.Item>
 
                 <div style={{marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
