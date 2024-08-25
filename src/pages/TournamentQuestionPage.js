@@ -75,6 +75,7 @@ const TournamentQuestionPage = () => {
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [participantInfo, setParticipantInfo] = useState(null);
     const [timeLeft, setTimeLeft] = useState(null);
+    const [isReadOnly, setIsReadOnly] = useState(false);
     const navigate = useNavigate();
 
     const finishTournament = useCallback(async () => {
@@ -93,7 +94,6 @@ const TournamentQuestionPage = () => {
     }, [tournamentId, token, navigate]);
 
     const fetchLeaderboard = useCallback(async () => {
-        console.log('called')
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
             const response = await axios.get(`${baseUrl}/api/tournaments/${tournamentId}/leaderboard/`, {
@@ -151,7 +151,10 @@ const TournamentQuestionPage = () => {
     }, [tournamentId, token, loading, fetchLeaderboard]);
 
     useEffect(() => {
-        if (participantInfo) {
+        const searchParams = new URLSearchParams(window.location.search);
+        setIsReadOnly(searchParams.get('readonly') === 'true'); // Check if readonly mode is enabled
+
+        if (participantInfo && !isReadOnly) {
             const timer = setInterval(() => {
                 const now = new Date();
                 const endTime = new Date(participantInfo.end_time);
@@ -168,7 +171,7 @@ const TournamentQuestionPage = () => {
 
             return () => clearInterval(timer);
         }
-    }, [participantInfo, navigate, tournamentId, finishTournament]);
+    }, [participantInfo, navigate, tournamentId, finishTournament, isReadOnly]);
 
     const formatTime = (seconds) => {
         if (seconds === null) return '--:--:--';
@@ -179,6 +182,8 @@ const TournamentQuestionPage = () => {
     };
 
     const handleQuestionSubmit = async (id, choice) => {
+        if(isReadOnly) return;
+
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
             const response = await axios.post(`${baseUrl}/api/tournaments/${tournamentId}/submit-answer/`, {
@@ -203,6 +208,10 @@ const TournamentQuestionPage = () => {
     };
 
     const showEndTournamentConfirm = () => {
+        if(isReadOnly){
+            navigate(`/tournament/${tournamentId}`);
+            return;
+        }
         Modal.confirm({
             title: 'Are you sure you want to end the tournament?',
             icon: <ExclamationCircleOutlined/>,
@@ -231,6 +240,7 @@ const TournamentQuestionPage = () => {
                             onSubmit={handleQuestionSubmit}
                             status={question.status}
                             questionNumber={i + 1}
+                            disabled={isReadOnly}
                         />
                     ))}
                     <Button
@@ -239,7 +249,7 @@ const TournamentQuestionPage = () => {
                         onClick={showEndTournamentConfirm}
                         style={{marginTop: '16px', width: '100%'}}
                     >
-                        End Tournament
+                        {isReadOnly?"Go Back": "End Tournament"}
                     </Button>
                 </QuestionsSection>
                 <InfoAndLeaderboardSection>
