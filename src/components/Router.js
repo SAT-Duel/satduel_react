@@ -29,6 +29,9 @@ import TournamentQuestionPage from "../pages/TournamentQuestionPage";
 import CreateTournamentPage from "../pages/CreateTournamentPage";
 import BotTrainingPage from "../pages/BotTrainingPage";
 import BotGamePage from "../pages/BotGamePage";
+import ShopPage from "../pages/ShopPage";
+import HousePage from "../pages/HousePage";
+import CollegeTownPage from "../pages/CollegeTownPage";
 
 function Router() {
     return (
@@ -67,7 +70,9 @@ function Router() {
                 <Route path="/tournament/:tournamentId" element={<TournamentDetailPage/>}/>
                 <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
                 <Route path="/create_tournament" element={<CreateTournamentPage/>}/>
-
+                <Route path="/shop" element={<ShopPage />}/>
+                <Route path="/house" element={<HousePage />}/>
+                <Route path="town/" element={<CollegeTownPage />}/>
             </Route>
         </Routes>
     );
