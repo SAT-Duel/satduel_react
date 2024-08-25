@@ -109,16 +109,7 @@ const CreateTournamentPage = () => {
     return (
         <PageContainer>
             <Title level={2}>Create New Tournament</Title>
-            {/*<InstructionText>*/}
-            {/*    You can use the following commands to format your text with math rendering:*/}
-            {/*    <ul>*/}
-            {/*        <li><strong>Inline Math:</strong> Use <code>$...$</code> to enclose inline math.</li>*/}
-            {/*        <li><strong>Block Math:</strong> Use <code>$$...$$</code> to enclose block math.</li>*/}
-            {/*        <li><strong>Underline:</strong> Use <code>\underline{{text}}</code> to underline text.</li>*/}
-            {/*        <li><strong>Italics:</strong> Use <code>\textit{{text}}</code> to italicize text.</li>*/}
-            {/*        <li><strong>Bold:</strong> Use <code>\textbf{{text}}</code> to bold text.</li>*/}
-            {/*    </ul>*/}
-            {/*</InstructionText>*/}
+            <p style={{color:'red'}}>THIS FEATURE DOESN'T WORK YET. IT WILL BE OPEN TO ALL USERS SOON</p>
             <StyledForm
                 form={form}
                 layout="vertical"
