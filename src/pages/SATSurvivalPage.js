@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import styled from 'styled-components';
 import {Card, Typography, Modal, Button} from 'antd';
 import Question from '../components/Question';
@@ -58,6 +58,8 @@ function SATSurvivalPage() {
     const [error, setError] = useState(null);
     const [gameOver, setGameOver] = useState(false);
     const {token} = useAuth();
+    const hasFetchedData = useRef(false);
+
 
     const fetchNextQuestion = useCallback(async () => {
         try {
@@ -75,7 +77,10 @@ function SATSurvivalPage() {
     }, []);
 
     useEffect(() => {
-        fetchNextQuestion();
+        if (!hasFetchedData.current) {
+            fetchNextQuestion();
+            hasFetchedData.current = true;
+        }
     }, [fetchNextQuestion]);
 
     const handleQuestionSubmit = async (id, choice) => {

@@ -32,6 +32,12 @@ import BotGamePage from "../pages/BotGamePage";
 import ShopPage from "../pages/ShopPage";
 import HousePage from "../pages/HousePage";
 import CollegeTownPage from "../pages/CollegeTownPage";
+import PasswordResetPage from "../pages/PasswordResetPage";
+import PasswordResetConfirmPage from "../pages/PasswordResetConfirmPage";
+import AdminHomepage from "../pages/admin/AdminHomepage";
+import QuestionListPage from "../pages/admin/QuestionListPage";
+import QuestionEditorPage from "../pages/admin/QuestionEditorPage";
+import AdminCreateTournamentPage from "../pages/admin/AdminCreateTournamentPage";
 
 function Router() {
     return (
@@ -49,6 +55,10 @@ function Router() {
                 <Route path="/register" element={<RegisterPage/>}/>
                 <Route path="/confirm-email/:key" element={<ConfirmEmail/>}/>
                 <Route path="/email_verification" element={<EmailVerificationPage/>}/>
+                <Route path="/password_reset" element={<PasswordResetPage/>}/>
+                <Route path="/api/reset/:uidb64/:token" element={<PasswordResetConfirmPage/>}/>
+
+
                 <Route path="/about" element={<AboutPage/>}/>
                 <Route path="/match" element={<Match/>}/>
                 <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
@@ -58,21 +68,28 @@ function Router() {
                 <Route path="/infinite_questions" element={<InfiniteQuestionPage/>}/>
                 <Route path="/power_sprint_home" element={<PowerSprintHome/>}/>
                 <Route path="/power_sprint" element={<PowerSprintPage/>}/>
-                <Route path={"/sat_survival_home"} element={<SATSurvivalHomepage/>}/>
-                <Route path={"/sat_survival"} element={<SATSurvivalPage/>}/>
+                <Route path="/sat_survival_home" element={<SATSurvivalHomepage/>}/>
+                <Route path="/sat_survival" element={<SATSurvivalPage/>}/>
                 <Route path="/tournament" element={<TournamentPage/>}/>
                 <Route path="/ranking" element={<RankingPage/>}/>
                 <Route path="/bot_training" element={<BotTrainingPage/>}/>
                 <Route path="/profile" element={<ProfilePage/>}/>
                 <Route path="/profile/:userId" element={<ProfilePage/>}/>
-                <Route path="/bot_training/start" element={<BotGamePage />} />
+                <Route path="/bot_training/start" element={<BotGamePage/>}/>
                 <Route path="/tournaments" element={<TournamentListPage/>}/>
                 <Route path="/tournament/:tournamentId" element={<TournamentDetailPage/>}/>
                 <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
                 <Route path="/create_tournament" element={<CreateTournamentPage/>}/>
+                  
                 <Route path="/shop" element={<ShopPage />}/>
                 <Route path="/house" element={<HousePage />}/>
                 <Route path="town/" element={<CollegeTownPage />}/>
+
+                <Route path="/admin" element={<AdminHomepage/>}/>
+                <Route path="/admin/questions" element={<QuestionListPage/>}/>
+                <Route path="/admin/create_question" element={<QuestionEditorPage/>}/>
+                <Route path="/admin/edit_question/:id" element={<QuestionEditorPage/>}/>
+                <Route path="/admin/create_tournament" element={<AdminCreateTournamentPage/>}/>
             </Route>
         </Routes>
     );

@@ -1,103 +1,136 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Typography, Button, Card } from 'antd';
+import { Layout, Typography, Button, Card, Row, Col } from 'antd';
 import { TrophyOutlined, TeamOutlined, RocketOutlined, BarChartOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import Aos from 'aos';
+import 'aos/dist/aos.css';
 
+const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 
-const TournamentPageContainer = styled.div`
-    min-height: 100vh;
-`;
-
-const HeroSection = styled.div`
-    background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
-    padding: 60px 20px;
-    margin-bottom: 50px;
+const PageHeader = styled.div`
+    background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+    color: white;
+    padding: 80px 0 90px;
     text-align: center;
+    position: relative;
 `;
 
-const ContentWrapper = styled.div`
+const ContentSection = styled.div`
+    padding: 50px 0;
+    background-color: #f0f2f5;
+    margin-top: -50px;
+`;
+
+const StyledContent = styled(Content)`
+    padding: 30px 20px;
     max-width: 1200px;
-    width: 100%;
     margin: 0 auto;
-    padding: 40px 20px;
-    background-color: white;
 `;
 
-const FeatureGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    margin-bottom: 60px;
-`;
-
-const FeatureCard = styled(Card)`
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background: ${props => props.gradient || 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)'};
-    .ant-card-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 40px 30px;
-        height: 250px; // Increased height
-    }
-`;
-
-const CTAButton = styled(Button)`
-    font-size: 18px;
-    height: auto;
-    padding: 12px 24px;
-    border-radius: 8px;
-    background: #ff4500;
-    border-color: #ff4500;
-    &:hover, &:focus {
-        background: #ff6347;
-        border-color: #ff6347;
-    }
-`;
-
-const TournamentBenefitsSection = styled.section`
-    margin-top: 80px;
-    background-color: #f8f4ff; // Light purple background
-    padding: 40px 20px;
-`;
-
-const BenefitGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
-    margin-top: 40px;
-`;
-
-const BenefitCard = styled(Card)`
+const StyledCard = styled(Card)`
+    height: 100%;
     text-align: center;
-    border: 1px solid #e8e8e8;
-    border-radius: 12px;
-    background: white;
-    .ant-card-body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 30px;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s;
+    background: ${props => props.gradient};
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
     }
 `;
 
 const IconWrapper = styled.div`
     font-size: 48px;
     margin-bottom: 20px;
-    color: #4b0082;
+    color: ${props => props.color || 'white'};
+`;
+
+const CTAButton = styled(Button)`
+    font-size: 18px;
+    height: auto;
+    padding: 12px 30px;
+    border-radius: 50px;
+    background: #ff4500;
+    border-color: #ff4500;
+    margin-top: 20px;
+    transition: all 0.3s;
+
+    &:hover, &:focus {
+        background: #ff6347;
+        border-color: #ff6347;
+        transform: scale(1.05);
+    }
+`;
+
+const TournamentBenefitsSection = styled.section`
+    margin-top: 80px;
 `;
 
 function TournamentPage() {
+    useEffect(() => {
+        Aos.init({ duration: 1000, once: true });
+    }, []);
+
+    const features = [
+        {
+            title: "Find Tournaments",
+            description: "Search and join community tournaments that match your skill level and goals.",
+            gradient: "linear-gradient(135deg, #FF4E50 0%, #F9D423 100%)",
+            icon: <TrophyOutlined />,
+        },
+        {
+            title: "Flexible Entry",
+            description: "Enter tournaments anytime before the deadline and compete at your convenience.",
+            gradient: "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)",
+            icon: <TeamOutlined />,
+        },
+        {
+            title: "Fair Competition",
+            description: "Tackle the same questions as other participants and see how you rank in the community.",
+            gradient: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+            icon: <RocketOutlined />,
+        },
+    ];
+
+    const benefits = [
+        {
+            title: "Competitive Edge",
+            description: "Challenge yourself against peers and rise to the top of the leaderboard.",
+            icon: <TrophyOutlined />,
+            gradient: "linear-gradient(135deg, #FF9966 0%, #FF5E62 100%)",
+        },
+        {
+            title: "Community Learning",
+            description: "Join a vibrant community of learners and share strategies for success.",
+            icon: <TeamOutlined />,
+            gradient: "linear-gradient(135deg, #4E54C8 0%, #8F94FB 100%)",
+        },
+        {
+            title: "Accelerated Growth",
+            description: "Push your limits and see rapid improvement in your SAT skills.",
+            icon: <RocketOutlined />,
+            gradient: "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)",
+        },
+        {
+            title: "Performance Insights",
+            description: "Gain valuable insights into your strengths and areas for improvement.",
+            icon: <BarChartOutlined />,
+            gradient: "linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%)",
+        },
+    ];
+
     return (
-        <TournamentPageContainer>
-            <HeroSection>
-                <Title level={1} style={{color: 'white', fontSize: '48px', marginBottom: '10px'}}>SAT Prep Tournaments</Title>
-                <Paragraph style={{fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '30px'}}>
+        <Layout>
+            <PageHeader>
+                <Title level={1} style={{ color: 'white', marginBottom: '20px', fontSize: '3rem' }}>
+                    SAT Prep Tournaments
+                </Title>
+                <Paragraph style={{ color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto 30px' }}>
                     Elevate your scores with our innovative, engaging, and personalized tournament mode.
                 </Paragraph>
                 <Link to="/tournaments">
@@ -105,52 +138,41 @@ function TournamentPage() {
                         View All Tournaments
                     </CTAButton>
                 </Link>
-            </HeroSection>
+            </PageHeader>
 
-            <ContentWrapper>
+            <ContentSection>
+                <StyledContent>
+                    <Row gutter={[24, 24]}>
+                        {features.map((feature, index) => (
+                            <Col xs={24} sm={8} key={index} data-aos="fade-up" data-aos-delay={`${index * 100}`}>
+                                <StyledCard gradient={feature.gradient}>
+                                    <IconWrapper>{feature.icon}</IconWrapper>
+                                    <Title level={3} style={{color: 'white'}}>{feature.title}</Title>
+                                    <Paragraph style={{color: 'rgba(255,255,255,0.9)'}}>{feature.description}</Paragraph>
+                                </StyledCard>
+                            </Col>
+                        ))}
+                    </Row>
 
-                <FeatureGrid>
-                    <FeatureCard gradient="linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%)">
-                        <Title level={3} style={{color: 'white'}}>Find Tournaments</Title>
-                        <Paragraph style={{color: 'rgba(255,255,255,0.8)'}}>Search and join community tournaments that match your skill level and goals.</Paragraph>
-                    </FeatureCard>
-                    <FeatureCard gradient="linear-gradient(135deg, #A18CD1 0%, #FBC2EB 100%)">
-                        <Title level={3} style={{color: 'white'}}>Flexible Entry</Title>
-                        <Paragraph style={{color: 'rgba(255,255,255,0.8)'}}>Enter tournaments anytime before the deadline and compete at your convenience.</Paragraph>
-                    </FeatureCard>
-                    <FeatureCard gradient="linear-gradient(135deg, #84FAB0 0%, #8FD3F4 100%)">
-                        <Title level={3} style={{color: 'white'}}>Fair Competition</Title>
-                        <Paragraph style={{color: 'rgba(255,255,255,0.8)'}}>Tackle the same questions as other participants and see how you rank in the community.</Paragraph>
-                    </FeatureCard>
-                </FeatureGrid>
-
-                <TournamentBenefitsSection>
-                    <Title level={2} style={{textAlign: 'center', marginBottom: '30px', color: '#4b0082'}}>Tournament Benefits</Title>
-                    <BenefitGrid>
-                        <BenefitCard>
-                            <IconWrapper><TrophyOutlined /></IconWrapper>
-                            <Title level={4}>Competitive Edge</Title>
-                            <Paragraph>Challenge yourself against peers and rise to the top of the leaderboard.</Paragraph>
-                        </BenefitCard>
-                        <BenefitCard>
-                            <IconWrapper><TeamOutlined /></IconWrapper>
-                            <Title level={4}>Community Learning</Title>
-                            <Paragraph>Join a vibrant community of learners and share strategies for success.</Paragraph>
-                        </BenefitCard>
-                        <BenefitCard>
-                            <IconWrapper><RocketOutlined /></IconWrapper>
-                            <Title level={4}>Accelerated Growth</Title>
-                            <Paragraph>Push your limits and see rapid improvement in your SAT skills.</Paragraph>
-                        </BenefitCard>
-                        <BenefitCard>
-                            <IconWrapper><BarChartOutlined /></IconWrapper>
-                            <Title level={4}>Performance Insights</Title>
-                            <Paragraph>Gain valuable insights into your strengths and areas for improvement.</Paragraph>
-                        </BenefitCard>
-                    </BenefitGrid>
-                </TournamentBenefitsSection>
-            </ContentWrapper>
-        </TournamentPageContainer>
+                    <TournamentBenefitsSection>
+                        <Title level={2} style={{textAlign: 'center', marginBottom: '30px', color: '#4834d4'}}>
+                            Tournament Benefits
+                        </Title>
+                        <Row gutter={[24, 24]}>
+                            {benefits.map((benefit, index) => (
+                                <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up" data-aos-delay={`${index * 100}`}>
+                                    <StyledCard gradient={benefit.gradient}>
+                                        <IconWrapper>{benefit.icon}</IconWrapper>
+                                        <Title level={4} style={{color: 'white'}}>{benefit.title}</Title>
+                                        <Paragraph style={{color: 'rgba(255,255,255,0.9)'}}>{benefit.description}</Paragraph>
+                                    </StyledCard>
+                                </Col>
+                            ))}
+                        </Row>
+                    </TournamentBenefitsSection>
+                </StyledContent>
+            </ContentSection>
+        </Layout>
     );
 }
 

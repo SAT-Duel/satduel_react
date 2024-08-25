@@ -1,10 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
+
 import styled from 'styled-components';
 import axios from 'axios';
 import Lottie from 'react-lottie';
 import animationData from '../animations/lootbox.json';
 import { useAuth } from "../context/AuthContext";
 import Question from '../components/Question';
+
+import axios from "axios";
+import {useAuth} from "../context/AuthContext";
+import withAuth from "../hoc/withAuth";
 
 const PageContainer = styled.div`
     display: flex;
@@ -181,10 +186,12 @@ function InfiniteQuestionsPage() {
     const [showReward, setShowReward] = useState(false);
     const [canCloseLootbox, setCanCloseLootbox] = useState(false);
 
+    const hasFetchedData = useRef(false);
+
+
     const baseUrl = process.env.REACT_APP_API_URL;
 
     const saveStats = useCallback(async (statsToSave) => {
-        console.log('called');
         try {
             const payload = {
                 correct_number: statsToSave.correctAnswers,
@@ -240,9 +247,10 @@ function InfiniteQuestionsPage() {
     }, [baseUrl, token]);
 
     useEffect(() => {
-        if (!loading) {
+        if (!loading && !hasFetchedData.current) {
             fetchNextQuestion();
             fetchStats();
+            hasFetchedData.current = true;
         }
     }, [loading, fetchNextQuestion, fetchStats]);
 
@@ -467,4 +475,4 @@ function InfiniteQuestionsPage() {
     );
 }
 
-export default InfiniteQuestionsPage;
+export default withAuth(InfiniteQuestionsPage);

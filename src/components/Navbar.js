@@ -124,12 +124,12 @@ function Navbar() {
             icon: <FireOutlined/>,
             onClick: () => navigate('/tournament'),
         },
-        {
-            label: "Ranking",
-            key: 'Ranking',
-            icon: <RiseOutlined />,
-            onClick: () => navigate('/ranking'),
-        }
+        // {
+        //     label: "Ranking",
+        //     key: 'Ranking',
+        //     icon: <RiseOutlined />,
+        //     onClick: () => navigate('/ranking'),
+        // }
     ];
 
     const handleLogout = async () => {

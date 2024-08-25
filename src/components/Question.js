@@ -5,7 +5,7 @@ import styled, {keyframes} from 'styled-components';
 import {useAuth} from "../context/AuthContext";
 import axios from "axios";
 import 'katex/dist/katex.min.css';
-import {InlineMath} from 'react-katex';
+import RenderWithMath from "./RenderWithMath";
 
 const fadeIn = keyframes`
     from {
@@ -109,17 +109,8 @@ const QuestionNumber = styled.span`
     margin-right: 10px;
 `;
 
-const renderWithMath = (text) => {
-    const parts = text.split(/(\$.*?\$)/);
-    return parts.map((part, index) => {
-        if (part.startsWith('$') && part.endsWith('$')) {
-            return <InlineMath key={index} math={part.slice(1, -1)}/>;
-        }
-        return part;
-    });
-};
 
-function Question({questionData, onSubmit, status, questionNumber}) {
+function Question({questionData, onSubmit, status, questionNumber, preview, disabled=false}) {
     const {question, choices, id} = questionData;
     const [selectedChoice, setSelectedChoice] = useState('');
     const [note, setNote] = useState('');
@@ -151,7 +142,19 @@ function Question({questionData, onSubmit, status, questionNumber}) {
         };
         const fetchAnswer = async () => {
             if (status === 'Correct' || status === 'Incorrect') {
-                await getAnswer();
+                if (!preview) {
+                    await getAnswer();
+                } else {
+                    const answer_map={
+                        'A':0,
+                        'B':1,
+                        'C':2,
+                        'D':3,
+                    }
+                    setAnswer(questionData.choices[answer_map[questionData.answer]]);
+                    setAnswerChoice(questionData.answer);
+                    setExplanation(questionData.explanation);
+                }
                 if (status === 'Correct') {
                     setSelectedChoice(answer);
                     setNote(`Correct! ${answerChoice} is the correct answer.`);
@@ -162,9 +165,8 @@ function Question({questionData, onSubmit, status, questionNumber}) {
                 }
             }
         };
-
         fetchAnswer();
-    }, [status, note, answer, answerChoice, loading, id]);
+    }, [status, note, answer, answerChoice, loading, id, preview, questionData.answer, questionData.explanation, questionData.choices]);
 
     const handleSubmit = () => {
         if (selectedChoice) {
@@ -194,13 +196,13 @@ function Question({questionData, onSubmit, status, questionNumber}) {
         <QuestionCard className={getStatusClass()}>
             <QuestionNumber>Question {questionNumber}:</QuestionNumber>
             <QuestionText>
-                {renderWithMath(question)}
+                <RenderWithMath text={question}/>
             </QuestionText>
             <StyledRadioGroup onChange={onChange} value={selectedChoice}>
                 <Space direction="vertical" style={{width: '100%'}}>
                     {choices.map((choice, index) => (
-                        <StyledRadio key={index} value={choice} disabled={status !== 'Blank'}>
-                            {renderWithMath(choice)}
+                        <StyledRadio key={index} value={choice} disabled={status !== 'Blank' || disabled}>
+                            <RenderWithMath text={choice}/>
                         </StyledRadio>
                     ))}
                 </Space>
@@ -210,8 +212,8 @@ function Question({questionData, onSubmit, status, questionNumber}) {
                     {status === 'Correct' ? <CheckCircleOutlined/> : <CloseCircleOutlined/>} {note}
                 </Note>
             )}
-            {explanation && <Explanation>{renderWithMath(explanation)}</Explanation>}
-            <SubmitButton type="primary" onClick={handleSubmit} disabled={status !== 'Blank'}>
+            {explanation && <Explanation><RenderWithMath text={explanation}/> </Explanation>}
+            <SubmitButton type="primary" onClick={handleSubmit} disabled={status !== 'Blank' || disabled}>
                 Submit
             </SubmitButton>
         </QuestionCard>

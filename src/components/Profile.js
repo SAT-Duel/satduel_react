@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from "../context/AuthContext";
 import { Card, Form, Input, Button, message, Row, Col, Statistic } from "antd";
 import { UserOutlined, TrophyOutlined, FireOutlined, DollarOutlined, StarOutlined, RiseOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const gradientStyle = {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -44,11 +45,15 @@ function Profile({ user_id = null }) {
         total_multiplier: 1.0 
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
-    const { token, loading } = useAuth();
+    const { token, loading, user } = useAuth();
+    const navigate = useNavigate();
     const isOwnProfile = user_id === null;
 
     useEffect(() => {
         const fetchProfile = async () => {
+            if (!token) {
+                return;
+            }
             try {
                 const baseUrl = process.env.REACT_APP_API_URL;
                 const url = isOwnProfile ? `${baseUrl}/api/profile/` : `${baseUrl}/api/profile/view_profile/${user_id}/`;
@@ -108,6 +113,10 @@ function Profile({ user_id = null }) {
     };
 
     const sendFriendRequest = async () => {
+        if (!token) {
+            message.error('You must be logged in to send friend requests');
+            return;
+        }
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
             await axios.post(`${baseUrl}/api/profile/send_friend_request/`,
@@ -123,6 +132,10 @@ function Profile({ user_id = null }) {
             console.error('Error sending friend request:', error);
             message.error('Failed to send friend request.');
         }
+    };
+
+    const navigateToAdminPage = () => {
+        navigate('/admin');
     };
 
     return (
@@ -254,6 +267,21 @@ function Profile({ user_id = null }) {
                         </Form.Item>
                     </Form>
                 </Card>
+            )}
+
+            {user?.is_admin && (
+                <Button
+                    type="primary"
+                    style={{
+                        ...gradientStyle,
+                        width: '100%',
+                        marginTop: '20px',
+                        border: 'none'
+                    }}
+                    onClick={navigateToAdminPage}
+                >
+                    Admin Page
+                </Button>
             )}
         </div>
     );

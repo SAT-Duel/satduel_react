@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Select, message } from 'antd';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const SearchUsers = () => {
-    const { token } = useAuth();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const { Option } = Select;
@@ -16,11 +14,7 @@ const SearchUsers = () => {
         if (value) {
             try {
                 const baseUrl = process.env.REACT_APP_API_URL;
-                const response = await axios.get(`${baseUrl}/api/profile/search/?q=${value}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const response = await axios.get(`${baseUrl}/api/profile/search/?q=${value}`);
                 setResults(response.data.slice(0, 10)); // Limit results to first 10 users
             } catch (error) {
                 console.error('Error searching users:', error);
