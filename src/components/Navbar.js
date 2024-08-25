@@ -10,7 +10,8 @@ import {
     InfoCircleOutlined,
     QuestionCircleOutlined,
     UserAddOutlined,
-    MenuOutlined, FireOutlined
+    MenuOutlined, FireOutlined,RiseOutlined,
+    ShoppingCartOutlined, EnvironmentOutlined,
 } from '@ant-design/icons';
 import { Row, Col } from 'antd';
 import SearchUser from "./SearchUser";
@@ -110,6 +111,12 @@ function Navbar() {
             key: 'Match',
             icon: <TeamOutlined />,
             onClick: () => navigate('/match'),
+        },
+        {
+            label: 'College Town',
+            key: 'Town',
+            icon: <EnvironmentOutlined />,
+            onClick: () => navigate('/town'),
         },
         {
             label: "Tournament",

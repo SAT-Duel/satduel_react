@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from "../context/AuthContext";
 import { Card, Form, Input, Button, message, Row, Col, Statistic } from "antd";
-import { UserOutlined, TrophyOutlined, FireOutlined } from '@ant-design/icons';
+import { UserOutlined, TrophyOutlined, FireOutlined, DollarOutlined, StarOutlined, RiseOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const gradientStyle = {
@@ -38,6 +38,12 @@ function Profile({ user_id = null }) {
         grade: '',
         max_streak: ''
     });
+    const [statistics, setStatistics] = useState({
+        coins: 0,
+        xp: 0,
+        level: 0,
+        total_multiplier: 1.0 
+    });
     const [loadingProfile, setLoadingProfile] = useState(true);
     const { token, loading, user } = useAuth();
     const navigate = useNavigate();
@@ -63,6 +69,15 @@ function Profile({ user_id = null }) {
                     ...response.data,
                     biography: condensedBiography
                 }));
+
+                // Fetch Infinite Questions Statistics
+                const infiniteStatsResponse = await axios.get(`${baseUrl}/api/infinite_questions_profile/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                setStatistics(infiniteStatsResponse.data);
 
                 setLoadingProfile(false);
             } catch (err) {
@@ -169,6 +184,53 @@ function Profile({ user_id = null }) {
                     </Col>
                 </Row>
             </Card>
+
+            {/* Infinite Questions Statistics Card */}
+            {statistics && (
+                <Card
+                    title={<span style={whiteTextStyle}>{isOwnProfile ? "My Stats" : `${profile.user?.username}'s Stats`}</span>}
+                    loading={loadingProfile}
+                    style={{ ...cardStyle, ...gradientStyle }}
+                    headStyle={{ ...gradientStyle, borderBottom: 'none' }}
+                >
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>Coins</span>}
+                                value={statistics.coins}
+                                prefix={<DollarOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>Level</span>}
+                                value={statistics.level}
+                                prefix={<StarOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                    </Row>
+                    <Row gutter={16} style={{ marginTop: '20px' }}>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>XP</span>}
+                                value={statistics.xp}
+                                prefix={<ThunderboltOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>Multiplier</span>}
+                                value={statistics.total_multiplier?.toFixed(2)}
+                                prefix={<RiseOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                    </Row>
+                </Card>
+            )}
 
             <Card title="Biography" style={cardStyle}>
                 <p>{profile.biography}</p>
