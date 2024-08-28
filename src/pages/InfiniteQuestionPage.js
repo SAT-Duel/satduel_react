@@ -1,14 +1,10 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-
 import styled from 'styled-components';
 import axios from 'axios';
 import Lottie from 'react-lottie';
 import animationData from '../animations/lootbox.json';
 import { useAuth } from "../context/AuthContext";
 import Question from '../components/Question';
-
-import axios from "axios";
-import {useAuth} from "../context/AuthContext";
 import withAuth from "../hoc/withAuth";
 
 const PageContainer = styled.div`

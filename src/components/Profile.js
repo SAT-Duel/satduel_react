@@ -45,6 +45,7 @@ function Profile({ user_id = null }) {
         total_multiplier: 1.0 
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
+    const [form] = Form.useForm(); // Create form instance
     const { token, loading, user } = useAuth();
     const navigate = useNavigate();
     const isOwnProfile = user_id === null;
@@ -80,6 +81,10 @@ function Profile({ user_id = null }) {
                 setStatistics(infiniteStatsResponse.data);
 
                 setLoadingProfile(false);
+
+                // Set form fields after data is fetched
+                form.setFieldsValue({ biography: condensedBiography });
+
             } catch (err) {
                 console.error('Error fetching profile:', err);
                 message.error('Failed to load profile');
@@ -87,7 +92,7 @@ function Profile({ user_id = null }) {
             }
         };
         if (!loading) fetchProfile();
-    }, [user_id, token, loading, isOwnProfile]);
+    }, [user_id, token, loading, isOwnProfile, form]);
 
     const onFinish = async (values) => {
         if (!isOwnProfile) return;
@@ -176,7 +181,7 @@ function Profile({ user_id = null }) {
                 <Row gutter={16} style={{ marginTop: '20px' }}>
                     <Col span={12}>
                         <Statistic
-                            title={<span style={whiteTextStyle}>Max Win-Streak</span>}
+                            title={<span style={whiteTextStyle}>Survival Max Streak</span>}
                             value={profile.max_streak}
                             prefix={<FireOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
                             valueStyle={whiteTextStyle}
@@ -239,8 +244,8 @@ function Profile({ user_id = null }) {
             {isOwnProfile && (
                 <Card title="Edit Biography" style={cardStyle}>
                     <Form
+                        form={form}
                         name="biography"
-                        initialValues={{ biography: profile.biography }}
                         onFinish={onFinish}
                     >
                         <Form.Item
@@ -254,6 +259,7 @@ function Profile({ user_id = null }) {
                                 rows={4}
                                 maxLength={5000}
                                 autoSize={{ minRows: 4, maxRows: 10 }}
+                                value={profile.biography}
                             />
                         </Form.Item>
                         <Form.Item>
