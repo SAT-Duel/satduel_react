@@ -12,7 +12,6 @@ import GlobalStyles from "./styles/globalStyles";
 function App() {
     useEffect(() => {
         const baseUrl = process.env.REACT_APP_API_URL;
-        api.get(`${baseUrl}/api/csrf/`); // This sets the CSRF cookie
     }, []);
     return (
         <ThemeProvider theme={theme}>
