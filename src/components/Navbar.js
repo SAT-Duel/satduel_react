@@ -10,7 +10,8 @@ import {
     InfoCircleOutlined,
     QuestionCircleOutlined,
     UserAddOutlined,
-    MenuOutlined, FireOutlined,RiseOutlined
+    MenuOutlined, FireOutlined,RiseOutlined,
+    ShoppingCartOutlined, EnvironmentOutlined,
 } from '@ant-design/icons';
 import { Row, Col } from 'antd';
 import SearchUser from "./SearchUser";
@@ -113,17 +114,23 @@ function Navbar() {
             onClick: () => navigate('/match'),
         },
         {
+            label: 'College Town',
+            key: 'Town',
+            icon: <EnvironmentOutlined />,
+            onClick: () => navigate('/town'),
+        },
+        {
             label: "Tournament",
             key: 'Tournament',
             icon: <FireOutlined/>,
             onClick: () => navigate('/tournament'),
         },
-        {
-            label: "Ranking",
-            key: 'Ranking',
-            icon: <RiseOutlined />,
-            onClick: () => navigate('/ranking'),
-        }
+        // {
+        //     label: "Ranking",
+        //     key: 'Ranking',
+        //     icon: <RiseOutlined />,
+        //     onClick: () => navigate('/ranking'),
+        // }
     ];
 
     const handleLogout = async () => {
