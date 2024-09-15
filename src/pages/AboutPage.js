@@ -10,7 +10,7 @@ const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 
 const PageHeader = styled.div`
-    background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+    background: linear-gradient(75deg, #214570 0%, #463b80 100%);
     color: white;
     padding: 60px 0;
     text-align: center;
