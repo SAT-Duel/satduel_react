@@ -9,9 +9,6 @@ import GlobalStyles from "./styles/globalStyles";
 
 
 function App() {
-    useEffect(() => {
-        const baseUrl = process.env.REACT_APP_API_URL;
-    }, []);
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyles/>
