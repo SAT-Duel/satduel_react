@@ -110,7 +110,7 @@ const QuestionNumber = styled.span`
 `;
 
 
-function Question({questionData, onSubmit, status, questionNumber, preview}) {
+function Question({questionData, onSubmit, status, questionNumber, preview, disabled=false}) {
     const {question, choices, id} = questionData;
     const [selectedChoice, setSelectedChoice] = useState('');
     const [note, setNote] = useState('');
@@ -201,7 +201,7 @@ function Question({questionData, onSubmit, status, questionNumber, preview}) {
             <StyledRadioGroup onChange={onChange} value={selectedChoice}>
                 <Space direction="vertical" style={{width: '100%'}}>
                     {choices.map((choice, index) => (
-                        <StyledRadio key={index} value={choice} disabled={status !== 'Blank'}>
+                        <StyledRadio key={index} value={choice} disabled={status !== 'Blank' || disabled}>
                             <RenderWithMath text={choice}/>
                         </StyledRadio>
                     ))}
@@ -213,7 +213,7 @@ function Question({questionData, onSubmit, status, questionNumber, preview}) {
                 </Note>
             )}
             {explanation && <Explanation><RenderWithMath text={explanation}/> </Explanation>}
-            <SubmitButton type="primary" onClick={handleSubmit} disabled={status !== 'Blank'}>
+            <SubmitButton type="primary" onClick={handleSubmit} disabled={status !== 'Blank' || disabled}>
                 Submit
             </SubmitButton>
         </QuestionCard>

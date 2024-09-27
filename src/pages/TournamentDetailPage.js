@@ -1,18 +1,19 @@
-import React, {useState, useEffect} from 'react';
-import {Card, Button, Typography, message, Row, Col} from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Button, Typography, message, Row, Col, Modal } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import {useNavigate, useParams} from 'react-router-dom';
-import {useAuth} from "../context/AuthContext";
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from "../context/AuthContext";
 import styled from 'styled-components';
 import TournamentLeaderboard from '../components/TournamentLeaderboard';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
-const {Title, Text} = Typography;
+const { Title, Text } = Typography;
 
 const PageContainer = styled.div`
     padding: 24px;
@@ -61,18 +62,18 @@ const JoinButton = styled(Button)`
 `;
 
 const TournamentDetail = () => {
-    const {token} = useAuth();
+    const { token } = useAuth();
     const [tournament, setTournament] = useState(null);
     const [loading, setLoading] = useState(true);
     const [leaderboardData, setLeaderboardData] = useState([]);
-    const {tournamentId} = useParams();
+    const { tournamentId } = useParams();
     const baseUrl = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
 
     const convertDurationToSeconds = (duration) => {
         const [hours, minutes, seconds] = duration.split(':').map(Number);
         return hours * 3600 + minutes * 60 + seconds;
-    }
+    };
 
     useEffect(() => {
         const fetchTournamentDetail = async () => {
@@ -80,7 +81,6 @@ const TournamentDetail = () => {
                 const response = await axios.get(`${baseUrl}/api/tournaments/${tournamentId}/`);
                 setTournament(response.data);
                 setLoading(false);
-                console.log(response.data)
             } catch (error) {
                 message.error('Failed to fetch tournament details');
                 setLoading(false);
@@ -88,7 +88,6 @@ const TournamentDetail = () => {
         };
         const fetchLeaderboard = async () => {
             try {
-                const baseUrl = process.env.REACT_APP_API_URL;
                 const response = await axios.get(`${baseUrl}/api/tournaments/${tournamentId}/leaderboard/`);
                 setLeaderboardData(response.data);
             } catch (err) {
@@ -98,7 +97,6 @@ const TournamentDetail = () => {
         fetchTournamentDetail();
         fetchLeaderboard();
     }, [baseUrl, tournamentId]);
-
 
     const handleStartTournament = async () => {
         if (!token) {
@@ -115,11 +113,24 @@ const TournamentDetail = () => {
                 navigate(`/tournament/${tournamentId}/questions/`);
                 message.success('Tournament joined successfully');
             } else {
-                message.error("You've already finished this tournament!");
+                showReviewModal();
             }
         } catch (error) {
             message.error('Failed to start the tournament');
         }
+    };
+
+    const showReviewModal = () => {
+        Modal.confirm({
+            title: 'Tournament Already Finished',
+            icon: <ExclamationCircleOutlined />,
+            content: 'You have already finished this tournament, but you can still review the questions. Would you like to proceed?',
+            okText: 'Yes, Review Questions',
+            cancelText: 'No, Thanks',
+            onOk() {
+                navigate(`/tournament/${tournamentId}/questions?readonly=true`);
+            },
+        });
     };
 
     if (loading) {
@@ -151,7 +162,7 @@ const TournamentDetail = () => {
                             </InfoItem>
                             <InfoItem>
                                 <InfoLabel>Time: </InfoLabel>
-                                <InfoValue>{dayjs.duration(convertDurationToSeconds(tournament.duration)*1000).humanize()}</InfoValue>
+                                <InfoValue>{dayjs.duration(convertDurationToSeconds(tournament.duration) * 1000).humanize()}</InfoValue>
                             </InfoItem>
                             <InfoItem>
                                 <InfoLabel>Number of Questions: </InfoLabel>
@@ -170,7 +181,7 @@ const TournamentDetail = () => {
                 <Col xs={24} lg={12}>
                     <StyledCard>
                         <TournamentLeaderboard leaderboardData={leaderboardData}
-                                               tournamentStartTime={tournament.start_time}/>
+                                               tournamentStartTime={tournament.start_time} />
                     </StyledCard>
                 </Col>
             </Row>

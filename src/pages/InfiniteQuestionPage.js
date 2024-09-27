@@ -1,8 +1,10 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
+import Lottie from 'react-lottie';
+import animationData from '../animations/lootbox.json';
+import { useAuth } from "../context/AuthContext";
 import Question from '../components/Question';
-import axios from "axios";
-import {useAuth} from "../context/AuthContext";
 import withAuth from "../hoc/withAuth";
 
 const PageContainer = styled.div`
@@ -111,6 +113,50 @@ const SummaryContainer = styled.div`
     overflow: auto;
 `;
 
+const Overlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+`;
+
+const LootboxContainer = styled.div`
+    position: relative;
+    width: 400px;
+    height: 400px;
+    perspective: 1500px;
+    z-index: 1001;
+`;
+
+const LevelUpMessage = styled.div`
+    position: absolute;
+    top: -50px;
+    width: 100%;
+    text-align: center;
+    font-size: 48px;
+    font-weight: bold;
+    color: yellow;
+    text-shadow: 2px 2px 4px #000;
+`;
+
+const LootboxMessage = styled.div`
+    position: absolute;
+    top: -50px;
+    width: 100%;
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: gold;
+    text-shadow: 2px 2px 4px #000;
+`;
+
 function InfiniteQuestionsPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
@@ -120,10 +166,24 @@ function InfiniteQuestionsPage() {
         questionsAnswered: 0,
         correctAnswers: 0,
         streak: 0,
+        xp: 0,
+        level: 0,
+        coins: 0,
+        multiplier: 1,
     });
     const [isFinished, setIsFinished] = useState(false);
-    const {token, loading} = useAuth();
+    const { token, loading } = useAuth();
+
+    const [isLootboxOpened, setIsLootboxOpened] = useState(false);
+    const [isLootboxVisible, setIsLootboxVisible] = useState(false);
+    const [animationStopped, setAnimationStopped] = useState(true);
+    const [lootboxMessage, setLootboxMessage] = useState('');
+    const [levelUpMessage, setLevelUpMessage] = useState('');
+    const [showReward, setShowReward] = useState(false);
+    const [canCloseLootbox, setCanCloseLootbox] = useState(false);
+
     const hasFetchedData = useRef(false);
+
 
     const baseUrl = process.env.REACT_APP_API_URL;
 
@@ -133,10 +193,14 @@ function InfiniteQuestionsPage() {
                 correct_number: statsToSave.correctAnswers,
                 incorrect: statsToSave.questionsAnswered - statsToSave.correctAnswers,
                 current_streak: statsToSave.streak,
+                xp: statsToSave.xp,
+                level: statsToSave.level,
+                coins: statsToSave.coins,
+                multiplier: statsToSave.multiplier,
             };
             console.log("Saving stats:", payload);
             await axios.post(`${baseUrl}/api/trainer/set_infinite_question_stats/`, payload, {
-                headers: {'Authorization': `Bearer ${token}`}
+                headers: { 'Authorization': `Bearer ${token}` }
             });
         } catch (error) {
             console.error('Error saving stats:', error.response ? error.response.data : error);
@@ -161,13 +225,17 @@ function InfiniteQuestionsPage() {
     const fetchStats = useCallback(async () => {
         try {
             const response = await axios.get(`${baseUrl}/api/trainer/infinite_question_stats/`, {
-                headers: {'Authorization': `Bearer ${token}`}
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             const statsData = response.data;
             setStats({
                 questionsAnswered: statsData.correct_number + statsData.incorrect_number,
                 correctAnswers: statsData.correct_number,
                 streak: statsData.current_streak,
+                xp: statsData.xp,
+                level: statsData.level,
+                coins: statsData.coins,
+                multiplier: statsData.total_multiplier,
             });
         } catch (error) {
             setError('Error fetching stats: ' + (error.response ? error.response.data : 'Server unreachable'));
@@ -191,22 +259,98 @@ function InfiniteQuestionsPage() {
             });
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
-            updateStats(isCorrect);
+
+            setStats(prevStats => {
+                const newStats = {
+                    questionsAnswered: prevStats.questionsAnswered + 1,
+                    correctAnswers: isCorrect ? prevStats.correctAnswers + 1 : prevStats.correctAnswers,
+                    streak: isCorrect ? prevStats.streak + 1 : 0,
+                    xp: isCorrect ? prevStats.xp + 1 : prevStats.xp,
+                    level: getLevel(isCorrect ? prevStats.xp + 1 : prevStats.xp),
+                    coins: isCorrect ? prevStats.coins + Math.floor(getRandomNumber(3) * prevStats.multiplier) : prevStats.coins,
+                    multiplier: prevStats.multiplier,
+                };
+
+                if (newStats.level > prevStats.level) {
+                    setLevelUpMessage("LEVEL UP!!!");
+
+                    const coinRewards = [10 * newStats.level, 20 * newStats.level, 30 * newStats.level, 40 * newStats.level, 50 * newStats.level, 66 * newStats.level, newStats.level ** 2, newStats.level ** 3, newStats.level ** 5, 666 * newStats.level];
+                    const multiplierRewards = [1.01 * newStats.level, 1.02 * newStats.level, 1.05 * newStats.level, 1.06 * newStats.level, 1.1 * newStats.level, 1.2 * newStats.level, 1.25 * newStats.level];
+
+                    let lootboxMessage = "";
+                    let reward;
+
+                    if (Math.random() < 0.33) {
+                        reward = multiplierRewards[Math.floor(Math.random() * multiplierRewards.length)];
+                        lootboxMessage = `${reward}x Permanent Coin Multiplier`;
+                        newStats.multiplier *= reward;
+                    } else {
+                        reward = Math.round(coinRewards[Math.floor(Math.random() * coinRewards.length)] * newStats.multiplier);
+                        lootboxMessage = `$${reward}`;
+                        newStats.coins += reward;
+                    }
+
+                    setLootboxMessage(lootboxMessage);
+                    setIsLootboxVisible(true);
+                    setIsLootboxOpened(false);
+                    setAnimationStopped(false);
+                    setShowReward(false);
+                    setCanCloseLootbox(false);
+                }
+
+                saveStats(newStats);
+                return newStats;
+            });
         } catch (error) {
             setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
         }
     };
 
-    const updateStats = (isCorrect) => {
-        setStats(prevStats => {
-            const newStats = {
-                questionsAnswered: prevStats.questionsAnswered + 1,
-                correctAnswers: isCorrect ? prevStats.correctAnswers + 1 : prevStats.correctAnswers,
-                streak: isCorrect ? prevStats.streak + 1 : 0,
-            };
-            saveStats(newStats);
-            return newStats;
-        });
+    const getLevel = (cur_xp) => {
+        if (cur_xp < 1) {
+            return 0;
+        } else if (cur_xp >= 1 && cur_xp < 5) {
+            return 1;
+        } else if (cur_xp >= 5 && cur_xp < 10) {
+            return 2;
+        } else if (cur_xp >= 10 && cur_xp < 20) {
+            return 3;
+        } else if (cur_xp >= 20 && cur_xp < 50) {
+            return 4;
+        } else if (cur_xp >= 50 && cur_xp < 100) {
+            return 5;
+        } else if (cur_xp >= 100 && cur_xp < 200) {
+            return 6;
+        } else {
+            return 7;
+        }
+    };
+
+    const handleLootboxClick = () => {
+        if (canCloseLootbox && isLootboxOpened) {
+            setIsLootboxVisible(false);
+            setIsLootboxOpened(false);
+            setLevelUpMessage(''); // Clear the level up message when closing the lootbox
+        }
+    };
+
+    const handleAnimationComplete = () => {
+        setShowReward(true);
+        setCanCloseLootbox(true);
+        setIsLootboxOpened(true); // Mark lootbox as opened after animation completes
+    };
+
+    const defaultOptions = {
+        loop: false,
+        autoplay: !animationStopped,
+        animationData: animationData,
+        rendererSettings: {
+            preserveAspectRatio: 'xMidYMid slice'
+        }
+    };
+
+    const getRandomNumber = (cap) => {
+        return Math.floor(Math.random() * cap) + 1;
     };
 
     const handleEndEarly = () => {
@@ -251,6 +395,22 @@ function InfiniteQuestionsPage() {
                                 <StatValue>{stats.streak}</StatValue>
                             </StatItem>
                             <StatItem>
+                                <StatLabel>XP:</StatLabel>
+                                <StatValue>{stats.xp}</StatValue>
+                            </StatItem>
+                            <StatItem>
+                                <StatLabel>Level:</StatLabel>
+                                <StatValue>{stats.level}</StatValue>
+                            </StatItem>
+                            <StatItem>
+                                <StatLabel>Coins:</StatLabel>
+                                <StatValue>{stats.coins}</StatValue>
+                            </StatItem>
+                            <StatItem>
+                                <StatLabel>Multiplier:</StatLabel>
+                                <StatValue>{stats.multiplier}</StatValue>
+                            </StatItem>
+                            <StatItem>
                                 <StatLabel>Accuracy:</StatLabel>
                                 <StatValue>
                                     {stats.questionsAnswered > 0
@@ -286,6 +446,27 @@ function InfiniteQuestionsPage() {
                     </SummaryContainer>
                 )}
             </ContentWrapper>
+
+            {isLootboxVisible && (
+                <Overlay onClick={handleLootboxClick}>
+                    <LootboxContainer>
+                        {levelUpMessage && <LevelUpMessage>{levelUpMessage}</LevelUpMessage>}
+                        <Lottie
+                            options={defaultOptions}
+                            height={400}
+                            width={400}
+                            isStopped={animationStopped}
+                            eventListeners={[
+                                {
+                                    eventName: 'complete',
+                                    callback: handleAnimationComplete,
+                                },
+                            ]}
+                        />
+                        {showReward && <LootboxMessage>{lootboxMessage}</LootboxMessage>}
+                    </LootboxContainer>
+                </Overlay>
+            )}
         </PageContainer>
     );
 }

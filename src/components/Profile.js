@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from "../context/AuthContext";
 import { Card, Form, Input, Button, message, Row, Col, Statistic } from "antd";
-import { UserOutlined, TrophyOutlined, FireOutlined } from '@ant-design/icons';
+import { UserOutlined, TrophyOutlined, FireOutlined, DollarOutlined, StarOutlined, RiseOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const gradientStyle = {
@@ -38,7 +38,14 @@ function Profile({ user_id = null }) {
         grade: '',
         max_streak: ''
     });
+    const [statistics, setStatistics] = useState({
+        coins: 0,
+        xp: 0,
+        level: 0,
+        total_multiplier: 1.0 
+    });
     const [loadingProfile, setLoadingProfile] = useState(true);
+    const [form] = Form.useForm(); // Create form instance
     const { token, loading, user } = useAuth();
     const navigate = useNavigate();
     const isOwnProfile = user_id === null;
@@ -64,7 +71,20 @@ function Profile({ user_id = null }) {
                     biography: condensedBiography
                 }));
 
+                // Fetch Infinite Questions Statistics
+                const infiniteStatsResponse = await axios.get(`${baseUrl}/api/infinite_questions_profile/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                setStatistics(infiniteStatsResponse.data);
+
                 setLoadingProfile(false);
+
+                // Set form fields after data is fetched
+                form.setFieldsValue({ biography: condensedBiography });
+
             } catch (err) {
                 console.error('Error fetching profile:', err);
                 message.error('Failed to load profile');
@@ -72,7 +92,7 @@ function Profile({ user_id = null }) {
             }
         };
         if (!loading) fetchProfile();
-    }, [user_id, token, loading, isOwnProfile]);
+    }, [user_id, token, loading, isOwnProfile, form]);
 
     const onFinish = async (values) => {
         if (!isOwnProfile) return;
@@ -161,7 +181,7 @@ function Profile({ user_id = null }) {
                 <Row gutter={16} style={{ marginTop: '20px' }}>
                     <Col span={12}>
                         <Statistic
-                            title={<span style={whiteTextStyle}>Max Win-Streak</span>}
+                            title={<span style={whiteTextStyle}>Survival Max Streak</span>}
                             value={profile.max_streak}
                             prefix={<FireOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
                             valueStyle={whiteTextStyle}
@@ -170,6 +190,53 @@ function Profile({ user_id = null }) {
                 </Row>
             </Card>
 
+            {/* Infinite Questions Statistics Card */}
+            {statistics && (
+                <Card
+                    title={<span style={whiteTextStyle}>{isOwnProfile ? "My Stats" : `${profile.user?.username}'s Stats`}</span>}
+                    loading={loadingProfile}
+                    style={{ ...cardStyle, ...gradientStyle }}
+                    headStyle={{ ...gradientStyle, borderBottom: 'none' }}
+                >
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>Coins</span>}
+                                value={statistics.coins}
+                                prefix={<DollarOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>Level</span>}
+                                value={statistics.level}
+                                prefix={<StarOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                    </Row>
+                    <Row gutter={16} style={{ marginTop: '20px' }}>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>XP</span>}
+                                value={statistics.xp}
+                                prefix={<ThunderboltOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                        <Col span={12}>
+                            <Statistic
+                                title={<span style={whiteTextStyle}>Multiplier</span>}
+                                value={statistics.total_multiplier?.toFixed(2)}
+                                prefix={<RiseOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
+                                valueStyle={whiteTextStyle}
+                            />
+                        </Col>
+                    </Row>
+                </Card>
+            )}
+
             <Card title="Biography" style={cardStyle}>
                 <p>{profile.biography}</p>
             </Card>
@@ -177,8 +244,8 @@ function Profile({ user_id = null }) {
             {isOwnProfile && (
                 <Card title="Edit Biography" style={cardStyle}>
                     <Form
+                        form={form}
                         name="biography"
-                        initialValues={{ biography: profile.biography }}
                         onFinish={onFinish}
                     >
                         <Form.Item
@@ -192,6 +259,7 @@ function Profile({ user_id = null }) {
                                 rows={4}
                                 maxLength={5000}
                                 autoSize={{ minRows: 4, maxRows: 10 }}
+                                value={profile.biography}
                             />
                         </Form.Item>
                         <Form.Item>

@@ -159,9 +159,11 @@ function Register() {
                         >
                             <Select placeholder="Select Grade"
                                     onChange={(value) => setFormData({...formData, grade: value})}>
+                                <Option key={13} value={'<1'}>{'<1'}</Option>
                                 {[...Array(12)].map((_, i) => (
                                     <Option key={i} value={i + 1}>{i + 1}</Option>
                                 ))}
+                                <Option key={14} value={'>12'}>{'>12'}</Option>
                             </Select>
                         </Form.Item>
                         {error && <p style={errorStyle}>{error}</p>}

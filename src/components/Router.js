@@ -8,7 +8,6 @@ import RegisterPage from "../pages/RegisterPage";
 import ProfilePage from "../pages/ProfilePage";
 import Match from "../pages/MatchingPage";
 import DuelBattle from "../pages/DuelBattlePage";
-import FriendRequestPage from "../pages/FriendRequestPage";
 import MainLayout from "../layout/MainLayout";
 import SecondaryLayout from "../layout/SecondaryLayout";
 import BattleResultPage from "../pages/BattleResultPage";
@@ -29,12 +28,17 @@ import TournamentQuestionPage from "../pages/TournamentQuestionPage";
 import CreateTournamentPage from "../pages/CreateTournamentPage";
 import BotTrainingPage from "../pages/BotTrainingPage";
 import BotGamePage from "../pages/BotGamePage";
+import ShopPage from "../pages/ShopPage";
+import HousePage from "../pages/HousePage";
+import CollegeTownPage from "../pages/CollegeTownPage";
 import PasswordResetPage from "../pages/PasswordResetPage";
 import PasswordResetConfirmPage from "../pages/PasswordResetConfirmPage";
 import AdminHomepage from "../pages/admin/AdminHomepage";
 import QuestionListPage from "../pages/admin/QuestionListPage";
 import QuestionEditorPage from "../pages/admin/QuestionEditorPage";
 import AdminCreateTournamentPage from "../pages/admin/AdminCreateTournamentPage";
+import SATDuelHomePage from "../pages/satduel/SATDuelHomePage";
+import WaitingRoomPage from "../pages/satduel/WaitingRoomPage";
 
 function Router() {
     return (
@@ -42,7 +46,6 @@ function Router() {
             {/* Routes using MainLayout */}
             <Route element={<MainLayout/>}>
                 <Route path="/questions" element={<QuestionsPage/>}/>
-                <Route path="/friend_requests" element={<FriendRequestPage/>}/>
             </Route>
 
             {/* Routes using SecondaryLayout */}
@@ -78,11 +81,18 @@ function Router() {
                 <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
                 <Route path="/create_tournament" element={<CreateTournamentPage/>}/>
 
+                <Route path="/shop" element={<ShopPage/>}/>
+                <Route path="/house" element={<HousePage/>}/>
+                <Route path="town/" element={<CollegeTownPage/>}/>
+
                 <Route path="/admin" element={<AdminHomepage/>}/>
                 <Route path="/admin/questions" element={<QuestionListPage/>}/>
                 <Route path="/admin/create_question" element={<QuestionEditorPage/>}/>
                 <Route path="/admin/edit_question/:id" element={<QuestionEditorPage/>}/>
                 <Route path="/admin/create_tournament" element={<AdminCreateTournamentPage/>}/>
+
+                <Route path="/duels" element={<SATDuelHomePage/>}/>
+                <Route path="/waiting-room/:gameId" element={<WaitingRoomPage/>}/>
             </Route>
         </Routes>
     );
