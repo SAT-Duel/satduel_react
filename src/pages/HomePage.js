@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Layout, Typography, Button, Row, Col, Card, Divider, Statistic, Avatar, Rate } from 'antd';
+import { Layout, Typography, Row, Col, Card, Divider, Statistic, Avatar, Rate } from 'antd';
 import {
     ArrowDownOutlined,
     LineChartOutlined,
@@ -13,6 +13,11 @@ import {
 import styled from 'styled-components';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import engaging_duels from '../assets/engaging_duels.png';
+import personalized_learning from '../assets/personalized_learning.jpg';
+import progress_tracking from '../assets/progress_tracking.png';
+import question_bank from '../assets/question_bank.png';
+
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -363,7 +368,7 @@ function HomePage() {
                                     iconWrapper: RocketIconWrapper,
                                     title: "Personalized Learning",
                                     content: "Our adaptive algorithms tailor questions to your skill level, ensuring efficient progress.",
-                                    imgSrc: "https://cdn.discordapp.com/attachments/1174486466961866793/1280649299289571368/personalized_learning.jpg?ex=66d8d91a&is=66d7879a&hm=518886b9d624c0ac330b90d89d31654793b12bbc3058fc8695e5727ea226f3ae&",
+                                    imgSrc: personalized_learning,
                                     reverse: false
                                 },
                                 {
@@ -371,7 +376,7 @@ function HomePage() {
                                     iconWrapper: ChartIconWrapper,
                                     title: "Real-Time Progress Tracking",
                                     content: "Monitor your improvement with detailed analytics and performance insights.",
-                                    imgSrc: "https://cdn.discordapp.com/attachments/1174486466961866793/1280649299667193896/progress_tracking.png?ex=66d8d91a&is=66d7879a&hm=7ad2593fa883c619c933b0562e21da4a97def32ea4d419d909e14389412d13a6&",
+                                    imgSrc: progress_tracking,
                                     reverse: true
                                 },
                                 {
@@ -379,7 +384,7 @@ function HomePage() {
                                     iconWrapper: TrophyIconWrapper,
                                     title: "Engaging Duels",
                                     content: "Challenge friends or other students to competitive quizzes and boost your motivation.",
-                                    imgSrc: "https://cdn.discordapp.com/attachments/1174486466961866793/1280649298941448272/engaging_duels.png?ex=66d8d91a&is=66d7879a&hm=81d384b480d2d0d6c7f2ca374bbd5fd20728062f7feb81c2dc016e98a4b21384&",
+                                    imgSrc: engaging_duels,
                                     reverse: false
                                 },
                                 {
@@ -387,7 +392,7 @@ function HomePage() {
                                     iconWrapper: BookIconWrapper,
                                     title: "Comprehensive Question Bank",
                                     content: "Access a vast array of SAT questions covering all test sections and difficulty levels.",
-                                    imgSrc: "https://cdn.discordapp.com/attachments/1174486466961866793/1280649300199608505/question_bank.png?ex=66d8d91a&is=66d7879a&hm=deab7496daa27e8103ee7e161cc18edf71a17cf124c330bdbee15b9caf3989d8&",
+                                    imgSrc: question_bank,
                                     reverse: true
                                 },
                             ].map((item, index) => (

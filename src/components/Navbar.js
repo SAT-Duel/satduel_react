@@ -10,8 +10,7 @@ import {
     InfoCircleOutlined,
     QuestionCircleOutlined,
     UserAddOutlined,
-    MenuOutlined, FireOutlined,RiseOutlined,
-    ShoppingCartOutlined, EnvironmentOutlined,
+    MenuOutlined, FireOutlined, EnvironmentOutlined,
 } from '@ant-design/icons';
 import { Row, Col } from 'antd';
 import SearchUser from "./SearchUser";
@@ -58,11 +57,6 @@ function Navbar() {
                     label: 'Profile',
                     key: 'Profile',
                     onClick: () => navigate('/profile'),
-                },
-                {
-                    label: 'Friend Requests',
-                    key: 'FriendRequests',
-                    onClick: () => navigate('/friend_requests'),
                 },
                 {
                     label: 'Logout',
@@ -163,9 +157,6 @@ function Navbar() {
                         <Button type="primary" onClick={showDrawer}>
                             <MenuOutlined />
                         </Button>
-                    </Col>
-                    <Col xs={0} sm={0} md={5} lg={5} xl={5} offset={3}>
-                        <SearchUser />
                     </Col>
                     <Col xs={0} sm={0} md={4} lg={4} xl={4}>
                         <Menu mode="horizontal" className="user-menu" items={user ? userItems : anonymousItems} />

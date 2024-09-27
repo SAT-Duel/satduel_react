@@ -1,0 +1,38 @@
+/* src/components/styles.css */
+.layout {
+  min-height: 100vh;
+}
+
+.header {
+  background: #5b6bc0;
+  color: #fff;
+  text-align: center;
+  padding: 0 50px;
+}
+
+.header h1 {
+  color: #fff;
+  line-height: 64px;
+}
+
+.content {
+  padding: 24px;
+  background: #f0f2f5;
+}
+
+.sider {
+  background: #fff;
+  padding: 24px;
+}
+
+.footer {
+  text-align: center;
+  padding: 20px;
+  background: #fff;
+}
+
+.placeholder {
+  background: #fafafa;
+  padding: 20px;
+  min-height: 200px;
+}
