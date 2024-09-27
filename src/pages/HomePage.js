@@ -127,18 +127,6 @@ const ScrollIndicator = styled.div`
     }
 `;
 
-
-const StyledCard = styled(Card)`
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    background: #ffffff;
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    }
-`;
 const FeatureCardContainer = styled.div`
     display: flex;
     flex-direction: ${props => (props.reverse ? 'row-reverse' : 'row')};
@@ -298,12 +286,6 @@ const GradientTextLarge = styled.span`
         font-weight: 600;
     }
 `;
-
-const IconInBox = styled.div`
-    font-size: 2rem;
-    color: white;
-`;
-
 function HomePage() {
     const contentRef = useRef(null);
 

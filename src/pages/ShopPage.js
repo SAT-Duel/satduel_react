@@ -6,7 +6,6 @@ import { useAuth } from "../context/AuthContext";
 import styled from 'styled-components';
 import pet1AnimationData from '../animations/pets/pet1.json';
 import pet2AnimationData from '../animations/pets/pet2.json';
-import lootbox1AnimationData from '../animations/lootbox.json';
 
 const { Title, Text } = Typography;
 
