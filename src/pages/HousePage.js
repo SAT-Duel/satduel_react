@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React, { useEffect } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { Box, Text, OrbitControls } from '@react-three/drei';
 import axios from 'axios';
 import { message } from 'antd';
@@ -19,19 +19,18 @@ const ContentWrapper = styled.div`
 `;
 
 const HouseMap = () => {
-    const [areas, setAreas] = useState([]);
     const { token } = useAuth();
 
     useEffect(() => {
         const fetchHouseData = async () => {
             try {
                 const baseUrl = process.env.REACT_APP_API_URL;
-                const response = await axios.get(`${baseUrl}/api/house/`, {
+                await axios.get(`${baseUrl}/api/house/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                setAreas(response.data.areas);
+
             } catch (error) {
                 console.error('Error fetching house map:', error);
                 message.error('Failed to load house data. Please try again later.');
