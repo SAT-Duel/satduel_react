@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Layout, Typography, Row, Col, Card, Divider, Statistic, Avatar, Rate } from 'antd';
+import React, {useRef} from 'react';
+import {Link} from 'react-router-dom';
+import {Layout, Typography, Row, Col, Card, Divider, Statistic, Avatar, Rate} from 'antd';
 import {
     ArrowDownOutlined,
     LineChartOutlined,
@@ -17,10 +17,11 @@ import engaging_duels from '../assets/engaging_duels.png';
 import personalized_learning from '../assets/personalized_learning.jpg';
 import progress_tracking from '../assets/progress_tracking.png';
 import question_bank from '../assets/question_bank.png';
+import {Helmet} from "react-helmet";
 
 
-const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+const {Content} = Layout;
+const {Title, Paragraph} = Typography;
 
 const HeroSection = styled.div`
     height: 100vh;
@@ -44,7 +45,6 @@ const ContentSection = styled.div`
     padding: 50px 0;
     background-color: #f9f9f9;
 `;
-
 
 
 const StyledTitleButton = styled.button`
@@ -141,18 +141,18 @@ const FeatureCardContainer = styled.div`
 `;
 
 const FeatureCard = styled.div`
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  background: #ffffff;
-  width: 100%;
-  max-width: 700px;
-  height: 180px;
-  margin-bottom: 20px;
-  padding: 20px;
-  display: flex;
-  align-items: center; /* Center content vertically */
-  justify-content: center; /* Center content horizontally */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background: #ffffff;
+    width: 100%;
+    max-width: 700px;
+    height: 180px;
+    margin-bottom: 20px;
+    padding: 20px;
+    display: flex;
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
 
     &:hover {
         transform: translateY(-5px);
@@ -168,25 +168,25 @@ const FeatureCard = styled.div`
     }
 
     h4 {
-        font-size: 1.4rem;  // Increased font size for the title
+        font-size: 1.4rem; // Increased font size for the title
         margin-bottom: 12px;
     }
 
     p {
-        font-size: 1.1rem;  // Increased font size for the content
+        font-size: 1.1rem; // Increased font size for the content
     }
 `;
 const IconWrapper = styled.div`
     font-size: 2rem;
-    margin-right: 20px;  // Increased from 25px to create more space between icon and text
+    margin-right: 20px; // Increased from 25px to create more space between icon and text
     border-radius: 12px;
     background: ${props => props.background || 'linear-gradient(135deg, #8a59fa, #7f73ff, #786cae, #8a59fa)'};
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 58px;  // Adjusted for better proportions
-    height: 58px;  // Adjusted for better proportions
+    width: 58px; // Adjusted for better proportions
+    height: 58px; // Adjusted for better proportions
     flex-shrink: 0;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
@@ -286,6 +286,7 @@ const GradientTextLarge = styled.span`
         font-weight: 600;
     }
 `;
+
 function HomePage() {
     const contentRef = useRef(null);
 
@@ -298,46 +299,52 @@ function HomePage() {
     }, []);
 
     const scrollToContent = () => {
-        contentRef.current.scrollIntoView({ behavior: 'smooth' });
+        contentRef.current.scrollIntoView({behavior: 'smooth'});
     };
 
     return (
         <GlobalStyle>
+            <Helmet>
+                <title>SAT Duel!</title>
+                <meta name="description" content="SAT Duel - The best way to practice SAT while competing with your friends! Practice using REAL SAT questions"/>
+                <meta name="keywords" content="SAT, SAT practice, SAT prep, SAT question, SAT questionbank, test prep, SAT highscore, SAT tips, standard testing, fun way to practice"/>
+            </Helmet>
             <Layout>
                 <HeroSection>
-                    <Title level={1} style={{ fontSize: '4rem', marginBottom: '20px' }}>
-                        <span style={{ color: '#FFFFFF', fontFamily: 'Poppins, sans-serif', fontWeight: 500 }}>
+                    <Title level={1} style={{fontSize: '4rem', marginBottom: '20px'}}>
+                        <span style={{color: '#FFFFFF', fontFamily: 'Poppins, sans-serif', fontWeight: 500}}>
                             Elevate Your SAT Prep with{' '}
                         </span>
-                        <GradientText style={{ fontWeight: 500 }}>Duels</GradientText>
+                        <GradientText style={{fontWeight: 500}}>Duels</GradientText>
                     </Title>
-                    <Paragraph style={{ fontSize: '1.5rem', maxWidth: '600px', marginBottom: '40px' }}>
-                        <span style={{ color: '#FFFFFF' }}> Immerse yourself in a </span>
+                    <Paragraph style={{fontSize: '1.5rem', maxWidth: '600px', marginBottom: '40px'}}>
+                        <span style={{color: '#FFFFFF'}}> Immerse yourself in a </span>
                         <GradientText>futuristic</GradientText>
-                        <span style={{ color: '#FFFFFF' }}> learning experience designed to </span>
+                        <span style={{color: '#FFFFFF'}}> learning experience designed to </span>
                         <GradientText>boost</GradientText>
-                        <span style={{ color: '#FFFFFF' }}> your SAT scores. </span>
+                        <span style={{color: '#FFFFFF'}}> your SAT scores. </span>
                     </Paragraph>
                     <Row gutter={16}>
                         <Col>
                             <StyledTitleButton>
-                                <Link to="/trainer" style={{ fontWeight: 500 }}>Start Practice</Link>
+                                <Link to="/trainer" style={{fontWeight: 500}}>Start Practice</Link>
                             </StyledTitleButton>
                         </Col>
                         <Col>
                             <StyledTitleButton>
-                                <Link to="/match" style={{ fontWeight: 500 }}>Challenge a Friend</Link>
+                                <Link to="/match" style={{fontWeight: 500}}>Challenge a Friend</Link>
                             </StyledTitleButton>
                         </Col>
                     </Row>
                     <ScrollIndicator onClick={scrollToContent}>
-                        <ArrowDownOutlined style={{ fontSize: '24px' }} />
+                        <ArrowDownOutlined style={{fontSize: '24px'}}/>
                     </ScrollIndicator>
                 </HeroSection>
 
                 <ContentSection ref={contentRef}>
-                    <Content style={{ padding: '0 30px', maxWidth: '1200px', margin: '0 auto' }}>
-                        <Title level={2} style={{ textAlign: 'center', marginBottom: '40px', position: 'relative', zIndex: 1 }}>
+                    <Content style={{padding: '0 30px', maxWidth: '1200px', margin: '0 auto'}}>
+                        <Title level={2}
+                               style={{textAlign: 'center', marginBottom: '40px', position: 'relative', zIndex: 1}}>
                             <GradientTextLarge>
                                 Prepare for the SAT: <span className="yellow-box">Efficiently. With Friends. While Having Fun.</span>
                             </GradientTextLarge>
@@ -346,7 +353,7 @@ function HomePage() {
                         <Row gutter={[16, 16]}>
                             {[
                                 {
-                                    icon: <RocketOutlined />,
+                                    icon: <RocketOutlined/>,
                                     iconWrapper: RocketIconWrapper,
                                     title: "Personalized Learning",
                                     content: "Our adaptive algorithms tailor questions to your skill level, ensuring efficient progress.",
@@ -354,7 +361,7 @@ function HomePage() {
                                     reverse: false
                                 },
                                 {
-                                    icon: <LineChartOutlined />,
+                                    icon: <LineChartOutlined/>,
                                     iconWrapper: ChartIconWrapper,
                                     title: "Real-Time Progress Tracking",
                                     content: "Monitor your improvement with detailed analytics and performance insights.",
@@ -362,7 +369,7 @@ function HomePage() {
                                     reverse: true
                                 },
                                 {
-                                    icon: <TrophyOutlined />,
+                                    icon: <TrophyOutlined/>,
                                     iconWrapper: TrophyIconWrapper,
                                     title: "Engaging Duels",
                                     content: "Challenge friends or other students to competitive quizzes and boost your motivation.",
@@ -370,7 +377,7 @@ function HomePage() {
                                     reverse: false
                                 },
                                 {
-                                    icon: <BookOutlined />,
+                                    icon: <BookOutlined/>,
                                     iconWrapper: BookIconWrapper,
                                     title: "Comprehensive Question Bank",
                                     content: "Access a vast array of SAT questions covering all test sections and difficulty levels.",
@@ -379,98 +386,118 @@ function HomePage() {
                                 },
                             ].map((item, index) => (
                                 <Col xs={24} key={index}>
-                                    <FeatureCardContainer reverse={item.reverse} data-aos="fade-up" data-aos-delay={index * 100}>
+                                    <FeatureCardContainer reverse={item.reverse} data-aos="fade-up"
+                                                          data-aos-delay={index * 100}>
                                         <FeatureCard>
                                             <item.iconWrapper>{item.icon}</item.iconWrapper>
                                             <div>
-                                                <Title level={4} style={{ marginBottom: '8px', fontFamily: 'Poppins, sans-serif' }}>{item.title}</Title>
-                                                <Paragraph style={{ marginBottom: 0, fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>{item.content}</Paragraph>
+                                                <Title level={4} style={{
+                                                    marginBottom: '8px',
+                                                    fontFamily: 'Poppins, sans-serif'
+                                                }}>{item.title}</Title>
+                                                <Paragraph style={{
+                                                    marginBottom: 0,
+                                                    fontFamily: 'Poppins, sans-serif',
+                                                    fontSize: '1.1rem'
+                                                }}>{item.content}</Paragraph>
                                             </div>
                                         </FeatureCard>
-                                        <StyledImage src={item.imgSrc} alt={item.title} />
+                                        <StyledImage src={item.imgSrc} alt={item.title}/>
                                     </FeatureCardContainer>
                                 </Col>
                             ))}
                         </Row>
-<Divider />
-<Row gutter={[16, 16]}>
-    <Col xs={24} md={12}>
-        <FeatureCardContainer reverse={false} data-aos="fade-right">
-            <FeatureCard>
-                <IconWrapper>
-                    <BulbOutlined />
-                </IconWrapper>
-                <div>
-                    <Title level={4} style={{ marginBottom: '8px', fontFamily: 'Poppins, sans-serif' }}>
-                        Boost Your Scores
-                    </Title>
-                    <Paragraph style={{ marginBottom: 0, fontFamily: 'Poppins, sans-serif',fontSize: '1.1rem' }}>
-                        Our platform helps you ace the SAT with personalized study plans, real-time feedback, and a vast question bank.
-                    </Paragraph>
-                </div>
-            </FeatureCard>
-        </FeatureCardContainer>
-    </Col>
+                        <Divider/>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} md={12}>
+                                <FeatureCardContainer reverse={false} data-aos="fade-right">
+                                    <FeatureCard>
+                                        <IconWrapper>
+                                            <BulbOutlined/>
+                                        </IconWrapper>
+                                        <div>
+                                            <Title level={4}
+                                                   style={{marginBottom: '8px', fontFamily: 'Poppins, sans-serif'}}>
+                                                Boost Your Scores
+                                            </Title>
+                                            <Paragraph style={{
+                                                marginBottom: 0,
+                                                fontFamily: 'Poppins, sans-serif',
+                                                fontSize: '1.1rem'
+                                            }}>
+                                                Our platform helps you ace the SAT with personalized study plans,
+                                                real-time feedback, and a vast question bank.
+                                            </Paragraph>
+                                        </div>
+                                    </FeatureCard>
+                                </FeatureCardContainer>
+                            </Col>
 
-    <Col xs={24} md={12}>
-        {[
-            {
-                title: "Average Score Improvement",
-                value: 200,
-                prefix: (
-                    <IconWrapper background="linear-gradient(135deg, #FF6B6B, #FF8E53)">
-                        <TrophyOutlined />
-                    </IconWrapper>
-                ),
-                suffix: "points",
-                delay: 100
-            },
-            {
-                title: "Students Helped",
-                value: 50000,
-                prefix: (
-                    <IconWrapper background="linear-gradient(135deg, #4E54C8, #8F94FB)">
-                        <UserOutlined />
-                    </IconWrapper>
-                ),
-                suffix: "+",
-                delay: 200
-            },
-            {
-                title: "Success Rate",
-                value: 98.5,
-                prefix: (
-                    <IconWrapper background="linear-gradient(135deg, #11998E, #38EF7D)">
-                        <CheckCircleOutlined />
-                    </IconWrapper>
-                ),
-                suffix: "%",
-                delay: 300
-            }
-        ].map((item, index) => (
-            <Col span={24} key={index} style={{ marginTop: '12px', textAlign: 'center' }}>
-                <StatisticCard data-aos="fade-left" data-aos-delay={item.delay}>
-                    <Statistic
-                        title={<span style={{ color: 'black', fontWeight: '600' }}>{item.title}</span>}
-                        value={item.value}
-                        prefix={item.prefix}
-                        suffix={item.suffix}
-                        valueStyle={{
+                            <Col xs={24} md={12}>
+                                {[
+                                    {
+                                        title: "Average Score Improvement",
+                                        value: 200,
+                                        prefix: (
+                                            <IconWrapper background="linear-gradient(135deg, #FF6B6B, #FF8E53)">
+                                                <TrophyOutlined/>
+                                            </IconWrapper>
+                                        ),
+                                        suffix: "points",
+                                        delay: 100
+                                    },
+                                    {
+                                        title: "Students Helped",
+                                        value: 50000,
+                                        prefix: (
+                                            <IconWrapper background="linear-gradient(135deg, #4E54C8, #8F94FB)">
+                                                <UserOutlined/>
+                                            </IconWrapper>
+                                        ),
+                                        suffix: "+",
+                                        delay: 200
+                                    },
+                                    {
+                                        title: "Success Rate",
+                                        value: 98.5,
+                                        prefix: (
+                                            <IconWrapper background="linear-gradient(135deg, #11998E, #38EF7D)">
+                                                <CheckCircleOutlined/>
+                                            </IconWrapper>
+                                        ),
+                                        suffix: "%",
+                                        delay: 300
+                                    }
+                                ].map((item, index) => (
+                                    <Col span={24} key={index} style={{marginTop: '12px', textAlign: 'center'}}>
+                                        <StatisticCard data-aos="fade-left" data-aos-delay={item.delay}>
+                                            <Statistic
+                                                title={<span
+                                                    style={{color: 'black', fontWeight: '600'}}>{item.title}</span>}
+                                                value={item.value}
+                                                prefix={item.prefix}
+                                                suffix={item.suffix}
+                                                valueStyle={{
 
-                            fontSize: '1.5rem',
-                            color: '#434343',
+                                                    fontSize: '1.5rem',
+                                                    color: '#434343',
+                                                    fontFamily: 'Poppins, sans-serif'
+                                                }}
+                                            />
+                                        </StatisticCard>
+                                    </Col>
+                                ))}
+                            </Col>
+                        </Row>
+
+                        <Divider/>
+
+                        <Title level={2} style={{
+                            textAlign: 'center',
+                            marginTop: '60px',
+                            marginBottom: '40px',
                             fontFamily: 'Poppins, sans-serif'
-                        }}
-                    />
-                </StatisticCard>
-            </Col>
-        ))}
-    </Col>
-</Row>
-
-                        <Divider />
-
-                        <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px', fontFamily: 'Poppins, sans-serif' }}>
+                        }}>
                             What Our Users Say
                         </Title>
                         <Row gutter={[24, 24]}>
@@ -496,10 +523,14 @@ function HomePage() {
                             ].map((testimonial, index) => (
                                 <Col xs={24} md={8} key={index}>
                                     <TestimonialCard data-aos="fade-up" data-aos-delay={index * 100}>
-                                        <Avatar src={testimonial.avatar} alt={testimonial.name} />
-                                        <Title level={4} style={{ marginBottom: '8px', fontFamily: 'Poppins, sans-serif' }}>{testimonial.name}</Title>
-                                        <Paragraph style={{ fontFamily: 'Poppins, sans-serif' }}>{testimonial.comment}</Paragraph>
-                                        <Rate disabled defaultValue={testimonial.rating} />
+                                        <Avatar src={testimonial.avatar} alt={testimonial.name}/>
+                                        <Title level={4} style={{
+                                            marginBottom: '8px',
+                                            fontFamily: 'Poppins, sans-serif'
+                                        }}>{testimonial.name}</Title>
+                                        <Paragraph
+                                            style={{fontFamily: 'Poppins, sans-serif'}}>{testimonial.comment}</Paragraph>
+                                        <Rate disabled defaultValue={testimonial.rating}/>
                                     </TestimonialCard>
                                 </Col>
                             ))}
