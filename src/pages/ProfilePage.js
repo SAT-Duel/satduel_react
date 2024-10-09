@@ -4,6 +4,7 @@ import Profile from "../components/Profile";
 import {Tabs, Card, message} from "antd";
 import FriendList from "../components/FriendList";
 import BattleHistory from "../components/BattleHistory";
+import Inventory from "../components/Inventory";
 import {useAuth} from "../context/AuthContext";
 
 const { TabPane } = Tabs;
@@ -52,6 +53,11 @@ function ProfilePage() {
                     {isOwnProfile && (
                         <TabPane tab={<span style={tabStyle}>Friends</span>} key="3">
                             <FriendList />
+                        </TabPane>
+                    )}
+                    {isOwnProfile && (
+                        <TabPane tab={<span style={tabStyle}>Inventory</span>} key="4">
+                            <Inventory />
                         </TabPane>
                     )}
                 </Tabs>
