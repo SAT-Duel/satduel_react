@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import Lottie from 'react-lottie';
@@ -59,6 +59,30 @@ const StatValue = styled.span`
     color: #4b0082;
     font-weight: 700;
     font-size: 1.1rem;
+`;
+
+const XPProgressLabel = styled.div`
+    text-align: center;
+    font-size: 1.3rem;
+    color: #4b0082;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+`;
+
+const ProgressBarWrapper = styled.div`
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+`;
+
+const ProgressBar = styled.div`
+    height: 20px;
+    width: ${({ percentage }) => percentage}%;
+    background-color: #4b0082;
+    transition: width 0.5s ease;
 `;
 
 const NextButton = styled.button`
@@ -133,6 +157,7 @@ const LootboxContainer = styled.div`
     height: 400px;
     perspective: 1500px;
     z-index: 1001;
+    cursor: pointer;
 `;
 
 const LevelUpMessage = styled.div`
@@ -183,7 +208,6 @@ function InfiniteQuestionsPage() {
     const [canCloseLootbox, setCanCloseLootbox] = useState(false);
 
     const hasFetchedData = useRef(false);
-
 
     const baseUrl = process.env.REACT_APP_API_URL;
 
@@ -250,6 +274,36 @@ function InfiniteQuestionsPage() {
         }
     }, [loading, fetchNextQuestion, fetchStats]);
 
+    const getLevel = (cur_xp) => {
+        if (cur_xp < 1) return 0;
+        if (cur_xp < 5) return 1;
+        if (cur_xp < 10) return 2;
+        if (cur_xp < 20) return 3;
+        if (cur_xp < 50) return 4;
+        if (cur_xp < 100) return 5;
+        if (cur_xp < 200) return 6;
+        return 7;
+    };
+
+    const getXPForNextLevel = (level) => {
+        if (level === 0) return 1;
+        if (level === 1) return 5;
+        if (level === 2) return 10;
+        if (level === 3) return 20;
+        if (level === 4) return 50;
+        if (level === 5) return 100;
+        if (level === 6) return 200;
+        return Infinity; // No higher level
+    };
+
+    const calculateProgressPercentage = () => {
+        const xpForCurrentLevel = getXPForNextLevel(stats.level - 1);
+        const xpForNextLevel = getXPForNextLevel(stats.level);
+        const currentXPInLevel = stats.xp - xpForCurrentLevel;
+        const xpRequiredForNextLevel = xpForNextLevel - xpForCurrentLevel;
+        return Math.min((currentXPInLevel / xpRequiredForNextLevel) * 100, 100);
+    };
+
     const handleQuestionSubmit = async (id, choice) => {
         if (isFinished) return;
         try {
@@ -267,7 +321,7 @@ function InfiniteQuestionsPage() {
                     streak: isCorrect ? prevStats.streak + 1 : 0,
                     xp: isCorrect ? prevStats.xp + 1 : prevStats.xp,
                     level: getLevel(isCorrect ? prevStats.xp + 1 : prevStats.xp),
-                    coins: isCorrect ? prevStats.coins + Math.floor(getRandomNumber(3) * prevStats.multiplier) : prevStats.coins,
+                    coins: isCorrect ? prevStats.coins + Math.floor(Math.random() * 3 * prevStats.multiplier) : prevStats.coins,
                     multiplier: prevStats.multiplier,
                 };
 
@@ -293,7 +347,7 @@ function InfiniteQuestionsPage() {
                     setLootboxMessage(lootboxMessage);
                     setIsLootboxVisible(true);
                     setIsLootboxOpened(false);
-                    setAnimationStopped(false);
+                    setAnimationStopped(true); // Animation stopped initially
                     setShowReward(false);
                     setCanCloseLootbox(false);
                 }
@@ -306,28 +360,11 @@ function InfiniteQuestionsPage() {
         }
     };
 
-    const getLevel = (cur_xp) => {
-        if (cur_xp < 1) {
-            return 0;
-        } else if (cur_xp >= 1 && cur_xp < 5) {
-            return 1;
-        } else if (cur_xp >= 5 && cur_xp < 10) {
-            return 2;
-        } else if (cur_xp >= 10 && cur_xp < 20) {
-            return 3;
-        } else if (cur_xp >= 20 && cur_xp < 50) {
-            return 4;
-        } else if (cur_xp >= 50 && cur_xp < 100) {
-            return 5;
-        } else if (cur_xp >= 100 && cur_xp < 200) {
-            return 6;
-        } else {
-            return 7;
-        }
-    };
-
     const handleLootboxClick = () => {
-        if (canCloseLootbox && isLootboxOpened) {
+        if (!isLootboxOpened) {
+            setAnimationStopped(false); // Start the animation on click
+            setIsLootboxOpened(true);
+        } else if (canCloseLootbox) {
             setIsLootboxVisible(false);
             setIsLootboxOpened(false);
             setLevelUpMessage(''); // Clear the level up message when closing the lootbox
@@ -337,7 +374,7 @@ function InfiniteQuestionsPage() {
     const handleAnimationComplete = () => {
         setShowReward(true);
         setCanCloseLootbox(true);
-        setIsLootboxOpened(true); // Mark lootbox as opened after animation completes
+        setLevelUpMessage(''); // Clear the "LEVEL UP" message after the animation completes
     };
 
     const defaultOptions = {
@@ -347,10 +384,6 @@ function InfiniteQuestionsPage() {
         rendererSettings: {
             preserveAspectRatio: 'xMidYMid slice'
         }
-    };
-
-    const getRandomNumber = (cap) => {
-        return Math.floor(Math.random() * cap) + 1;
     };
 
     const handleEndEarly = () => {
@@ -368,12 +401,18 @@ function InfiniteQuestionsPage() {
                     <>
                         <QuestionContainer>
                             {currentQuestion && (
-                                <Question
-                                    questionData={currentQuestion}
-                                    onSubmit={handleQuestionSubmit}
-                                    status={questionStatus}
-                                    questionNumber={stats.questionsAnswered + 1}
-                                />
+                                <>
+                                    <Question
+                                        questionData={currentQuestion}
+                                        onSubmit={handleQuestionSubmit}
+                                        status={questionStatus}
+                                        questionNumber={stats.questionsAnswered + 1}
+                                    />
+                                    <XPProgressLabel>{getXPForNextLevel(stats.level) - stats.xp} XP until level {stats.level + 1}</XPProgressLabel>
+                                    <ProgressBarWrapper>
+                                        <ProgressBar percentage={calculateProgressPercentage()} />
+                                    </ProgressBarWrapper>
+                                </>
                             )}
                             {questionStatus !== 'Blank' && (
                                 <NextButton onClick={fetchNextQuestion}>Next Question</NextButton>
@@ -393,10 +432,6 @@ function InfiniteQuestionsPage() {
                             <StatItem>
                                 <StatLabel>Current Streak:</StatLabel>
                                 <StatValue>{stats.streak}</StatValue>
-                            </StatItem>
-                            <StatItem>
-                                <StatLabel>XP:</StatLabel>
-                                <StatValue>{stats.xp}</StatValue>
                             </StatItem>
                             <StatItem>
                                 <StatLabel>Level:</StatLabel>

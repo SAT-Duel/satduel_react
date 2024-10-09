@@ -137,11 +137,11 @@ const Shop = () => {
             animationData: pet1AnimationData,
         },
         {
-            id: 2,
-            name: 'Dream On, Bear On!',
-            price: 50,
+            id: 34,
+            name: 'Bessie The Cow',
+            price: 250,
             description: 'Level 1 Base Perks:',
-            benefits: ['Permanent 5% Coin Multiplier', 'Unlocks the ability to find treasures in the sky in SAT Alcumus'],
+            benefits: ['Permanent 50% Coin Multiplier', 'MILK?!'],
             animationData: pet2AnimationData,
         },
     ];
