@@ -305,7 +305,7 @@ function HomePage() {
     return (
         <GlobalStyle>
             <Helmet>
-                <title>SAT Duel!</title>
+                <title>SAT Duel</title>
                 <meta name="description" content="SAT Duel - The best way to practice SAT while competing with your friends! Practice using REAL SAT questions"/>
                 <meta name="keywords" content="SAT, SAT practice, SAT prep, SAT question, SAT questionbank, test prep, SAT highscore, SAT tips, standard testing, fun way to practice"/>
             </Helmet>

@@ -90,12 +90,6 @@ function Navbar() {
             onClick: () => navigate('/'),
         },
         {
-            label: 'About',
-            key: 'About',
-            icon: <InfoCircleOutlined />,
-            onClick: () => navigate('/about'),
-        },
-        {
             label: 'SAT Trainer',
             key: 'Trainer',
             icon: <QuestionCircleOutlined />,
