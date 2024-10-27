@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
-import { Layout, Typography, Row, Col, Card, Avatar, Divider, Form, Input, Button } from 'antd';
+import React, {useEffect, useRef} from 'react';
+import {Layout, Typography, Row, Col, Card, Avatar, Divider, Form, Input, Button, message} from 'antd';
 import { TeamOutlined, TrophyOutlined, HistoryOutlined, BulbOutlined, StarOutlined, GlobalOutlined, HeartOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import Aos from 'aos';
 import 'aos/dist/aos.css';
+import emailjs from 'emailjs-com';
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -119,9 +120,26 @@ function AboutPage() {
             avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
         },
     ];
-
-    const onFinish = (values) => {
-        console.log('Received values:', values);
+    const form = useRef();
+    const onFinish = (e) => {
+        console.log(form.current);
+        emailjs
+            .sendForm(
+                'service_6c2ymlq', // Replace with your service ID
+                'template_1qosfaq', // Replace with your template ID
+                form.current,
+                'eqBzs3BVZxwSyxMQE' // Replace with your public key
+            )
+            .then(
+                (result) => {
+                    console.log(result.text);
+                    message.success('Email sent successfully!');
+                },
+                (error) => {
+                    console.log(error.text);
+                    message.error('Failed to send email. Please try again.');
+                }
+            );
     };
 
     return (
@@ -221,7 +239,7 @@ function AboutPage() {
                         </Title>
                         <Row justify="center">
                             <Col xs={24} md={12}>
-                                <ContactForm layout="vertical" onFinish={onFinish} data-aos="fade-up">
+                                <ContactForm layout="vertical" onFinish={onFinish} data-aos="fade-up" ref={form}>
                                     <Form.Item
                                         label="Name"
                                         name="name"
