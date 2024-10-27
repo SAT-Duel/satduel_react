@@ -3,7 +3,6 @@ import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import {Form, Input, Button, Card, Typography, Space, Select, message} from 'antd';
 import api from "../components/api";
-import GoogleLogin from "../components/GoogleLogin";
 
 const {Title} = Typography;
 const {Option} = Select;
@@ -173,7 +172,6 @@ function Register() {
                             </Button>
                         </Form.Item>
                     </Form>
-                    <GoogleLogin/>
                 </Space>
             </Card>
         </div>

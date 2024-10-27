@@ -99,12 +99,22 @@ function AboutPage() {
             avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
         },
         {
-            name: "Thomas Tian",
-            role: "CFO",
+            name: "William Yang",
+            role: "Professional Developer",
             avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
         },
         {
-            name: "William Yang",
+            name: "Weiwei Luo",
+            role: "SEO Specialist",
+            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+        },
+        {
+            name: "Cyan Ni",
+            role: "SEO + Marketing Specialist",
+            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+        },
+        {
+            name: "Oscar Nie",
             role: "UFO",
             avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
         },

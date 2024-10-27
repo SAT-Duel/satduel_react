@@ -2,9 +2,9 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {Card, Select, Pagination, Row, Col, Button, Descriptions} from 'antd';
 import {Link, useNavigate} from 'react-router-dom';
 import {PlusOutlined} from '@ant-design/icons';
-import axios from 'axios';
 import RenderWithMath from "../../components/RenderWithMath";
 import withAuth from "../../hoc/withAuth";
+import api from "../../components/api";
 
 const {Option} = Select;
 
@@ -16,24 +16,25 @@ const QuestionListPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(15); // 15 questions per page
 
-    const questionTypes = ['Cross-Text Connections', 'Text Structure and Purpose', 'Words in Context', 'Rhetorical Synthesis',
-        'Transitions', 'Central Ideas and Details', 'Command of Evidence', 'Inferences', 'Boundaries', 'Form, Structure, and Sense'];
+    const questionTypes = [
+        'Cross-Text Connections', 'Text Structure and Purpose', 'Words in Context',
+        'Rhetorical Synthesis', 'Transitions', 'Central Ideas and Details',
+        'Command of Evidence', 'Inferences', 'Boundaries', 'Form, Structure, and Sense'
+    ];
     const difficulties = ['1', '2', '3', '4', '5'];
     const navigate = useNavigate();
 
 
     const fetchQuestions = useCallback(async () => {
-        const baseUrl = process.env.REACT_APP_API_URL;
-
+        const queryParams = new URLSearchParams({
+            type: selectedType || 'any',
+            difficulty: selectedDifficulty || 'any',
+            page: currentPage || 1,
+            page_size: pageSize || 10,
+            random: false
+        }).toString();
         try {
-            const response = await axios.get(`${baseUrl}/api/filter_questions/`, {
-                params: {
-                    type: selectedType,
-                    difficulty: selectedDifficulty,
-                    page: currentPage,
-                    page_size: pageSize
-                }
-            });
+            const response = await api.get(`api/filter_questions/?${queryParams}`);
             setQuestions(response.data.questions);
             setTotalPage(response.data.total);
         } catch (error) {
