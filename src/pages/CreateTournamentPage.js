@@ -5,7 +5,8 @@ import styled from 'styled-components';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from "../context/AuthContext";
-import Question from "../components/Question"; // Assuming you have a Question component for preview
+import Question from "../components/Question";
+import withAuth from "../hoc/withAuth";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -254,4 +255,4 @@ const CreateTournamentPage = () => {
     );
 };
 
-export default CreateTournamentPage;
+export default withAuth(CreateTournamentPage);
