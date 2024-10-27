@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import {Form, Input, Button, Card, Typography, Space, Select, message} from 'antd';
-import api from "../components/api";
+import api from '../components/api';
 
 const {Title} = Typography;
 const {Option} = Select;
@@ -20,7 +20,7 @@ const cardStyle = {
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
     borderRadius: '8px',
     padding: '20px',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
 };
 
 const titleStyle = {
@@ -31,19 +31,10 @@ const titleStyle = {
 const errorStyle = {
     color: 'red',
     textAlign: 'center',
-    whitespace: 'pre-wrap',
+    whiteSpace: 'pre-wrap',
 };
 
 function Register() {
-    const [formData, setFormData] = useState({
-        username: '',
-        email: '',
-        first_name: '',
-        last_name: '',
-        password: '',
-        confirmPassword: '',
-        grade: ''
-    });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const {loading, user} = useAuth();
@@ -54,21 +45,22 @@ function Register() {
         }
     }, [user, navigate, loading]);
 
-    const handleChange = (e) => {
-        setFormData({...formData, [e.target.name]: e.target.value});
-    };
-
     const handleSubmit = async (values) => {
+        // Google Analytics event tracking
+        if (window.gtag) {
+            window.gtag('event', 'sign_up', {
+                event_category: 'User Interaction',
+                event_label: 'sign_up',
+                value: 1,
+            });
+            console.log("triggered");
+        }
+
         if (values.password !== values.confirmPassword) {
-            setError("Passwords do not match");
+            setError('Passwords do not match');
             return;
         }
 
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-        if (!passwordRegex.test(values.password)) {
-            setError("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number");
-            return;
-        }
         const payload = {
             username: values.username,
             email: values.email,
@@ -76,19 +68,18 @@ function Register() {
             last_name: values.last_name,
             password1: values.password,
             password2: values.confirmPassword,
-            grade: values.grade
+            grade: values.grade,
         };
+
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
             await api.post(`${baseUrl}/api/register/`, payload);
-            message.success("Registration successful");
+            message.success('Registration successful');
             navigate('/email_verification');
         } catch (error) {
-            const errors = error.response.data;
+            const errors = error.response?.data || {error: 'An error occurred'};
             const errorList = Object.values(errors).flat();
-            errorList.forEach((error) => {
-                message.error(error);
-            });
+            errorList.forEach((error) => message.error(error));
         }
     };
 
@@ -97,75 +88,89 @@ function Register() {
             <Card style={cardStyle}>
                 <Space direction="vertical" style={{width: '100%'}}>
                     <Title level={2} style={titleStyle}>Register</Title>
-                    <Form
-                        name="register"
-                        initialValues={formData}
-                        onFinish={handleSubmit}
-                    >
+                    <Form name="register" onFinish={handleSubmit}>
                         <Form.Item
                             name="username"
                             rules={[
                                 {required: true, message: 'Please input your username!'},
-                                {max: 10, message: 'Username cannot be longer than 10 characters!'},
+                                {max: 15, message: 'Username cannot be longer than 15 characters!'},
                                 {
                                     pattern: /^[a-zA-Z0-9_]+$/,
-                                    message: 'Username can only include letters, numbers, and underscores, with no spaces.'
-                                }
+                                    message: 'Username can only include letters, numbers, and underscores.'
+                                },
                             ]}
                         >
-                            <Input placeholder="Username" onChange={handleChange}/>
+                            <Input placeholder="Username"/>
                         </Form.Item>
+
                         <Form.Item
                             name="email"
                             rules={[{required: true, message: 'Please input your email!'}]}
                         >
-                            <Input type="email" placeholder="Email" onChange={handleChange}/>
+                            <Input type="email" placeholder="Email"/>
                         </Form.Item>
+
                         <Form.Item
                             name="first_name"
                             rules={[{required: true, message: 'Please input your first name!'}]}
                         >
-                            <Input placeholder="First Name" onChange={handleChange}/>
+                            <Input placeholder="First Name"/>
                         </Form.Item>
+
                         <Form.Item
                             name="last_name"
                             rules={[{required: true, message: 'Please input your last name!'}]}
                         >
-                            <Input placeholder="Last Name" onChange={handleChange}/>
+                            <Input placeholder="Last Name"/>
                         </Form.Item>
+
                         <Form.Item
                             name="password"
                             rules={[
                                 {required: true, message: 'Please input your password!'},
                                 {
                                     pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
-                                    message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number'
-                                }
+                                    message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.',
+                                },
                             ]}
                         >
-                            <Input.Password placeholder="Password" onChange={handleChange}/>
+                            <Input.Password placeholder="Password"/>
                         </Form.Item>
+
                         <Form.Item
                             name="confirmPassword"
-                            rules={[{required: true, message: 'Please confirm your password!'}]}
+                            dependencies={['password']}
+                            rules={[
+                                {required: true, message: 'Please confirm your password!'},
+                                ({getFieldValue}) => ({
+                                    validator(_, value) {
+                                        if (!value || getFieldValue('password') === value) {
+                                            return Promise.resolve();
+                                        }
+                                        return Promise.reject(new Error('Passwords do not match!'));
+                                    },
+                                }),
+                            ]}
                         >
-                            <Input.Password placeholder="Confirm Password" onChange={handleChange}/>
+                            <Input.Password placeholder="Confirm Password"/>
                         </Form.Item>
+
                         <Form.Item
                             name="grade"
                             label="Select Grade"
                             rules={[{required: true, message: 'Please select your grade!'}]}
                         >
-                            <Select placeholder="Select Grade"
-                                    onChange={(value) => setFormData({...formData, grade: value})}>
-                                <Option key={13} value={'<1'}>{'<1'}</Option>
+                            <Select placeholder="Select Grade">
+                                <Option value="<1">{'<1'}</Option>
                                 {[...Array(12)].map((_, i) => (
-                                    <Option key={i} value={i + 1}>{i + 1}</Option>
+                                    <Option key={i + 1} value={i + 1}>{i + 1}</Option>
                                 ))}
-                                <Option key={14} value={'>12'}>{'>12'}</Option>
+                                <Option value=">12">{'>12'}</Option>
                             </Select>
                         </Form.Item>
+
                         {error && <p style={errorStyle}>{error}</p>}
+
                         <Form.Item>
                             <Button type="primary" htmlType="submit" style={{width: '100%'}}>
                                 Register
