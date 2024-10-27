@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import Question from '../components/Question';
 import axios from "axios";
 import { useLocation, useNavigate } from 'react-router-dom';
+import api from "../components/api";
 
 const PageContainer = styled.div`
     display: flex;
@@ -137,9 +138,15 @@ function PowerSprintPage() {
 
         try {
             setLoading(true);
-            const baseUrl = process.env.REACT_APP_API_URL;
-            const response = await axios.get(`${baseUrl}/api/questions/?num=1&difficulty=${difficulty}`);
-            setCurrentQuestion(response.data[0]);
+            const queryParams = new URLSearchParams({
+                type: 'any',
+                difficulty: difficulty,
+                page: 1,
+                page_size: 1,
+                random: true
+            }).toString();
+            const response = await api.get(`api/filter_questions192/?${queryParams}`);
+            setCurrentQuestion(response.data.questions[0]);
             setQuestionStatus('Blank');
             setShowNextButton(false);
         } catch (error) {

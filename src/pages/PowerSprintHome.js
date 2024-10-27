@@ -82,9 +82,9 @@ function PowerSprintHome({ onStartGame }) {
                             onChange={setDifficulty}
                             style={{ width: '100%' }}
                         >
-                            <Select.Option value="easy">Easy</Select.Option>
-                            <Select.Option value="medium">Medium</Select.Option>
-                            <Select.Option value="hard">Hard</Select.Option>
+                            <Select.Option value="1">Easy</Select.Option>
+                            <Select.Option value="3">Medium</Select.Option>
+                            <Select.Option value="5">Hard</Select.Option>
                         </Select>
                     </Form.Item>
 

@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import Lottie from 'react-lottie';
 import animationData from '../animations/lootbox.json';
-import { useAuth } from "../context/AuthContext";
+import {useAuth} from "../context/AuthContext";
 import Question from '../components/Question';
 import withAuth from "../hoc/withAuth";
+import api from '../components/api';
 
 const PageContainer = styled.div`
     display: flex;
@@ -80,7 +81,7 @@ const ProgressBarWrapper = styled.div`
 
 const ProgressBar = styled.div`
     height: 20px;
-    width: ${({ percentage }) => percentage}%;
+    width: ${({percentage}) => percentage}%;
     background-color: #4b0082;
     transition: width 0.5s ease;
 `;
@@ -197,7 +198,7 @@ function InfiniteQuestionsPage() {
         multiplier: 1,
     });
     const [isFinished, setIsFinished] = useState(false);
-    const { token, loading } = useAuth();
+    const {token, loading} = useAuth();
 
     const [isLootboxOpened, setIsLootboxOpened] = useState(false);
     const [isLootboxVisible, setIsLootboxVisible] = useState(false);
@@ -224,7 +225,7 @@ function InfiniteQuestionsPage() {
             };
             console.log("Saving stats:", payload);
             await axios.post(`${baseUrl}/api/trainer/set_infinite_question_stats/`, payload, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {'Authorization': `Bearer ${token}`}
             });
         } catch (error) {
             console.error('Error saving stats:', error.response ? error.response.data : error);
@@ -235,8 +236,15 @@ function InfiniteQuestionsPage() {
         if (isFinished) return;
         try {
             setLoading(true);
-            const response = await axios.get(`${baseUrl}/api/questions/?num=1`);
-            setCurrentQuestion(response.data[0]);
+            const queryParams = new URLSearchParams({
+                type: 'any',
+                difficulty: 'any',
+                page: 1,
+                page_size: 1,
+                random: true
+            }).toString();
+            const response = await api.get(`api/filter_questions/?${queryParams}`);
+            setCurrentQuestion(response.data.questions[0]);
             setQuestionStatus('Blank');
         } catch (error) {
             setError(`An error occurred: ${error.response ? error.response.data : 'Server unreachable'}`);
@@ -244,12 +252,12 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoading(false);
         }
-    }, [baseUrl, isFinished]);
+    }, [isFinished]);
 
     const fetchStats = useCallback(async () => {
         try {
             const response = await axios.get(`${baseUrl}/api/trainer/infinite_question_stats/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {'Authorization': `Bearer ${token}`}
             });
             const statsData = response.data;
             setStats({
@@ -331,7 +339,7 @@ function InfiniteQuestionsPage() {
                     const coinRewards = [10 * newStats.level, 20 * newStats.level, 30 * newStats.level, 40 * newStats.level, 50 * newStats.level, 66 * newStats.level, newStats.level ** 2, newStats.level ** 3, newStats.level ** 5, 666 * newStats.level];
                     const multiplierRewards = [1.01 * newStats.level, 1.02 * newStats.level, 1.05 * newStats.level, 1.06 * newStats.level, 1.1 * newStats.level, 1.2 * newStats.level, 1.25 * newStats.level];
 
-                    let lootboxMessage = "";
+                    let lootboxMessage;
                     let reward;
 
                     if (Math.random() < 0.33) {
@@ -391,7 +399,8 @@ function InfiniteQuestionsPage() {
         saveStats(stats);
     };
 
-    if (loadingQuestions && !isFinished) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
+    if (loadingQuestions && !isFinished) return <PageContainer><p>Loading question... Please wait...</p>
+    </PageContainer>;
     if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
 
     return (
@@ -408,9 +417,10 @@ function InfiniteQuestionsPage() {
                                         status={questionStatus}
                                         questionNumber={stats.questionsAnswered + 1}
                                     />
-                                    <XPProgressLabel>{getXPForNextLevel(stats.level) - stats.xp} XP until level {stats.level + 1}</XPProgressLabel>
+                                    <XPProgressLabel>{getXPForNextLevel(stats.level) - stats.xp} XP until
+                                        level {stats.level + 1}</XPProgressLabel>
                                     <ProgressBarWrapper>
-                                        <ProgressBar percentage={calculateProgressPercentage()} />
+                                        <ProgressBar percentage={calculateProgressPercentage()}/>
                                     </ProgressBarWrapper>
                                 </>
                             )}

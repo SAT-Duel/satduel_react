@@ -4,6 +4,7 @@ import {Card, Typography, Modal, Button} from 'antd';
 import Question from '../components/Question';
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
+import api from "../components/api";
 
 const {Title, Text} = Typography;
 
@@ -64,9 +65,15 @@ function SATSurvivalPage() {
     const fetchNextQuestion = useCallback(async () => {
         try {
             setLoading(true);
-            const baseUrl = process.env.REACT_APP_API_URL;
-            const response = await axios.get(`${baseUrl}/api/questions/?num=1`);
-            setCurrentQuestion(response.data[0]);
+            const queryParams = new URLSearchParams({
+                type: 'any',
+                difficulty: 'any',
+                page: 1,
+                page_size: 1,
+                random: true
+            }).toString();
+            const response = await api.get(`api/filter_questions/?${queryParams}`);
+            setCurrentQuestion(response.data.questions[0]);
             setQuestionStatus('Blank');
         } catch (error) {
             setError(`An error occurred: ${error.response ? error.response.data : 'Server unreachable'}`);
