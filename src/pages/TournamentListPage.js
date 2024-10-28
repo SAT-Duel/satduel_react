@@ -11,6 +11,7 @@ import axios from 'axios';
 import {Link} from "react-router-dom";
 import styled from "styled-components";
 
+
 const {Content} = Layout;
 const {Title, Paragraph} = Typography;
 
@@ -141,7 +142,7 @@ const TournamentListPage = () => {
                                     cover={<TournamentIcon/>}
                                     actions={[
                                         <Link to={`/tournament/${tournament.id}`}>
-                                            <Button type="primary" block>Join Tournament</Button>
+                                            <Button type="primary" >Join Tournament</Button>
                                         </Link>,
                                     ]}
                                 >
@@ -174,7 +175,7 @@ const TournamentListPage = () => {
                         fun and engaging way. Participants can challenge themselves, compete with peers, and improve
                         their skills through timed quizzes and practice tests.
                     </Paragraph>
-                    <Link to="/tournament">
+                    <Link to="/tournaments/info">
                         <Button type="primary" icon={<InfoCircleOutlined/>} size="large">
                             Learn More About Tournaments
                         </Button>
