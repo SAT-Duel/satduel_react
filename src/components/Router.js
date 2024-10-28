@@ -70,13 +70,13 @@ function Router() {
                 <Route path="/power_sprint" element={<PowerSprintPage/>}/>
                 <Route path="/sat_survival_home" element={<SATSurvivalHomepage/>}/>
                 <Route path="/sat_survival" element={<SATSurvivalPage/>}/>
-                <Route path="/tournament" element={<TournamentPage/>}/>
                 <Route path="/ranking" element={<RankingPage/>}/>
                 <Route path="/bot_training" element={<BotTrainingPage/>}/>
                 <Route path="/profile" element={<ProfilePage/>}/>
                 <Route path="/profile/:userId" element={<ProfilePage/>}/>
                 <Route path="/bot_training/start" element={<BotGamePage/>}/>
                 <Route path="/tournaments" element={<TournamentListPage/>}/>
+                <Route path="/tournaments/info" element={<TournamentPage/>}/>
                 <Route path="/tournament/:tournamentId" element={<TournamentDetailPage/>}/>
                 <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
                 <Route path="/create_tournament" element={<CreateTournamentPage/>}/>

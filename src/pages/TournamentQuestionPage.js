@@ -213,9 +213,9 @@ const TournamentQuestionPage = () => {
             return;
         }
         Modal.confirm({
-            title: 'Are you sure you want to end the tournament?',
+            title: 'Are you sure you want to leave the tournament?',
             icon: <ExclamationCircleOutlined/>,
-            content: 'This action is not reversible and will still count towards your ELO. It will be recorded in your tournament history page.',
+            content: 'This action is not reversible. You can view this tournament in the tournament history page.',
             onOk() {
                 finishTournament();
             },
@@ -249,7 +249,7 @@ const TournamentQuestionPage = () => {
                         onClick={showEndTournamentConfirm}
                         style={{marginTop: '16px', width: '100%'}}
                     >
-                        {isReadOnly?"Go Back": "End Tournament"}
+                        {isReadOnly?"Go Back": "Finish Tournament"}
                     </Button>
                 </QuestionsSection>
                 <InfoAndLeaderboardSection>
