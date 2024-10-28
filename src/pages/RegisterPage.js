@@ -112,14 +112,26 @@ function Register() {
 
                         <Form.Item
                             name="first_name"
-                            rules={[{required: true, message: 'Please input your first name!'}]}
+                            rules={[
+                                {required: true, message: 'Please input your first name!'},
+                                {
+                                    pattern: /^[a-zA-Z0-9\s]+$/, // Allow only English letters and spaces
+                                    message: 'Only English letters are allowed for first names. Sorry for the inconvenience.',
+                                },
+                            ]}
                         >
                             <Input placeholder="First Name"/>
                         </Form.Item>
 
                         <Form.Item
                             name="last_name"
-                            rules={[{required: true, message: 'Please input your last name!'}]}
+                            rules={[
+                                {required: true, message: 'Please input your last name!'},
+                                {
+                                    pattern: /^[a-zA-Z0-9\s]+$/, // Allow only English letters and spaces
+                                    message: 'Only English letters are allowed for last names. Sorry for the inconvenience.',
+                                },
+                            ]}
                         >
                             <Input placeholder="Last Name"/>
                         </Form.Item>
