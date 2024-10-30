@@ -1,98 +1,369 @@
-import React from 'react';
-import {Route, Routes} from "react-router-dom";
-import HomePage from "../pages/HomePage";
-import AboutPage from "../pages/AboutPage";
-import QuestionsPage from "../pages/QuestionPage";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import ProfilePage from "../pages/ProfilePage";
-import Match from "../pages/MatchingPage";
-import DuelBattle from "../pages/DuelBattlePage";
-import MainLayout from "../layout/MainLayout";
+import React, { Suspense } from 'react';
+import { Route, Routes } from "react-router-dom";
 import SecondaryLayout from "../layout/SecondaryLayout";
-import BattleResultPage from "../pages/BattleResultPage";
-import MatchLoadingPage from "../pages/MatchLoadingPage";
-import TrainerPage from "../pages/TrainerPage";
-import InfiniteQuestionPage from "../pages/InfiniteQuestionPage";
-import ConfirmEmail from "./ConfirmEmail";
-import EmailVerificationPage from "../pages/EmailVerificationPage";
-import PowerSprintHome from "../pages/PowerSprintHome";
-import PowerSprintPage from "../pages/PowerSprintPage";
-import SATSurvivalHomepage from "../pages/SATSurvivalHomepage";
-import SATSurvivalPage from "../pages/SATSurvivalPage";
-import TournamentPage from "../pages/TournamentPage";
-import RankingPage from "../pages/RankingPage";
-import TournamentListPage from "../pages/TournamentListPage";
-import TournamentDetailPage from "../pages/TournamentDetailPage";
-import TournamentQuestionPage from "../pages/TournamentQuestionPage";
-import CreateTournamentPage from "../pages/CreateTournamentPage";
-import BotTrainingPage from "../pages/BotTrainingPage";
-import BotGamePage from "../pages/BotGamePage";
-import ShopPage from "../pages/ShopPage";
-import HousePage from "../pages/HousePage";
-import CollegeTownPage from "../pages/CollegeTownPage";
-import PasswordResetPage from "../pages/PasswordResetPage";
-import PasswordResetConfirmPage from "../pages/PasswordResetConfirmPage";
-import AdminHomepage from "../pages/admin/AdminHomepage";
-import QuestionListPage from "../pages/admin/QuestionListPage";
-import QuestionEditorPage from "../pages/admin/QuestionEditorPage";
-import AdminCreateTournamentPage from "../pages/admin/AdminCreateTournamentPage";
-import SATDuelHomePage from "../pages/satduel/SATDuelHomePage";
-import WaitingRoomPage from "../pages/satduel/WaitingRoomPage";
+
+// Lazy load components
+const HomePage = React.lazy(() => import("../pages/HomePage"));
+const AboutPage = React.lazy(() => import("../pages/AboutPage"));
+const QuestionsPage = React.lazy(() => import("../pages/QuestionPage"));
+const LoginPage = React.lazy(() => import("../pages/LoginPage"));
+const RegisterPage = React.lazy(() => import("../pages/RegisterPage"));
+const ProfilePage = React.lazy(() => import("../pages/ProfilePage"));
+const Match = React.lazy(() => import("../pages/MatchingPage"));
+const DuelBattle = React.lazy(() => import("../pages/DuelBattlePage"));
+const BattleResultPage = React.lazy(() => import("../pages/BattleResultPage"));
+const MatchLoadingPage = React.lazy(() => import("../pages/MatchLoadingPage"));
+const TrainerPage = React.lazy(() => import("../pages/TrainerPage"));
+const InfiniteQuestionPage = React.lazy(() => import("../pages/InfiniteQuestionPage"));
+const ConfirmEmail = React.lazy(() => import("./ConfirmEmail"));
+const EmailVerificationPage = React.lazy(() => import("../pages/EmailVerificationPage"));
+const PowerSprintHome = React.lazy(() => import("../pages/PowerSprintHome"));
+const PowerSprintPage = React.lazy(() => import("../pages/PowerSprintPage"));
+const SATSurvivalHomepage = React.lazy(() => import("../pages/SATSurvivalHomepage"));
+const SATSurvivalPage = React.lazy(() => import("../pages/SATSurvivalPage"));
+const TournamentPage = React.lazy(() => import("../pages/TournamentPage"));
+const RankingPage = React.lazy(() => import("../pages/RankingPage"));
+const TournamentListPage = React.lazy(() => import("../pages/TournamentListPage"));
+const TournamentDetailPage = React.lazy(() => import("../pages/TournamentDetailPage"));
+const TournamentQuestionPage = React.lazy(() => import("../pages/TournamentQuestionPage"));
+const CreateTournamentPage = React.lazy(() => import("../pages/CreateTournamentPage"));
+const BotTrainingPage = React.lazy(() => import("../pages/BotTrainingPage"));
+const BotGamePage = React.lazy(() => import("../pages/BotGamePage"));
+const ShopPage = React.lazy(() => import("../pages/ShopPage"));
+const HousePage = React.lazy(() => import("../pages/HousePage"));
+const CollegeTownPage = React.lazy(() => import("../pages/CollegeTownPage"));
+const PasswordResetPage = React.lazy(() => import("../pages/PasswordResetPage"));
+const PasswordResetConfirmPage = React.lazy(() => import("../pages/PasswordResetConfirmPage"));
+const AdminHomepage = React.lazy(() => import("../pages/admin/AdminHomepage"));
+const QuestionListPage = React.lazy(() => import("../pages/admin/QuestionListPage"));
+const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEditorPage"));
+const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminCreateTournamentPage"));
+const SATDuelHomePage = React.lazy(() => import("../pages/satduel/SATDuelHomePage"));
+const WaitingRoomPage = React.lazy(() => import("../pages/satduel/WaitingRoomPage"));
 
 function Router() {
     return (
         <Routes>
-            {/* Routes using MainLayout */}
-            <Route element={<MainLayout/>}>
-                <Route path="/questions" element={<QuestionsPage/>}/>
-            </Route>
+            <Route element={<SecondaryLayout />}>
+                <Route
+                    path="/"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <HomePage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/login"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <LoginPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/register"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <RegisterPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/confirm-email/:key"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <ConfirmEmail />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/email_verification/:email"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <EmailVerificationPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/password_reset"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <PasswordResetPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/api/reset/:uidb64/:token"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <PasswordResetConfirmPage />
+                        </Suspense>
+                    }
+                />
 
-            {/* Routes using SecondaryLayout */}
-            <Route element={<SecondaryLayout/>}>
-                <Route path="/" element={<HomePage/>}/>
-                <Route path="/login" element={<LoginPage/>}/>
-                <Route path="/register" element={<RegisterPage/>}/>
-                <Route path="/confirm-email/:key" element={<ConfirmEmail/>}/>
-                <Route path="/email_verification/:email" element={<EmailVerificationPage/>}/>
-                <Route path="/password_reset" element={<PasswordResetPage/>}/>
-                <Route path="/api/reset/:uidb64/:token" element={<PasswordResetConfirmPage/>}/>
+                <Route
+                    path="/about"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <AboutPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/match"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <Match />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/duel_battle/:roomId"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <DuelBattle />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/battle_result/:roomId"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <BattleResultPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/match-loading/:roomId"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <MatchLoadingPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/questions"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <QuestionsPage />
+                        </Suspense>
+                    }
+                />
 
+                <Route
+                    path="/trainer"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <TrainerPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/infinite_questions"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <InfiniteQuestionPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/power_sprint_home"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <PowerSprintHome />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/power_sprint"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <PowerSprintPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/sat_survival_home"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <SATSurvivalHomepage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/sat_survival"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <SATSurvivalPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/ranking"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <RankingPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/bot_training"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <BotTrainingPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/bot_training/start"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <BotGamePage />
+                        </Suspense>
+                    }
+                />
 
-                <Route path="/about" element={<AboutPage/>}/>
-                <Route path="/match" element={<Match/>}/>
-                <Route path="/duel_battle/:roomId" element={<DuelBattle/>}/>
-                <Route path="/battle_result/:roomId" element={<BattleResultPage/>}/>
-                <Route path="/match-loading/:roomId" element={<MatchLoadingPage/>}/>
-                <Route path="/trainer" element={<TrainerPage/>}/>
-                <Route path="/infinite_questions" element={<InfiniteQuestionPage/>}/>
-                <Route path="/power_sprint_home" element={<PowerSprintHome/>}/>
-                <Route path="/power_sprint" element={<PowerSprintPage/>}/>
-                <Route path="/sat_survival_home" element={<SATSurvivalHomepage/>}/>
-                <Route path="/sat_survival" element={<SATSurvivalPage/>}/>
-                <Route path="/ranking" element={<RankingPage/>}/>
-                <Route path="/bot_training" element={<BotTrainingPage/>}/>
-                <Route path="/profile" element={<ProfilePage/>}/>
-                <Route path="/profile/:userId" element={<ProfilePage/>}/>
-                <Route path="/bot_training/start" element={<BotGamePage/>}/>
-                <Route path="/tournaments" element={<TournamentListPage/>}/>
-                <Route path="/tournaments/info" element={<TournamentPage/>}/>
-                <Route path="/tournament/:tournamentId" element={<TournamentDetailPage/>}/>
-                <Route path="/tournament/:tournamentId/questions" element={<TournamentQuestionPage/>}/>
-                <Route path="/create_tournament" element={<CreateTournamentPage/>}/>
+                <Route
+                    path="/profile"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <ProfilePage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/profile/:userId"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <ProfilePage />
+                        </Suspense>
+                    }
+                />
 
-                <Route path="/shop" element={<ShopPage/>}/>
-                <Route path="/house" element={<HousePage/>}/>
-                <Route path="town/" element={<CollegeTownPage/>}/>
+                <Route
+                    path="/tournaments"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <TournamentListPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/tournaments/info"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <TournamentPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/tournament/:tournamentId"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <TournamentDetailPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/tournament/:tournamentId/questions"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <TournamentQuestionPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/create_tournament"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <CreateTournamentPage />
+                        </Suspense>
+                    }
+                />
 
-                <Route path="/admin" element={<AdminHomepage/>}/>
-                <Route path="/admin/questions" element={<QuestionListPage/>}/>
-                <Route path="/admin/create_question" element={<QuestionEditorPage/>}/>
-                <Route path="/admin/edit_question/:id" element={<QuestionEditorPage/>}/>
-                <Route path="/admin/create_tournament" element={<AdminCreateTournamentPage/>}/>
+                <Route
+                    path="/shop"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <ShopPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/house"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <HousePage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/town"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <CollegeTownPage />
+                        </Suspense>
+                    }
+                />
 
-                <Route path="/duels" element={<SATDuelHomePage/>}/>
-                <Route path="/waiting-room/:gameId" element={<WaitingRoomPage/>}/>
+                <Route
+                    path="/admin"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <AdminHomepage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/admin/questions"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <QuestionListPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/admin/create_question"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <QuestionEditorPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/admin/edit_question/:id"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <QuestionEditorPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/admin/create_tournament"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <AdminCreateTournamentPage />
+                        </Suspense>
+                    }
+                />
+
+                <Route
+                    path="/duels"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <SATDuelHomePage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/waiting-room/:gameId"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <WaitingRoomPage />
+                        </Suspense>
+                    }
+                />
             </Route>
         </Routes>
     );
