@@ -5,7 +5,8 @@ import styled from 'styled-components';
 import Aos from 'aos';
 import 'aos/dist/aos.css';
 import emailjs from 'emailjs-com';
-
+import {useLocation} from "react-router-dom";
+import clement from '../assets/teamphoto/clementzhou.jpg';
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -84,6 +85,16 @@ const valuesIcons = {
 };
 
 function AboutPage() {
+    const { hash } = useLocation(); // Get the current hash from the URL
+
+    useEffect(() => {
+        if (hash) {
+            const element = document.querySelector(hash); // Select the element by hash
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' }); // Scroll to the element
+            }
+        }
+    }, [hash]); // Re-run if hash changes
     useEffect(() => {
         Aos.init({ duration: 1000, once: true });
     }, []);
@@ -92,7 +103,7 @@ function AboutPage() {
         {
             name: "Clement Zhou",
             role: "Co-founder & CEO",
-            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+            avatar: clement,
         },
         {
             name: "Alex Jin",
@@ -100,28 +111,18 @@ function AboutPage() {
             avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
         },
         {
-            name: "William Yang",
-            role: "Professional Developer",
-            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-        },
-        {
             name: "Weiwei Luo",
-            role: "SEO Specialist",
+            role: "President & Project Manager",
             avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
         },
         {
-            name: "Cyan Ni",
-            role: "SEO + Marketing Specialist",
-            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-        },
-        {
-            name: "Oscar Nie",
-            role: "UFO",
+            name: "William Yang",
+            role: "Developer",
             avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
         },
     ];
     const form = useRef();
-    const onFinish = (e) => {
+    const onFinish = () => {
         console.log(form.current);
         emailjs
             .sendForm(
@@ -144,7 +145,7 @@ function AboutPage() {
 
     return (
         <Layout>
-            <PageHeader>
+            <PageHeader id="header">
                 <Title level={1} style={{ color: 'white', marginBottom: '20px' }}>
                     About Us
                 </Title>
@@ -233,7 +234,7 @@ function AboutPage() {
 
                     <Divider />
 
-                    <div>
+                    <div id="contact-us">
                         <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
                             Contact Us
                         </Title>
@@ -276,7 +277,7 @@ function AboutPage() {
 
                     <Divider/>
 
-                    <div id="contact-us">
+                    <div id="faq">
                         <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
                             Frequently Asked Questions
                         </Title>
@@ -306,8 +307,6 @@ function AboutPage() {
                                 </StyledCard>
                             </Col>
                         </Row>
-                    </div>
-                    <div id="faq">
                     </div>
                 </Content>
             </ContentSection>

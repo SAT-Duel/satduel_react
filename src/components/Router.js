@@ -54,7 +54,7 @@ function Router() {
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
                 <Route path="/confirm-email/:key" element={<ConfirmEmail/>}/>
-                <Route path="/email_verification" element={<EmailVerificationPage/>}/>
+                <Route path="/email_verification/:email" element={<EmailVerificationPage/>}/>
                 <Route path="/password_reset" element={<PasswordResetPage/>}/>
                 <Route path="/api/reset/:uidb64/:token" element={<PasswordResetConfirmPage/>}/>
 

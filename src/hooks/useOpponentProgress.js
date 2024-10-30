@@ -1,8 +1,8 @@
-import { useEffect, useCallback } from 'react';
+import {useEffect, useCallback} from 'react';
 import axios from 'axios';
-import { useAuth } from "../context/AuthContext";
+import {useAuth} from "../context/AuthContext";
 
-const fetchOpponentProgress = async ({ roomId, token, setOpponentProgress }) => {
+const fetchOpponentProgress = async ({roomId, token, setOpponentProgress}) => {
     try {
         const baseUrl = process.env.REACT_APP_API_URL;
         const response = await axios.post(`${baseUrl}/api/match/get_opponent_progress/`, {
@@ -12,7 +12,6 @@ const fetchOpponentProgress = async ({ roomId, token, setOpponentProgress }) => 
                 'Authorization': `Bearer ${token}`
             }
         });
-
         setOpponentProgress(response.data);
     } catch (err) {
         console.error('Error fetching opponent progress:', err);
@@ -20,10 +19,10 @@ const fetchOpponentProgress = async ({ roomId, token, setOpponentProgress }) => 
 };
 
 const useOpponentProgress = (roomId, setOpponentProgress) => {
-    const { token, loading } = useAuth();
+    const {token, loading} = useAuth();
 
     const fetchProgress = useCallback(() => {
-        fetchOpponentProgress({ roomId, token, setOpponentProgress }).catch(err => {
+        fetchOpponentProgress({roomId, token, setOpponentProgress}).catch(err => {
             console.error('Error inside setInterval:', err);
         });
     }, [roomId, token, setOpponentProgress]);

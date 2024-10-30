@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import styled from 'styled-components';
-import axios from "axios";
 import {useAuth} from "../context/AuthContext";
 import {useNavigate, useParams} from 'react-router-dom';
 import Question from "../components/Question";
 import useOpponentProgress from "../hooks/useOpponentProgress";
 import Progress from "../components/Progress";
 import {message} from "antd";
+import api from "../components/api";
 
 const DuelBattleContainer = styled.div`
     display: flex;
@@ -50,8 +50,18 @@ const TimeDisplay = styled.div`
     margin-top: 16px;
 `;
 
+const TextDisplay = styled.p`
+    font-size: 1.5rem;
+    margin-top: 16px;
+    color: #e0502e;
+`;
+
+const TextGroup = styled.div`
+    text-align: center;
+`;
+
 const DuelBattle = () => {
-    const {token, loading} = useAuth(); // Get the token from the AuthContext
+    const {loading} = useAuth(); // Get the token from the AuthContext
     const {roomId} = useParams(); // Get the roomId from the URL params
     const [questions, setQuestions] = useState([]);
     const [loadingQuestions, setLoading] = useState(true);
@@ -61,11 +71,32 @@ const DuelBattle = () => {
     const [timeLeft, setTimeLeft] = useState(null);
     const navigate = useNavigate();
 
+    const endMatch = useCallback((async () => {
+        try {
+            await api.post(`api/match/end_match/`, {
+                room_id: roomId
+            });
+        } catch (err) {
+            message.error(err.response.data.error || 'An error occurred while ending the match.');
+        }
+    }), [roomId]);
+
+    useEffect(() => {
+        if (loading || loadingQuestions) {
+            return;
+        }
+        console.log(123)
+        if (questions.length>0 && opponentProgress.length>0 && questions.every(entry => entry.status === "Correct" || entry.status === "Incorrect") && opponentProgress.every(entry => entry.status === "Correct" || entry.status === "Incorrect")) {
+            message.success("Both players have finished the battle. Redirecting to results page.");
+            endMatch();
+            navigate(`/battle_result/${roomId}`);
+        }
+    }, [endMatch, loading, loadingQuestions, navigate, opponentProgress, questions, roomId])
+
     useEffect(() => {
         const fetchEndTime = async () => {
             try {
-                const baseUrl = process.env.REACT_APP_API_URL;
-                const response = await axios.post(`${baseUrl}/api/match/get_end_time/`,
+                const response = await api.post(`api/match/get_end_time/`,
                     {
                         room_id: roomId
                     });
@@ -74,26 +105,14 @@ const DuelBattle = () => {
                 message.error(err.response.data.error || 'An error occurred while making a match.');
             }
         };
-
         fetchEndTime();
     }, [roomId]);
 
     useEffect(() => {
-        const endMatch = async () => {
-            try {
-                const baseUrl = process.env.REACT_APP_API_URL;
-                await axios.post(`${baseUrl}/api/match/end_match/`, {
-                    room_id: roomId
-                });
-            } catch (err) {
-                message.error(err.response.data.error || 'An error occurred while ending the match.');
-            }
-        };
         if (endTime) {
             const timer = setInterval(() => {
                 const now = new Date();
                 const difference = endTime - now;
-
                 if (difference > 0) {
                     setTimeLeft(Math.round(difference / 1000));
                 } else {
@@ -106,7 +125,7 @@ const DuelBattle = () => {
 
             return () => clearInterval(timer);
         }
-    }, [endTime, navigate, roomId]);
+    }, [endMatch, endTime, navigate, roomId]);
 
     const formatTime = (seconds) => {
         if (seconds === null) return '--:--';
@@ -117,52 +136,22 @@ const DuelBattle = () => {
 
     useOpponentProgress(roomId, setOpponentProgress);
 
-    const fetchTrackedQuestions = async (roomId, token) => {
-        const baseUrl = process.env.REACT_APP_API_URL;
-        const response = await axios.post(`${baseUrl}/api/match/questions/`, {
+    const fetchTrackedQuestions = async (roomId) => {
+        const response = await api.post(`api/match/questions/`, {
             room_id: roomId
-        }, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
         });
-        return response.data;
-    };
-
-    // Fetch full question details for a given question ID
-    // Todo: Delete this function and send this information using serializer
-    const fetchQuestionDetails = async (questionId, token) => {
-        const baseUrl = process.env.REACT_APP_API_URL;
-        const response = await axios.get(`${baseUrl}/api/get_question/${questionId}`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
         return response.data;
     };
 
     // Combine tracked questions with their full details
     useEffect(() => {
-        const combineQuestionsWithDetails = async (trackedQuestions, token) => {
-            const questionPromises = trackedQuestions.map(async (trackedQuestion) => {
-                const questionDetails = await fetchQuestionDetails(trackedQuestion.question, token);
-                return {
-                    ...trackedQuestion,
-                    questionDetails
-                };
-            });
-            return Promise.all(questionPromises);
-        };
         const fetchQuestions = async () => {
             try {
-                const trackedQuestions = await fetchTrackedQuestions(roomId, token);
-                const questionsWithDetails = await combineQuestionsWithDetails(trackedQuestions, token);
-                setQuestions(questionsWithDetails);
-
+                const trackedQuestions = await fetchTrackedQuestions(roomId);
+                setQuestions(trackedQuestions);
                 const questionMap = {};
                 trackedQuestions.forEach(trackedQuestion => {
-                    questionMap[trackedQuestion.question] = trackedQuestion.id;
+                    questionMap[trackedQuestion.question.id] = trackedQuestion.id;
                 });
                 setTrackedQuestionMap(questionMap);
 
@@ -176,11 +165,10 @@ const DuelBattle = () => {
         if (!loading) {
             fetchQuestions();
         }
-    }, [roomId, token, loading]);
+    }, [roomId, loading]);
 
     const checkAnswer = async (id, choice) => {
-        const baseUrl = process.env.REACT_APP_API_URL;
-        const response = await axios.post(`${baseUrl}/api/check_answer/`, {
+        const response = await api.post(`api/check_answer/`, {
             question_id: id,
             selected_choice: choice
         });
@@ -188,15 +176,9 @@ const DuelBattle = () => {
     };
 
     const updateStatus = async (tracked_question_id, result) => {
-        const baseUrl = process.env.REACT_APP_API_URL;
-        const response = await axios.post(`${baseUrl}/api/match/update/`, {
+        const response = await api.post(`api/match/update/`, {
                 tracked_question_id: tracked_question_id,
                 result: result
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
             });
         if (response.data.status === 'success') {
             // Update the question status in the local state
@@ -204,7 +186,6 @@ const DuelBattle = () => {
                 q.id === tracked_question_id ? {...q, status: result === 'correct' ? 'Correct' : 'Incorrect'} : q
             ));
         }
-        console.log(response.data);
     };
 
     const handleQuestionSubmit = async (id, choice) => {
@@ -226,13 +207,18 @@ const DuelBattle = () => {
                 <SectionTitle>Question Battle</SectionTitle>
                 {questions.map((trackedQuestion, i) => (
                     <Question
-                        questionData={trackedQuestion.questionDetails}
+                        questionData={trackedQuestion.question}
                         key={trackedQuestion.id}
                         onSubmit={handleQuestionSubmit}
                         status={trackedQuestion.status}
                         questionNumber={i + 1}
                     />
                 ))}
+                <TextGroup>
+                    <TextDisplay>Please wait for your opponent to finish...</TextDisplay>
+                    <p>Your answers were saved, it's safe to quit.</p>
+                    <p>You can find the battle results in profile > match history</p>
+                </TextGroup>
             </QuestionsSection>
             <ProgressSection>
                 <SectionTitle>Opponent's Progress</SectionTitle>

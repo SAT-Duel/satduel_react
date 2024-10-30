@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import axios from 'axios';
 import {Typography, Row, Col, Avatar} from 'antd';
@@ -69,6 +69,7 @@ const MatchLoadingPage = () => {
     const [opponent, setOpponent] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const navigate = useNavigate();
+    const hasNavigated = useRef(false); // Track if navigation has already occurred
     const {token} = useAuth();
 
     useEffect(() => {
@@ -93,8 +94,9 @@ const MatchLoadingPage = () => {
     useEffect(() => {
         const timer = setInterval(() => {
             setCountdown((prevCount) => {
-                if (prevCount === 1) {
+                if (prevCount === 1 && !hasNavigated.current) {
                     clearInterval(timer);
+                    hasNavigated.current = true; // Avoid multiple navigations
                     navigate(`/duel_battle/${roomId}`);
                 }
                 return prevCount - 1;
