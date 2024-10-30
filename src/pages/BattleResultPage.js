@@ -156,7 +156,7 @@ const PlayAgainButton = styled(Button)`
         background-color: #2980b9;
     }
 `;
-
+//TODO: Put the functions/function calls and calculations into a useEffect hook
 function BattleResultPage() {
     const {roomId} = useParams();
     const {loading} = useAuth();

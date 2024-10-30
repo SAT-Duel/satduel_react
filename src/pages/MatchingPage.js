@@ -2,9 +2,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
 import {useNavigate} from 'react-router-dom';
-import {Button, Row, Col, Typography, Card, message} from 'antd';
-import {UsergroupAddOutlined, RocketOutlined, LoadingOutlined} from '@ant-design/icons';
+import {Button, Row, Col, Typography, Card, message, List, Avatar} from 'antd';
+import {UserOutlined, RocketOutlined, LoadingOutlined, TeamOutlined} from '@ant-design/icons';
 import styled, {keyframes} from 'styled-components';
+import '../styles/Match.css';
+import api from "../components/api"; // Assuming you have a CSS file for custom styles
 
 const {Title, Paragraph} = Typography;
 
@@ -24,6 +26,20 @@ const HeroTitle = styled(Title)`
     color: #0B2F7D;
     margin-bottom: 20px;
     text-align: center;
+
+    /* Use a different font for "SAT Duel" */
+
+    span.sat-duel {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        //color: #4C3D97;
+        //background: linear-gradient(90deg, #2B7FA3, #C95FFB);
+        //-webkit-background-clip: text;
+        //-webkit-text-fill-color: transparent;
+        background: linear-gradient(75deg, #8f73ff 0%, #34acfb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 `;
 
 const HeroParagraph = styled(Paragraph)`
@@ -94,12 +110,6 @@ const LoadingIcon = styled(LoadingOutlined)`
     margin-bottom: 20px;
 `;
 
-const GradientText = styled.span`
-    background: linear-gradient(90deg, #2B7FA3, #C95FFB);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-`;
-
 const CancelButton = styled(Button)`
     background: #ff4d4f;
     color: #fff;
@@ -120,12 +130,21 @@ const CancelButton = styled(Button)`
     }
 `;
 
+const OnlineUsersContainer = styled.div`
+    margin-top: 60px;
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+`;
+
 const sentences = [
-    "Finding the best opponent for you...",
-    "Getting everything ready...",
-    "Setting up your duel...",
+    "Searching for opponents...",
+    "Getting ready for the battle...",
+    "Preparing your duel...",
     "Almost there...",
-    "Preparing your battle arena..."
+    "Setting up your battle arena..."
 ];
 
 const Match = () => {
@@ -133,11 +152,12 @@ const Match = () => {
     const [matching, setMatching] = useState(false);
     const [roomId, setRoomIdInternal] = useState(null);
     const [loadingMessage, setLoadingMessage] = useState(sentences[0]);
+    const [onlineUsers, setOnlineUsers] = useState([]);
     const navigate = useNavigate();
 
     const handleMatch = async () => {
         if (!token) {
-            message.error('You must be logged in to find a match.');
+            message.error('You must be logged in to start a duel.');
             return;
         }
 
@@ -156,14 +176,11 @@ const Match = () => {
             setMatching(true);
             startMatchingTimeout();
         } catch (err) {
-            console.error('Error making a match:', err);
-            message.error(err.response.data.error || 'An error occurred while making a match.');
+            console.error('Error initiating duel:', err);
+            message.error(err.response?.data?.error || 'An error occurred while initiating the duel.');
             setMatching(false);
         }
     };
-
-
-
 
     const handleCancel = async () => {
         try {
@@ -173,10 +190,10 @@ const Match = () => {
             });
             setMatching(false);
             setRoomIdInternal(null);
-            message.success('Matchmaking canceled.');
+            message.success('Duel canceled.');
         } catch (err) {
-            console.error('Error canceling the match:', err);
-            message.error(err.response.data.error || 'An error occurred while canceling the match.');
+            console.error('Error canceling the duel:', err);
+            message.error(err.response?.data?.error || 'An error occurred while canceling the duel.');
         }
     };
 
@@ -186,9 +203,9 @@ const Match = () => {
         setTimeout(async () => {
             if (matching) {
                 await handleCancel();
-                message.info('We can\'t find you an opponent. Please try again later.');
+                message.info('We couldn\'t find you an opponent. Please try again later.');
             }
-        }, 1);
+        }, 60000);
     };
 
     useEffect(() => {
@@ -203,7 +220,6 @@ const Match = () => {
                         room_id: roomId
                     }
                 });
-                console.log(roomId)
                 if (response.data.status === 'full') {
                     navigate(`/match-loading/${roomId}`);
                 }
@@ -247,6 +263,7 @@ const Match = () => {
                     setRoomIdInternal(response.data.searching_room_id);
                 }
             } catch (err) {
+                // Handle error
             }
         };
         if (!loading) {
@@ -265,13 +282,63 @@ const Match = () => {
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [matching]);
 
+    // Fetch online users
+    useEffect(() => {
+        const fetchOnlineUsers = async () => {
+            try {
+                const response = await api.get(`api/online_users/`);
+                setOnlineUsers(response.data.users);
+            } catch (err) {
+                console.error('Error fetching online users:', err);
+            }
+        };
+
+        fetchOnlineUsers();
+        const interval = setInterval(fetchOnlineUsers, 8000); // Update every 8 seconds
+        return () => clearInterval(interval);
+    }, [token]);
+
+    useEffect(() => {
+        const sendHeartbeat = async () => {
+            try {
+                await api.post(`api/update_online_status/`);
+            } catch (err) {
+                console.error('Error updating online status:', err);
+            }
+        };
+
+        if (token) {
+            sendHeartbeat(); // Send an initial heartbeat
+            const interval = setInterval(sendHeartbeat, 8000); // Every 8 seconds
+            return () => clearInterval(interval);
+        }
+    }, [token]);
+
+    useEffect(() => {
+        const removeOnlineStatus = async () => {
+            try {
+                await api.post(`api/remove_online_user/`);
+            } catch (err) {
+                console.error('Error removing online status:', err);
+            }
+        };
+
+        window.addEventListener('beforeunload', removeOnlineStatus);
+        return () => {
+            window.removeEventListener('beforeunload', removeOnlineStatus);
+            removeOnlineStatus();
+        };
+    }, [token]);
+
     return (
         <Container>
             <ContentWrapper>
-                <HeroTitle level={1}>Find Your <GradientText>Perfect Match</GradientText></HeroTitle>
+                <HeroTitle level={1}>
+                    Engage in an <span className="sat-duel">SAT Duel</span>
+                </HeroTitle>
                 <HeroParagraph>
-                    Challenge yourself and improve your skills by competing with students at your level.
-                    Our smart matching system ensures a fair and exciting duel every time.
+                    Test your skills and challenge others in real-time SAT duels.
+                    Compete with students worldwide and climb the leaderboards.
                 </HeroParagraph>
 
                 {matching ? (
@@ -281,32 +348,58 @@ const Match = () => {
                         <CancelButton onClick={handleCancel}>Cancel</CancelButton>
                     </div>
                 ) : (
-                    <BigButton onClick={handleMatch}>Find a Match</BigButton>
+                    <BigButton onClick={handleMatch}>Start a Duel</BigButton>
                 )}
 
-                <Row gutter={[24, 24]} style={{marginTop: '60px'}}>
-                    <Col xs={24} md={12}>
-                        <StyledCard>
-                            <RocketOutlined/>
-                            <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>How It Works</Title>
-                            <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
-                                Our platform matches you with other students based on your skill level.
-                                Click the "Find a Match" button and get paired up for an exciting duel.
-                            </Paragraph>
-                        </StyledCard>
-                    </Col>
-                    <Col xs={24} md={12}>
-                        <StyledCard>
-                            <UsergroupAddOutlined/>
-                            <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>Challenge a Friend</Title>
-                            <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
-                                Want to challenge a specific friend to a duel? Send them an invite and see who comes out
-                                on top.
-                                (Coming Soon)
-                            </Paragraph>
-                        </StyledCard>
-                    </Col>
-                </Row>
+                {/* Online Users Section */}
+                <OnlineUsersContainer>
+                    <Title level={3} style={{textAlign: 'center', color: '#0B2F7D'}}>
+                        <TeamOutlined/> Online Users
+                    </Title>
+                    <Paragraph style={{textAlign: 'center', color: '#4A4A4A'}}>
+                        See who is currently online and ready to duel.
+                    </Paragraph>
+                    <List
+                        itemLayout="horizontal"
+                        dataSource={onlineUsers}
+                        renderItem={user => (
+                            <List.Item>
+                                <List.Item.Meta
+                                    avatar={<Avatar icon={<UserOutlined/>}/>}
+                                    title={<span style={{color: '#0B2F7D'}}>{user.username}</span>}
+                                    description={<span style={{color: '#4A4A4A'}}>{user.status}</span>}
+                                />
+                            </List.Item>
+                        )}
+                    />
+                </OnlineUsersContainer>
+
+                {/* Instructions Section */}
+                <div style={{marginTop: '60px'}}>
+                    <Row gutter={[24, 24]}>
+                        <Col xs={24} md={12}>
+                            <StyledCard>
+                                <RocketOutlined/>
+                                <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>How It Works</Title>
+                                <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
+                                    Click the "Start a Duel" button to be matched with an opponent.
+                                    Battle in real-time SAT quizzes and see who comes out on top.
+                                </Paragraph>
+                            </StyledCard>
+                        </Col>
+                        <Col xs={24} md={12}>
+                            <StyledCard>
+                                <UserOutlined/>
+                                <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>Challenge a
+                                    Friend</Title>
+                                <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
+                                    Invite your friends to a duel and compete directly with them.
+                                    (Coming Soon)
+                                </Paragraph>
+                            </StyledCard>
+                        </Col>
+                    </Row>
+                </div>
             </ContentWrapper>
         </Container>
     );

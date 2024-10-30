@@ -7,9 +7,9 @@ import {
     PlusCircleOutlined,
     InfoCircleOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
 import {Link} from "react-router-dom";
 import styled from "styled-components";
+import api from "../components/api";
 
 
 const {Content} = Layout;
@@ -103,12 +103,11 @@ const InfoSection = styled.div`
 
 const TournamentListPage = () => {
     const [tournaments, setTournaments] = useState([]);
-    const baseUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
         const fetchTournaments = async () => {
             try {
-                const response = await axios.get(`${baseUrl}/api/tournaments/`);
+                const response = await api.get(`api/tournaments/`);
                 setTournaments(response.data);
             } catch (error) {
                 console.error('Error fetching tournaments:', error);
@@ -116,7 +115,7 @@ const TournamentListPage = () => {
         };
 
         fetchTournaments();
-    }, [baseUrl]);
+    }, []);
 
     return (
         <Layout>
