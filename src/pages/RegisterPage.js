@@ -75,7 +75,7 @@ function Register() {
             const baseUrl = process.env.REACT_APP_API_URL;
             await api.post(`${baseUrl}/api/register/`, payload);
             message.success('Registration successful');
-            navigate('/email_verification');
+            navigate(`/email_verification/${values.email}`);
         } catch (error) {
             const errors = error.response?.data || {error: 'An error occurred'};
             const errorList = Object.values(errors).flat();
@@ -88,7 +88,7 @@ function Register() {
             <Card style={cardStyle}>
                 <Space direction="vertical" style={{width: '100%'}}>
                     <Title level={2} style={titleStyle}>Register</Title>
-                    <Form name="register" onFinish={handleSubmit}>
+                    <Form name="register" onFinish={handleSubmit} netlify>
                         <Form.Item
                             name="username"
                             rules={[

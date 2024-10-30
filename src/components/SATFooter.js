@@ -2,10 +2,15 @@ import React from 'react';
 import { Col, Divider, Layout, Row, Typography, Space } from 'antd';
 import { Link } from 'react-router-dom';
 import { FacebookOutlined, InstagramOutlined, LinkedinOutlined, TwitterOutlined } from "@ant-design/icons";
+import styled from "styled-components";
 
 const { Footer } = Layout;
 const { Title, Paragraph } = Typography;
 
+const StyledList = styled('li')`
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 8px;
+`;
 const SATFooter = () => {
     return (
         <Footer style={{ textAlign: 'center', background: '#001529', color: 'white', padding: '40px 0' }}>
@@ -21,9 +26,9 @@ const SATFooter = () => {
                     <Col xs={24} sm={8}>
                         <Title level={4} style={{ color: 'white' }}>Quick Links</Title>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
-                            <li><Link to="/about" style={{ color: 'rgba(255,255,255,0.65)' }}>About</Link></li>
-                            <li><Link to="/about#contact-us" style={{ color: 'rgba(255,255,255,0.65)' }}>Contact</Link></li>
-                            <li><Link to="/about#faq" style={{ color: 'rgba(255,255,255,0.65)' }}>FAQ</Link></li>
+                            <StyledList><Link to="/about#header">About</Link></StyledList>
+                            <StyledList><Link to="/about#contact-us">Contact</Link></StyledList>
+                            <StyledList><Link to="/about#faq">FAQ</Link></StyledList>
                         </ul>
                     </Col>
                     <Col xs={24} sm={8}>

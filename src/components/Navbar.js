@@ -150,8 +150,8 @@ const Navbar = () => {
       onClick: () => navigate('/trainer'),
     },
     {
-      label: 'Match',
-      key: 'Match',
+      label: 'SAT Duel',
+      key: 'Duel',
       icon: <TeamOutlined />,
       onClick: () => navigate('/match'),
     },
