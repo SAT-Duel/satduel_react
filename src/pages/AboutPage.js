@@ -8,6 +8,7 @@ import emailjs from 'emailjs-com';
 import {useLocation} from "react-router-dom";
 import clement from '../assets/teamphoto/clementzhou.jpg';
 import alex from '../assets/teamphoto/alexjin.jpg';
+import weiwei from '../assets/teamphoto/weiwei.jpg'
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -114,7 +115,7 @@ function AboutPage() {
         {
             name: "Weiwei Luo",
             role: "President & Project Manager",
-            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+            avatar: weiwei
         },
         {
             name: "William Yang",
