@@ -1,7 +1,6 @@
 {
   "name": "satduel_react",
-  "version": "0.1.0",
-  "proxy": "https://satduel-e07814415d4e.herokuapp.com/",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
@@ -19,7 +18,6 @@
     "emailjs-com": "^3.2.0",
     "katex": "^0.16.11",
     "lucide-react": "^0.451.0",
-    "moment": "^2.30.1",
     "postcss-preset-env": "^10.0.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

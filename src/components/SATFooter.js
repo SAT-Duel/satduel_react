@@ -17,8 +17,8 @@ const SATFooter = () => {
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
                 <Row justify="space-between" align="top" gutter={[24, 24]}>
                     <Col xs={24} sm={8}>
-                        <Title level={4} style={{ color: 'white' }}>About Us</Title>
-                        <Paragraph style={{ color: 'rgba(255,255,255,0.65)' }}>
+                        <Title level={4} style={{ color: 'white' }}><Link to="/about#header">About Us</Link></Title>
+                        <Paragraph style={{ color: 'rgba(255,255,255,0.8)' }}>
                             We're dedicated to helping students achieve their best SAT scores through
                             innovative and engaging online preparation.
                         </Paragraph>

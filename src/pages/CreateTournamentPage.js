@@ -1,16 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, DatePicker, InputNumber, Switch, Card, Select, Typography, message, Modal, Spin } from 'antd';
-import { PlusOutlined, MinusCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import React, {useState, useEffect} from 'react';
+import {
+    Form,
+    Input,
+    Button,
+    DatePicker,
+    InputNumber,
+    Switch,
+    Card,
+    Select,
+    Typography,
+    message,
+    Modal,
+    Spin
+} from 'antd';
+import {PlusOutlined, MinusCircleOutlined, EyeOutlined} from '@ant-design/icons';
 import styled from 'styled-components';
-import moment from 'moment';
-import { v4 as uuidv4 } from 'uuid';
-import { useAuth } from "../context/AuthContext";
+import {v4 as uuidv4} from 'uuid';
+import {useAuth} from "../context/AuthContext";
 import Question from "../components/Question";
 import withAuth from "../hoc/withAuth";
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-const { Title } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+dayjs.extend(utc);
+
+const {Title} = Typography;
+const {TextArea} = Input;
+const {Option} = Select;
 
 const PageContainer = styled.div`
     max-width: 800px;
@@ -34,7 +50,7 @@ const CreateTournamentPage = () => {
     const [questions, setQuestions] = useState([]);
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewData, setPreviewData] = useState(null);
-    const { user, loading } = useAuth();
+    const {user, loading} = useAuth();
 
     useEffect(() => {
         const handleBeforeUnload = (e) => {
@@ -51,8 +67,8 @@ const CreateTournamentPage = () => {
     const onFinish = async (values) => {
         const durationInSeconds = values.duration * 60;
         const formattedDuration = new Date(durationInSeconds * 1000).toISOString().substring(11, 19);
-        const formattedStartTime = moment(values.start_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-        const formattedEndTime = moment(values.end_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+        const formattedStartTime = dayjs(values.start_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+        const formattedEndTime = dayjs(values.end_time).utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
 
         const tournamentData = {
             ...values,
@@ -70,7 +86,7 @@ const CreateTournamentPage = () => {
     };
 
     const addQuestion = () => {
-        setQuestions([...questions, { id: uuidv4() }]);
+        setQuestions([...questions, {id: uuidv4()}]);
     };
 
     const removeQuestion = (id) => {
@@ -80,7 +96,7 @@ const CreateTournamentPage = () => {
     const updateQuestion = (id, field, value) => {
         const newQuestions = questions.map(question => {
             if (question.id === id) {
-                return { ...question, [field]: value };
+                return {...question, [field]: value};
             }
             return question;
         });
@@ -104,13 +120,13 @@ const CreateTournamentPage = () => {
     };
 
     if (loading) {
-        return <Spin size="large" />;
+        return <Spin size="large"/>;
     }
 
     return (
         <PageContainer>
             <Title level={2}>Create New Tournament</Title>
-            <p style={{color:'red'}}>THIS FEATURE DOESN'T WORK YET. IT WILL BE OPEN TO ALL USERS SOON</p>
+            <p style={{color: 'red'}}>THIS FEATURE DOESN'T WORK YET. IT WILL BE OPEN TO ALL USERS SOON</p>
             <StyledForm
                 form={form}
                 layout="vertical"
@@ -119,20 +135,20 @@ const CreateTournamentPage = () => {
                     private: !user.is_admin,
                 }}
             >
-                <Form.Item name="name" label="Tournament Name" rules={[{ required: true }]}>
-                    <Input />
+                <Form.Item name="name" label="Tournament Name" rules={[{required: true}]}>
+                    <Input/>
                 </Form.Item>
-                <Form.Item name="description" label="Description" rules={[{ required: true }]}>
-                    <TextArea rows={4} />
+                <Form.Item name="description" label="Description" rules={[{required: true}]}>
+                    <TextArea rows={4}/>
                 </Form.Item>
-                <Form.Item name="start_time" label="Start Time" rules={[{ required: true }]}>
-                    <DatePicker showTime />
+                <Form.Item name="start_time" label="Start Time" rules={[{required: true}]}>
+                    <DatePicker showTime/>
                 </Form.Item>
-                <Form.Item name="end_time" label="End Time" rules={[{ required: true }]}>
-                    <DatePicker showTime />
+                <Form.Item name="end_time" label="End Time" rules={[{required: true}]}>
+                    <DatePicker showTime/>
                 </Form.Item>
-                <Form.Item name="duration" label="Duration (minutes)" rules={[{ required: true }]}>
-                    <InputNumber min={1} />
+                <Form.Item name="duration" label="Duration (minutes)" rules={[{required: true}]}>
+                    <InputNumber min={1}/>
                 </Form.Item>
                 <Form.Item name="private" label="Private Tournament" valuePropName="checked">
                     <Switch
@@ -148,58 +164,61 @@ const CreateTournamentPage = () => {
                         title={`Question ${index + 1}`}
                         extra={
                             <>
-                                <Button type="link" icon={<EyeOutlined />} onClick={() => handlePreview(question)}>
+                                <Button type="link" icon={<EyeOutlined/>} onClick={() => handlePreview(question)}>
                                     Preview
                                 </Button>
-                                <Button type="link" onClick={() => removeQuestion(question.id)} icon={<MinusCircleOutlined />} />
+                                <Button type="link" onClick={() => removeQuestion(question.id)}
+                                        icon={<MinusCircleOutlined/>}/>
                             </>
                         }
                     >
-                        <Form.Item label="Question Text" rules={[{ required: true }]}>
+                        <Form.Item label="Question Text" rules={[{required: true}]}>
                             <TextArea
                                 rows={2}
                                 value={question.question || ''}
                                 onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
                             />
                         </Form.Item>
-                        <Form.Item label="Choice A" rules={[{ required: true }]}>
+                        <Form.Item label="Choice A" rules={[{required: true}]}>
                             <TextArea
                                 rows={1}
                                 value={question.choice_a || ''}
                                 onChange={(e) => updateQuestion(question.id, 'choice_a', e.target.value)}
                             />
                         </Form.Item>
-                        <Form.Item label="Choice B" rules={[{ required: true }]}>
+                        <Form.Item label="Choice B" rules={[{required: true}]}>
                             <TextArea
                                 rows={1}
                                 value={question.choice_b || ''}
                                 onChange={(e) => updateQuestion(question.id, 'choice_b', e.target.value)}
                             />
                         </Form.Item>
-                        <Form.Item label="Choice C" rules={[{ required: true }]}>
+                        <Form.Item label="Choice C" rules={[{required: true}]}>
                             <TextArea
                                 rows={1}
                                 value={question.choice_c || ''}
                                 onChange={(e) => updateQuestion(question.id, 'choice_c', e.target.value)}
                             />
                         </Form.Item>
-                        <Form.Item label="Choice D" rules={[{ required: true }]}>
+                        <Form.Item label="Choice D" rules={[{required: true}]}>
                             <TextArea
                                 rows={1}
                                 value={question.choice_d || ''}
                                 onChange={(e) => updateQuestion(question.id, 'choice_d', e.target.value)}
                             />
                         </Form.Item>
-                        <Form.Item label="Correct Answer" rules={[{ required: true }]}>
-                            <Select value={question.answer} onChange={(value) => updateQuestion(question.id, 'answer', value)}>
+                        <Form.Item label="Correct Answer" rules={[{required: true}]}>
+                            <Select value={question.answer}
+                                    onChange={(value) => updateQuestion(question.id, 'answer', value)}>
                                 <Option value="A">A</Option>
                                 <Option value="B">B</Option>
                                 <Option value="C">C</Option>
                                 <Option value="D">D</Option>
                             </Select>
                         </Form.Item>
-                        <Form.Item label="Difficulty" rules={[{ required: true }]}>
-                            <Select value={question.difficulty} onChange={(value) => updateQuestion(question.id, 'difficulty', value)}>
+                        <Form.Item label="Difficulty" rules={[{required: true}]}>
+                            <Select value={question.difficulty}
+                                    onChange={(value) => updateQuestion(question.id, 'difficulty', value)}>
                                 {[1, 2, 3, 4, 5].map(level => (
                                     <Option key={level} value={level}>{level}</Option>
                                 ))}
@@ -222,7 +241,7 @@ const CreateTournamentPage = () => {
                 ))}
 
                 <Form.Item>
-                    <Button type="dashed" onClick={addQuestion} block icon={<PlusOutlined />}>
+                    <Button type="dashed" onClick={addQuestion} block icon={<PlusOutlined/>}>
                         Add Question
                     </Button>
                 </Form.Item>
@@ -244,7 +263,8 @@ const CreateTournamentPage = () => {
                 {previewData && (
                     <Question
                         questionData={previewData}
-                        onSubmit={() => { }} // You can leave this empty or provide a function
+                        onSubmit={() => {
+                        }} // You can leave this empty or provide a function
                         status="Correct"
                         questionNumber={1}
                         preview={true}
