@@ -54,6 +54,11 @@ const InfoValue = styled(Text)`
     color: #262626;
 `;
 
+const InfoDescription = styled(InfoValue)`
+    font-size: 16px;
+    white-space: pre-wrap;
+`;
+
 const JoinButton = styled(Button)`
     margin-top: 24px;
     height: 48px;
@@ -149,8 +154,8 @@ const TournamentDetail = () => {
                         <Title level={2}>{tournament.name}</Title>
                         <InfoContainer>
                             <InfoItem>
-                                <InfoLabel>Description: </InfoLabel>
-                                <InfoValue>{tournament.description}</InfoValue>
+                                <InfoLabel>Description: </InfoLabel> <br/>
+                                <InfoDescription>{tournament.description}</InfoDescription>
                             </InfoItem>
                             <InfoItem>
                                 <InfoLabel>Start Time: </InfoLabel>
