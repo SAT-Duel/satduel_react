@@ -9,22 +9,45 @@ import TournamentCard from '../components/Tournament/TournamentCard';
 const {Content} = Layout;
 const {Title, Paragraph} = Typography;
 
+const HeroTitle = styled(Title)`
+    font-size: 3.5rem;
+    color: #0B2F7D;
+    margin-bottom: 20px;
+    text-align: center;
+
+    /* Use a different font for "SAT Duel" */
+
+    span.sat-duel {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        //color: #4C3D97;
+        //background: linear-gradient(90deg, #2B7FA3, #C95FFB);
+        //-webkit-background-clip: text;
+        //-webkit-text-fill-color: transparent;
+        background: linear-gradient(75deg, #8f73ff 0%, #34acfb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+`;
+
+const HeroParagraph = styled(Paragraph)`
+    font-size: 1.25rem;
+    color: #4A4A4A;
+    max-width: 700px;
+    margin: 0 auto 40px;
+    text-align: center;
+`;
+
 const StyledContent = styled(Content)`
-    padding: 30px 15px;
+    padding: 60px 20px;
     max-width: 1200px;
     margin: 0 auto;
+    min-height: 100vh;
 `;
 
 const HeaderSection = styled.div`
     text-align: center;
     margin-bottom: 30px;
-`;
-
-const StyledTitle = styled(Title)`
-    color: #1890ff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 `;
 
 const CTAButton = styled(Button)`
@@ -80,10 +103,14 @@ const TournamentListPage = () => {
         <Layout>
             <StyledContent>
                 <HeaderSection>
-                    <StyledTitle level={2}>
-                        <TrophyOutlined style={{marginRight: '10px'}}/>
-                        SAT Prep Tournaments
-                    </StyledTitle>
+                    <HeroTitle level={1}>
+                        Welcome to <span className="sat-duel">SAT Tournament</span>
+                        <TrophyOutlined style={{marginLeft: '10px'}}/>
+                    </HeroTitle>
+                    <HeroParagraph>
+                        Join SAT Tournaments to compete against students from all over the world.
+                        Test your skills and motivate yourself to become the best!
+                    </HeroParagraph>
                     <Link to="/create_tournament">
                         <CTAButton type="primary" size="large" icon={<PlusCircleOutlined/>}>
                             Create Tournament
