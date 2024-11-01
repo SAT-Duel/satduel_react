@@ -1,93 +1,75 @@
 import React, {useEffect, useState} from 'react';
-import {Layout, Typography, Card, Row, Col, Button, Divider} from 'antd';
-import {
-    TrophyOutlined,
-    UserOutlined,
-    CalendarOutlined,
-    PlusCircleOutlined,
-    InfoCircleOutlined
-} from '@ant-design/icons';
-import {Link} from "react-router-dom";
-import styled from "styled-components";
-import api from "../components/api";
-
+import {Layout, Typography, Row, Col, Button, Divider} from 'antd';
+import {TrophyOutlined, PlusCircleOutlined, InfoCircleOutlined} from '@ant-design/icons';
+import {Link} from 'react-router-dom';
+import styled from 'styled-components';
+import api from '../components/api';
+import TournamentCard from '../components/Tournament/TournamentCard';
 
 const {Content} = Layout;
 const {Title, Paragraph} = Typography;
 
+const HeroTitle = styled(Title)`
+    font-size: 3.5rem;
+    color: #0B2F7D;
+    margin-bottom: 20px;
+    text-align: center;
+
+    /* Use a different font for "SAT Duel" */
+
+    span.sat-duel {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        //color: #4C3D97;
+        //background: linear-gradient(90deg, #2B7FA3, #C95FFB);
+        //-webkit-background-clip: text;
+        //-webkit-text-fill-color: transparent;
+        background: linear-gradient(75deg, #8f73ff 0%, #34acfb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+`;
+
+const HeroParagraph = styled(Paragraph)`
+    font-size: 1.25rem;
+    color: #4A4A4A;
+    max-width: 700px;
+    margin: 0 auto 40px;
+    text-align: center;
+`;
+
 const StyledContent = styled(Content)`
-    padding: 50px;
-    max-width: 1400px;
+    padding: 60px 20px;
+    max-width: 1200px;
     margin: 0 auto;
+    min-height: 100vh;
 `;
 
 const HeaderSection = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    text-align: center;
     margin-bottom: 30px;
-    padding: 20px;
-    border-radius: 12px;
-`;
-
-const StyledTitle = styled(Title)`
-    margin-bottom: 0;
-    color: #1890ff;
-    display: flex;
-    align-items: center;
 `;
 
 const CTAButton = styled(Button)`
-    font-size: 18px;
+    font-size: 16px;
     height: auto;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 8px;
     background: #ff4500;
     border-color: #ff4500;
+    margin-top: 20px;
 
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
         background: #ff6347;
         border-color: #ff6347;
     }
 `;
 
 const TournamentListSection = styled.div`
-    background-color: #f0f2f5;
     border-radius: 12px;
-    padding: 30px;
+    padding: 20px;
     margin-bottom: 30px;
-`;
-
-const TournamentCard = styled(Card)`
-    width: 100%;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-    .ant-card-cover {
-        height: 120px;
-        background: #1890ff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .ant-card-meta-title {
-        font-size: 18px;
-        margin-bottom: 10px;
-    }
-
-    .ant-card-meta-description {
-        font-size: 14px;
-
-        p {
-            margin-bottom: 8px;
-        }
-    }
-`;
-
-const TournamentIcon = styled(TrophyOutlined)`
-    font-size: 60px;
-    color: #fff;
 `;
 
 const StyledDivider = styled(Divider)`
@@ -97,7 +79,7 @@ const StyledDivider = styled(Divider)`
 
 const InfoSection = styled.div`
     text-align: center;
-    max-width: 900px;
+    max-width: 800px;
     margin: 0 auto;
 `;
 
@@ -107,7 +89,7 @@ const TournamentListPage = () => {
     useEffect(() => {
         const fetchTournaments = async () => {
             try {
-                const response = await api.get(`api/tournaments/`);
+                const response = await api.get('api/tournaments/');
                 setTournaments(response.data);
             } catch (error) {
                 console.error('Error fetching tournaments:', error);
@@ -121,10 +103,14 @@ const TournamentListPage = () => {
         <Layout>
             <StyledContent>
                 <HeaderSection>
-                    <StyledTitle level={2}>
-                        <TrophyOutlined style={{marginRight: '10px', fontSize: '32px'}}/>
-                        SAT Prep Tournaments
-                    </StyledTitle>
+                    <HeroTitle level={1}>
+                        Welcome to <span className="sat-duel">SAT Tournament</span>
+                        <TrophyOutlined style={{marginLeft: '10px'}}/>
+                    </HeroTitle>
+                    <HeroParagraph>
+                        Join SAT Tournaments to compete against students from all over the world.
+                        Test your skills and motivate yourself to become the best!
+                    </HeroParagraph>
                     <Link to="/create_tournament">
                         <CTAButton type="primary" size="large" icon={<PlusCircleOutlined/>}>
                             Create Tournament
@@ -133,33 +119,10 @@ const TournamentListPage = () => {
                 </HeaderSection>
 
                 <TournamentListSection>
-                    <Row gutter={[24, 24]}>
-                        {tournaments.map(tournament => (
-                            <Col xs={24} sm={24} md={12} lg={8} xl={8} key={tournament.id}>
-                                <TournamentCard
-                                    hoverable
-                                    cover={<TournamentIcon/>}
-                                    actions={[
-                                        <Link to={`/tournament/${tournament.id}`}>
-                                            <Button type="primary" >Join Tournament</Button>
-                                        </Link>,
-                                    ]}
-                                >
-                                    <Card.Meta
-                                        title={tournament.name}
-                                        description={
-                                            <>
-                                                <p><UserOutlined/> {tournament.participantNumber} participants</p>
-                                                <p>
-                                                    <CalendarOutlined/> Starts: {new Date(tournament.start_time).toLocaleDateString()}
-                                                </p>
-                                                <p>
-                                                    <CalendarOutlined/> Ends: {new Date(tournament.end_time).toLocaleDateString()}
-                                                </p>
-                                            </>
-                                        }
-                                    />
-                                </TournamentCard>
+                    <Row gutter={[16, 16]} justify="center">
+                        {tournaments.map((tournament) => (
+                            <Col xs={24} sm={12} md={8} key={tournament.id}>
+                                <TournamentCard tournament={tournament}/>
                             </Col>
                         ))}
                     </Row>
@@ -170,9 +133,9 @@ const TournamentListPage = () => {
                 <InfoSection>
                     <Title level={3}>What are SAT Tournaments?</Title>
                     <Paragraph style={{fontSize: '16px', lineHeight: '1.6'}}>
-                        SAT Tournaments are competitive events designed to help students prepare for the SAT exam in a
-                        fun and engaging way. Participants can challenge themselves, compete with peers, and improve
-                        their skills through timed quizzes and practice tests.
+                        SAT Tournaments are competitive events designed to help students prepare for the SAT exam
+                        in a fun and engaging way. Participants can challenge themselves, compete with peers, and
+                        improve their skills through timed quizzes and practice tests.
                     </Paragraph>
                     <Link to="/tournaments/info">
                         <Button type="primary" icon={<InfoCircleOutlined/>} size="large">
