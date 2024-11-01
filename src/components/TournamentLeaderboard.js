@@ -5,20 +5,14 @@ import {CheckOutlined, CloseOutlined, MinusOutlined} from '@ant-design/icons';
 const LeaderboardContainer = styled.div`
     background: white;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    height: 100%;
+    margin-top: 16px;
     overflow-y: auto;
-    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+    max-height: 60vh;
 `;
 
-const LeaderboardContent = styled.div`
-    overflow-y: auto;
-    flex-grow: 1;
-`;
-
-const LeaderboardTitle = styled.h2`
-    font-size: 1.5rem;
+const LeaderboardTitle = styled.h3`
+    font-size: 1.2rem;
     margin-bottom: 16px;
     color: #1a1a1a;
 `;
@@ -30,13 +24,14 @@ const LeaderboardTable = styled.table`
 
 const LeaderboardHeader = styled.th`
     text-align: left;
-    padding: 10px;
+    padding: 8px;
     border-bottom: 2px solid #eaeaea;
 `;
 
 const LeaderboardCell = styled.td`
-    padding: 10px;
+    padding: 8px;
     border-bottom: 1px solid #eaeaea;
+    vertical-align: top;
 `;
 
 const Username = styled.div`
@@ -48,6 +43,7 @@ const QuestionStatus = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
+    margin-top: 5px;
 `;
 
 const StatusIcon = styled.span`
@@ -63,9 +59,9 @@ const StatusIcon = styled.span`
 const getStatusColor = (status) => {
     switch (status) {
         case 'Correct':
-            return '#7cb305';
+            return '#52c41a';
         case 'Incorrect':
-            return '#cf1322';
+            return '#f5222d';
         default:
             return '#8c8c8c';
     }
@@ -89,7 +85,7 @@ const Leaderboard = ({leaderboardData, tournamentStartTime}) => {
         const timer = setInterval(() => {
             const now = new Date();
             const start = new Date(tournamentStartTime);
-            const duration = Math.floor((now - start) / 1000); // duration in seconds
+            const duration = Math.floor((now - start) / 1000);
             setCurrentDuration(duration);
         }, 1000);
 
@@ -99,7 +95,8 @@ const Leaderboard = ({leaderboardData, tournamentStartTime}) => {
     const getQuestionStatus = (question, currentDuration) => {
         if (!question.time_taken) return 'Blank';
         const [hours, minutes, seconds] = question.time_taken.split(':');
-        const questionDuration = parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
+        const questionDuration =
+            parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
         return questionDuration <= currentDuration ? question.status : 'Blank';
     };
 
@@ -113,15 +110,17 @@ const Leaderboard = ({leaderboardData, tournamentStartTime}) => {
     const convertDurationToSeconds = (duration) => {
         const [hours, minutes, seconds] = duration.split(':').map(Number);
         return hours * 3600 + minutes * 60 + seconds;
-    }
+    };
 
     const getLastCorrectSubmission = (participant, currentDuration) => {
-        const correctQuestions = participant.tournament_questions.filter(question => getQuestionStatus(question, currentDuration) === 'Correct');
-        if (correctQuestions.length === 0) return 0;
-        return Math.max(
-            ...correctQuestions.map(question => convertDurationToSeconds(question.time_taken))
+        const correctQuestions = participant.tournament_questions.filter(
+            (question) => getQuestionStatus(question, currentDuration) === 'Correct'
         );
-    }
+        if (correctQuestions.length === 0) return Infinity;
+        return Math.max(
+            ...correctQuestions.map((question) => convertDurationToSeconds(question.time_taken))
+        );
+    };
 
     const sortedLeaderboard = [...leaderboardData].sort((a, b) => {
         const scoreA = calculateScore(a, currentDuration);
@@ -133,44 +132,42 @@ const Leaderboard = ({leaderboardData, tournamentStartTime}) => {
     return (
         <LeaderboardContainer>
             <LeaderboardTitle>Leaderboard</LeaderboardTitle>
-            <LeaderboardContent>
-                <LeaderboardTable>
-                    <thead>
-                    <tr>
-                        <LeaderboardHeader>Rank</LeaderboardHeader>
-                        <LeaderboardHeader>User</LeaderboardHeader>
-                        <LeaderboardHeader>Score</LeaderboardHeader>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {sortedLeaderboard.map((participant, index) => {
-                        const currentScore = calculateScore(participant, currentDuration);
-                        return (
-                            <tr key={participant.user.id}>
-                                <LeaderboardCell>{index + 1}</LeaderboardCell>
-                                <LeaderboardCell>
-                                    <Username>{participant.user.username}</Username>
-                                    <QuestionStatus>
-                                        {participant.tournament_questions.map((question, qIndex) => {
-                                            const status = getQuestionStatus(question, currentDuration);
-                                            return (
-                                                <StatusIcon
-                                                    key={qIndex}
-                                                    style={{backgroundColor: getStatusColor(status)}}
-                                                >
-                                                    {getStatusIcon(status)}
-                                                </StatusIcon>
-                                            );
-                                        })}
-                                    </QuestionStatus>
-                                </LeaderboardCell>
-                                <LeaderboardCell>{currentScore}</LeaderboardCell>
-                            </tr>
-                        );
-                    })}
-                    </tbody>
-                </LeaderboardTable>
-            </LeaderboardContent>
+            <LeaderboardTable>
+                <thead>
+                <tr>
+                    <LeaderboardHeader>Rank</LeaderboardHeader>
+                    <LeaderboardHeader>User</LeaderboardHeader>
+                    <LeaderboardHeader>Score</LeaderboardHeader>
+                </tr>
+                </thead>
+                <tbody>
+                {sortedLeaderboard.map((participant, index) => {
+                    const currentScore = calculateScore(participant, currentDuration);
+                    return (
+                        <tr key={participant.user.id}>
+                            <LeaderboardCell>{index + 1}</LeaderboardCell>
+                            <LeaderboardCell>
+                                <Username>{participant.user.username}</Username>
+                                <QuestionStatus>
+                                    {participant.tournament_questions.map((question, qIndex) => {
+                                        const status = getQuestionStatus(question, currentDuration);
+                                        return (
+                                            <StatusIcon
+                                                key={qIndex}
+                                                style={{backgroundColor: getStatusColor(status)}}
+                                            >
+                                                {getStatusIcon(status)}
+                                            </StatusIcon>
+                                        );
+                                    })}
+                                </QuestionStatus>
+                            </LeaderboardCell>
+                            <LeaderboardCell>{currentScore}</LeaderboardCell>
+                        </tr>
+                    );
+                })}
+                </tbody>
+            </LeaderboardTable>
         </LeaderboardContainer>
     );
 };

@@ -1,48 +1,21 @@
 import React, {useState, useEffect} from 'react';
-import {Radio, Button, Space} from 'antd';
-import {CheckCircleOutlined, CloseCircleOutlined} from '@ant-design/icons';
-import styled, {keyframes} from 'styled-components';
-import {useAuth} from "../context/AuthContext";
-import axios from "axios";
+import {Radio, Button, Space, Alert} from 'antd';
+import styled from 'styled-components';
+import {useAuth} from '../context/AuthContext';
+import axios from 'axios';
 import 'katex/dist/katex.min.css';
-import RenderWithMath from "./RenderWithMath";
-
-const fadeIn = keyframes`
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-`;
+import RenderWithMath from './RenderWithMath';
 
 const QuestionCard = styled.div`
     background: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 24px;
+    padding: 16px;
     margin-bottom: 24px;
-    animation: ${fadeIn} 0.5s ease-out;
-    transition: all 0.3s ease;
     border: 1px solid #e8e8e8;
-
-    &:hover {
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.09);
-    }
-
-    &.correct {
-        border-left: 5px solid #52c41a;
-        background-color: #f6ffed;
-    }
-
-    &.incorrect {
-        border-left: 5px solid #f5222d;
-        background-color: #fff1f0;
-    }
 `;
 
 const QuestionText = styled.h3`
-    font-size: 1.2rem;
+    font-size: 1rem;
     margin-bottom: 16px;
     color: #1a1a1a;
     line-height: 1.5;
@@ -66,41 +39,10 @@ const StyledRadio = styled(Radio)`
             background-color: #f0f0f0;
         }
     }
-
-    .ant-radio-checked .ant-radio-wrapper {
-        background-color: #e6f7ff;
-    }
-
-    .ant-radio-checked + span {
-        color: #1890ff;
-        font-weight: 500;
-    }
 `;
 
 const SubmitButton = styled(Button)`
     margin-top: 16px;
-`;
-
-const Note = styled.p`
-    margin-top: 16px;
-    font-style: italic;
-    color: ${props => props.correct ? '#52c41a' : '#f5222d'};
-    display: flex;
-    align-items: center;
-
-    svg {
-        margin-right: 8px;
-    }
-`;
-
-const Explanation = styled.p`
-    margin-top: 16px;
-    background-color: #f8f8f8;
-    padding: 12px;
-    border-radius: 4px;
-    border-left: 4px solid #1890ff;
-    font-size: 0.9rem;
-    line-height: 1.5;
 `;
 
 const QuestionNumber = styled.span`
@@ -109,17 +51,15 @@ const QuestionNumber = styled.span`
     margin-right: 10px;
 `;
 
-
-function Question({questionData, onSubmit, status, questionNumber, preview, disabled=false}) {
+function Question({questionData, onSubmit, status, questionNumber, disabled = false}) {
     const {question, choices, id} = questionData;
     const [selectedChoice, setSelectedChoice] = useState('');
-    const [note, setNote] = useState('');
+    const [feedback, setFeedback] = useState(null);
     const {loading} = useAuth();
 
     const [answer, setAnswer] = useState(null);
     const [answerChoice, setAnswerChoice] = useState(null);
     const [explanation, setExplanation] = useState(null);
-
 
     useEffect(() => {
         const getAnswer = async () => {
@@ -130,11 +70,6 @@ function Question({questionData, onSubmit, status, questionNumber, preview, disa
                 setExplanation(response.data.explanation);
                 setAnswerChoice(response.data.answer_choice);
             } catch (error) {
-                if (error.response && error.response.status === 404) {
-                    console.log('Question does not exist');
-                } else {
-                    console.log('An error occurred');
-                }
                 setAnswer(null);
                 setExplanation(null);
                 setAnswerChoice(null);
@@ -142,58 +77,40 @@ function Question({questionData, onSubmit, status, questionNumber, preview, disa
         };
         const fetchAnswer = async () => {
             if (status === 'Correct' || status === 'Incorrect') {
-                if (!preview) {
+                if (!loading) {
                     await getAnswer();
-                } else {
-                    const answer_map={
-                        'A':0,
-                        'B':1,
-                        'C':2,
-                        'D':3,
-                    }
-                    setAnswer(questionData.choices[answer_map[questionData.answer]]);
-                    setAnswerChoice(questionData.answer);
-                    setExplanation(questionData.explanation);
                 }
                 if (status === 'Correct') {
                     setSelectedChoice(answer);
-                    setNote(`Correct! ${answerChoice} is the correct answer.`);
+                    setFeedback({
+                        type: 'success',
+                        message: `Correct! ${answerChoice} is the correct answer.`,
+                    });
                 } else if (status === 'Incorrect') {
-                    if (!loading) {
-                        setNote(`Nice Try! ${answerChoice} is the correct answer.`);
-                    }
+                    setFeedback({
+                        type: 'error',
+                        message: `Nice Try! ${answerChoice} is the correct answer.`,
+                    });
                 }
             }
         };
         fetchAnswer();
-    }, [status, note, answer, answerChoice, loading, id, preview, questionData.answer, questionData.explanation, questionData.choices]);
+    }, [status, answer, answerChoice, loading, id]);
 
     const handleSubmit = () => {
         if (selectedChoice) {
             onSubmit(id, selectedChoice);
         } else {
-            alert("Please select an option before submitting.");
-        }
-    };
-
-    const getStatusClass = () => {
-        switch (status) {
-            case 'Correct':
-                return 'correct';
-            case 'Incorrect':
-                return 'incorrect';
-            default:
-                return '';
+            alert('Please select an option before submitting.');
         }
     };
 
     const onChange = (e) => {
-        console.log('radio checked', e.target.value);
         setSelectedChoice(e.target.value);
     };
 
     return (
-        <QuestionCard className={getStatusClass()}>
+        <QuestionCard>
             <QuestionNumber>Question {questionNumber}:</QuestionNumber>
             <QuestionText>
                 <RenderWithMath text={question}/>
@@ -207,15 +124,26 @@ function Question({questionData, onSubmit, status, questionNumber, preview, disa
                     ))}
                 </Space>
             </StyledRadioGroup>
-            {note && (
-                <Note correct={status === 'Correct'}>
-                    {status === 'Correct' ? <CheckCircleOutlined/> : <CloseCircleOutlined/>} {note}
-                </Note>
+            {feedback && (
+                <Alert
+                    style={{marginTop: '16px'}}
+                    message={feedback.message}
+                    type={feedback.type}
+                    showIcon
+                />
             )}
-            {explanation && <Explanation><RenderWithMath text={explanation}/> </Explanation>}
-            <SubmitButton type="primary" onClick={handleSubmit} disabled={status !== 'Blank' || disabled}>
-                Submit
-            </SubmitButton>
+            {explanation && (
+                <Alert
+                    style={{marginTop: '16px'}}
+                    message={<RenderWithMath text={explanation}/>}
+                    type="info"
+                />
+            )}
+            {status === 'Blank' && !disabled && (
+                <SubmitButton type="primary" onClick={handleSubmit}>
+                    Submit
+                </SubmitButton>
+            )}
         </QuestionCard>
     );
 }

@@ -25,6 +25,7 @@
     "react-katex": "^3.0.1",
     "react-lottie": "^1.2.4",
     "react-quill": "^2.0.0",
+    "react-responsive": "^10.0.0",
     "react-router-dom": "^6.23.0",
     "react-scripts": "^5.0.1",
     "styled-components": "^6.1.11",
