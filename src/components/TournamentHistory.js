@@ -37,7 +37,7 @@ const StyledTable = styled(Table)`
 const TournamentHistory = ({ user_id = null }) => {
     const [tournaments, setTournaments] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
-    const { token, loading, user } = useAuth();
+    const { token, loading } = useAuth();
 
     const isOwnHistory = user_id === null;
 
