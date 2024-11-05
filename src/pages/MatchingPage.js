@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import axios from "axios";
 import {useAuth} from "../context/AuthContext";
 import {useNavigate} from 'react-router-dom';
@@ -182,7 +182,7 @@ const Match = () => {
         }
     };
 
-    const handleCancel = async () => {
+    const handleCancel = useCallback(async () => {
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
             await axios.post(`${baseUrl}/api/match/cancel_match/`, {
@@ -195,9 +195,8 @@ const Match = () => {
             console.error('Error canceling the duel:', err);
             message.error(err.response?.data?.error || 'An error occurred while canceling the duel.');
         }
-    };
+    }, [roomId]);
 
-    const handleCancelRef = useRef(handleCancel);
 
     const startMatchingTimeout = () => {
         setTimeout(async () => {
@@ -271,17 +270,6 @@ const Match = () => {
         }
     }, [loading, navigate, token]);
 
-    useEffect(() => {
-        const handleBeforeUnload = async () => {
-            if (matching) {
-                await handleCancelRef.current();
-            }
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [matching]);
-
     // Fetch online users
     useEffect(() => {
         const fetchOnlineUsers = async () => {
@@ -321,6 +309,9 @@ const Match = () => {
             } catch (err) {
                 console.error('Error removing online status:', err);
             }
+            if(matching){
+                await handleCancel();
+            }
         };
 
         window.addEventListener('beforeunload', removeOnlineStatus);
@@ -328,7 +319,7 @@ const Match = () => {
             window.removeEventListener('beforeunload', removeOnlineStatus);
             removeOnlineStatus();
         };
-    }, [token]);
+    }, [handleCancel, matching, token]);
 
     return (
         <Container>
