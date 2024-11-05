@@ -117,11 +117,6 @@ function AboutPage() {
             role: "President & Project Manager",
             avatar: weiwei
         },
-        {
-            name: "William Yang",
-            role: "Developer",
-            avatar: "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-        },
     ];
     const form = useRef();
     const onFinish = () => {
@@ -240,32 +235,34 @@ function AboutPage() {
                         <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
                             Contact Us
                         </Title>
+
                         <Row justify="center">
                             <Col xs={24} md={12}>
+                                <p>Send an email to <b>satduel@gmail.com</b></p>
                                 <ContactForm layout="vertical" onFinish={onFinish} data-aos="fade-up" ref={form}>
                                     <Form.Item
                                         label="Name"
                                         name="name"
-                                        rules={[{ required: true, message: 'Please enter your name' }]}
+                                        rules={[{required: true, message: 'Please enter your name'}]}
                                     >
-                                        <Input placeholder="Your Name" />
+                                        <Input placeholder="Your Name"/>
                                     </Form.Item>
                                     <Form.Item
                                         label="Email"
                                         name="email"
                                         rules={[
-                                            { required: true, message: 'Please enter your email' },
-                                            { type: 'email', message: 'Please enter a valid email' }
+                                            {required: true, message: 'Please enter your email'},
+                                            {type: 'email', message: 'Please enter a valid email'}
                                         ]}
                                     >
-                                        <Input placeholder="Your Email" />
+                                        <Input placeholder="Your Email"/>
                                     </Form.Item>
                                     <Form.Item
                                         label="Message"
                                         name="message"
-                                        rules={[{ required: true, message: 'Please enter your message' }]}
+                                        rules={[{required: true, message: 'Please enter your message'}]}
                                     >
-                                        <TextArea rows={4} placeholder="Your Message" />
+                                        <TextArea rows={4} placeholder="Your Message"/>
                                     </Form.Item>
                                     <Form.Item>
                                         <Button type="primary" htmlType="submit" block>
