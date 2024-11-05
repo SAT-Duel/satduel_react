@@ -25,6 +25,8 @@ const TournamentCardWrapper = styled(Card)`
         color: white;
         font-size: 20px;
         margin-bottom: 10px;
+        white-space: normal; /* Allows wrapping */
+        word-break: break-word; /* Breaks long words if necessary */
     }
 
     .ant-card-meta-description {
@@ -36,6 +38,7 @@ const TournamentCardWrapper = styled(Card)`
         }
     }
 `;
+
 
 const CardActions = styled.div`
     text-align: center;
