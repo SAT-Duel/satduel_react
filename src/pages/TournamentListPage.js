@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {Layout, Typography, Row, Col, Button, Divider} from 'antd';
-import {TrophyOutlined, PlusCircleOutlined, InfoCircleOutlined} from '@ant-design/icons';
-import {Link} from 'react-router-dom';
+import {Layout, Typography, Row, Col, Button, Divider, Modal, Input, message} from 'antd';
+import {TrophyOutlined, LoginOutlined, InfoCircleOutlined} from '@ant-design/icons';
+import {Link, useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import api from '../components/api';
 import TournamentCard from '../components/Tournament/TournamentCard';
@@ -15,15 +15,9 @@ const HeroTitle = styled(Title)`
     margin-bottom: 20px;
     text-align: center;
 
-    /* Use a different font for "SAT Duel" */
-
     span.sat-duel {
         font-family: 'Montserrat', sans-serif;
         font-weight: 700;
-        //color: #4C3D97;
-        //background: linear-gradient(90deg, #2B7FA3, #C95FFB);
-        //-webkit-background-clip: text;
-        //-webkit-text-fill-color: transparent;
         background: linear-gradient(75deg, #8f73ff 0%, #34acfb 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -55,14 +49,14 @@ const CTAButton = styled(Button)`
     height: auto;
     padding: 10px 20px;
     border-radius: 8px;
-    background: #ff4500;
-    border-color: #ff4500;
+    background: #7b00ff;
+    border-color: #7b00ff;
     margin-top: 20px;
 
     &:hover,
     &:focus {
-        background: #ff6347;
-        border-color: #ff6347;
+        background: #7a2fc2 !important;
+        border-color: #7a2fc2 !important;
     }
 `;
 
@@ -85,6 +79,9 @@ const InfoSection = styled.div`
 
 const TournamentListPage = () => {
     const [tournaments, setTournaments] = useState([]);
+    const [joinCodeModalVisible, setJoinCodeModalVisible] = useState(false);
+    const [joinCode, setJoinCode] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchTournaments = async () => {
@@ -99,6 +96,40 @@ const TournamentListPage = () => {
         fetchTournaments();
     }, []);
 
+    const handleJoinTournament = () => {
+        setJoinCodeModalVisible(true);
+    };
+
+    const handleJoinCodeSubmit = async () => {
+        if (!joinCode.trim()) {
+            message.warning('Please enter a join code.');
+            return;
+        }
+
+        try {
+            const response = await api.post('api/tournaments/join_from_code/', {
+                join_code: joinCode.trim(),
+            });
+            const tournamentId = response.data.id;
+            message.success('Successfully joined the tournament!');
+            setJoinCodeModalVisible(false);
+            setJoinCode('');
+            navigate(`/tournament/${tournamentId}`);
+        } catch (error) {
+            console.error('Error joining tournament:', error);
+            if (error.response && error.response.data && error.response.data.error) {
+                message.error(error.response.data.error);
+            } else {
+                message.error('Invalid join code. Please try again.');
+            }
+        }
+    };
+
+    const handleJoinCodeCancel = () => {
+        setJoinCodeModalVisible(false);
+        setJoinCode('');
+    };
+
     return (
         <Layout>
             <StyledContent>
@@ -111,11 +142,14 @@ const TournamentListPage = () => {
                         Join SAT Tournaments to compete against students from all over the world.
                         Test your skills and motivate yourself to become the best!
                     </HeroParagraph>
-                    <Link to="/create_tournament">
-                        <CTAButton type="primary" size="large" icon={<PlusCircleOutlined/>}>
-                            Create Tournament
-                        </CTAButton>
-                    </Link>
+                    <CTAButton
+                        type="primary"
+                        size="large"
+                        icon={<LoginOutlined/>}
+                        onClick={handleJoinTournament}
+                    >
+                        Join Private Tournament
+                    </CTAButton>
                 </HeaderSection>
 
                 <TournamentListSection>
@@ -143,6 +177,22 @@ const TournamentListPage = () => {
                         </Button>
                     </Link>
                 </InfoSection>
+
+                {/* Join Code Modal */}
+                <Modal
+                    title="Enter Join Code"
+                    visible={joinCodeModalVisible}
+                    onOk={handleJoinCodeSubmit}
+                    onCancel={handleJoinCodeCancel}
+                    okText="Join"
+                    cancelText="Cancel"
+                >
+                    <Input
+                        placeholder="Enter the tournament join code"
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value)}
+                    />
+                </Modal>
             </StyledContent>
         </Layout>
     );

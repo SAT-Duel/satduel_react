@@ -114,10 +114,10 @@ function Login() {
                     >
                         <Form.Item
                             name="username"
-                            rules={[{required: true, message: 'Please input your username!'}]}
+                            rules={[{required: true, message: 'Please input your username/email!'}]}
                         >
                             <Input
-                                placeholder="Username"
+                                placeholder="Username or Email"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                             />

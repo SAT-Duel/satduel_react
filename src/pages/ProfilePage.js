@@ -7,6 +7,7 @@ import BattleHistory from "../components/BattleHistory";
 import Inventory from "../components/Inventory";
 import {useAuth} from "../context/AuthContext";
 import { ShoppingCart } from 'lucide-react';
+import TournamentHistory from "../components/TournamentHistory";
 
 const {TabPane} = Tabs;
 
@@ -74,6 +75,9 @@ function ProfilePage() {
                             <Inventory/>
                         </TabPane>
                     )}
+                    <TabPane tab={<span style={tabStyle}>Tournament History</span>} key="5">
+                        <TournamentHistory user_id={userId}/>
+                    </TabPane>
                 </Tabs>
             </Card>
         </div>

@@ -40,6 +40,7 @@ const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEdito
 const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminCreateTournamentPage"));
 const SATDuelHomePage = React.lazy(() => import("../pages/satduel/SATDuelHomePage"));
 const WaitingRoomPage = React.lazy(() => import("../pages/satduel/WaitingRoomPage"));
+const MyTournamentsPage = React.lazy(() => import("../pages/MyTournamentsPage"));
 
 function Router() {
     return (
@@ -278,6 +279,14 @@ function Router() {
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
                             <CreateTournamentPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/my_tournaments"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <MyTournamentsPage />
                         </Suspense>
                     }
                 />
