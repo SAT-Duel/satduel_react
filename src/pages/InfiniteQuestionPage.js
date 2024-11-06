@@ -329,7 +329,7 @@ function InfiniteQuestionsPage() {
                     setLevelUpMessage("LEVEL UP!!!");
 
                     const coinRewards = [10 * newStats.level, 20 * newStats.level, 30 * newStats.level, 40 * newStats.level, 50 * newStats.level, 66 * newStats.level, newStats.level ** 2, newStats.level ** 3, newStats.level ** 5, 666 * newStats.level];
-                    const multiplierRewards = [1.01 * newStats.level, 1.02 * newStats.level, 1.05 * newStats.level, 1.06 * newStats.level, 1.1 * newStats.level, 1.2 * newStats.level, 1.25 * newStats.level];
+                    const multiplierRewards = [1.01 * newStats.level, 1.02 * newStats.level, 1.05 * newStats.level, 1.06 * newStats.level, 1.1 * newStats.level, 1.2 * newStats.level, 1.25 * newStats.level].map(value => parseFloat(value.toFixed(2)));
 
                     let lootboxMessage = "";
                     let reward;
