@@ -1,5 +1,4 @@
 // UserStatistics.js
-
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, message } from 'antd';
 import {
@@ -8,7 +7,6 @@ import {
   StarOutlined,
   RiseOutlined,
 } from '@ant-design/icons';
-import styled from 'styled-components';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 
