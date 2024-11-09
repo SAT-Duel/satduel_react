@@ -1,6 +1,6 @@
 import React from 'react';
 import {Card, Button} from 'antd';
-import {UserOutlined, CalendarOutlined} from '@ant-design/icons';
+import {CalendarOutlined} from '@ant-design/icons';
 import {Link} from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -52,9 +52,6 @@ const TournamentCard = ({tournament}) => {
                 title={tournament.name}
                 description={
                     <>
-                        <p>
-                            <UserOutlined/> {tournament.participantNumber} participants
-                        </p>
                         <p>
                             <CalendarOutlined/> Starts: {new Date(tournament.start_time).toLocaleDateString()}
                         </p>

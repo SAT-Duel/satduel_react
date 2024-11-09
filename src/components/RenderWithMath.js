@@ -21,8 +21,13 @@ const Bold = styled.span`
     font-weight: bold;
 `;
 
+const BulletPoint = styled.li`
+    margin-left: 20px;
+    list-style-type: disc;
+`;
+
 const FormattedTextRenderer = ({text}) => {
-    const regex = /(\$\$.*?\$\$|\$.*?\$|\\underline{.*?}|\\textit{.*?}|\\textbf{.*?}|\n)/s;
+    const regex = /(\$\$.*?\$\$|\$.*?\$|\\underline{.*?}|\\textit{.*?}|\\textbf{.*?}|\n|\*.*?\n)/s;
     if (!text) {
         return null;
     }
@@ -44,6 +49,8 @@ const FormattedTextRenderer = ({text}) => {
                     return <Italicized key={index}>{part.slice(8, -1)}</Italicized>;
                 } else if (part.startsWith('\\textbf{') && part.endsWith('}')) {
                     return <Bold key={index}>{part.slice(8, -1)}</Bold>;
+                } else if (part.startsWith('***')) {
+                    return <BulletPoint key={index}>{part.slice(3)}</BulletPoint>;
                 }
                 return <FormattedText key={index}>{part}</FormattedText>;
             })}
