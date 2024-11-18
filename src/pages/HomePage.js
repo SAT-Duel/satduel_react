@@ -6,16 +6,10 @@ import {
     Col,
     Card,
     Divider,
-    Statistic,
     Avatar,
     Rate,
 } from 'antd';
-import {
-    TrophyOutlined,
-    UserOutlined,
-    CheckCircleOutlined,
-    BulbOutlined,
-} from '@ant-design/icons';
+
 import styled from 'styled-components';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -33,114 +27,6 @@ const ContentSection = styled.div`
     background-color: #f9f9f9;
     @media (max-width: 768px) {
         padding: 30px 0;
-    }
-`;
-
-const FeatureCardContainer = styled.div`
-    display: flex;
-    flex-direction: ${props => (props.reverse ? 'row-reverse' : 'row')};
-    align-items: center;
-    margin-bottom: 40px;
-    justify-content: space-between;
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-        text-align: center;
-    }
-`;
-
-const FeatureCard = styled.div`
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    background: #ffffff;
-    width: 100%;
-    max-width: 700px;
-    height: 180px;
-    margin-bottom: 20px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    /* Adjustments for mobile */
-    @media (max-width: 768px) {
-        height: auto;
-        flex-direction: column;
-        padding: 20px 10px;
-    }
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    h4 {
-        font-size: 1.4rem;
-        margin-bottom: 12px;
-        @media (max-width: 768px) {
-            font-size: 1.2rem;
-        }
-    }
-
-    p {
-        font-size: 1.1rem;
-        @media (max-width: 768px) {
-            font-size: 1rem;
-        }
-    }
-`;
-
-const IconWrapper = styled.div`
-    font-size: 2rem;
-    margin-right: 20px;
-    border-radius: 12px;
-    background: ${props =>
-            props.background ||
-            'linear-gradient(135deg, #8a59fa, #7f73ff, #786cae, #8a59fa)'};
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 58px;
-    height: 58px;
-    flex-shrink: 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-    /* Adjustments for mobile */
-    @media (max-width: 768px) {
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-`;
-
-
-const StatisticCard = styled(Card)`
-    background: white;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    height: 100%;
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .ant-statistic-title {
-        font-family: 'Poppins', sans-serif;
-        font-size: 1.2rem;
-        margin-bottom: 10px;
-        @media (max-width: 768px) {
-            font-size: 1rem;
-        }
-    }
-
-    .ant-statistic-content {
-        font-family: 'Poppins', sans-serif;
-        font-size: 2rem;
-        @media (max-width: 768px) {
-            font-size: 1.5rem;
-        }
     }
 `;
 

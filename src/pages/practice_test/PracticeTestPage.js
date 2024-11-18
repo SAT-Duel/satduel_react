@@ -112,7 +112,7 @@ const PracticeTestPage = () => {
                         items={[
                             {
                                 title: 'Choose Your Test',
-                                description: 'Select from our collection of official SAT practice tests above',
+                                description: "Select from our collection of official SAT practice tests above",
                             },
                             {
                                 title: 'Prepare Your Environment',

@@ -126,6 +126,6 @@ function TestResults() {
             </Content>
         </Layout>
     );
-};
+}
 
 export default TestResults;
