@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Button, Drawer } from 'antd';
 import logo from '../assets/logo192.png';
 import {
-    UserOutlined,
-    LoginOutlined,
-    UserAddOutlined,
-    QuestionCircleOutlined,
-    TeamOutlined,
-    MenuOutlined,
-    FireOutlined,
+  UserOutlined,
+  LoginOutlined,
+  UserAddOutlined,
+  QuestionCircleOutlined,
+  TeamOutlined,
+  MenuOutlined,
+  FireOutlined, CopyOutlined,
 } from '@ant-design/icons';
 import styled from 'styled-components';
 
@@ -160,6 +160,12 @@ const Navbar = () => {
       key: 'Tournament',
       icon: <FireOutlined />,
       onClick: () => navigate('/tournaments'),
+    },
+      {
+      label: 'Practice Test',
+      key: 'Practice Test',
+      icon: <CopyOutlined />,
+      onClick: () => navigate('/practice_test'),
     },
   ];
 

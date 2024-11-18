@@ -170,6 +170,7 @@ const Match = () => {
             });
             setRoomIdInternal(response.data.id);
             if (response.data.full === 'true') {
+                setMatching(false);
                 navigate(`/match-loading/${response.data.id}`);
                 return;
             }

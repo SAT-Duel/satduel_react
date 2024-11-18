@@ -5,10 +5,11 @@ import styled from 'styled-components';
 import {useAuth} from '../context/AuthContext';
 // Importing components
 // import WeeklyQuest from '../components/TrainerPageBoxes/QuestsSection';
+// import ModulesBoxComponent from '../components/TrainerPageBoxes/ModulesBox';
+
 import HeaderSection from '../components/TrainerPageBoxes/HeaderSection';
 import UserStatisticsCard from '../components/TrainerPageBoxes/UserStatistics';
 import PracticeBox from '../components/TrainerPageBoxes/PracticeSection';
-import ModulesBoxComponent from '../components/TrainerPageBoxes/ModulesBox';
 import ProfileSectionComponent from '../components/TrainerPageBoxes/ProfileSection';
 import OverviewBox from '../components/TrainerPageBoxes/OverviewBox';
 import PetsSection from '../components/TrainerPageBoxes/PetsSection';
@@ -59,7 +60,7 @@ const TrainerPage = () => {
                     <PracticeBox/>
 
                     {/* Modules Box */}
-                    <ModulesBoxComponent/>
+                    {/*<ModulesBoxComponent/>*/}
                 </LeftPanel>
 
                 {/* Right Sidebar */}

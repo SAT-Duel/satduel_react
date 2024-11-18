@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { Route, Routes } from "react-router-dom";
+import React, {Suspense} from 'react';
+import {Route, Routes} from "react-router-dom";
 import SecondaryLayout from "../layout/SecondaryLayout";
 
 // Lazy load components
@@ -41,16 +41,19 @@ const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminC
 const SATDuelHomePage = React.lazy(() => import("../pages/satduel/SATDuelHomePage"));
 const WaitingRoomPage = React.lazy(() => import("../pages/satduel/WaitingRoomPage"));
 const MyTournamentsPage = React.lazy(() => import("../pages/MyTournamentsPage"));
+const TestPage = React.lazy(() => import("../pages/practice_test/TestPage"));
+const TestResultPage = React.lazy(() => import("../pages/practice_test/TestResultPage"));
+const PracticeTestPage = React.lazy(() => import("../pages/practice_test/PracticeTestPage"));
 
 function Router() {
     return (
         <Routes>
-            <Route element={<SecondaryLayout />}>
+            <Route element={<SecondaryLayout/>}>
                 <Route
                     path="/"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <HomePage />
+                            <HomePage/>
                         </Suspense>
                     }
                 />
@@ -58,7 +61,7 @@ function Router() {
                     path="/login"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <LoginPage />
+                            <LoginPage/>
                         </Suspense>
                     }
                 />
@@ -66,7 +69,7 @@ function Router() {
                     path="/register"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <RegisterPage />
+                            <RegisterPage/>
                         </Suspense>
                     }
                 />
@@ -74,7 +77,7 @@ function Router() {
                     path="/confirm-email/:key"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <ConfirmEmail />
+                            <ConfirmEmail/>
                         </Suspense>
                     }
                 />
@@ -82,7 +85,7 @@ function Router() {
                     path="/email_verification/:email"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <EmailVerificationPage />
+                            <EmailVerificationPage/>
                         </Suspense>
                     }
                 />
@@ -90,7 +93,7 @@ function Router() {
                     path="/password_reset"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <PasswordResetPage />
+                            <PasswordResetPage/>
                         </Suspense>
                     }
                 />
@@ -98,7 +101,7 @@ function Router() {
                     path="/api/reset/:uidb64/:token"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <PasswordResetConfirmPage />
+                            <PasswordResetConfirmPage/>
                         </Suspense>
                     }
                 />
@@ -107,7 +110,7 @@ function Router() {
                     path="/about"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <AboutPage />
+                            <AboutPage/>
                         </Suspense>
                     }
                 />
@@ -115,7 +118,7 @@ function Router() {
                     path="/match"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <Match />
+                            <Match/>
                         </Suspense>
                     }
                 />
@@ -123,7 +126,7 @@ function Router() {
                     path="/duel_battle/:roomId"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <DuelBattle />
+                            <DuelBattle/>
                         </Suspense>
                     }
                 />
@@ -131,7 +134,7 @@ function Router() {
                     path="/battle_result/:roomId"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <BattleResultPage />
+                            <BattleResultPage/>
                         </Suspense>
                     }
                 />
@@ -139,7 +142,7 @@ function Router() {
                     path="/match-loading/:roomId"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <MatchLoadingPage />
+                            <MatchLoadingPage/>
                         </Suspense>
                     }
                 />
@@ -147,7 +150,7 @@ function Router() {
                     path="/questions"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionsPage />
+                            <QuestionsPage/>
                         </Suspense>
                     }
                 />
@@ -156,7 +159,7 @@ function Router() {
                     path="/trainer"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <TrainerPage />
+                            <TrainerPage/>
                         </Suspense>
                     }
                 />
@@ -164,7 +167,7 @@ function Router() {
                     path="/infinite_questions"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <InfiniteQuestionPage />
+                            <InfiniteQuestionPage/>
                         </Suspense>
                     }
                 />
@@ -172,7 +175,7 @@ function Router() {
                     path="/power_sprint_home"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <PowerSprintHome />
+                            <PowerSprintHome/>
                         </Suspense>
                     }
                 />
@@ -180,7 +183,7 @@ function Router() {
                     path="/power_sprint"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <PowerSprintPage />
+                            <PowerSprintPage/>
                         </Suspense>
                     }
                 />
@@ -188,7 +191,7 @@ function Router() {
                     path="/sat_survival_home"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <SATSurvivalHomepage />
+                            <SATSurvivalHomepage/>
                         </Suspense>
                     }
                 />
@@ -196,7 +199,7 @@ function Router() {
                     path="/sat_survival"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <SATSurvivalPage />
+                            <SATSurvivalPage/>
                         </Suspense>
                     }
                 />
@@ -204,7 +207,7 @@ function Router() {
                     path="/ranking"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <RankingPage />
+                            <RankingPage/>
                         </Suspense>
                     }
                 />
@@ -212,7 +215,7 @@ function Router() {
                     path="/bot_training"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <BotTrainingPage />
+                            <BotTrainingPage/>
                         </Suspense>
                     }
                 />
@@ -220,7 +223,7 @@ function Router() {
                     path="/bot_training/start"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <BotGamePage />
+                            <BotGamePage/>
                         </Suspense>
                     }
                 />
@@ -229,7 +232,7 @@ function Router() {
                     path="/profile"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <ProfilePage />
+                            <ProfilePage/>
                         </Suspense>
                     }
                 />
@@ -237,7 +240,7 @@ function Router() {
                     path="/profile/:userId"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <ProfilePage />
+                            <ProfilePage/>
                         </Suspense>
                     }
                 />
@@ -246,7 +249,7 @@ function Router() {
                     path="/tournaments"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentListPage />
+                            <TournamentListPage/>
                         </Suspense>
                     }
                 />
@@ -254,7 +257,7 @@ function Router() {
                     path="/tournaments/info"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentPage />
+                            <TournamentPage/>
                         </Suspense>
                     }
                 />
@@ -262,7 +265,7 @@ function Router() {
                     path="/tournament/:tournamentId"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentDetailPage />
+                            <TournamentDetailPage/>
                         </Suspense>
                     }
                 />
@@ -270,7 +273,7 @@ function Router() {
                     path="/tournament/:tournamentId/questions"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentQuestionPage />
+                            <TournamentQuestionPage/>
                         </Suspense>
                     }
                 />
@@ -278,7 +281,7 @@ function Router() {
                     path="/create_tournament"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <CreateTournamentPage />
+                            <CreateTournamentPage/>
                         </Suspense>
                     }
                 />
@@ -286,7 +289,7 @@ function Router() {
                     path="/my_tournaments"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <MyTournamentsPage />
+                            <MyTournamentsPage/>
                         </Suspense>
                     }
                 />
@@ -295,7 +298,7 @@ function Router() {
                     path="/shop"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <ShopPage />
+                            <ShopPage/>
                         </Suspense>
                     }
                 />
@@ -303,7 +306,7 @@ function Router() {
                     path="/house"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <HousePage />
+                            <HousePage/>
                         </Suspense>
                     }
                 />
@@ -311,7 +314,7 @@ function Router() {
                     path="/town"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <CollegeTownPage />
+                            <CollegeTownPage/>
                         </Suspense>
                     }
                 />
@@ -320,7 +323,7 @@ function Router() {
                     path="/admin"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <AdminHomepage />
+                            <AdminHomepage/>
                         </Suspense>
                     }
                 />
@@ -328,7 +331,7 @@ function Router() {
                     path="/admin/questions"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionListPage />
+                            <QuestionListPage/>
                         </Suspense>
                     }
                 />
@@ -336,7 +339,7 @@ function Router() {
                     path="/admin/create_question"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionEditorPage />
+                            <QuestionEditorPage/>
                         </Suspense>
                     }
                 />
@@ -344,7 +347,7 @@ function Router() {
                     path="/admin/edit_question/:id"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionEditorPage />
+                            <QuestionEditorPage/>
                         </Suspense>
                     }
                 />
@@ -352,7 +355,7 @@ function Router() {
                     path="/admin/create_tournament"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <AdminCreateTournamentPage />
+                            <AdminCreateTournamentPage/>
                         </Suspense>
                     }
                 />
@@ -361,7 +364,7 @@ function Router() {
                     path="/duels"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <SATDuelHomePage />
+                            <SATDuelHomePage/>
                         </Suspense>
                     }
                 />
@@ -369,11 +372,36 @@ function Router() {
                     path="/waiting-room/:gameId"
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
-                            <WaitingRoomPage />
+                            <WaitingRoomPage/>
+                        </Suspense>
+                    }
+                />
+
+                <Route
+                    path="/practice_test"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <PracticeTestPage/>
                         </Suspense>
                     }
                 />
             </Route>
+            <Route
+                path="/full_length_test"
+                element={
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <TestPage/>
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/test_result"
+                element={
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <TestResultPage/>
+                    </Suspense>
+                }
+            />
         </Routes>
     );
 }
