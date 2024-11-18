@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Divider } from 'antd';
+import { Typography } from 'antd';
 import QuestionNavigation from './QuestionNavigation';
 
 const { Title, Text } = Typography;
