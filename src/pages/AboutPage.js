@@ -161,7 +161,7 @@ function AboutPage() {
                                 </IconWrapper>
                                 <Title level={3}>Our Story</Title>
                                 <Paragraph>
-                                    Founded in 2023, we set out to create a platform that makes SAT preparation not just
+                                    Founded in June 2024, we set out to create a platform that makes SAT preparation not just
                                     effective, but also engaging and fun.
                                 </Paragraph>
                             </StyledCard>
@@ -284,7 +284,7 @@ function AboutPage() {
                             <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="100">
                                 <StyledCard>
                                     <Title level={4}>What is the best way to contact you?</Title>
-                                    <Paragraph>You can contact us using the form above or via email at contact@oursite.com.</Paragraph>
+                                    <Paragraph>You can contact us using the form above or via email at satduel@gmail.com</Paragraph>
                                 </StyledCard>
                             </Col>
                             <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="200">
