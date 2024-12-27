@@ -1,8 +1,7 @@
 import React from 'react';
-import { Card, Typography, Space, Tag, Button, Tooltip, Progress } from 'antd';
+import { Card, Typography, Space, Button, Tooltip, Progress } from 'antd';
 import { 
-    TrophyOutlined, 
-    TeamOutlined, 
+    TeamOutlined,
     ClockCircleOutlined,
     RightOutlined 
 } from '@ant-design/icons';
