@@ -42,30 +42,6 @@ const StyledContent = styled(Content)`
     background: #ffffff;
 `;
 
-const CTAButton = styled(Button)`
-    height: 44px;
-    padding: 6px 24px;
-    border-radius: 8px;
-    font-size: 16px;
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.045);
-    transition: all 0.3s;
-
-    &:hover {
-        transform: translateY(-2px);
-    }
-`;
-
-const StyledCard = styled(Card)`
-    height: 100%;
-    border-radius: 8px;
-    transition: all 0.3s;
-    
-    &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-`;
-
 const InfoCard = styled(Card)`
     background: #f8f9fa;
     border: 1px solid #e8e8e8;
