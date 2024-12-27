@@ -1,13 +1,40 @@
 import React from 'react';
-import { Typography, Card, Button, Row, Col, Layout, Space, Steps } from 'antd';
+import { Typography, Card, Button, Row, Col, Layout, Space, Steps, Tour } from 'antd';
 import { ClockCircleOutlined, BookOutlined, TrophyOutlined, RightOutlined } from '@ant-design/icons';
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
+import { useState, useEffect, useRef } from 'react';
+import {useAuth} from "../../context/AuthContext";
 
 const { Title, Paragraph, Text } = Typography;
 const { Header, Content } = Layout;
 
 const PracticeTestPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [isTourOpen, setIsTourOpen] = useState(false);
+    const diagnosticCardRef = useRef(null);
+    const {user} = useAuth();
+
+    useEffect(() => {
+        // Show tour if user is new, coming from goal setting, or if it's their first login
+        const shouldShowTour = 
+            !user || 
+            location.state?.fromGoalSetting || 
+            location.state?.isNewUser ||
+            user?.is_first_login;
+
+        setIsTourOpen(shouldShowTour);
+    }, [location, user]);
+
+    const tourSteps = [
+        {
+            title: 'Start Your Journey!',
+            description: 'Take our free diagnostic test to get an initial assessment of your skills. No login required!',
+            target: () => diagnosticCardRef.current,
+            placement: 'right',
+        }
+    ];
+
     const tests = [
         {
             id: 1,
@@ -76,7 +103,12 @@ const PracticeTestPage = () => {
                 <Row gutter={[32, 32]}>
                     {tests.map((test) => (
                         <Col xs={24} md={8} key={test.id}>
-                            <Card hoverable bordered={false} style={{ boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
+                            <Card 
+                                ref={test.id === 1 ? diagnosticCardRef : null}
+                                hoverable 
+                                bordered={false} 
+                                style={{ boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}
+                            >
                                 <Title level={4}>{test.title}</Title>
                                 <Paragraph type="secondary" style={{ marginBottom: 16 }}>{test.description}</Paragraph>
 
@@ -102,6 +134,14 @@ const PracticeTestPage = () => {
                         </Col>
                     ))}
                 </Row>
+
+                <Tour 
+                    open={isTourOpen}
+                    onClose={() => setIsTourOpen(false)}
+                    steps={tourSteps}
+                    mask={true}
+                    type="primary"
+                />
 
                 {/* Instructions Section */}
                 <Card style={{ marginTop: 64, padding: 24, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>

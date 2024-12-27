@@ -310,9 +310,9 @@ const Match = () => {
             } catch (err) {
                 console.error('Error removing online status:', err);
             }
-            if(matching){
-                await handleCancel();
-            }
+            // if(matching){
+            //     await handleCancel();
+            // }
         };
 
         window.addEventListener('beforeunload', removeOnlineStatus);

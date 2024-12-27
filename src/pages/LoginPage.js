@@ -85,7 +85,12 @@ function Login() {
             });
             const refreshToken = response.data.refresh;
             if (response.status === 200) {
-                handleLoginSuccess(userData, response.data.access, refreshToken);
+                login(userData, response.data.access, refreshToken);
+                if (userData.is_first_login) {
+                    navigate('/goal_setting');
+                    return;
+                }
+                navigate('/');
                 console.log("login successful");
             }
         } catch (error) {
@@ -95,11 +100,6 @@ function Login() {
                 setError('An error occurred during login');
             }
         }
-    };
-
-    const handleLoginSuccess = (userData, userToken, refreshToken) => {
-        login(userData, userToken, refreshToken);
-        navigate('/');
     };
 
     return (
@@ -143,7 +143,8 @@ function Login() {
                         </Form.Item>
                         <Form.Item>
                             <div style={formItem}>
-                                <span style={textStyle}>Forgot your password? </span><Link to="/password_reset">Reset Password</Link>
+                                <span style={textStyle}>Forgot your password? </span><Link to="/password_reset">Reset
+                                Password</Link>
                             </div>
                             <div style={formItem}>
                                 <span style={textStyle}>New user? </span><Link to="/register">Create an account!</Link>
