@@ -1,72 +1,170 @@
 import React from 'react';
-import {Card, Button} from 'antd';
-import {CalendarOutlined} from '@ant-design/icons';
-import {Link} from 'react-router-dom';
+import { Card, Typography, Space, Tag, Button, Tooltip, Progress } from 'antd';
+import { 
+    TrophyOutlined, 
+    TeamOutlined, 
+    ClockCircleOutlined,
+    RightOutlined 
+} from '@ant-design/icons';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
-const TournamentCardWrapper = styled(Card)`
-    width: 100%;
+const { Title, Text } = Typography;
+
+const StyledCard = styled(Card)`
     border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s;
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-    color: white;
-
+    border: 1px solid #f0f0f0;
+    background: linear-gradient(135deg, #fff9f0 0%, #fff5e6 100%);
+    transition: all 0.3s ease;
+    height: 100%;
+    
     &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
+`;
 
-    .ant-card-body {
-        padding: 20px;
-    }
+const StatusBadge = styled.div`
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    background: ${props => {
+        switch(props.status) {
+            case 'active':
+                return 'linear-gradient(135deg, #34d399 0%, #059669 100%)';
+            case 'upcoming':
+                return 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)';
+            case 'ended':
+                return 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)';
+            default:
+                return 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)';
+        }
+    }};
+`;
 
-    .ant-card-meta-title {
-        color: white;
-        font-size: 20px;
-        margin-bottom: 10px;
-        white-space: normal; /* Allows wrapping */
-        word-break: break-word; /* Breaks long words if necessary */
-    }
+const MetaItem = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+`;
 
-    .ant-card-meta-description {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 14px;
-
-        p {
-            margin-bottom: 8px;
+const ActionButton = styled(Button)`
+    && {
+        background: linear-gradient(135deg, #2b4c8c 0%, #1a365d 100%) !important;
+        border: none !important;
+        height: 40px;
+        transition: all 0.3s ease;
+        
+        &:hover {
+            opacity: 0.9;
+            transform: scale(1.01);
         }
     }
 `;
 
-
-const CardActions = styled.div`
-    text-align: center;
-    margin-top: 15px;
+const TournamentTitle = styled(Title)`
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #1a365d !important;
+    margin-bottom: 8px !important;
+    
+    &:after {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: linear-gradient(90deg, #2b4c8c 0%, #1a365d 100%);
+        margin-top: 8px;
+        border-radius: 2px;
+    }
 `;
 
-const TournamentCard = ({tournament}) => {
+const TournamentCard = ({ tournament }) => {
+    const navigate = useNavigate();
+    const truncateText = (text, limit = 50) => {
+        if (!text) return '';
+        return text.length > limit ? `${text.substring(0, limit)}...` : text;
+    };
+
+    const getStatusColor = (status) => {
+        switch(status) {
+            case 'active': return '#059669';
+            case 'upcoming': return '#3b82f6';
+            case 'ended': return '#6b7280';
+            default: return '#6b7280';
+        }
+    };
+
+    const handleTournamentEntry = () => {
+        if (tournament.status === 'active') {
+            navigate(`/tournament/${tournament.id}`);
+        }else{
+            navigate(`/tournament/${tournament.id}`);
+        }
+    };
+
     return (
-        <TournamentCardWrapper hoverable>
-            <Card.Meta
-                title={tournament.name}
-                description={
-                    <>
-                        <p>
-                            <CalendarOutlined/> Starts: {new Date(tournament.start_time).toLocaleDateString()}
-                        </p>
-                        <p>
-                            <CalendarOutlined/> Ends: {new Date(tournament.end_time).toLocaleDateString()}
-                        </p>
-                    </>
-                }
-            />
-            <CardActions>
-                <Link to={`/tournament/${tournament.id}`}>
-                    <Button type="primary">Join Tournament</Button>
-                </Link>
-            </CardActions>
-        </TournamentCardWrapper>
+        <StyledCard
+            bodyStyle={{ padding: '24px' }}
+            hoverable
+        >
+            <StatusBadge status={tournament.status}>
+                {(tournament.status || 'active').toUpperCase()}
+            </StatusBadge>
+
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <div>
+                    <TournamentTitle level={4}>
+                        {tournament.name}
+                    </TournamentTitle>
+                    <Tooltip title={tournament.description}>
+                        <Text type="secondary" style={{ 
+                            fontSize: '14px',
+                            display: 'block',
+                            marginBottom: '16px'
+                        }}>
+                            {truncateText(tournament.description)}
+                        </Text>
+                    </Tooltip>
+                </div>
+
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                    <MetaItem>
+                        <TeamOutlined /> 
+                        <Text>{tournament.participants} Participants</Text>
+                    </MetaItem>
+                    <MetaItem>
+                        <ClockCircleOutlined />
+                        <Text>{tournament.duration}</Text>
+                    </MetaItem>
+                    {tournament.progress && (
+                        <Tooltip title={`${tournament.progress}% Complete`}>
+                            <Progress 
+                                percent={tournament.progress} 
+                                showInfo={false}
+                                strokeColor={getStatusColor(tournament.status || 'active')}
+                                size="small"
+                            />
+                        </Tooltip>
+                    )}
+                </Space>
+
+                <ActionButton 
+                    type="primary" 
+                    block
+                    icon={<RightOutlined />}
+                    onClick={handleTournamentEntry}
+                >
+                    {(tournament.status || 'active') === 'upcoming' ? 'Join Waitlist' : 'Enter Tournament'}
+                </ActionButton>
+            </Space>
+        </StyledCard>
     );
 };
 

@@ -1,6 +1,7 @@
 import React, {Suspense} from 'react';
 import {Route, Routes} from "react-router-dom";
 import SecondaryLayout from "../layout/SecondaryLayout";
+import GoalSettingPage from "../pages/GoalSettingPage";
 
 // Lazy load components
 const HomePage = React.lazy(() => import("../pages/HomePage"));
@@ -399,6 +400,15 @@ function Router() {
                 element={
                     <Suspense fallback={<div>Loading...</div>}>
                         <TestResultPage/>
+                    </Suspense>
+                }
+            />
+
+            <Route
+                path="/goal_setting"
+                element={
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <GoalSettingPage/>
                     </Suspense>
                 }
             />
