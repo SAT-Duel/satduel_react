@@ -1,80 +1,57 @@
 import React, {useEffect, useState} from 'react';
-import {Layout, Typography, Row, Col, Button, Divider, Modal, Input, message} from 'antd';
-import {TrophyOutlined, LoginOutlined, InfoCircleOutlined} from '@ant-design/icons';
+import {Layout, Typography, Row, Col, Button, Modal, Input, message, Space, Card, Divider} from 'antd';
+import {TrophyOutlined, LoginOutlined, InfoCircleOutlined, RightOutlined} from '@ant-design/icons';
 import {Link, useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import api from '../components/api';
 import TournamentCard from '../components/Tournament/TournamentCard';
 
 const {Content} = Layout;
-const {Title, Paragraph} = Typography;
+const {Title, Paragraph, Text} = Typography;
 
-const HeroTitle = styled(Title)`
-    font-size: 3.5rem;
-    color: #0B2F7D;
-    margin-bottom: 20px;
+const StyledHeader = styled(Layout.Header)`
+    background: linear-gradient(135deg, #2b4c8c 0%, #1a365d 100%);
+    padding: 60px 20px;
     text-align: center;
-
-    span.sat-duel {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        background: linear-gradient(75deg, #8f73ff 0%, #34acfb 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+    height: auto;
+    position: relative;
+    overflow: hidden;
 `;
 
-const HeroParagraph = styled(Paragraph)`
-    font-size: 1.25rem;
-    color: #4A4A4A;
-    max-width: 700px;
-    margin: 0 auto 40px;
-    text-align: center;
+const HeaderContent = styled.div`
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+`;
+
+const HeaderOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 150%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    z-index: 1;
 `;
 
 const StyledContent = styled(Content)`
-    padding: 60px 20px;
+    padding: 40px 20px;
     max-width: 1200px;
     margin: 0 auto;
-    min-height: 100vh;
+    background: #ffffff;
 `;
 
-const HeaderSection = styled.div`
-    text-align: center;
-    margin-bottom: 30px;
-`;
-
-const CTAButton = styled(Button)`
-    font-size: 16px;
-    height: auto;
-    padding: 10px 20px;
-    border-radius: 8px;
-    background: #7b00ff;
-    border-color: #7b00ff;
-    margin-top: 20px;
-
-    &:hover,
-    &:focus {
-        background: #7a2fc2 !important;
-        border-color: #7a2fc2 !important;
+const InfoCard = styled(Card)`
+    background: #f8f9fa;
+    border: 1px solid #e8e8e8;
+    transition: all 0.3s;
+    height: 100%;
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
-`;
-
-const TournamentListSection = styled.div`
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 30px;
-`;
-
-const StyledDivider = styled(Divider)`
-    border-top: 2px solid #001529;
-    margin: 40px 0;
-`;
-
-const InfoSection = styled.div`
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
 `;
 
 const TournamentListPage = () => {
@@ -131,67 +108,127 @@ const TournamentListPage = () => {
     };
 
     return (
-        <Layout>
-            <StyledContent>
-                <HeaderSection>
-                    <HeroTitle level={1}>
-                        Welcome to <span className="sat-duel">SAT Tournament</span>
-                        <TrophyOutlined style={{marginLeft: '10px'}}/>
-                    </HeroTitle>
-                    <HeroParagraph>
-                        Join SAT Tournaments to compete against students from all over the world.
-                        Test your skills and motivate yourself to become the best!
-                    </HeroParagraph>
-                    <CTAButton
-                        type="primary"
-                        size="large"
-                        icon={<LoginOutlined/>}
-                        onClick={handleJoinTournament}
-                    >
-                        Join Private Tournament
-                    </CTAButton>
-                </HeaderSection>
+        <Layout className="tournament-layout">
+            <StyledHeader>
+                <HeaderContent>
+                    <Title level={1} style={{ 
+                        color: '#ffffff', 
+                        marginBottom: 16, 
+                        fontSize: '2.5rem',
+                        fontWeight: 600 
+                    }}>
+                        SAT Tournament Arena
+                    </Title>
+                    <Paragraph style={{ 
+                        fontSize: 18, 
+                        color: '#ffffff', 
+                        opacity: 0.9,
+                        margin: '0 auto',
+                        maxWidth: '600px'
+                    }}>
+                        Compete with students worldwide, test your skills, and climb the rankings
+                    </Paragraph>
+                </HeaderContent>
+                <HeaderOverlay />
+            </StyledHeader>
 
-                <TournamentListSection>
-                    <Row gutter={[16, 16]} justify="center">
+            <StyledContent>
+                {/* Tournament List Section */}
+                <div style={{ marginBottom: 64 }}>
+                    <div style={{ textAlign: 'center', marginBottom: 40 }}>
+                        <Title level={2} style={{ fontWeight: 600 }}>Available Tournaments</Title>
+                        <Text type="secondary" style={{ fontSize: 16 }}>
+                            Join these competitions to test your skills and compete with others
+                        </Text>
+                    </div>
+
+                    <Row gutter={[24, 24]}>
                         {tournaments.map((tournament) => (
                             <Col xs={24} sm={12} md={8} key={tournament.id}>
-                                <TournamentCard tournament={tournament}/>
+                                <TournamentCard tournament={tournament} />
                             </Col>
                         ))}
                     </Row>
-                </TournamentListSection>
 
-                <StyledDivider/>
+                    <Divider style={{ margin: '40px 0' }} />
+                    
+                    {/* Private Tournament Section */}
+                    <div style={{ textAlign: 'center', marginBottom: 40 }}>
+                        <Space direction="vertical" size="large" align="center">
+                            <Text>Have a private tournament code?</Text>
+                            <Button 
+                                type="primary"
+                                icon={<LoginOutlined />}
+                                onClick={handleJoinTournament}
+                                size="large"
+                            >
+                                Join Private Tournament
+                            </Button>
+                        </Space>
+                    </div>
+                </div>
 
-                <InfoSection>
-                    <Title level={3}>What are SAT Tournaments?</Title>
-                    <Paragraph style={{fontSize: '16px', lineHeight: '1.6'}}>
-                        SAT Tournaments are competitive events designed to help students prepare for the SAT exam
-                        in a fun and engaging way. Participants can challenge themselves, compete with peers, and
-                        improve their skills through timed quizzes and practice tests.
-                    </Paragraph>
-                    <Link to="/tournaments/info">
-                        <Button type="primary" icon={<InfoCircleOutlined/>} size="large">
-                            Learn More About Tournaments
-                        </Button>
-                    </Link>
-                </InfoSection>
+                {/* Info Section */}
+                <div style={{ background: '#fafafa', padding: '48px 24px', borderRadius: '8px' }}>
+                    
+                    <Row gutter={[24, 24]}>
+                        {[
+                            {
+                                title: "Competitive Learning",
+                                description: "Challenge yourself against peers and accelerate your progress",
+                                icon: <TrophyOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                            },
+                            {
+                                title: "Real-Time Rankings",
+                                description: "Track your performance and see how you rank against others",
+                                icon: <InfoCircleOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                            },
+                            {
+                                title: "Detailed Analytics",
+                                description: "Get comprehensive insights into your performance",
+                                icon: <RightOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                            }
+                        ].map((item, index) => (
+                            <Col xs={24} md={8} key={index}>
+                                <InfoCard>
+                                    <Space direction="vertical" size="middle">
+                                        {item.icon}
+                                        <Title level={4} style={{ marginTop: 0 }}>{item.title}</Title>
+                                        <Text type="secondary">{item.description}</Text>
+                                    </Space>
+                                </InfoCard>
+                            </Col>
+                        ))}
+                    </Row>
 
-                {/* Join Code Modal */}
+                    <div style={{ textAlign: 'center', marginTop: 40 }}>
+                        <Link to="/tournaments/info">
+                            <Button type="primary" icon={<RightOutlined />}>
+                                Learn More About Tournaments
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Keep existing Modal */}
                 <Modal
-                    title="Enter Join Code"
+                    title="Join Private Tournament"
                     visible={joinCodeModalVisible}
                     onOk={handleJoinCodeSubmit}
                     onCancel={handleJoinCodeCancel}
-                    okText="Join"
+                    okText="Join Tournament"
                     cancelText="Cancel"
                 >
-                    <Input
-                        placeholder="Enter the tournament join code"
-                        value={joinCode}
-                        onChange={(e) => setJoinCode(e.target.value)}
-                    />
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Text>Enter the tournament code provided by your instructor:</Text>
+                        <Input
+                            size="large"
+                            placeholder="Enter tournament code"
+                            value={joinCode}
+                            onChange={(e) => setJoinCode(e.target.value)}
+                            style={{ marginTop: 12 }}
+                        />
+                    </Space>
                 </Modal>
             </StyledContent>
         </Layout>
