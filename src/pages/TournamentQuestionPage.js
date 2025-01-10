@@ -6,7 +6,7 @@ import {useNavigate, useParams} from 'react-router-dom';
 import {Button, message, Modal, Drawer} from 'antd';
 import {ExclamationCircleOutlined, MenuOutlined} from '@ant-design/icons';
 import Question from '../components/Question';
-import Leaderboard from '../components/TournamentLeaderboard';
+import Leaderboard from '../components/Tournament/TournamentLeaderboard';
 import TournamentInfo from '../components/Tournament/TournamentInfo';
 import {useMediaQuery} from 'react-responsive';
 
