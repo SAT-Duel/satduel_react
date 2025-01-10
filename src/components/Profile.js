@@ -5,6 +5,7 @@ import { Card, Form, Input, Button, message, Row, Col, Statistic } from "antd";
 import { UserOutlined, TrophyOutlined, FireOutlined, DollarOutlined, StarOutlined, RiseOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
+
 const gradientStyle = {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     color: 'white'
@@ -36,7 +37,8 @@ function Profile({ user_id = null }) {
         },
         biography: '',
         grade: '',
-        max_streak: ''
+        max_streak: '',
+        elo_rating: ''
     });
     const [statistics, setStatistics] = useState({
         coins: 0,
@@ -184,6 +186,14 @@ function Profile({ user_id = null }) {
                             title={<span style={whiteTextStyle}>Survival Max Streak</span>}
                             value={profile.max_streak}
                             prefix={<FireOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+                            valueStyle={whiteTextStyle}
+                        />
+                    </Col>
+                    <Col span={12}>
+                        <Statistic
+                            title={<span style={whiteTextStyle}>User Elo</span>}
+                            value={profile.elo_rating}
+                            prefix={<RiseOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
