@@ -48,6 +48,7 @@ function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
     const {login, loading, user} = useAuth();
 
@@ -58,12 +59,15 @@ function Login() {
     }, [user, navigate, loading]);
 
     const handleLogin = async () => {
+        setIsSubmitting(true);
         let userData = null;
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const response = await axios.post(`${baseUrl}/api/login/`, {
                 username,
-                password
+                password,
+                timezone: userTimezone
             });
             if (response.status === 200) {
                 userData = response.data;
@@ -75,6 +79,7 @@ function Login() {
             } else {
                 setError('An error occurred during login');
             }
+            setIsSubmitting(false);
             return;
         }
         try {
@@ -99,6 +104,7 @@ function Login() {
             } else {
                 setError('An error occurred during login');
             }
+            setIsSubmitting(false);
         }
     };
 
@@ -137,7 +143,13 @@ function Login() {
                         {error && <p style={errorStyle}>{error}</p>}
 
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" style={{width: '100%'}}>
+                            <Button 
+                                type="primary" 
+                                htmlType="submit" 
+                                style={{width: '100%'}}
+                                loading={isSubmitting}
+                                disabled={isSubmitting}
+                            >
                                 Login
                             </Button>
                         </Form.Item>

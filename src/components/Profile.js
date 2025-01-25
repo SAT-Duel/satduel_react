@@ -36,16 +36,18 @@ function Profile({ user_id = null }) {
         },
         biography: '',
         grade: '',
-        max_streak: ''
+        max_streak: '',
+        elo_rating: '', // Duel Elo
+        sp_elo_rating: '', // Singleplayer Elo
     });
     const [statistics, setStatistics] = useState({
         coins: 0,
         xp: 0,
         level: 0,
-        total_multiplier: 1.0 
+        total_multiplier: 1.0
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
-    const [form] = Form.useForm(); // Create form instance
+    const [form] = Form.useForm();
     const { token, loading, user } = useAuth();
     const navigate = useNavigate();
     const isOwnProfile = user_id === null;
@@ -178,12 +180,29 @@ function Profile({ user_id = null }) {
                         />
                     </Col>
                 </Row>
-                <Row gutter={16} style={{ marginTop: '20px' }}>
+            </Card>
+
+            {/* Elo Ratings Card */}
+            <Card
+                title={<span style={whiteTextStyle}>Elo Ratings</span>}
+                loading={loadingProfile}
+                style={{ ...cardStyle, ...gradientStyle }}
+                headStyle={{ ...gradientStyle, borderBottom: 'none' }}
+            >
+                <Row gutter={16}>
                     <Col span={12}>
                         <Statistic
-                            title={<span style={whiteTextStyle}>Survival Max Streak</span>}
-                            value={profile.max_streak}
-                            prefix={<FireOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+                            title={<span style={whiteTextStyle}>Duel Elo</span>}
+                            value={profile.elo_rating}
+                            prefix={<RiseOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+                            valueStyle={whiteTextStyle}
+                        />
+                    </Col>
+                    <Col span={12}>
+                        <Statistic
+                            title={<span style={whiteTextStyle}>Singleplayer Elo</span>}
+                            value={profile.sp_elo_rating}
+                            prefix={<RiseOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
