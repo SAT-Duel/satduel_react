@@ -8,6 +8,7 @@ import {useAuth} from "../../context/AuthContext";
 const { Title, Paragraph, Text } = Typography;
 const { Header, Content } = Layout;
 
+//TODO: After the user clicks the "Finish" button, is_first_login should be set to false
 const PracticeTestPage = () => {
     const navigate = useNavigate();
     const location = useLocation();

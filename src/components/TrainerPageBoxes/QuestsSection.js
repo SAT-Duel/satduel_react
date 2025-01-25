@@ -1,52 +1,85 @@
-import React, { useEffect, useState } from 'react';
-import { Layout, Typography, Card, Progress, Button, message } from 'antd';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import React, {useEffect, useState} from 'react';
+import {Typography, message, Empty, Spin} from 'antd';
+import {useAuth} from '../../context/AuthContext';
+import QuestCard from './QuestCard';
+import api from "../api";
 
-const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+const {Title} = Typography;
 
-const WeeklyQuest = () => {
-  const { token } = useAuth();
-  const [questProgress, setQuestProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
+const QuestsSection = () => {
+    const {token} = useAuth();
+    const [quests, setQuests] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchQuestProgress = async () => {
-      try {
-        const baseUrl = process.env.REACT_APP_API_URL;
-        const response = await axios.get(`${baseUrl}/api/weekly_quest/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setQuestProgress(response.data.progress);
-        setLoading(false);
-      } catch (error) {
-        message.error('Failed to load quest progress');
-        setLoading(false);
-      }
+    const fetchQuests = async () => {
+        try {
+            const response = await api.get(`api/quests/`);
+            setQuests(response.data);
+            console.log(response.data);
+            setLoading(false);
+        } catch (error) {
+            message.error('Failed to load quests');
+            setLoading(false);
+        }
     };
 
-    if (token) {
-      fetchQuestProgress();
-    }
-  }, [token]);
+    const handleClaimReward = async (questId) => {
+        //TODO: After the reward is claimed, refresh the coin section. Could add some animations to make it look cool.
+        try {
+            await api.post(
+                `api/quests/claim_reward/`,
+                {quest_id: questId}
+            );
+            console.log(questId);
+            message.success('Reward claimed successfully!');
+            setQuests(quests.filter(quest => quest.id !== questId));
 
-  return (
-    <Layout>
-      <Content style={{ padding: '30px 20px', maxWidth: '800px', margin: '0 auto' }}>
-        <Card loading={loading} style={{ borderRadius: '15px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}>
-          <Title level={3}>Weekly Quest</Title>
-          <Paragraph>Complete 100 questions within the week!</Paragraph>
-          <Progress percent={questProgress} status="active" />
-          <Button type="primary" style={{ marginTop: '20px' }} onClick={() => message.info('Keep going!')}>
-            Check Progress
-          </Button>
-        </Card>
-      </Content>
-    </Layout>
-  );
+        } catch (error) {
+            message.error('Failed to claim reward');
+        }
+    };
+
+    useEffect(() => {
+        if (token) {
+            fetchQuests();
+        }
+    }, [token]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (token) {
+                fetchQuests();
+            }
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, [token]);
+
+    return (
+        <div>
+            <Title level={4} style={{marginBottom: 16}}>Quests</Title>
+
+            {loading ? (
+                <div style={{textAlign: 'center', padding: '20px'}}>
+                    <Spin size="small"/>
+                </div>
+            ) : quests.length > 0 ? (
+                quests.map(quest => (
+                    <QuestCard
+                        key={quest.id}
+                        quest={quest}
+                        onClaimReward={handleClaimReward}
+                    />
+                ))
+            ) : (
+                <Empty
+                    description="No active quests"
+                    style={{margin: '20px 0'}}
+                    imageStyle={{height: 40}}
+                />
+            )}
+        </div>
+    );
 };
 
-export default WeeklyQuest;
+export default QuestsSection;

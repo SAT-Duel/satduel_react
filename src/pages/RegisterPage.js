@@ -36,6 +36,7 @@ const errorStyle = {
 
 function Register() {
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
     const {loading, user} = useAuth();
 
@@ -46,6 +47,7 @@ function Register() {
     }, [user, navigate, loading]);
 
     const handleSubmit = async (values) => {
+        setIsSubmitting(true);
         // Google Analytics event tracking
         if (window.gtag) {
             window.gtag('event', 'sign_up', {
@@ -58,6 +60,7 @@ function Register() {
 
         if (values.password !== values.confirmPassword) {
             setError('Passwords do not match');
+            setIsSubmitting(false);
             return;
         }
 
@@ -80,6 +83,7 @@ function Register() {
             const errors = error.response?.data || {error: 'An error occurred'};
             const errorList = Object.values(errors).flat();
             errorList.forEach((error) => message.error(error));
+            setIsSubmitting(false);
         }
     };
 
@@ -184,7 +188,13 @@ function Register() {
                         {error && <p style={errorStyle}>{error}</p>}
 
                         <Form.Item>
-                            <Button type="primary" htmlType="submit" style={{width: '100%'}}>
+                            <Button 
+                                type="primary" 
+                                htmlType="submit" 
+                                style={{width: '100%'}}
+                                loading={isSubmitting}
+                                disabled={isSubmitting}
+                            >
                                 Register
                             </Button>
                         </Form.Item>

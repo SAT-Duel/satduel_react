@@ -8,7 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
 import styled from 'styled-components';
-import TournamentLeaderboard from '../components/TournamentLeaderboard';
+import TournamentLeaderboard from '../components/Tournament/TournamentLeaderboard';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
