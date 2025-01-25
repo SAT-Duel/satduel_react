@@ -93,7 +93,7 @@ function SATSurvivalPage() {
     const handleQuestionSubmit = async (id, choice) => {
         try {
             const baseUrl = process.env.REACT_APP_API_URL;
-            const response = await axios.post(`${baseUrl}/api/check_answer/`, {
+            const response = await api.post(`${baseUrl}/api/check_answer/`, {
                 question_id: id,
                 selected_choice: choice
             });

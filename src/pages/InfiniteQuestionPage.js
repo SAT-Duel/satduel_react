@@ -315,7 +315,7 @@ function InfiniteQuestionsPage() {
     const handleQuestionSubmit = async (id, choice) => {
         if (isFinished) return;
         try {
-            const response = await api.post(`${baseUrl}/api/check_answer/`, {
+            const response = await api.post(`api/check_answer/`, {
                 question_id: id,
                 selected_choice: choice
             });

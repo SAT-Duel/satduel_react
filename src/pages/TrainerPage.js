@@ -14,6 +14,7 @@ import ProfileSectionComponent from '../components/TrainerPageBoxes/ProfileSecti
 import OverviewBox from '../components/TrainerPageBoxes/OverviewBox';
 import PetsSection from '../components/TrainerPageBoxes/PetsSection';
 import withAuth from "../hoc/withAuth";
+import QuestsSection from '../components/TrainerPageBoxes/QuestsSection';
 
 const {Content} = Layout;
 
@@ -79,10 +80,12 @@ const TrainerPage = () => {
 
                     <Divider/>
 
-                    {/* Quests Section */}
-                    {/*<WeeklyQuest/>*/}
+                    {/* Add Quests Section here */}
+                    <RightPanelSubSection>
+                        <QuestsSection/>
+                    </RightPanelSubSection>
 
-                    {/*<Divider/>*/}
+                    <Divider/>
 
                     {/* Pets Section */}
                     <PetsSection/>
