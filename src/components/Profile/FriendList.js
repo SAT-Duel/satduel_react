@@ -2,10 +2,10 @@ import React, {useState, useEffect} from 'react';
 import styled from 'styled-components';
 import {List, Card, message} from 'antd';
 import axios from 'axios';
-import {useAuth} from '../context/AuthContext';
+import {useAuth} from '../../context/AuthContext';
 import {Link} from 'react-router-dom';
-import FriendRequest from './FriendRequest';
-import SearchUser from './SearchUser';
+import FriendRequest from '../FriendRequest';
+import SearchUser from '../SearchUser';
 
 const Container = styled.div`
     background-color: #f0f2f5;

@@ -1,13 +1,13 @@
 import React, {useEffect} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import Profile from "../components/Profile";
+import Profile from "../components/Profile/Profile";
 import {Tabs, Card, message} from "antd";
-import FriendList from "../components/FriendList";
-import BattleHistory from "../components/BattleHistory";
-import Inventory from "../components/Inventory";
+import FriendList from "../components/Profile/FriendList";
+import BattleHistory from "../components/Profile/BattleHistory";
+import Inventory from "../components/Profile/Inventory";
 import {useAuth} from "../context/AuthContext";
 import { ShoppingCart } from 'lucide-react';
-import TournamentHistory from "../components/TournamentHistory";
+import TournamentHistory from "../components/Profile/TournamentHistory";
 
 const {TabPane} = Tabs;
 
@@ -29,12 +29,12 @@ const containerStyle = {
     minHeight: '100vh',
 };
 
-
 function ProfilePage() {
     const {userId} = useParams();
     const {token, loading} = useAuth();
     const isOwnProfile = !userId;
     const navigate = useNavigate();
+
 
     useEffect(() => {
         if (!loading && !token) {
@@ -43,44 +43,45 @@ function ProfilePage() {
         }
     }, [navigate, token, loading]);
 
+
     return (
-        <div style={containerStyle}>
-            <Card style={cardStyle}>
-                <Tabs defaultActiveKey="1" type="card" animated={true}>
-                    <TabPane tab={<span style={tabStyle}>Profile</span>} key="1">
-                        <Profile user_id={userId}/>
-                    </TabPane>
-                    <TabPane tab={<span style={tabStyle}>Match History</span>} key="2">
-                        <BattleHistory user_id={userId}/>
-                    </TabPane>
-                    {isOwnProfile && (
-                        <TabPane tab={<span style={tabStyle}>Friends</span>} key="3">
-                            <FriendList/>
+            <div style={containerStyle}>
+                <Card style={cardStyle}>
+                    <Tabs defaultActiveKey="1" type="card" animated={true}>
+                        <TabPane tab={<span style={tabStyle}>Profile</span>} key="1">
+                            <Profile user_id={userId}/>
                         </TabPane>
-                    )}
-                    {isOwnProfile && (
-                        <TabPane tab={<span style={tabStyle}>Inventory</span>} key="4">
-                            <button
-                                onClick={() => navigate('/shop')}
-                                className="
-                                    inline-flex items-center px-4 py-2
-                                    bg-blue-500 text-white font-semibold rounded-lg
-                                    shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2
-                                    focus:ring-blue-400 focus:ring-opacity-75 transition-colors
-                                "
-                            >
-                                <ShoppingCart className="mr-2" size={20}/>
-                                Visit Shop
-                            </button>
-                            <Inventory/>
+                        <TabPane tab={<span style={tabStyle}>Match History</span>} key="2">
+                            <BattleHistory user_id={userId}/>
                         </TabPane>
-                    )}
-                    <TabPane tab={<span style={tabStyle}>Tournament History</span>} key="5">
-                        <TournamentHistory user_id={userId}/>
-                    </TabPane>
-                </Tabs>
-            </Card>
-        </div>
+                        {isOwnProfile && (
+                            <TabPane tab={<span style={tabStyle}>Friends</span>} key="3">
+                                <FriendList/>
+                            </TabPane>
+                        )}
+                        {isOwnProfile && (
+                            <TabPane tab={<span style={tabStyle}>Inventory</span>} key="4">
+                                <button
+                                    onClick={() => navigate('/shop')}
+                                    className="
+                                        inline-flex items-center px-4 py-2
+                                        bg-blue-500 text-white font-semibold rounded-lg
+                                        shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2
+                                        focus:ring-blue-400 focus:ring-opacity-75 transition-colors
+                                    "
+                                >
+                                    <ShoppingCart className="mr-2" size={20}/>
+                                    Visit Shop
+                                </button>
+                                <Inventory/>
+                            </TabPane>
+                        )}
+                        <TabPane tab={<span style={tabStyle}>Tournament History</span>} key="5">
+                            <TournamentHistory user_id={userId}/>
+                        </TabPane>
+                    </Tabs>
+                </Card>
+            </div>
     );
 }
 

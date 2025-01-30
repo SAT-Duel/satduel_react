@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from "../context/AuthContext";
-import { Card, Form, Input, Button, message, Row, Col, Statistic } from "antd";
-import { UserOutlined, TrophyOutlined, DollarOutlined, StarOutlined, RiseOutlined, ThunderboltOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {useAuth} from "../../context/AuthContext";
+import {Card, Form, Input, Button, message, Row, Col, Statistic} from "antd";
+import {
+    UserOutlined,
+    TrophyOutlined,
+    DollarOutlined,
+    StarOutlined,
+    RiseOutlined,
+    ThunderboltOutlined
+} from '@ant-design/icons';
+import {useNavigate} from 'react-router-dom';
+import api from "../api";
 
 const gradientStyle = {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -28,7 +35,7 @@ const iconStyle = {
     marginRight: '8px'
 };
 
-function Profile({ user_id = null }) {
+function Profile({user_id = null}) {
     const [profile, setProfile] = useState({
         user: {
             username: '',
@@ -48,45 +55,46 @@ function Profile({ user_id = null }) {
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [form] = Form.useForm();
-    const { token, loading, user } = useAuth();
+    const {loading, user} = useAuth();
     const navigate = useNavigate();
     const isOwnProfile = user_id === null;
 
     useEffect(() => {
         const fetchProfile = async () => {
-            if (!token) {
-                return;
-            }
             try {
-                const baseUrl = process.env.REACT_APP_API_URL;
-                const url = isOwnProfile ? `${baseUrl}/api/profile/` : `${baseUrl}/api/profile/view_profile/${user_id}/`;
-                const response = await axios.get(url, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                if (isOwnProfile) {
+                    const response = await api.get(`api/profile/`);
+                    const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
+                    setProfile(prevProfile => ({
+                        ...prevProfile,
+                        ...response.data,
+                        biography: condensedBiography
+                    }));
+                    // Fetch Infinite Questions Statistics
+                    const infiniteStatsResponse = await api.get(`api/infinite_questions_profile/`);
 
-                const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
-                setProfile(prevProfile => ({
-                    ...prevProfile,
-                    ...response.data,
-                    biography: condensedBiography
-                }));
+                    setStatistics(infiniteStatsResponse.data);
 
-                // Fetch Infinite Questions Statistics
-                const infiniteStatsResponse = await axios.get(`${baseUrl}/api/infinite_questions_profile/`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                    setLoadingProfile(false);
 
-                setStatistics(infiniteStatsResponse.data);
+                    // Set form fields after data is fetched
+                    form.setFieldsValue({biography: condensedBiography});
+                }else{
+                    const response = await api.get(`api/profile/view_profile/${user_id}/`);
+                    const profile = response.data.profile;
+                    const statistic = response.data.statistics;
+                    const condensedBiography = profile.biography.replace(/\n+/g, '\n');
+                    setProfile(prevProfile => ({
+                        ...prevProfile,
+                        ...profile,
+                        biography: condensedBiography
+                    }));
 
-                setLoadingProfile(false);
+                    setStatistics(statistic);
 
-                // Set form fields after data is fetched
-                form.setFieldsValue({ biography: condensedBiography });
-
+                    setLoadingProfile(false);
+                    form.setFieldsValue({biography: condensedBiography});
+                }
             } catch (err) {
                 console.error('Error fetching profile:', err);
                 message.error('Failed to load profile');
@@ -94,17 +102,12 @@ function Profile({ user_id = null }) {
             }
         };
         if (!loading) fetchProfile();
-    }, [user_id, token, loading, isOwnProfile, form]);
+    }, [user_id, loading, isOwnProfile, form]);
 
     const onFinish = async (values) => {
         if (!isOwnProfile) return;
         try {
-            const baseUrl = process.env.REACT_APP_API_URL;
-            const response = await axios.patch(`${baseUrl}/api/profile/update_biography/`, values, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await api.patch(`api/profile/update_biography/`, values);
 
             const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
             setProfile(prevProfile => ({
@@ -120,19 +123,13 @@ function Profile({ user_id = null }) {
     };
 
     const sendFriendRequest = async () => {
-        if (!token) {
+        if (!user) {
             message.error('You must be logged in to send friend requests');
             return;
         }
         try {
-            const baseUrl = process.env.REACT_APP_API_URL;
-            await axios.post(`${baseUrl}/api/profile/send_friend_request/`,
-                { to_user_id: user_id },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
+            await api.post(`api/profile/send_friend_request/`,
+                {to_user_id: user_id}
             );
             message.success('Friend request sent.');
         } catch (error) {
@@ -146,28 +143,29 @@ function Profile({ user_id = null }) {
     };
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+        <div style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
             <Card
-                title={<span style={whiteTextStyle}>{isOwnProfile ? "My Profile" : `${profile.user?.username}'s Profile`}</span>}
+                title={<span
+                    style={whiteTextStyle}>{isOwnProfile ? "My Profile" : `${profile.user?.username}'s Profile`}</span>}
                 loading={loadingProfile}
                 extra={!isOwnProfile && (
                     <Button
                         type="primary"
                         onClick={sendFriendRequest}
-                        style={{ ...gradientStyle, border: 'none' }}
+                        style={{...gradientStyle, border: 'none'}}
                     >
                         Add Friend
                     </Button>
                 )}
-                style={{ ...cardStyle, ...gradientStyle }}
-                headStyle={{ ...gradientStyle, borderBottom: 'none' }}
+                style={{...cardStyle, ...gradientStyle}}
+                headStyle={{...gradientStyle, borderBottom: 'none'}}
             >
                 <Row gutter={16}>
                     <Col span={12}>
                         <Statistic
                             title={<span style={whiteTextStyle}>Username</span>}
                             value={profile.user?.username}
-                            prefix={<UserOutlined style={{ ...iconStyle, color: '#1890ff' }} />}
+                            prefix={<UserOutlined style={{...iconStyle, color: '#1890ff'}}/>}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
@@ -175,7 +173,7 @@ function Profile({ user_id = null }) {
                         <Statistic
                             title={<span style={whiteTextStyle}>Grade</span>}
                             value={profile.grade}
-                            prefix={<TrophyOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
+                            prefix={<TrophyOutlined style={{...iconStyle, color: '#FFA500'}}/>}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
@@ -186,15 +184,15 @@ function Profile({ user_id = null }) {
             <Card
                 title={<span style={whiteTextStyle}>Elo Ratings</span>}
                 loading={loadingProfile}
-                style={{ ...cardStyle, ...gradientStyle }}
-                headStyle={{ ...gradientStyle, borderBottom: 'none' }}
+                style={{...cardStyle, ...gradientStyle}}
+                headStyle={{...gradientStyle, borderBottom: 'none'}}
             >
                 <Row gutter={16}>
                     <Col span={12}>
                         <Statistic
                             title={<span style={whiteTextStyle}>Duel Elo</span>}
                             value={profile.elo_rating}
-                            prefix={<RiseOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+                            prefix={<RiseOutlined style={{...iconStyle, color: '#ff4d4f'}}/>}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
@@ -202,7 +200,7 @@ function Profile({ user_id = null }) {
                         <Statistic
                             title={<span style={whiteTextStyle}>Singleplayer Elo</span>}
                             value={profile.sp_elo_rating}
-                            prefix={<RiseOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
+                            prefix={<RiseOutlined style={{...iconStyle, color: '#FFA500'}}/>}
                             valueStyle={whiteTextStyle}
                         />
                     </Col>
@@ -212,17 +210,18 @@ function Profile({ user_id = null }) {
             {/* Infinite Questions Statistics Card */}
             {statistics && (
                 <Card
-                    title={<span style={whiteTextStyle}>{isOwnProfile ? "My Stats" : `${profile.user?.username}'s Stats`}</span>}
+                    title={<span
+                        style={whiteTextStyle}>{isOwnProfile ? "My Stats" : `${profile.user?.username}'s Stats`}</span>}
                     loading={loadingProfile}
-                    style={{ ...cardStyle, ...gradientStyle }}
-                    headStyle={{ ...gradientStyle, borderBottom: 'none' }}
+                    style={{...cardStyle, ...gradientStyle}}
+                    headStyle={{...gradientStyle, borderBottom: 'none'}}
                 >
                     <Row gutter={16}>
                         <Col span={12}>
                             <Statistic
                                 title={<span style={whiteTextStyle}>Coins</span>}
                                 value={statistics.coins}
-                                prefix={<DollarOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+                                prefix={<DollarOutlined style={{...iconStyle, color: '#FFD700'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
                         </Col>
@@ -230,17 +229,17 @@ function Profile({ user_id = null }) {
                             <Statistic
                                 title={<span style={whiteTextStyle}>Level</span>}
                                 value={statistics.level}
-                                prefix={<StarOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+                                prefix={<StarOutlined style={{...iconStyle, color: '#FFD700'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
                         </Col>
                     </Row>
-                    <Row gutter={16} style={{ marginTop: '20px' }}>
+                    <Row gutter={16} style={{marginTop: '20px'}}>
                         <Col span={12}>
                             <Statistic
                                 title={<span style={whiteTextStyle}>XP</span>}
                                 value={statistics.xp}
-                                prefix={<ThunderboltOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+                                prefix={<ThunderboltOutlined style={{...iconStyle, color: '#ff4d4f'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
                         </Col>
@@ -248,7 +247,7 @@ function Profile({ user_id = null }) {
                             <Statistic
                                 title={<span style={whiteTextStyle}>Multiplier</span>}
                                 value={statistics.total_multiplier?.toFixed(2)}
-                                prefix={<RiseOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
+                                prefix={<RiseOutlined style={{...iconStyle, color: '#FFA500'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
                         </Col>
@@ -270,14 +269,14 @@ function Profile({ user_id = null }) {
                         <Form.Item
                             name="biography"
                             rules={[
-                                { required: true, message: 'Please enter your biography' },
-                                { max: 5000, message: 'Biography cannot be longer than 5000 characters' }
+                                {required: true, message: 'Please enter your biography'},
+                                {max: 5000, message: 'Biography cannot be longer than 5000 characters'}
                             ]}
                         >
                             <Input.TextArea
                                 rows={4}
                                 maxLength={5000}
-                                autoSize={{ minRows: 4, maxRows: 10 }}
+                                autoSize={{minRows: 4, maxRows: 10}}
                                 value={profile.biography}
                             />
                         </Form.Item>
@@ -285,7 +284,7 @@ function Profile({ user_id = null }) {
                             <Button
                                 type="primary"
                                 htmlType="submit"
-                                style={{ ...gradientStyle, border: 'none' }}
+                                style={{...gradientStyle, border: 'none'}}
                             >
                                 Update Biography
                             </Button>
@@ -294,7 +293,7 @@ function Profile({ user_id = null }) {
                 </Card>
             )}
 
-            {user?.is_admin && (
+            {user?.is_admin && isOwnProfile &&(
                 <Button
                     type="primary"
                     style={{

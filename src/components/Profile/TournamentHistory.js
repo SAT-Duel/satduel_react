@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, message, Spin, Table, Typography, Empty } from 'antd';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';

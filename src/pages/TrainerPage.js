@@ -3,9 +3,7 @@ import React from 'react';
 import {Layout, Divider} from 'antd';
 import styled from 'styled-components';
 import {useAuth} from '../context/AuthContext';
-// Importing components
-// import WeeklyQuest from '../components/TrainerPageBoxes/QuestsSection';
-// import ModulesBoxComponent from '../components/TrainerPageBoxes/ModulesBox';
+
 
 import HeaderSection from '../components/TrainerPageBoxes/HeaderSection';
 import UserStatisticsCard from '../components/TrainerPageBoxes/UserStatistics';
