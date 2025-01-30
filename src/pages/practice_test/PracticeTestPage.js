@@ -4,6 +4,7 @@ import { ClockCircleOutlined, BookOutlined, TrophyOutlined, RightOutlined, InfoC
 import {useNavigate, useLocation} from "react-router-dom";
 import { useState, useEffect, useRef } from 'react';
 import {useAuth} from "../../context/AuthContext";
+import api from "../../components/api";
 
 const { Title, Paragraph, Text } = Typography;
 const { Header, Content } = Layout;
@@ -14,7 +15,7 @@ const PracticeTestPage = () => {
     const location = useLocation();
     const [isTourOpen, setIsTourOpen] = useState(false);
     const diagnosticCardRef = useRef(null);
-    const {user} = useAuth();
+    const {user, setFirstLogin} = useAuth();
 
     useEffect(() => {
         // Show tour if user is new, coming from goal setting, or if it's their first login
@@ -61,6 +62,24 @@ const PracticeTestPage = () => {
         },
         // Add more tests as needed
     ];
+
+    const handleTourClose = async () => {
+        setIsTourOpen(false);
+        
+        // Only update if user is logged in and it's their first login
+        if (user?.is_first_login) {
+            try {
+                // Update backend
+                await api.post('api/profile/update_first_login/');
+                
+                localStorage.setItem('is_first_login', 'false');
+                // Update user context if needed
+                setFirstLogin();
+            } catch (error) {
+                console.error('Failed to update first login status:', error);
+            }
+        }
+    };
 
     return (
         <Layout className="practice-test-layout">
@@ -294,7 +313,7 @@ const PracticeTestPage = () => {
 
                 <Tour 
                     open={isTourOpen}
-                    onClose={() => setIsTourOpen(false)}
+                    onClose={handleTourClose}
                     steps={tourSteps}
                     mask={true}
                 />

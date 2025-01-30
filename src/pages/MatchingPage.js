@@ -7,6 +7,7 @@ import {UserOutlined, RocketOutlined, LoadingOutlined, TeamOutlined} from '@ant-
 import styled, {keyframes} from 'styled-components';
 import '../styles/Match.css';
 import api from "../components/api"; // Assuming you have a CSS file for custom styles
+import MatchingModal from '../components/Match/MatchingModal';
 
 const {Title, Paragraph} = Typography;
 
@@ -151,7 +152,6 @@ const Match = () => {
     const {token, loading} = useAuth();
     const [matching, setMatching] = useState(false);
     const [roomId, setRoomIdInternal] = useState(null);
-    const [loadingMessage, setLoadingMessage] = useState(sentences[0]);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const navigate = useNavigate();
 
@@ -162,12 +162,7 @@ const Match = () => {
         }
 
         try {
-            const baseUrl = process.env.REACT_APP_API_URL;
-            const response = await axios.get(`${baseUrl}/api/match/`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await api.get(`/api/match/`);
             setRoomIdInternal(response.data.id);
             if (response.data.full === 'true') {
                 setMatching(false);
@@ -184,9 +179,10 @@ const Match = () => {
     };
 
     const handleCancel = useCallback(async () => {
+        if (!roomId) return;
+        
         try {
-            const baseUrl = process.env.REACT_APP_API_URL;
-            await axios.post(`${baseUrl}/api/match/cancel_match/`, {
+            await api.post(`/api/match/cancel_match/`, {
                 room_id: roomId
             });
             setMatching(false);
@@ -197,7 +193,6 @@ const Match = () => {
             message.error(err.response?.data?.error || 'An error occurred while canceling the duel.');
         }
     }, [roomId]);
-
 
     const startMatchingTimeout = () => {
         setTimeout(async () => {
@@ -234,18 +229,6 @@ const Match = () => {
             return () => clearInterval(interval);
         }
     }, [roomId, token, navigate, matching]);
-
-    useEffect(() => {
-        if (matching) {
-            const interval = setInterval(() => {
-                setLoadingMessage((prev) => {
-                    const currentIndex = sentences.indexOf(prev);
-                    return sentences[(currentIndex + 1) % sentences.length];
-                });
-            }, 3000);
-            return () => clearInterval(interval);
-        }
-    }, [matching]);
 
     useEffect(() => {
         const rejoinRoom = async () => {
@@ -333,15 +316,12 @@ const Match = () => {
                     Compete with students worldwide and climb the leaderboards.
                 </HeroParagraph>
 
-                {matching ? (
-                    <div style={{textAlign: 'center', marginBottom: '40px'}}>
-                        <LoadingIcon/>
-                        <Paragraph style={{fontSize: '1.2rem', color: '#4A4A4A'}}>{loadingMessage}</Paragraph>
-                        <CancelButton onClick={handleCancel}>Cancel</CancelButton>
-                    </div>
-                ) : (
-                    <BigButton onClick={handleMatch}>Start a Duel</BigButton>
-                )}
+                <BigButton onClick={handleMatch}>Start a Duel</BigButton>
+
+                <MatchingModal 
+                    visible={matching}
+                    onCancel={handleCancel}
+                />
 
                 {/* Online Users Section */}
                 <OnlineUsersContainer>

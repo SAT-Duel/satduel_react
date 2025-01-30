@@ -32,6 +32,10 @@ export const AuthProvider = ({children}) => {
         }
     };
 
+    const setFirstLogin = async () => {
+        setUser({...user, is_first_login: false});
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const refreshAccessToken = async () => {
         try {
@@ -76,7 +80,7 @@ export const AuthProvider = ({children}) => {
     }, [refreshAccessToken, token]);
 
     return (
-        <AuthContext.Provider value={{user, login, logout, token, loading}}>
+        <AuthContext.Provider value={{user, login, logout, token, loading, setFirstLogin}}>
             {children}
         </AuthContext.Provider>
     );

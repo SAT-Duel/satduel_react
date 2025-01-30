@@ -104,28 +104,32 @@ const goalOptions = [
         score: 1500,
         dailyQuestions: 5,
         weeklyQuestions: 40,
-        gradient: 'linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%)'
+        gradient: 'linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%)',
+        key: 'beginner'
     },
     {
         title: 'Steady Learner',
         score: 1540,
         dailyQuestions: 10,
         weeklyQuestions: 100,
-        gradient: 'linear-gradient(135deg, #e6f2ff 0%, #c3dafe 100%)'
+        gradient: 'linear-gradient(135deg, #e6f2ff 0%, #c3dafe 100%)',
+        key: 'intermediate'
     },
     {
         title: 'Advanced Track',
         score: 1570,
         dailyQuestions: 20,
         weeklyQuestions: 150,
-        gradient: 'linear-gradient(135deg, #f0fff4 0%, #9ae6b4 100%)'
+        gradient: 'linear-gradient(135deg, #f0fff4 0%, #9ae6b4 100%)',
+        key: 'advanced'
     },
     {
         title: 'Expert Challenge',
         score: 1600,
         dailyQuestions: 40,
         weeklyQuestions: 250,
-        gradient: 'linear-gradient(135deg, #fffaf0 0%, #fbd38d 100%)'
+        gradient: 'linear-gradient(135deg, #fffaf0 0%, #fbd38d 100%)',
+        key: 'expert'
     }
 ];
 
@@ -141,7 +145,7 @@ const GoalSettingPage = () => {
         if (selectedGoal) {
             try {
                 await api.post('api/set_goal/', {
-                    goal: selectedGoal.title
+                    goal: selectedGoal.key
                 });
                 navigate('/practice_test', { 
                     state: { 
