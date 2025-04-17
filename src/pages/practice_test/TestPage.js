@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import TestHeader from '../../components/PracticeTest/TestHeader';
 import QuestionContent from "../../components/PracticeTest/QuestionContent";
 import AnswerSection from "../../components/PracticeTest/AnswerSection";
@@ -66,9 +66,9 @@ function TestPage() {
         fetchQuestions();
     }, []);
 
-    const handleSubmit = () => {
+    const handleSubmit = useCallback(() => {
         navigate('/test_result', {state: {questions: questions.questions, selectedAnswers: selectedAnswer}});
-    }
+    }, [navigate, questions.questions, selectedAnswer])
 
     // Countdown timer effect
     useEffect(() => {

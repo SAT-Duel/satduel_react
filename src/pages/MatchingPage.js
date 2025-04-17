@@ -3,8 +3,8 @@ import axios from "axios";
 import {useAuth} from "../context/AuthContext";
 import {useNavigate} from 'react-router-dom';
 import {Button, Row, Col, Typography, Card, message, List, Avatar} from 'antd';
-import {UserOutlined, RocketOutlined, LoadingOutlined, TeamOutlined} from '@ant-design/icons';
-import styled, {keyframes} from 'styled-components';
+import {UserOutlined, RocketOutlined, TeamOutlined} from '@ant-design/icons';
+import styled from 'styled-components';
 import '../styles/Match.css';
 import api from "../components/api"; // Assuming you have a CSS file for custom styles
 import MatchingModal from '../components/Match/MatchingModal';
@@ -95,42 +95,6 @@ const StyledCard = styled(Card)`
     }
 `;
 
-const spin = keyframes`
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-`;
-
-const LoadingIcon = styled(LoadingOutlined)`
-    font-size: 3rem;
-    color: #4C3D97;
-    animation: ${spin} 1s linear infinite;
-    margin-bottom: 20px;
-`;
-
-const CancelButton = styled(Button)`
-    background: #ff4d4f;
-    color: #fff;
-    border: none;
-    font-size: 1.25rem;
-    height: auto;
-    padding: 15px 50px;
-    border-radius: 30px;
-    margin: 20px auto;
-    display: block;
-    transition: all 0.3s ease;
-
-    &:hover {
-        background: #d9363e;
-        color: #fff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(255, 77, 79, 0.2);
-    }
-`;
-
 const OnlineUsersContainer = styled.div`
     margin-top: 60px;
     padding: 20px;
@@ -139,14 +103,6 @@ const OnlineUsersContainer = styled.div`
     margin-left: auto;
     margin-right: auto;
 `;
-
-const sentences = [
-    "Searching for opponents...",
-    "Getting ready for the battle...",
-    "Preparing your duel...",
-    "Almost there...",
-    "Setting up your battle arena..."
-];
 
 const Match = () => {
     const {token, loading} = useAuth();
