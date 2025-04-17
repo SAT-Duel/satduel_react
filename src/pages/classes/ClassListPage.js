@@ -21,10 +21,6 @@ const ClassListPage = () => {
     const [newClassDescription, setNewClassDescription] = useState('');
     const screens = useBreakpoint();
 
-    useEffect(() => {
-        fetchClasses();
-    }, []);
-
     const fetchClasses = async () => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/classes/`, {
@@ -37,6 +33,10 @@ const ClassListPage = () => {
             setLoading(false);
         }
     };
+    
+    useEffect(() => {
+        fetchClasses();
+    }, [fetchClasses]);
 
     const handleJoinClass = async () => {
         try {

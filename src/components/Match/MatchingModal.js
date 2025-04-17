@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Typography, Spin } from 'antd';
+import { Modal, Typography } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 
 const { Text } = Typography;
-
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
 
 const StyledLoadingIcon = styled(LoadingOutlined)`
   font-size: 48px;
