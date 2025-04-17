@@ -6,33 +6,39 @@ import TestNavigation from "../../components/PracticeTest/TestNavigation";
 import api from '../../components/api';
 import {Layout, Spin} from 'antd';
 import ReviewPage from "../../components/PracticeTest/ReviewPage";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 
 const {Content} = Layout;
 
 function TestPage() {
+    const location = useLocation();
+
+    // get the seconds we passed, or default to 600
+    const initialSeconds =
+        location.state?.initialSeconds ?? 600;
+
     const [questions, setQuestions] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     const [loadingQuestions, setLoadingQuestions] = useState(true);
     const [selectedAnswer, setSelectedAnswer] = useState({});
     const [reviewQuestions, setReviewQuestions] = useState([]);
 
+    // Timer state
+    const [timeLeft, setTimeLeft] = useState(initialSeconds);
+    const [hideTimer, setHideTimer] = useState(false);
+
     const hasFetched = useRef(false);
     const navigate = useNavigate();
 
     const getAnsweredQuestions = () => {
-        let answeredQuestions = [];
-        for (let question in selectedAnswer) {
-            if (selectedAnswer[question] !== null) {
-                answeredQuestions.push(parseInt(question));
-            }
-        }
-        return answeredQuestions;
+        return Object.entries(selectedAnswer)
+            .filter(([, val]) => val !== null)
+            .map(([key]) => parseInt(key, 10));
     }
 
-
+    // Fetch questions once
     useEffect(() => {
-        if (hasFetched.current) return
+        if (hasFetched.current) return;
         hasFetched.current = true;
         const fetchQuestions = () => {
             const queryParams = new URLSearchParams({
@@ -56,15 +62,30 @@ function TestPage() {
                     console.error(error);
                     setLoadingQuestions(false);
                 });
-        }
+        };
         fetchQuestions();
     }, []);
 
-    const handelSubmit = () => {
-        // Submit the answers
-        console.log(selectedAnswer);
+    const handleSubmit = () => {
         navigate('/test_result', {state: {questions: questions.questions, selectedAnswers: selectedAnswer}});
     }
+
+    // Countdown timer effect
+    useEffect(() => {
+        const timerId = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timerId);
+                    handleSubmit();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timerId);
+    }, [handleSubmit]);
+
+    const toggleHideTimer = () => setHideTimer(h => !h);
 
     if (loadingQuestions) {
         return (
@@ -74,7 +95,7 @@ function TestPage() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '100vh',
-                backgroundColor: '#f0f2f5' // Optional: Matches Ant Design's default background
+                backgroundColor: '#f0f2f5'
             }}>
                 <Spin size="large" tip="We are loading your test..."/>
             </div>
@@ -83,16 +104,19 @@ function TestPage() {
 
     return (
         <Layout style={{minHeight: '100vh'}}>
-            <TestHeader/>
+            <TestHeader
+                timeLeft={timeLeft}
+                hideTimer={hideTimer}
+                onToggleHide={toggleHideTimer}
+            />
+
+            {/* Question & Answer Sections */}
             {currentQuestion <= questions.total &&
                 <Content style={{
                     display: 'flex',
                     background: '#fff'
                 }}>
-                    <div style={{
-                        width: '50%',
-                        borderRight: '2px solid #f0f0f0'
-                    }}>
+                    <div style={{width: '50%', borderRight: '2px solid #f0f0f0'}}>
                         <QuestionContent question={questions.questions[currentQuestion - 1]}/>
                     </div>
                     <div style={{width: '50%'}}>
@@ -107,6 +131,8 @@ function TestPage() {
                     </div>
                 </Content>
             }
+
+            {/* Review Page */}
             {currentQuestion > questions.total &&
                 <ReviewPage
                     currentQuestion={currentQuestion}
@@ -116,13 +142,14 @@ function TestPage() {
                     answeredQuestions={getAnsweredQuestions()}
                 />
             }
+
             <TestNavigation
                 currentQuestion={currentQuestion}
                 totalQuestions={questions.total}
                 setCurrentQuestion={setCurrentQuestion}
                 reviewQuestions={reviewQuestions}
                 answeredQuestions={getAnsweredQuestions()}
-                handelSubmit={handelSubmit}
+                handelSubmit={handleSubmit}
             />
         </Layout>
     );

@@ -1,40 +1,35 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import Profile from "../components/Profile/Profile";
-import {Tabs, Card, message} from "antd";
+import {Tabs, message} from "antd";
 import FriendList from "../components/Profile/FriendList";
 import BattleHistory from "../components/Profile/BattleHistory";
-import Inventory from "../components/Profile/Inventory";
 import {useAuth} from "../context/AuthContext";
-import { ShoppingCart } from 'lucide-react';
 import TournamentHistory from "../components/Profile/TournamentHistory";
+import styled from 'styled-components';
+import ProfileSidebar from '../components/Profile/ProfileSidebar';
 
-const {TabPane} = Tabs;
+const PageContainer = styled.div`
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    gap: 24px;
+    grid-template-columns: 300px 1fr;
 
-const tabStyle = {
-    fontWeight: '600px',
-    fontSize: '16px',
-};
-
-const cardStyle = {
-    borderRadius: '15px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    margin: '20px auto',
-    maxWidth: '900px',
-};
-
-const containerStyle = {
-    padding: '20px',
-    backgroundColor: '#f0f2f5',
-    minHeight: '100vh',
-};
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+`;
 
 function ProfilePage() {
     const {userId} = useParams();
     const {token, loading} = useAuth();
-    const isOwnProfile = !userId;
     const navigate = useNavigate();
-
+    const [activeTab, setActiveTab] = useState('1');
+    useEffect(() => {
+        setActiveTab('1');
+    }, [userId]);
 
     useEffect(() => {
         if (!loading && !token) {
@@ -44,44 +39,39 @@ function ProfilePage() {
     }, [navigate, token, loading]);
 
 
+    const items = [
+        {
+            key: '1',
+            label: 'Overview',
+            children: <Profile user_id={userId}/>,
+        },
+        {
+            key: '2',
+            label: 'Battle History',
+            children: <BattleHistory user_id={userId}/>,
+        },
+        {
+            key: '3',
+            label: 'Friends',
+            children: <FriendList/>,
+        },
+        {
+            key: '4',
+            label: 'Tournament History',
+            children: <TournamentHistory user_id={userId}/>,
+        },
+    ];
+
     return (
-            <div style={containerStyle}>
-                <Card style={cardStyle}>
-                    <Tabs defaultActiveKey="1" type="card" animated={true}>
-                        <TabPane tab={<span style={tabStyle}>Profile</span>} key="1">
-                            <Profile user_id={userId}/>
-                        </TabPane>
-                        <TabPane tab={<span style={tabStyle}>Match History</span>} key="2">
-                            <BattleHistory user_id={userId}/>
-                        </TabPane>
-                        {isOwnProfile && (
-                            <TabPane tab={<span style={tabStyle}>Friends</span>} key="3">
-                                <FriendList/>
-                            </TabPane>
-                        )}
-                        {isOwnProfile && (
-                            <TabPane tab={<span style={tabStyle}>Inventory</span>} key="4">
-                                <button
-                                    onClick={() => navigate('/shop')}
-                                    className="
-                                        inline-flex items-center px-4 py-2
-                                        bg-blue-500 text-white font-semibold rounded-lg
-                                        shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2
-                                        focus:ring-blue-400 focus:ring-opacity-75 transition-colors
-                                    "
-                                >
-                                    <ShoppingCart className="mr-2" size={20}/>
-                                    Visit Shop
-                                </button>
-                                <Inventory/>
-                            </TabPane>
-                        )}
-                        <TabPane tab={<span style={tabStyle}>Tournament History</span>} key="5">
-                            <TournamentHistory user_id={userId}/>
-                        </TabPane>
-                    </Tabs>
-                </Card>
-            </div>
+        <PageContainer>
+            <ProfileSidebar/>
+            <Tabs
+                activeKey={activeTab}
+                onChange={key => setActiveTab(key)}
+                items={items}
+                style={{background: 'white', padding: '20px', borderRadius: '8px'}}
+            />
+        </PageContainer>
     );
 }
 

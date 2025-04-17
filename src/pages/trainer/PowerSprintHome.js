@@ -42,7 +42,7 @@ const TimerButton = styled(Button)`
     width: calc(50% - 10px);
 `;
 
-function PowerSprintHome({ onStartGame }) {
+function PowerSprintHome() {
     const [difficulty, setDifficulty] = useState('medium');
     const [timerSetting, setTimerSetting] = useState('rapid');
     const [customMinutes, setCustomMinutes] = useState(5);
@@ -75,6 +75,8 @@ function PowerSprintHome({ onStartGame }) {
                 <Title level={2} style={{color: '#4b0082', marginBottom: '30px', textAlign: 'center'}}>
                     PowerSprint Settings
                 </Title>
+                <h1 style={{color: 'red', textAlign: 'center'}}>This feature is still under development (Very bad user experience).</h1>
+                <h2 style={{textAlign: 'center'}}>I don't mind you try it though.</h2>
                 <StyledForm onFinish={handleSubmit} layout="vertical">
                     <Form.Item label="Difficulty" name="difficulty">
                         <Select

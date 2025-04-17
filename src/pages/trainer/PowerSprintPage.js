@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
-import Question from '../components/Question';
+import Question from '../../components/Question';
 import axios from "axios";
 import { useLocation, useNavigate } from 'react-router-dom';
-import api from "../components/api";
+import api from "../../components/api";
 
 const PageContainer = styled.div`
     display: flex;

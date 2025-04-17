@@ -14,14 +14,15 @@ const Match = React.lazy(() => import("../pages/MatchingPage"));
 const DuelBattle = React.lazy(() => import("../pages/DuelBattlePage"));
 const BattleResultPage = React.lazy(() => import("../pages/BattleResultPage"));
 const MatchLoadingPage = React.lazy(() => import("../pages/MatchLoadingPage"));
-const TrainerPage = React.lazy(() => import("../pages/TrainerPage"));
-const InfiniteQuestionPage = React.lazy(() => import("../pages/InfiniteQuestionPage"));
+const TrainerPage = React.lazy(() => import("../pages/trainer/TrainerPage"));
+const InfiniteQuestionPage = React.lazy(() => import("../pages/trainer/InfiniteQuestionPage"));
 const ConfirmEmail = React.lazy(() => import("./ConfirmEmail"));
 const EmailVerificationPage = React.lazy(() => import("../pages/EmailVerificationPage"));
-const PowerSprintHome = React.lazy(() => import("../pages/PowerSprintHome"));
-const PowerSprintPage = React.lazy(() => import("../pages/PowerSprintPage"));
-const SATSurvivalHomepage = React.lazy(() => import("../pages/SATSurvivalHomepage"));
-const SATSurvivalPage = React.lazy(() => import("../pages/SATSurvivalPage"));
+const PowerSprintHome = React.lazy(() => import("../pages/trainer/PowerSprintHome"));
+const PowerSprintPage = React.lazy(() => import("../pages/trainer/PowerSprintPage"));
+const SATSurvivalHomepage = React.lazy(() => import("../pages/trainer/SATSurvivalHomepage"));
+const SATSurvivalPage = React.lazy(() => import("../pages/trainer/SATSurvivalPage"));
+const TimedChallengePage = React.lazy(() => import("../pages/trainer/TimedChallengePage"));
 const TournamentPage = React.lazy(() => import("../pages/TournamentPage"));
 const RankingPage = React.lazy(() => import("../pages/RankingPage"));
 const TournamentListPage = React.lazy(() => import("../pages/TournamentListPage"));
@@ -45,6 +46,7 @@ const MyTournamentsPage = React.lazy(() => import("../pages/MyTournamentsPage"))
 const TestPage = React.lazy(() => import("../pages/practice_test/TestPage"));
 const TestResultPage = React.lazy(() => import("../pages/practice_test/TestResultPage"));
 const PracticeTestPage = React.lazy(() => import("../pages/practice_test/PracticeTestPage"));
+const ClassListPage = React.lazy(() => import("../pages/classes/ClassListPage"));
 
 function Router() {
     return (
@@ -201,6 +203,14 @@ function Router() {
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
                             <SATSurvivalPage/>
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/timed_challenges"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <TimedChallengePage/>
                         </Suspense>
                     }
                 />
@@ -386,7 +396,16 @@ function Router() {
                         </Suspense>
                     }
                 />
+                <Route
+                    path="/classes"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <ClassListPage/>
+                        </Suspense>
+                    }
+                />
             </Route>
+
             <Route
                 path="/full_length_test"
                 element={
