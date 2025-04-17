@@ -1,9 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from "../../context/AuthContext";
-import {Card, Form, Input, Button, message, Row, Col, Statistic} from "antd";
+import {Card, Form, Button, message, Row, Col, Statistic} from "antd";
 import {
-    UserOutlined,
-    TrophyOutlined,
     DollarOutlined,
     StarOutlined,
     RiseOutlined,
@@ -79,7 +77,7 @@ function Profile({user_id = null}) {
 
                     // Set form fields after data is fetched
                     form.setFieldsValue({biography: condensedBiography});
-                }else{
+                } else {
                     const response = await api.get(`api/profile/view_profile/${user_id}/`);
                     const profile = response.data.profile;
                     const statistic = response.data.statistics;
@@ -104,24 +102,6 @@ function Profile({user_id = null}) {
         if (!loading) fetchProfile();
     }, [user_id, loading, isOwnProfile, form]);
 
-    const onFinish = async (values) => {
-        if (!isOwnProfile) return;
-        try {
-            const response = await api.patch(`api/profile/update_biography/`, values);
-
-            const condensedBiography = response.data.biography.replace(/\n+/g, '\n');
-            setProfile(prevProfile => ({
-                ...prevProfile,
-                biography: condensedBiography
-            }));
-
-            message.success('Biography updated successfully');
-        } catch (error) {
-            console.error('Error updating biography:', error);
-            message.error('Failed to update biography');
-        }
-    };
-
     const sendFriendRequest = async () => {
         if (!user) {
             message.error('You must be logged in to send friend requests');
@@ -145,9 +125,10 @@ function Profile({user_id = null}) {
     return (
         <div style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
             <Card
-                title={<span
-                    style={whiteTextStyle}>{isOwnProfile ? "My Profile" : `${profile.user?.username}'s Profile`}</span>}
+                title={<span style={whiteTextStyle}>Elo Ratings</span>}
                 loading={loadingProfile}
+                style={{...cardStyle, ...gradientStyle}}
+                headStyle={{...gradientStyle, borderBottom: 'none'}}
                 extra={!isOwnProfile && (
                     <Button
                         type="primary"
@@ -157,35 +138,6 @@ function Profile({user_id = null}) {
                         Add Friend
                     </Button>
                 )}
-                style={{...cardStyle, ...gradientStyle}}
-                headStyle={{...gradientStyle, borderBottom: 'none'}}
-            >
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Statistic
-                            title={<span style={whiteTextStyle}>Username</span>}
-                            value={profile.user?.username}
-                            prefix={<UserOutlined style={{...iconStyle, color: '#1890ff'}}/>}
-                            valueStyle={whiteTextStyle}
-                        />
-                    </Col>
-                    <Col span={12}>
-                        <Statistic
-                            title={<span style={whiteTextStyle}>Grade</span>}
-                            value={profile.grade}
-                            prefix={<TrophyOutlined style={{...iconStyle, color: '#FFA500'}}/>}
-                            valueStyle={whiteTextStyle}
-                        />
-                    </Col>
-                </Row>
-            </Card>
-
-            {/* Elo Ratings Card */}
-            <Card
-                title={<span style={whiteTextStyle}>Elo Ratings</span>}
-                loading={loadingProfile}
-                style={{...cardStyle, ...gradientStyle}}
-                headStyle={{...gradientStyle, borderBottom: 'none'}}
             >
                 <Row gutter={16}>
                     <Col span={12}>
@@ -255,45 +207,7 @@ function Profile({user_id = null}) {
                 </Card>
             )}
 
-            <Card title="Biography" style={cardStyle}>
-                <p>{profile.biography}</p>
-            </Card>
-
-            {isOwnProfile && (
-                <Card title="Edit Biography" style={cardStyle}>
-                    <Form
-                        form={form}
-                        name="biography"
-                        onFinish={onFinish}
-                    >
-                        <Form.Item
-                            name="biography"
-                            rules={[
-                                {required: true, message: 'Please enter your biography'},
-                                {max: 5000, message: 'Biography cannot be longer than 5000 characters'}
-                            ]}
-                        >
-                            <Input.TextArea
-                                rows={4}
-                                maxLength={5000}
-                                autoSize={{minRows: 4, maxRows: 10}}
-                                value={profile.biography}
-                            />
-                        </Form.Item>
-                        <Form.Item>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                style={{...gradientStyle, border: 'none'}}
-                            >
-                                Update Biography
-                            </Button>
-                        </Form.Item>
-                    </Form>
-                </Card>
-            )}
-
-            {user?.is_admin && isOwnProfile &&(
+            {user?.is_admin && isOwnProfile && (
                 <Button
                     type="primary"
                     style={{

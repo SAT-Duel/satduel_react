@@ -24,7 +24,7 @@ const QuestsSection = () => {
     };
 
     const handleClaimReward = async (questId) => {
-        //TODO: After the reward is claimed, refresh the coin section. Could add some animations to make it look cool.
+        //TODO: After the reward is claimed, refresh the coin section (update coin). Could add some animations to make it look cool.
         try {
             await api.post(
                 `api/quests/claim_reward/`,
@@ -57,10 +57,10 @@ const QuestsSection = () => {
 
     return (
         <div>
-            <Title level={4} style={{marginBottom: 16}}>Quests</Title>
+            <Title level={4} style={{marginBottom: 24}}>Quests</Title>
 
             {loading ? (
-                <div style={{textAlign: 'center', padding: '20px'}}>
+                <div style={{textAlign: 'center', padding: '24px'}}>
                     <Spin size="small"/>
                 </div>
             ) : quests.length > 0 ? (

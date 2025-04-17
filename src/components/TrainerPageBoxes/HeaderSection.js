@@ -1,19 +1,18 @@
 // HeaderSection.js
-
 import React, { useEffect, useState } from 'react';
 import { BellOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const HeaderSectionWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 `;
 
 const GreetingText = styled.div`
-  font-size: 24px;
-  font-weight: bold;
+    font-size: 24px;
+    font-weight: 600;
 `;
 
 const NotificationIcon = styled(BellOutlined)`
