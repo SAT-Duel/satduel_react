@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-    Layout,
-    Button,
-    Space,
-    Typography,
-} from 'antd';
+import {Layout, Button, Space, Typography} from 'antd';
 
 const {Header} = Layout;
 const {Text} = Typography;
@@ -16,7 +11,7 @@ const headerStyles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: '80px',  // Increased height to accommodate the stacked elements
+    height: '80px',
     position: 'relative'
 };
 
@@ -26,9 +21,9 @@ const timerContainerStyles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '8px',  // Increased gap for better spacing
-    top: '50%',  // Center vertically
-    transform: 'translate(-50%, -50%)'  // Center both horizontally and vertically
+    gap: '8px',
+    top: '50%',
+    transform: 'translate(-50%, -50%)'
 };
 
 const sectionTitleStyles = {
@@ -39,7 +34,7 @@ const sectionTitleStyles = {
 const timerStyles = {
     fontSize: '24px',
     fontWeight: 700,
-    lineHeight: '24px'  // Added to control vertical space
+    lineHeight: '24px'
 };
 
 const buttonTextStyles = {
@@ -47,25 +42,28 @@ const buttonTextStyles = {
     fontWeight: 500
 };
 
-const TestHeader = () => {
+const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+const TestHeader = ({timeLeft, hideTimer, onToggleHide}) => {
     return (
         <Header style={headerStyles}>
-            {/* Left section */}
             <Space>
                 <Text strong style={sectionTitleStyles}>
                     Section 1: Reading and Writing
                 </Text>
             </Space>
 
-            {/* Center section - Timer and Hide button */}
             <div style={timerContainerStyles}>
-                <Text strong style={timerStyles}>0:00</Text>
-                <Button type="default" shape="round" size="small">
-                    Hide
+                {!hideTimer && <Text strong style={timerStyles}>{formatTime(timeLeft)}</Text>}
+                <Button type="default" shape="round" size="small" onClick={onToggleHide}>
+                    {hideTimer ? 'Show' : 'Hide'}
                 </Button>
             </div>
 
-            {/* Right section */}
             <Space size="middle">
                 <Button type="text" style={buttonTextStyles}>
                     Highlights & Notes

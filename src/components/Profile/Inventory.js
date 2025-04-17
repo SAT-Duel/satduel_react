@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'antd';
-import Pets from './Inventory_pets';
-import Storage from './Inventory_storage';
+import Pets from '../Inventory_pets';
+import Storage from '../Inventory_storage';
 
 const { TabPane } = Tabs;
 

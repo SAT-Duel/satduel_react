@@ -1,10 +1,10 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import styled from 'styled-components';
 import {Card, Typography, Modal, Button} from 'antd';
-import Question from '../components/Question';
+import Question from '../../components/Question';
 import axios from "axios";
-import {useAuth} from "../context/AuthContext";
-import api from "../components/api";
+import {useAuth} from "../../context/AuthContext";
+import api from "../../components/api";
 
 const {Title, Text} = Typography;
 

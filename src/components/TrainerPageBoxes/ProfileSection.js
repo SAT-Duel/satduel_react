@@ -13,14 +13,14 @@ const ProfileSectionWrapper = styled.div`
 `;
 
 const Avatar = styled.div`
-  background-color: #ccc;
+  background-color: #e0e0e0;
   width: 50px;
   height: 50px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 10px;
+  margin-right: 12px;
 `;
 
 const UserName = styled(Text)`

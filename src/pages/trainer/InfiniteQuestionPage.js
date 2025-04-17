@@ -2,11 +2,12 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import Lottie from 'react-lottie';
-import animationData from '../animations/lootbox.json';
-import {useAuth} from "../context/AuthContext";
-import Question from '../components/Question';
-import withAuth from "../hoc/withAuth";
-import api from '../components/api';
+import animationData from '../../animations/lootbox.json';
+import {useAuth} from "../../context/AuthContext";
+import Question from '../../components/Question';
+import withAuth from "../../hoc/withAuth";
+import api from '../../components/api';
+import {useNavigate} from "react-router-dom";
 
 const PageContainer = styled.div`
     display: flex;
@@ -209,6 +210,7 @@ function InfiniteQuestionsPage() {
     const [canCloseLootbox, setCanCloseLootbox] = useState(false);
 
     const hasFetchedData = useRef(false);
+    const navigate = useNavigate();
 
     const baseUrl = process.env.REACT_APP_API_URL;
 
@@ -488,6 +490,9 @@ function InfiniteQuestionsPage() {
                                     : 'N/A'}
                             </StatValue>
                         </StatItem>
+                        <NextButton onClick={() => navigate('/trainer')}>
+                            Return to Trainer
+                        </NextButton>
                     </SummaryContainer>
                 )}
             </ContentWrapper>

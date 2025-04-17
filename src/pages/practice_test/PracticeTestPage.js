@@ -1,12 +1,13 @@
 import React from 'react';
-import { Typography, Card, Button, Row, Col, Layout, Space, Steps, Tour, Divider, Alert } from 'antd';
-import { ClockCircleOutlined, BookOutlined, TrophyOutlined, RightOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import {Typography, Card, Button, Row, Col, Layout, Space, Steps, Tour, Divider, Alert} from 'antd';
+import {ClockCircleOutlined, BookOutlined, TrophyOutlined, RightOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import {useNavigate, useLocation} from "react-router-dom";
-import { useState, useEffect, useRef } from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {useAuth} from "../../context/AuthContext";
+import api from "../../components/api";
 
-const { Title, Paragraph, Text } = Typography;
-const { Header, Content } = Layout;
+const {Title, Paragraph, Text} = Typography;
+const {Header, Content} = Layout;
 
 //TODO: After the user clicks the "Finish" button, is_first_login should be set to false
 const PracticeTestPage = () => {
@@ -14,13 +15,13 @@ const PracticeTestPage = () => {
     const location = useLocation();
     const [isTourOpen, setIsTourOpen] = useState(false);
     const diagnosticCardRef = useRef(null);
-    const {user} = useAuth();
+    const {user, setFirstLogin} = useAuth();
 
     useEffect(() => {
         // Show tour if user is new, coming from goal setting, or if it's their first login
-        const shouldShowTour = 
-            !user || 
-            location.state?.fromGoalSetting || 
+        const shouldShowTour =
+            !user ||
+            location.state?.fromGoalSetting ||
             location.state?.isNewUser ||
             user?.is_first_login;
 
@@ -46,7 +47,9 @@ const PracticeTestPage = () => {
             difficulty: "Adaptive",
             recommended: true,
             link: '/full_length_test/',
-            tag: 'RECOMMENDED'
+            tag: 'RECOMMENDED',
+            comingSoon: false,
+            time_seconds: 25 * 60
         },
         {
             id: 2,
@@ -57,10 +60,29 @@ const PracticeTestPage = () => {
             difficulty: "Official SAT Level",
             link: '/full_length_test/1',
             tag: 'NEW',
-            comingSoon: true
+            comingSoon: true,
+            time_seconds: 3 * 60 * 60
         },
         // Add more tests as needed
     ];
+
+    const handleTourClose = async () => {
+        setIsTourOpen(false);
+
+        // Only update if user is logged in and it's their first login
+        if (user?.is_first_login) {
+            try {
+                // Update backend
+                await api.post('api/profile/update_first_login/');
+
+                localStorage.setItem('is_first_login', 'false');
+                // Update user context if needed
+                setFirstLogin();
+            } catch (error) {
+                console.error('Failed to update first login status:', error);
+            }
+        }
+    };
 
     return (
         <Layout className="practice-test-layout">
@@ -79,17 +101,17 @@ const PracticeTestPage = () => {
                     maxWidth: '800px',
                     margin: '0 auto'
                 }}>
-                    <Title level={1} style={{ 
-                        color: '#ffffff', 
-                        marginBottom: 16, 
+                    <Title level={1} style={{
+                        color: '#ffffff',
+                        marginBottom: 16,
                         fontSize: '2.5rem',
                         fontWeight: 600
                     }}>
                         SAT Practice Tests
                     </Title>
-                    <Paragraph style={{ 
-                        fontSize: 18, 
-                        color: '#ffffff', 
+                    <Paragraph style={{
+                        fontSize: 18,
+                        color: '#ffffff',
                         opacity: 0.9,
                         margin: '0 auto',
                         maxWidth: '600px'
@@ -106,10 +128,10 @@ const PracticeTestPage = () => {
                     bottom: 0,
                     background: 'radial-gradient(circle at 20% 150%, rgba(255, 255, 255, 0.08) 0%, transparent 50%)',
                     zIndex: 1
-                }} />
+                }}/>
             </Header>
 
-            <Content style={{ 
+            <Content style={{
                 padding: '40px 20px',
                 maxWidth: '1200px',
                 margin: '0 auto',
@@ -122,7 +144,7 @@ const PracticeTestPage = () => {
                         description="We recommend starting with the Diagnostic Test to get your baseline score."
                         type="info"
                         showIcon
-                        style={{ marginBottom: 32 }}
+                        style={{marginBottom: 32}}
                         action={
                             <Button type="primary" size="small">
                                 Take Diagnostic
@@ -132,11 +154,15 @@ const PracticeTestPage = () => {
                 )}
 
                 {/* Features Section - More subtle and professional */}
-                <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
+                <Row gutter={[24, 24]} style={{marginBottom: 48}}>
                     <Col xs={24} md={8}>
-                        <Card hoverable bordered={false} style={{ textAlign: 'center', background: '#ffffff', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-                            <Space direction="vertical" align="center" style={{ width: '100%' }}>
-                                <ClockCircleOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+                        <Card hoverable bordered={false} style={{
+                            textAlign: 'center',
+                            background: '#ffffff',
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            <Space direction="vertical" align="center" style={{width: '100%'}}>
+                                <ClockCircleOutlined style={{fontSize: 48, color: '#1890ff'}}/>
                                 <Title level={4}>Realistic Testing Experience</Title>
                                 <Text type="secondary">
                                     Take full-length tests with the same layout and timing experience as Bluebook.
@@ -146,21 +172,30 @@ const PracticeTestPage = () => {
                     </Col>
 
                     <Col xs={24} md={8}>
-                        <Card hoverable bordered={false} style={{ textAlign: 'center', background: '#ffffff', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-                            <Space direction="vertical" align="center" style={{ width: '100%' }}>
-                                <BookOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+                        <Card hoverable bordered={false} style={{
+                            textAlign: 'center',
+                            background: '#ffffff',
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            <Space direction="vertical" align="center" style={{width: '100%'}}>
+                                <BookOutlined style={{fontSize: 48, color: '#1890ff'}}/>
                                 <Title level={4}>Official Questions</Title>
                                 <Text type="secondary">
-                                    Practice with official SAT questions from Educator Question Bank. © 2024 College Board
+                                    Practice with official SAT questions from Educator Question Bank. © 2024 College
+                                    Board
                                 </Text>
                             </Space>
                         </Card>
                     </Col>
 
                     <Col xs={24} md={8}>
-                        <Card hoverable bordered={false} style={{ textAlign: 'center', background: '#ffffff', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-                            <Space direction="vertical" align="center" style={{ width: '100%' }}>
-                                <TrophyOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+                        <Card hoverable bordered={false} style={{
+                            textAlign: 'center',
+                            background: '#ffffff',
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            <Space direction="vertical" align="center" style={{width: '100%'}}>
+                                <TrophyOutlined style={{fontSize: 48, color: '#1890ff'}}/>
                                 <Title level={4}>Detailed Analytics</Title>
                                 <Text type="secondary">
                                     Get comprehensive score reports and performance analysis
@@ -171,12 +206,12 @@ const PracticeTestPage = () => {
                 </Row>
 
                 {/* Test Selection Section - Enhanced visual hierarchy */}
-                <div style={{ marginBottom: 64 }}>
-                    <div style={{ textAlign: 'center', marginBottom: 40 }}>
-                        <Title level={2} style={{ fontWeight: 600, fontSize: '2rem' }}>
+                <div style={{marginBottom: 64}}>
+                    <div style={{textAlign: 'center', marginBottom: 40}}>
+                        <Title level={2} style={{fontWeight: 600, fontSize: '2rem'}}>
                             Available Practice Tests
                         </Title>
-                        <Text type="secondary" style={{ fontSize: 16 }}>
+                        <Text type="secondary" style={{fontSize: 16}}>
                             Select the test that matches your preparation level
                         </Text>
                     </div>
@@ -184,9 +219,9 @@ const PracticeTestPage = () => {
                     <Row gutter={[24, 24]}>
                         {tests.map((test) => (
                             <Col xs={24} md={12} lg={8} key={test.id}>
-                                <Card 
+                                <Card
                                     ref={test.id === 1 ? diagnosticCardRef : null}
-                                    hoverable 
+                                    hoverable
                                     className={`test-card ${test.recommended ? 'recommended-test' : ''}`}
                                     style={{
                                         height: '100%',
@@ -209,45 +244,52 @@ const PracticeTestPage = () => {
                                         </div>
                                     )}
 
-                                    <Title level={4} style={{ marginBottom: 16 }}>{test.title}</Title>
-                                    <Paragraph type="secondary" style={{ 
+                                    <Title level={4} style={{marginBottom: 16}}>{test.title}</Title>
+                                    <Paragraph type="secondary" style={{
                                         marginBottom: 24,
                                         minHeight: '44px'
                                     }}>
                                         {test.description}
                                     </Paragraph>
 
-                                    <Space direction="vertical" style={{ width: '100%' }}>
+                                    <Space direction="vertical" style={{width: '100%'}}>
                                         <Row justify="space-between" align="middle">
                                             <Col span={12}><Text strong>Duration</Text></Col>
-                                            <Col span={12} style={{ textAlign: 'right' }}>
+                                            <Col span={12} style={{textAlign: 'right'}}>
                                                 <Text>{test.time}</Text>
                                             </Col>
                                         </Row>
-                                        <Divider style={{ margin: '12px 0' }} />
+                                        <Divider style={{margin: '12px 0'}}/>
                                         <Row justify="space-between" align="middle">
                                             <Col span={12}><Text strong>Questions</Text></Col>
-                                            <Col span={12} style={{ textAlign: 'right' }}>
+                                            <Col span={12} style={{textAlign: 'right'}}>
                                                 <Text>{test.questions}</Text>
                                             </Col>
                                         </Row>
-                                        <Divider style={{ margin: '12px 0' }} />
+                                        <Divider style={{margin: '12px 0'}}/>
                                         <Row justify="space-between" align="middle">
                                             <Col span={12}><Text strong>Difficulty</Text></Col>
-                                            <Col span={12} style={{ textAlign: 'right' }}>
+                                            <Col span={12} style={{textAlign: 'right'}}>
                                                 <Text>{test.difficulty}</Text>
                                             </Col>
                                         </Row>
 
-                                        <Button 
+                                        <Button
                                             type={test.recommended ? "primary" : "default"}
-                                            block   
-                                            icon={test.comingSoon ? null : <RightOutlined />}
-                                            style={{ 
+                                            block
+                                            icon={test.comingSoon ? null : <RightOutlined/>}
+                                            style={{
                                                 marginTop: 24,
                                                 height: '40px',
                                             }}
-                                            onClick={() => !test.comingSoon && navigate(test.link)}
+                                            onClick={() => {
+                                                navigate(test.link, {
+                                                    state: {
+                                                        testId: test.id,
+                                                        initialSeconds: test.time_seconds
+                                                    }
+                                                });
+                                            }}
                                             disabled={test.comingSoon}
                                         >
                                             {test.comingSoon ? 'Coming Soon' : 'Start Test'}
@@ -260,18 +302,18 @@ const PracticeTestPage = () => {
                 </div>
 
                 {/* Instructions Section - More visual appeal */}
-                <Card 
-                    style={{ 
+                <Card
+                    style={{
                         marginTop: 48,
                         borderRadius: '8px',
                         background: '#fafafa'
                     }}
                 >
-                    <Space align="start" style={{ marginBottom: 24 }}>
-                        <InfoCircleOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-                        <Title level={3} style={{ margin: 0 }}>Before You Begin</Title>
+                    <Space align="start" style={{marginBottom: 24}}>
+                        <InfoCircleOutlined style={{fontSize: 24, color: '#1890ff'}}/>
+                        <Title level={3} style={{margin: 0}}>Before You Begin</Title>
                     </Space>
-                    
+
                     <Steps
                         direction="vertical"
                         current={-1}
@@ -292,9 +334,9 @@ const PracticeTestPage = () => {
                     />
                 </Card>
 
-                <Tour 
+                <Tour
                     open={isTourOpen}
-                    onClose={() => setIsTourOpen(false)}
+                    onClose={handleTourClose}
                     steps={tourSteps}
                     mask={true}
                 />
