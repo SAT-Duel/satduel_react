@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {Row, Col, Button, Spin, message, Typography, Grid, Empty} from 'antd';
 import {PlusOutlined, SearchOutlined} from '@ant-design/icons';
 import {useAuth} from '../../context/AuthContext';
@@ -21,7 +21,7 @@ const ClassListPage = () => {
     const [newClassDescription, setNewClassDescription] = useState('');
     const screens = useBreakpoint();
 
-    const fetchClasses = async () => {
+    const fetchClasses = useCallback(async () => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/classes/`, {
                 headers: {Authorization: `Bearer ${token}`}
@@ -32,7 +32,7 @@ const ClassListPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
     
     useEffect(() => {
         fetchClasses();
