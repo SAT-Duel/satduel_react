@@ -40,7 +40,7 @@ function TestPage() {
     useEffect(() => {
         if (hasFetched.current) return;
         hasFetched.current = true;
-        const fetchQuestions = () => {
+        const fetchQuestions = async () => {
             const queryParams = new URLSearchParams({
                 type: 'any',
                 difficulty: 'any',
@@ -48,9 +48,10 @@ function TestPage() {
                 page_size: 10,
                 random: true
             }).toString();
-            api.get('api/filter_questions/?' + queryParams)
+            await api.get('api/filter_questions/?' + queryParams)
                 .then(response => {
                     setQuestions(response.data);
+                    console.log(response.data)
                     setLoadingQuestions(false);
                     let initialAnswers = {};
                     for (let i = 1; i <= response.data.total; i++) {
@@ -68,7 +69,7 @@ function TestPage() {
 
     const handleSubmit = useCallback(() => {
         navigate('/test_result', {state: {questions: questions.questions, selectedAnswers: selectedAnswer}});
-    }, [navigate, questions.questions, selectedAnswer])
+    }, [navigate, questions, selectedAnswer])
 
     // Countdown timer effect
     useEffect(() => {
@@ -87,7 +88,7 @@ function TestPage() {
 
     const toggleHideTimer = () => setHideTimer(h => !h);
 
-    if (loadingQuestions) {
+    if (loadingQuestions || !questions) {
         return (
             <div style={{
                 display: 'flex',
