@@ -55,17 +55,16 @@ const QuestionEditorPage = () => {
             setLoading(true);
             const baseUrl = process.env.REACT_APP_API_URL;
             const response = await axios.get(`${baseUrl}/api/get_question/${id}`);
-            const answer = await axios.post(`${baseUrl}/api/get_answer/`, { question_id: id });
             const questionData = {
                 'question': response.data.question,
-                'choice_a': response.data.choices[0],
-                'choice_b': response.data.choices[1],
-                'choice_c': response.data.choices[2],
-                'choice_d': response.data.choices[3],
-                'answer': answer.data.answer_choice,
+                'choice_a': response.data.choice_a,
+                'choice_b': response.data.choice_b,
+                'choice_c': response.data.choice_c,
+                'choice_d': response.data.choice_d,
+                'answer': response.data.answer,
                 'difficulty': response.data.difficulty,
                 'question_type': response.data.question_type,
-                'explanation': answer.data.explanation,
+                'explanation': response.data.explanation,
             };
             form.setFieldsValue(questionData);
             setLoading(false);
