@@ -8,7 +8,7 @@ import emailjs from 'emailjs-com';
 import {useLocation} from "react-router-dom";
 import clement from '../assets/teamphoto/clementzhou.jpg';
 import alex from '../assets/teamphoto/alexjin.jpg';
-import weiwei from '../assets/teamphoto/weiwei.jpg'
+// import weiwei from '../assets/teamphoto/weiwei.jpg'
 import bryan from '../assets/teamphoto/9dc66da09989aebf1037be575264899c.jpg'
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
