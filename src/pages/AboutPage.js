@@ -9,6 +9,7 @@ import {useLocation} from "react-router-dom";
 import clement from '../assets/teamphoto/clementzhou.jpg';
 import alex from '../assets/teamphoto/alexjin.jpg';
 import weiwei from '../assets/teamphoto/weiwei.jpg'
+import bryan from '../assets/teamphoto/9dc66da09989aebf1037be575264899c.jpg'
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -112,11 +113,16 @@ function AboutPage() {
             role: "Co-founder & CTO",
             avatar: alex
         },
+        // {
+        //     name: "Weiwei Luo",
+        //     role: "President & Project Manager",
+        //     avatar: weiwei
+        // },
         {
-            name: "Weiwei Luo",
-            role: "President & Project Manager",
-            avatar: weiwei
-        },
+            name: "Bryan Zhou",
+            role: "Marketing and Finance Management",
+            avatar: bryan,
+        }
     ];
     const form = useRef();
     const onFinish = () => {
