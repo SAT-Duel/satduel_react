@@ -4,7 +4,7 @@ import {useAuth} from "../context/AuthContext";
 
 const fetchOpponentProgress = async ({roomId, token, setOpponentProgress}) => {
     try {
-        const baseUrl = process.env.REACT_APP_API_URL;
+        const baseUrl = import.meta.env.VITE_API_URL;
         const response = await axios.post(`${baseUrl}/api/match/get_opponent_progress/`, {
             room_id: roomId,
         }, {
