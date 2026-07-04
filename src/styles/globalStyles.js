@@ -2,7 +2,7 @@ import {createGlobalStyle} from 'styled-components';
 
 const GlobalStyles = createGlobalStyle`
     body {
-        font-family: 'Arial', sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         margin: 0;
         padding: 0;
         box-sizing: border-box;
@@ -14,9 +14,11 @@ const GlobalStyles = createGlobalStyle`
         margin-top: 0;
     }
 
+    /* Keep links underline-free globally; colors are set per-component so
+       Tailwind utility classes (which live in a cascade layer) aren't
+       overridden by this unlayered rule. */
     a {
         text-decoration: none;
-        color: ${props => props.theme.colors.primary};
     }
 `;
 

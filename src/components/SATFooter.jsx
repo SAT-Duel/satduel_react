@@ -1,53 +1,32 @@
 import React from 'react';
-import { Col, Divider, Layout, Row, Typography, Space } from 'antd';
-import { Link } from 'react-router-dom';
-import { FacebookOutlined, InstagramOutlined, LinkedinOutlined, TwitterOutlined } from "@ant-design/icons";
-import styled from "styled-components";
+import {Link} from 'react-router-dom';
+import logo from '../assets/logo192.png';
 
-const { Footer } = Layout;
-const { Title, Paragraph } = Typography;
+const FooterLink = ({to, children}) => (
+    <Link to={to} className="text-sm text-slate-500 no-underline transition-colors hover:text-primary-600">
+        {children}
+    </Link>
+);
 
-const StyledList = styled('li')`
-    color: rgba(255,255,255,0.65);
-    margin-bottom: 8px;
-`;
-const SATFooter = () => {
-    return (
-        <Footer style={{ textAlign: 'center', background: '#001529', color: 'white', padding: '40px 0' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-                <Row justify="space-between" align="top" gutter={[24, 24]}>
-                    <Col xs={24} sm={8}>
-                        <Title level={4} style={{ color: 'white' }}><Link to="/about#header">About Us</Link></Title>
-                        <Paragraph style={{ color: 'rgba(255,255,255,0.8)' }}>
-                            We're dedicated to helping students achieve their best SAT scores through
-                            innovative and engaging online preparation.
-                        </Paragraph>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Title level={4} style={{ color: 'white' }}>Quick Links</Title>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
-                            <StyledList><Link to="/about#header">About</Link></StyledList>
-                            <StyledList><Link to="/about#contact-us">Contact</Link></StyledList>
-                            <StyledList><Link to="/about#faq">FAQ</Link></StyledList>
-                        </ul>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Title level={4} style={{ color: 'white' }}>Connect With Us</Title>
-                        <Space size="large">
-                            <FacebookOutlined style={{ fontSize: '24px', color: 'white' }} />
-                            <TwitterOutlined style={{ fontSize: '24px', color: 'white' }} />
-                            <InstagramOutlined style={{ fontSize: '24px', color: 'white' }} />
-                            <LinkedinOutlined style={{ fontSize: '24px', color: 'white' }} />
-                        </Space>
-                    </Col>
-                </Row>
-                <Divider style={{ borderColor: 'rgba(255,255,255,0.1)' }} />
-                <Paragraph style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    © 2024 SAT Prep Platform. All rights reserved.
-                </Paragraph>
+const SATFooter = () => (
+    <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:px-6 md:flex-row">
+            <div className="flex items-center gap-2">
+                <img src={logo} alt="SAT Duel logo" className="size-7"/>
+                <span className="font-display text-base font-bold text-slate-900">
+                    SAT<span className="text-primary-600">Duel</span>
+                </span>
             </div>
-        </Footer>
-    );
-};
+            <div className="flex items-center gap-6">
+                <FooterLink to="/about">About</FooterLink>
+                <FooterLink to="/trainer">Practice</FooterLink>
+                <FooterLink to="/tournaments">Tournaments</FooterLink>
+            </div>
+            <p className="m-0 text-sm text-slate-400">
+                © {new Date().getFullYear()} SAT Duel
+            </p>
+        </div>
+    </footer>
+);
 
 export default SATFooter;

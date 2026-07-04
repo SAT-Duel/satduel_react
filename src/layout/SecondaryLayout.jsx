@@ -1,22 +1,17 @@
 import React from 'react';
-import {Layout} from 'antd';
+import {Outlet} from 'react-router-dom';
 import Navbar from "../components/Navbar";
-import { Outlet } from 'react-router-dom';
 import SATFooter from "../components/SATFooter";
-
-const { Header, Content } = Layout;
 
 const SecondaryLayout = () => {
     return (
-        <Layout>
-            <Header className="site-layout-header">
-                <Navbar />
-            </Header>
-            <Content>
-                <Outlet />
-            </Content>
-            <SATFooter />
-        </Layout>
+        <div className="flex min-h-screen flex-col">
+            <Navbar/>
+            <main className="flex-1">
+                <Outlet/>
+            </main>
+            <SATFooter/>
+        </div>
     );
 };
 

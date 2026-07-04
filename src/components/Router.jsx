@@ -4,6 +4,8 @@ import SecondaryLayout from "../layout/SecondaryLayout";
 import GoalSettingPage from "../pages/GoalSettingPage";
 import CompleteProfilePage from "../pages/CompleteProfilePage";
 
+const DiagnosticPage = React.lazy(() => import("../pages/DiagnosticPage"));
+
 // Lazy load components
 const HomePage = React.lazy(() => import("../pages/HomePage"));
 const AboutPage = React.lazy(() => import("../pages/AboutPage"));
@@ -72,6 +74,14 @@ function Router() {
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
                             <RegisterPage/>
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/diagnostic"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <DiagnosticPage/>
                         </Suspense>
                     }
                 />

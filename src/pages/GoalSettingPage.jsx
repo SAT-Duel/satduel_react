@@ -1,204 +1,111 @@
 import React, {useState} from 'react';
-import styled from 'styled-components';
-import {Card, Typography, Button} from 'antd';
-import api from "../components/api";
-import { useNavigate } from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
+import api from '../components/api';
+import {Button} from '../components/ui';
 
-const {Title, Text} = Typography;
-
-const FullScreenContainer = styled.div`
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f0f4f8 0%, #e1e9f0 100%);
-    overflow: hidden;
-    padding: 1rem;
-    box-sizing: border-box;
-`;
-
-const HeaderContainer = styled.div`
-    text-align: center;
-    margin-bottom: 2rem;
-`;
-
-const StyledTitle = styled(Title)`
-    font-size: 3rem !important;
-    font-weight: 900 !important;
-    color: #1a365d;
-    margin-bottom: 0.5rem !important;
-`;
-
-const SubtitleText = styled(Text)`
-    font-size: 1.25rem;
-    color: #4a5568;
-`;
-
-const GoalCardsContainer = styled.div`
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-    width: 100%;
-    max-width: 1400px;
-    justify-content: center;
-    align-items: stretch;
-`;
-
-const StyledCard = styled(Card)`
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-
-    &:hover {
-        transform: scale(1.05);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-    }
-
-    &.selected {
-        border: 3px solid #3182ce;
-        box-shadow: 0 15px 35px rgba(49, 130, 206, 0.2);
-    }
-`;
-
-const CardContent = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    flex-grow: 1;
-`;
-
-const GoalTitle = styled(Title)`
-    color: #2d3748 !important;
-    margin-bottom: 1rem !important;
-`;
-
-const GoalMetrics = styled.div`
-    font-size: 1.1rem;
-    color: #4a5568;
-    text-align: center;
-`;
-
-const ConfirmButton = styled(Button)`
-    margin-top: 2rem;
-    padding: 0.75rem 2rem;
-    font-size: 1.2rem;
-    border-radius: 12px;
-`;
-
-const BoldText = styled("span")`
-    font-weight: bold;
-    color: #16212f;
-`;
-
-const goalOptions = [
+const GOAL_OPTIONS = [
     {
         title: 'Beginner Path',
         score: 1500,
         dailyQuestions: 5,
         weeklyQuestions: 40,
-        gradient: 'linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%)',
-        key: 'beginner'
+        accent: 'border-rose-200 bg-rose-50',
+        key: 'beginner',
     },
     {
         title: 'Steady Learner',
         score: 1540,
         dailyQuestions: 10,
         weeklyQuestions: 100,
-        gradient: 'linear-gradient(135deg, #e6f2ff 0%, #c3dafe 100%)',
-        key: 'intermediate'
+        accent: 'border-sky-200 bg-sky-50',
+        key: 'intermediate',
     },
     {
         title: 'Advanced Track',
         score: 1570,
         dailyQuestions: 20,
         weeklyQuestions: 150,
-        gradient: 'linear-gradient(135deg, #f0fff4 0%, #9ae6b4 100%)',
-        key: 'advanced'
+        accent: 'border-emerald-200 bg-emerald-50',
+        key: 'advanced',
     },
     {
         title: 'Expert Challenge',
         score: 1600,
         dailyQuestions: 40,
         weeklyQuestions: 250,
-        gradient: 'linear-gradient(135deg, #fffaf0 0%, #fbd38d 100%)',
-        key: 'expert'
-    }
+        accent: 'border-amber-200 bg-amber-50',
+        key: 'expert',
+    },
 ];
 
 const GoalSettingPage = () => {
-    const [selectedGoal, setSelectedGoal] = useState(null);
+    const [selected, setSelected] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
     const navigate = useNavigate();
 
-    const handleGoalSelection = (goal) => {
-        setSelectedGoal(goal);
-    };
-
     const handleSubmit = async () => {
-        if (selectedGoal) {
-            try {
-                await api.post('api/set_goal/', {
-                    goal: selectedGoal.key
-                });
-                navigate('/practice_test', { 
-                    state: { 
-                        isNewUser: true,
-                        fromGoalSetting: true 
-                    }
-                });
-            } catch (e) {
-                console.error('Error setting goal:', e);
-            }
+        if (!selected) return;
+        setSubmitting(true);
+        try {
+            await api.post('api/set_goal/', {goal: selected.key});
+            navigate('/practice_test', {
+                state: {isNewUser: true, fromGoalSetting: true},
+            });
+        } catch (e) {
+            setSubmitting(false);
         }
     };
 
     return (
-        <FullScreenContainer>
-            <HeaderContainer>
-                <StyledTitle>Set Your Learning Goal</StyledTitle>
-                <SubtitleText>Choose your dedication level</SubtitleText>
-            </HeaderContainer>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-10">
+            <div className="mb-10 text-center">
+                <h1 className="font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                    Set your learning goal
+                </h1>
+                <p className="mt-2 text-lg text-slate-600">
+                    Choose your dedication level — you can change it anytime.
+                </p>
+            </div>
 
-            <GoalCardsContainer>
-                {goalOptions.map((goal, index) => (
-                    <StyledCard
-                        key={index}
-                        className={selectedGoal === goal ? 'selected' : ''}
-                        style={{
-                            background: goal.gradient,
-                            border: selectedGoal === goal ? '3px solid #3182ce' : 'none'
-                        }}
-                        onClick={() => handleGoalSelection(goal)}
-                    >
-                        <CardContent>
-                            <GoalTitle level={4}>{goal.title}</GoalTitle>
-                            <GoalMetrics>
-                                <div> Aiming for <BoldText>{goal.score}?</BoldText> </div>
-                                <div>{goal.dailyQuestions} Questions Per Day</div>
-                                <div>{goal.weeklyQuestions} Questions Per Week</div>
-                            </GoalMetrics>
-                        </CardContent>
-                    </StyledCard>
-                ))}
-            </GoalCardsContainer>
+            <div className="grid w-full max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {GOAL_OPTIONS.map((goal) => {
+                    const isSelected = selected?.key === goal.key;
+                    return (
+                        <button
+                            key={goal.key}
+                            onClick={() => setSelected(goal)}
+                            className={[
+                                'cursor-pointer rounded-2xl border-2 p-6 text-center transition-all',
+                                goal.accent,
+                                isSelected
+                                    ? 'border-primary-500 shadow-md ring-2 ring-primary-200'
+                                    : 'hover:shadow-md',
+                            ].join(' ')}
+                        >
+                            <h3 className="text-lg font-bold text-slate-900">{goal.title}</h3>
+                            <p className="mt-2 font-display text-2xl font-bold text-primary-700">
+                                {goal.score}
+                            </p>
+                            <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                target score
+                            </p>
+                            <div className="mt-4 space-y-1 text-sm text-slate-600">
+                                <p className="m-0">{goal.dailyQuestions} questions / day</p>
+                                <p className="m-0">{goal.weeklyQuestions} questions / week</p>
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
 
-            {selectedGoal && (
-                <ConfirmButton
-                    type="primary"
-                    size="large"
-                    onClick={handleSubmit}
-                >
-                    Start My Learning Journey
-                </ConfirmButton>
-            )}
-        </FullScreenContainer>
+            <div className="mt-10 h-14">
+                {selected && (
+                    <Button size="lg" loading={submitting} onClick={handleSubmit}>
+                        Start my learning journey
+                    </Button>
+                )}
+            </div>
+        </div>
     );
 };
 

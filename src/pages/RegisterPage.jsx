@@ -1,42 +1,22 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import {Form, Input, Button, Card, Typography, Space, Select, Divider, message} from 'antd';
 import api from '../components/api';
+import {Button, Card, Field, Input, Select, DividerLabel, Alert} from '../components/ui';
 import GoogleLoginButton from '../components/GoogleLogin';
 
-const {Title} = Typography;
-const {Option} = Select;
+const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
-const containerStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    background: '#f0f2f5',
-};
-
-const cardStyle = {
-    width: 400,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    borderRadius: '8px',
-    padding: '20px',
-    backgroundColor: '#ffffff',
-};
-
-const titleStyle = {
-    textAlign: 'center',
-    marginBottom: '20px',
-};
-
-const errorStyle = {
-    color: 'red',
-    textAlign: 'center',
-    whiteSpace: 'pre-wrap',
-};
+const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const USERNAME_RULE = /^[a-zA-Z0-9_]{1,15}$/;
+const NAME_RULE = /^[a-zA-Z0-9\s]+$/;
 
 function Register() {
-    const [error, setError] = useState(null);
+    const [form, setForm] = useState({
+        username: '', email: '', first_name: '', last_name: '',
+        password: '', confirmPassword: '', grade: '',
+    });
+    const [errors, setErrors] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
     const {loading, user} = useAuth();
@@ -47,167 +27,126 @@ function Register() {
         }
     }, [user, navigate, loading]);
 
-    const handleSubmit = async (values) => {
+    const set = (key) => (e) => setForm((f) => ({...f, [key]: e.target.value}));
+
+    const validate = () => {
+        const errs = [];
+        if (!USERNAME_RULE.test(form.username)) {
+            errs.push('Username: up to 15 letters, numbers, or underscores.');
+        }
+        if (!form.email) errs.push('Email is required.');
+        if (!form.first_name || !NAME_RULE.test(form.first_name)) {
+            errs.push('First name is required (English letters only).');
+        }
+        if (!form.last_name || !NAME_RULE.test(form.last_name)) {
+            errs.push('Last name is required (English letters only).');
+        }
+        if (!PASSWORD_RULE.test(form.password)) {
+            errs.push('Password: at least 8 characters with an uppercase letter, a lowercase letter, and a number.');
+        }
+        if (form.password !== form.confirmPassword) {
+            errs.push('Passwords do not match.');
+        }
+        if (!form.grade) errs.push('Please select your grade.');
+        return errs;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const errs = validate();
+        setErrors(errs);
+        if (errs.length) return;
+
         setIsSubmitting(true);
-        // Google Analytics event tracking
         if (window.gtag) {
             window.gtag('event', 'sign_up', {
                 event_category: 'User Interaction',
                 event_label: 'sign_up',
                 value: 1,
             });
-            console.log("triggered");
         }
-
-        if (values.password !== values.confirmPassword) {
-            setError('Passwords do not match');
-            setIsSubmitting(false);
-            return;
-        }
-
-        const payload = {
-            username: values.username,
-            email: values.email,
-            first_name: values.first_name,
-            last_name: values.last_name,
-            password1: values.password,
-            password2: values.confirmPassword,
-            grade: values.grade,
-        };
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL;
-            await api.post(`${baseUrl}/api/register/`, payload);
-            message.success('Registration successful');
-            navigate(`/email_verification/${values.email}`);
-        } catch (error) {
-            const errors = error.response?.data || {error: 'An error occurred'};
-            const errorList = Object.values(errors).flat();
-            errorList.forEach((error) => message.error(error));
+            await api.post('/api/register/', {
+                username: form.username,
+                email: form.email,
+                first_name: form.first_name,
+                last_name: form.last_name,
+                password1: form.password,
+                password2: form.confirmPassword,
+                grade: form.grade,
+            });
+            navigate(`/email_verification/${form.email}`);
+        } catch (err) {
+            const data = err.response?.data || {error: 'An error occurred'};
+            setErrors(Object.values(data).flat());
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div style={containerStyle}>
-            <Card style={cardStyle}>
-                <Space direction="vertical" style={{width: '100%'}}>
-                    <Title level={2} style={titleStyle}>Register</Title>
-                    <Form name="register" onFinish={handleSubmit} netlify>
-                        <Form.Item
-                            name="username"
-                            rules={[
-                                {required: true, message: 'Please input your username!'},
-                                {max: 15, message: 'Username cannot be longer than 15 characters!'},
-                                {
-                                    pattern: /^[a-zA-Z0-9_]+$/,
-                                    message: 'Username can only include letters, numbers, and underscores.'
-                                },
-                            ]}
-                        >
-                            <Input placeholder="Username"/>
-                        </Form.Item>
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 px-4 py-10">
+            <Card className="w-full max-w-md p-8">
+                <h1 className="mb-1 text-center font-display text-2xl font-bold text-slate-900">
+                    Create your account
+                </h1>
+                <p className="mb-6 text-center text-[15px] text-slate-500">
+                    Free forever. Start practicing in a minute.
+                </p>
 
-                        <Form.Item
-                            name="email"
-                            rules={[{required: true, message: 'Please input your email!'}]}
-                        >
-                            <Input type="email" placeholder="Email"/>
-                        </Form.Item>
+                <GoogleLoginButton/>
+                <DividerLabel>or sign up with email</DividerLabel>
 
-                        <Form.Item
-                            name="first_name"
-                            rules={[
-                                {required: true, message: 'Please input your first name!'},
-                                {
-                                    pattern: /^[a-zA-Z0-9\s]+$/, // Allow only English letters and spaces
-                                    message: 'Only English letters are allowed for first names. Sorry for the inconvenience.',
-                                },
-                            ]}
-                        >
-                            <Input placeholder="First Name"/>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="last_name"
-                            rules={[
-                                {required: true, message: 'Please input your last name!'},
-                                {
-                                    pattern: /^[a-zA-Z0-9\s]+$/, // Allow only English letters and spaces
-                                    message: 'Only English letters are allowed for last names. Sorry for the inconvenience.',
-                                },
-                            ]}
-                        >
-                            <Input placeholder="Last Name"/>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="password"
-                            rules={[
-                                {required: true, message: 'Please input your password!'},
-                                {
-                                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
-                                    message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.',
-                                },
-                            ]}
-                        >
-                            <Input.Password placeholder="Password"/>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="confirmPassword"
-                            dependencies={['password']}
-                            rules={[
-                                {required: true, message: 'Please confirm your password!'},
-                                ({getFieldValue}) => ({
-                                    validator(_, value) {
-                                        if (!value || getFieldValue('password') === value) {
-                                            return Promise.resolve();
-                                        }
-                                        return Promise.reject(new Error('Passwords do not match!'));
-                                    },
-                                }),
-                            ]}
-                        >
-                            <Input.Password placeholder="Confirm Password"/>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="grade"
-                            label="Select Grade"
-                            rules={[{required: true, message: 'Please select your grade!'}]}
-                        >
-                            <Select placeholder="Select Grade">
-                                <Option value="<1">{'<1'}</Option>
-                                {[...Array(12)].map((_, i) => (
-                                    <Option key={i + 1} value={i + 1}>{i + 1}</Option>
-                                ))}
-                                <Option value=">12">{'>12'}</Option>
-                            </Select>
-                        </Form.Item>
-
-                        {error && <p style={errorStyle}>{error}</p>}
-
-                        <Form.Item>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                style={{width: '100%'}}
-                                loading={isSubmitting}
-                                disabled={isSubmitting}
-                            >
-                                Register
-                            </Button>
-                        </Form.Item>
-                    </Form>
-
-                    <Divider plain style={{color: 'gray'}}>or</Divider>
-                    <GoogleLoginButton/>
-
-                    <div style={{textAlign: 'center', marginTop: '12px', color: 'gray'}}>
-                        Already have an account? <Link to="/login">Log in</Link>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <Field label="Username">
+                        <Input placeholder="satchampion" value={form.username} onChange={set('username')}/>
+                    </Field>
+                    <Field label="Email">
+                        <Input type="email" placeholder="you@example.com" value={form.email}
+                               autoComplete="email" onChange={set('email')}/>
+                    </Field>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Field label="First name">
+                            <Input placeholder="Alex" value={form.first_name} onChange={set('first_name')}/>
+                        </Field>
+                        <Field label="Last name">
+                            <Input placeholder="Kim" value={form.last_name} onChange={set('last_name')}/>
+                        </Field>
                     </div>
-                </Space>
+                    <Field label="Password">
+                        <Input type="password" placeholder="••••••••" value={form.password}
+                               autoComplete="new-password" onChange={set('password')}/>
+                    </Field>
+                    <Field label="Confirm password">
+                        <Input type="password" placeholder="••••••••" value={form.confirmPassword}
+                               autoComplete="new-password" onChange={set('confirmPassword')}/>
+                    </Field>
+                    <Field label="Grade">
+                        <Select value={form.grade} onChange={set('grade')}>
+                            <option value="" disabled>Select your grade</option>
+                            {GRADES.map((g) => (
+                                <option key={g} value={g}>{g}</option>
+                            ))}
+                        </Select>
+                    </Field>
+
+                    {errors.length > 0 && (
+                        <Alert>
+                            {errors.map((e, i) => <div key={i}>{e}</div>)}
+                        </Alert>
+                    )}
+
+                    <Button type="submit" block loading={isSubmitting}>
+                        Create account
+                    </Button>
+                </form>
+
+                <p className="mt-6 text-center text-sm text-slate-500">
+                    Already have an account?{' '}
+                    <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700">
+                        Log in
+                    </Link>
+                </p>
             </Card>
         </div>
     );
