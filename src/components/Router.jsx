@@ -33,8 +33,6 @@ const CreateTournamentPage = React.lazy(() => import("../pages/CreateTournamentP
 const BotTrainingPage = React.lazy(() => import("../pages/BotTrainingPage"));
 const BotGamePage = React.lazy(() => import("../pages/BotGamePage"));
 const ShopPage = React.lazy(() => import("../pages/ShopPage"));
-const HousePage = React.lazy(() => import("../pages/HousePage"));
-const CollegeTownPage = React.lazy(() => import("../pages/CollegeTownPage"));
 const PasswordResetPage = React.lazy(() => import("../pages/PasswordResetPage"));
 const PasswordResetConfirmPage = React.lazy(() => import("../pages/PasswordResetConfirmPage"));
 const AdminHomepage = React.lazy(() => import("../pages/admin/AdminHomepage"));
@@ -314,23 +312,6 @@ function Router() {
                         </Suspense>
                     }
                 />
-                <Route
-                    path="/house"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <HousePage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/town"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <CollegeTownPage/>
-                        </Suspense>
-                    }
-                />
-
                 <Route
                     path="/admin"
                     element={

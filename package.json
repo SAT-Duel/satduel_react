@@ -9,8 +9,6 @@
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@react-oauth/google": "^0.12.1",
-    "@react-three/drei": "^9.109.5",
-    "@react-three/fiber": "^8.17.5",
     "antd": "^5.19.3",
     "aos": "^2.3.4",
     "axios": "^1.18.1",
@@ -28,7 +26,6 @@
     "react-responsive": "^10.0.0",
     "react-router-dom": "^6.23.0",
     "styled-components": "^6.1.11",
-    "three": "^0.167.1",
     "tsparticles": "^3.5.0",
     "uuid": "^14.0.1"
   },
