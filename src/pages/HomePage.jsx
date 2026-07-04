@@ -1,177 +1,164 @@
-import React, {useRef} from 'react';
-import {
-    Layout,
-    Typography,
-    Row,
-    Col,
-    Card,
-    Divider,
-    Avatar,
-    Rate,
-} from 'antd';
-
-import styled from 'styled-components';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import React from 'react';
 import {Helmet} from 'react-helmet';
-import {Hero} from "../components/HomePage/Hero";
-import {Features} from "../components/HomePage/Features";
-import DiagnosticSection from "../components/HomePage/DiagnosticSection";
-import Stats from "../components/HomePage/Stats";
+import {
+    Swords,
+    Target,
+    LineChart,
+    Trophy,
+    BookOpenCheck,
+    ArrowRight,
+    Zap,
+} from 'lucide-react';
+import {Button, Card, PageContainer} from '../components/ui';
+import {useAuth} from '../context/AuthContext';
 
-const {Content} = Layout;
-const {Title, Paragraph} = Typography;
+const FEATURES = [
+    {
+        icon: Target,
+        title: 'Adaptive practice',
+        text: 'Questions matched to your level with a rating that evolves as you improve — never too easy, never impossible.',
+    },
+    {
+        icon: Swords,
+        title: 'Duels & tournaments',
+        text: 'Race friends on the same questions or climb the leaderboard in weekly tournaments.',
+    },
+    {
+        icon: LineChart,
+        title: 'Progress you can see',
+        text: 'Track accuracy, streaks, and skill ratings across every SAT question type.',
+    },
+    {
+        icon: BookOpenCheck,
+        title: 'Real test practice',
+        text: 'Full practice tests with instant grading and per-question explanations.',
+    },
+];
 
-const ContentSection = styled.div`
-    padding: 50px 0;
-    background-color: #f9f9f9;
-    @media (max-width: 768px) {
-        padding: 30px 0;
-    }
-`;
-
-const TestimonialCard = styled(Card)`
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    height: 100%;
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .ant-card-body {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .ant-card-meta-title {
-        font-family: 'Poppins', sans-serif;
-        font-size: 1.2rem;
-        @media (max-width: 768px) {
-            font-size: 1rem;
-        }
-    }
-
-    .ant-typography {
-        font-family: 'Poppins', sans-serif;
-    }
-`;
-
-const GlobalStyle = styled.div`
-    font-family: 'Poppins', sans-serif;
-`;
+const HOW_IT_WORKS = [
+    {step: '1', title: 'Take the mini diagnostic', text: 'Three questions. Two minutes. Get a feel for where you stand.'},
+    {step: '2', title: 'Practice daily', text: 'Short adaptive sessions focused on the skills that move your score.'},
+    {step: '3', title: 'Compete & improve', text: 'Duels and tournaments keep it fun. Your rating shows it working.'},
+];
 
 function HomePage() {
-    const contentRef = useRef(null);
-
-    React.useEffect(() => {
-        AOS.init({
-            duration: 1000,
-            once: true,
-            mirror: false,
-        });
-    }, []);
-
-    const scrollToContent = () => {
-        contentRef.current.scrollIntoView({behavior: 'smooth'});
-    };
+    const {user} = useAuth();
 
     return (
-        <GlobalStyle>
+        <div className="bg-white">
             <Helmet>
-                <title>SAT Duel!</title>
+                <title>SAT Duel — SAT prep that feels like a game</title>
                 <meta
                     name="description"
-                    content="SAT Duel - The best way to practice SAT while competing with your friends! Practice using REAL SAT questions"
-                />
-                <meta
-                    name="keywords"
-                    content="SAT, SAT practice, SAT prep, SAT question, SAT questionbank, test prep, SAT highscore, SAT tips, standard testing, fun way to practice"
+                    content="Adaptive SAT practice, duels with friends, and weekly tournaments. Start with a free 2-minute diagnostic."
                 />
             </Helmet>
-            <Layout>
-                <Hero onScrollClick={scrollToContent}/>
 
-                <ContentSection ref={contentRef}>
-                    <Content style={{padding: '0 30px', maxWidth: '1200px', margin: '0 auto'}}>
+            {/* Hero */}
+            <section className="border-b border-slate-100 bg-gradient-to-b from-primary-50/60 to-white">
+                <PageContainer className="py-16 text-center sm:py-24">
+                    <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
+                        <Zap className="size-4"/> Free to practice
+                    </span>
+                    <h1 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-tight text-slate-900 sm:text-6xl">
+                        SAT prep that feels like a <span className="text-primary-600">game</span>
+                    </h1>
+                    <p className="mx-auto mt-5 max-w-xl text-lg text-slate-600">
+                        Adaptive questions, duels with friends, and weekly tournaments —
+                        so you actually want to come back tomorrow.
+                    </p>
+                    <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                        <Button to="/diagnostic" size="lg">
+                            Try the 2-minute diagnostic <ArrowRight className="size-5"/>
+                        </Button>
+                        <Button to={user ? '/trainer' : '/register'} variant="secondary" size="lg">
+                            {user ? 'Continue practicing' : 'Create a free account'}
+                        </Button>
+                    </div>
+                    <p className="mt-4 text-sm text-slate-400">
+                        No signup needed for the diagnostic.
+                    </p>
+                </PageContainer>
+            </section>
 
-                        <Features/>
+            {/* Features */}
+            <section>
+                <PageContainer className="py-16 sm:py-20">
+                    <h2 className="text-center font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                        Everything you need. Nothing you don't.
+                    </h2>
+                    <div className="mt-12 grid gap-5 sm:grid-cols-2">
+                        {FEATURES.map(({icon: Icon, title, text}) => (
+                            <Card key={title} hover className="p-6">
+                                <div className="mb-4 flex size-11 items-center justify-center rounded-xl bg-primary-100">
+                                    <Icon className="size-6 text-primary-700"/>
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+                                <p className="mt-1.5 text-[15px] leading-relaxed text-slate-600">{text}</p>
+                            </Card>
+                        ))}
+                    </div>
+                </PageContainer>
+            </section>
 
-                        <Divider/>
+            {/* How it works */}
+            <section className="border-y border-slate-100 bg-slate-50/70">
+                <PageContainer className="py-16 sm:py-20">
+                    <h2 className="text-center font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                        How it works
+                    </h2>
+                    <div className="mt-12 grid gap-5 md:grid-cols-3">
+                        {HOW_IT_WORKS.map(({step, title, text}) => (
+                            <div key={step} className="text-center">
+                                <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-primary-600 font-display text-lg font-bold text-white">
+                                    {step}
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+                                <p className="mx-auto mt-1.5 max-w-xs text-[15px] leading-relaxed text-slate-600">{text}</p>
+                            </div>
+                        ))}
+                    </div>
+                </PageContainer>
+            </section>
 
-                        <Stats/>
-                        <Title
-                            level={2}
-                            style={{
-                                textAlign: 'center',
-                                marginTop: '60px',
-                                marginBottom: '40px',
-                                fontFamily: 'Poppins, sans-serif',
-                            }}
-                        >
-                            What Our Users Say
-                        </Title>
-                        <Row gutter={[24, 24]}>
-                            {[
-                                {
-                                    name: 'Alex Johnson',
-                                    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-                                    rating: 5,
-                                    comment:
-                                        'This platform significantly boosted my SAT score. The personalized learning approach really works!',
-                                },
-                                {
-                                    name: 'Sarah Parker',
-                                    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-                                    rating: 4,
-                                    comment:
-                                        'I loved the competitive aspect of duels. It made learning so much more engaging!',
-                                },
-                                {
-                                    name: 'Michael Lee',
-                                    avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
-                                    rating: 5,
-                                    comment:
-                                        'The real-time progress tracking helped me stay on top of my study plan. Highly recommend!',
-                                },
-                            ].map((testimonial, index) => (
-                                <Col xs={24} md={8} key={index}>
-                                    <TestimonialCard
-                                        data-aos="fade-up"
-                                        data-aos-delay={index * 100}
-                                    >
-                                        <Avatar src={testimonial.avatar} alt={testimonial.name}/>
-                                        <Title
-                                            level={4}
-                                            style={{
-                                                marginBottom: '8px',
-                                                fontFamily: 'Poppins, sans-serif',
-                                            }}
-                                        >
-                                            {testimonial.name}
-                                        </Title>
-                                        <Paragraph
-                                            style={{fontFamily: 'Poppins, sans-serif'}}
-                                        >
-                                            {testimonial.comment}
-                                        </Paragraph>
-                                        <Rate disabled defaultValue={testimonial.rating}/>
-                                    </TestimonialCard>
-                                </Col>
-                            ))}
-                        </Row>
-                        <Divider/>
-                        <DiagnosticSection/>
+            {/* Stats — honest */}
+            <section>
+                <PageContainer className="py-16 sm:py-20">
+                    <div className="grid gap-8 text-center sm:grid-cols-3">
+                        <div>
+                            <p className="font-display text-4xl font-bold text-primary-600">1,800+</p>
+                            <p className="mt-1 font-medium text-slate-600">Real SAT-style questions</p>
+                        </div>
+                        <div>
+                            <p className="font-display text-4xl font-bold text-primary-600">400+</p>
+                            <p className="mt-1 font-medium text-slate-600">Students practicing</p>
+                        </div>
+                        <div>
+                            <p className="font-display text-4xl font-bold text-primary-600">100%</p>
+                            <p className="mt-1 font-medium text-slate-600">Free to get started</p>
+                        </div>
+                    </div>
+                </PageContainer>
+            </section>
 
-                    </Content>
-                </ContentSection>
-            </Layout>
-        </GlobalStyle>
+            {/* Final CTA */}
+            <section className="border-t border-slate-100 bg-gradient-to-b from-white to-primary-50/60">
+                <PageContainer className="py-16 text-center sm:py-20">
+                    <Trophy className="mx-auto mb-4 size-10 text-primary-600"/>
+                    <h2 className="font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                        See where you stand in 2 minutes
+                    </h2>
+                    <p className="mx-auto mt-3 max-w-md text-lg text-slate-600">
+                        Answer three questions and get an instant estimate of your level.
+                    </p>
+                    <div className="mt-8">
+                        <Button to="/diagnostic" size="lg">
+                            Start the free diagnostic <ArrowRight className="size-5"/>
+                        </Button>
+                    </div>
+                </PageContainer>
+            </section>
+        </div>
     );
 }
 

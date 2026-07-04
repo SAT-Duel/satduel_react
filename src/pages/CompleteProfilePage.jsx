@@ -1,86 +1,59 @@
 import React, {useState} from 'react';
-import styled from 'styled-components';
-import {Card, Typography, Select, Button, message} from 'antd';
 import {useNavigate} from 'react-router-dom';
 import api from '../components/api';
+import {Button, Card, Select, Alert} from '../components/ui';
 
-const {Title, Text} = Typography;
-const {Option} = Select;
-
-const FullScreenContainer = styled.div`
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f0f4f8 0%, #e1e9f0 100%);
-    padding: 1rem;
-    box-sizing: border-box;
-`;
-
-const StyledCard = styled(Card)`
-    width: 420px;
-    max-width: 100%;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    text-align: center;
-`;
+const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
 /**
  * Shown after a new Google signup: collects the one field Google can't give us
  * (grade), then continues into the normal first-login goal-setting flow.
  */
 const CompleteProfilePage = () => {
-    const [grade, setGrade] = useState(null);
+    const [grade, setGrade] = useState('');
+    const [error, setError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async () => {
         if (!grade) {
-            message.warning('Please select your grade.');
+            setError('Please select your grade.');
             return;
         }
         setSubmitting(true);
+        setError(null);
         try {
             await api.post('api/auth/complete_profile/', {grade});
             navigate('/goal_setting');
         } catch (e) {
-            message.error(e.response?.data?.error || 'Could not save your grade. Please try again.');
+            setError(e.response?.data?.error || 'Could not save your grade. Please try again.');
             setSubmitting(false);
         }
     };
 
     return (
-        <FullScreenContainer>
-            <StyledCard>
-                <Title level={2} style={{marginBottom: '0.25rem'}}>Welcome to SAT Duel!</Title>
-                <Text type="secondary">One quick thing — what grade are you in?</Text>
-                <div style={{margin: '1.5rem 0'}}>
-                    <Select
-                        placeholder="Select Grade"
-                        style={{width: '100%'}}
-                        size="large"
-                        value={grade}
-                        onChange={setGrade}
-                    >
-                        <Option value="<1">{'<1'}</Option>
-                        {[...Array(12)].map((_, i) => (
-                            <Option key={i + 1} value={String(i + 1)}>{i + 1}</Option>
-                        ))}
-                        <Option value=">12">{'>12'}</Option>
-                    </Select>
+        <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+            <Card className="w-full max-w-md p-8 text-center">
+                <h1 className="mb-1 font-display text-2xl font-bold text-slate-900">
+                    Welcome to SAT Duel!
+                </h1>
+                <p className="mb-6 text-[15px] text-slate-500">
+                    One quick thing — what grade are you in?
+                </p>
+                <Select value={grade} onChange={(e) => setGrade(e.target.value)}>
+                    <option value="" disabled>Select your grade</option>
+                    {GRADES.map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                    ))}
+                </Select>
+                {error && <div className="mt-4"><Alert>{error}</Alert></div>}
+                <div className="mt-6">
+                    <Button block loading={submitting} onClick={handleSubmit}>
+                        Continue
+                    </Button>
                 </div>
-                <Button
-                    type="primary"
-                    size="large"
-                    block
-                    loading={submitting}
-                    onClick={handleSubmit}
-                >
-                    Continue
-                </Button>
-            </StyledCard>
-        </FullScreenContainer>
+            </Card>
+        </div>
     );
 };
 

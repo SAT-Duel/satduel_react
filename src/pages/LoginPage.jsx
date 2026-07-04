@@ -2,48 +2,8 @@ import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import {Link, useNavigate} from 'react-router-dom';
 import {useAuth} from "../context/AuthContext";
-import {Form, Input, Button, Card, Typography, Space, Divider, message} from 'antd';
+import {Button, Card, Field, Input, DividerLabel, Alert} from "../components/ui";
 import GoogleLoginButton from "../components/GoogleLogin";
-
-const {Title} = Typography;
-
-const containerStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    background: '#f0f2f5',
-};
-
-const cardStyle = {
-    width: 400,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    borderRadius: '8px',
-    padding: '20px',
-    backgroundColor: '#ffffff'
-};
-
-const titleStyle = {
-    textAlign: 'center',
-    marginBottom: '20px',
-};
-
-const errorStyle = {
-    color: 'red',
-    textAlign: 'center',
-};
-
-const textStyle = {
-    color: 'gray',
-    textAlign: 'center',
-}
-
-const formItem = {
-    marginTop: '10px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-}
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -59,7 +19,12 @@ function Login() {
         }
     }, [user, navigate, loading]);
 
-    const handleLogin = async () => {
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        if (!username || !password) {
+            setError('Please enter your username/email and password.');
+            return;
+        }
         setIsSubmitting(true);
         setError(null);
         try {
@@ -78,80 +43,68 @@ function Login() {
             } else {
                 navigate('/');
             }
-        } catch (error) {
-            const msg = error.response?.data?.error;
-            if (error.response && error.response.status === 401) {
-                setError(msg || 'Invalid username or password');
-                message.error(msg || 'Invalid username or password');
-            } else {
-                setError('An error occurred during login');
-            }
+        } catch (err) {
+            const msg = err.response?.data?.error;
+            setError(msg || (err.response?.status === 401
+                ? 'Invalid username or password'
+                : 'An error occurred during login'));
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div style={containerStyle}>
-            <Card style={cardStyle}>
-                <Space direction="vertical" style={{width: '100%'}}>
-                    <Title level={2} style={titleStyle}>Login</Title>
-                    <Form
-                        name="login"
-                        initialValues={{remember: true}}
-                        onFinish={handleLogin}
-                    >
-                        <Form.Item
-                            name="username"
-                            rules={[{required: true, message: 'Please input your username/email!'}]}
-                        >
-                            <Input
-                                placeholder="Username or Email"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                            />
-                        </Form.Item>
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 px-4 py-10">
+            <Card className="w-full max-w-md p-8">
+                <h1 className="mb-1 text-center font-display text-2xl font-bold text-slate-900">
+                    Welcome back
+                </h1>
+                <p className="mb-6 text-center text-[15px] text-slate-500">
+                    Log in to continue your prep.
+                </p>
 
-                        <Form.Item
-                            name="password"
-                            rules={[{required: true, message: 'Please input your password!'}]}
-                        >
-                            <Input.Password
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </Form.Item>
+                <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                    <Field label="Username or email">
+                        <Input
+                            placeholder="you@example.com"
+                            value={username}
+                            autoComplete="username"
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    </Field>
+                    <Field label="Password">
+                        <Input
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            autoComplete="current-password"
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </Field>
 
-                        {error && <p style={errorStyle}>{error}</p>}
+                    {error && <Alert>{error}</Alert>}
 
-                        <Form.Item>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                style={{width: '100%'}}
-                                loading={isSubmitting}
-                                disabled={isSubmitting}
-                            >
-                                Login
-                            </Button>
-                        </Form.Item>
+                    <Button type="submit" block loading={isSubmitting}>
+                        Log in
+                    </Button>
+                </form>
 
-                        <Divider plain style={{color: 'gray'}}>or</Divider>
-                        <div style={{marginBottom: '10px'}}>
-                            <GoogleLoginButton/>
-                        </div>
+                <DividerLabel>or</DividerLabel>
+                <GoogleLoginButton/>
 
-                        <Form.Item>
-                            <div style={formItem}>
-                                <span style={textStyle}>Forgot your password? </span><Link to="/password_reset">Reset
-                                Password</Link>
-                            </div>
-                            <div style={formItem}>
-                                <span style={textStyle}>New user? </span><Link to="/register">Create an account!</Link>
-                            </div>
-                        </Form.Item>
-                    </Form>
-                </Space>
+                <div className="mt-6 flex flex-col gap-1 text-center text-sm text-slate-500">
+                    <span>
+                        Forgot your password?{' '}
+                        <Link to="/password_reset" className="font-semibold text-primary-600 hover:text-primary-700">
+                            Reset it
+                        </Link>
+                    </span>
+                    <span>
+                        New here?{' '}
+                        <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-700">
+                            Create an account
+                        </Link>
+                    </span>
+                </div>
             </Card>
         </div>
     );
