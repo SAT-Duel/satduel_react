@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Radio, Button, Space, Alert} from 'antd';
 import styled from 'styled-components';
 import {useAuth} from '../context/AuthContext';
-import axios from 'axios';
+import api from './api';
 import 'katex/dist/katex.min.css';
 import RenderWithMath from './RenderWithMath';
 
@@ -64,8 +64,8 @@ function Question({questionData, onSubmit, status, questionNumber, disabled = fa
     useEffect(() => {
         const getAnswer = async () => {
             try {
-                const baseUrl = import.meta.env.VITE_API_URL;
-                const response = await axios.post(`${baseUrl}/api/get_answer/`, {question_id: id});
+                // Authenticated client: get_answer requires login now
+                const response = await api.post('/api/get_answer/', {question_id: id});
                 setAnswer(response.data.answer);
                 setExplanation(response.data.explanation);
                 setAnswerChoice(response.data.answer_choice);
