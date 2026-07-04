@@ -83,8 +83,16 @@ function TestResults() {
         setLoadingQuestion(true);
         
         try {
-            const response = await api.get(`api/get_question/${question.questionId}`);
-            setQuestionDetails(response.data);
+            // Question payloads no longer include the answer; fetch it separately
+            const [questionRes, answerRes] = await Promise.all([
+                api.get(`api/get_question/${question.questionId}`),
+                api.post('api/get_answer/', {question_id: question.questionId})
+            ]);
+            setQuestionDetails({
+                ...questionRes.data,
+                answer: answerRes.data.answer_choice,
+                explanation: answerRes.data.explanation
+            });
         } catch (error) {
             console.error("Error fetching question details:", error);
         } finally {

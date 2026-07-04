@@ -2,7 +2,6 @@ import React, {useState, useEffect, useCallback} from 'react';
 import { Form, Input, Select, Button, message, Spin, Modal, Typography } from 'antd';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import axios from 'axios';
 import styled from 'styled-components';
 import api from '../../components/api';
 import Question from '../../components/Question';
@@ -54,8 +53,8 @@ const QuestionEditorPage = () => {
     const fetchQuestion = useCallback( async () => {
         try {
             setLoading(true);
-            const baseUrl = process.env.REACT_APP_API_URL;
-            const response = await axios.get(`${baseUrl}/api/get_question/${id}`);
+            // Use the authenticated client: answer/explanation are only returned to staff
+            const response = await api.get(`/api/get_question/${id}`);
             const questionData = {
                 'question': response.data.question,
                 'choice_a': response.data.choice_a,
