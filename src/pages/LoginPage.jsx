@@ -2,7 +2,8 @@ import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import {Link, useNavigate} from 'react-router-dom';
 import {useAuth} from "../context/AuthContext";
-import {Form, Input, Button, Card, Typography, Space, message} from 'antd';
+import {Form, Input, Button, Card, Typography, Space, Divider, message} from 'antd';
+import GoogleLoginButton from "../components/GoogleLogin";
 
 const {Title} = Typography;
 
@@ -60,47 +61,28 @@ function Login() {
 
     const handleLogin = async () => {
         setIsSubmitting(true);
-        let userData = null;
+        setError(null);
         try {
             const baseUrl = import.meta.env.VITE_API_URL;
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const response = await axios.post(`${baseUrl}/api/login/`, {
+            // Single request: authenticate and receive tokens + user together.
+            const response = await axios.post(`${baseUrl}/api/auth/login/`, {
                 username,
                 password,
                 timezone: userTimezone
             });
-            if (response.status === 200) {
-                userData = response.data;
-            }
-        } catch (error) {
-            if (error.response && error.response.status === 401) {
-                setError('Invalid username or password');
-                message.error(error.response.data.error);
+            const {access, refresh, user: userData} = response.data;
+            await login(userData, access, refresh);
+            if (userData.is_first_login) {
+                navigate('/goal_setting');
             } else {
-                setError('An error occurred during login');
-            }
-            setIsSubmitting(false);
-            return;
-        }
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL;
-            const response = await axios.post(`${baseUrl}/api/token/`, {
-                username,
-                password
-            });
-            const refreshToken = response.data.refresh;
-            if (response.status === 200) {
-                login(userData, response.data.access, refreshToken);
-                if (userData.is_first_login) {
-                    navigate('/goal_setting');
-                    return;
-                }
                 navigate('/');
-                console.log("login successful");
             }
         } catch (error) {
+            const msg = error.response?.data?.error;
             if (error.response && error.response.status === 401) {
-                setError('Invalid username or password');
+                setError(msg || 'Invalid username or password');
+                message.error(msg || 'Invalid username or password');
             } else {
                 setError('An error occurred during login');
             }
@@ -143,9 +125,9 @@ function Login() {
                         {error && <p style={errorStyle}>{error}</p>}
 
                         <Form.Item>
-                            <Button 
-                                type="primary" 
-                                htmlType="submit" 
+                            <Button
+                                type="primary"
+                                htmlType="submit"
                                 style={{width: '100%'}}
                                 loading={isSubmitting}
                                 disabled={isSubmitting}
@@ -153,6 +135,12 @@ function Login() {
                                 Login
                             </Button>
                         </Form.Item>
+
+                        <Divider plain style={{color: 'gray'}}>or</Divider>
+                        <div style={{marginBottom: '10px'}}>
+                            <GoogleLoginButton/>
+                        </div>
+
                         <Form.Item>
                             <div style={formItem}>
                                 <span style={textStyle}>Forgot your password? </span><Link to="/password_reset">Reset

@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
-import {Form, Input, Button, Card, Typography, Space, Select, message} from 'antd';
+import {Form, Input, Button, Card, Typography, Space, Select, Divider, message} from 'antd';
 import api from '../components/api';
+import GoogleLoginButton from '../components/GoogleLogin';
 
 const {Title} = Typography;
 const {Option} = Select;
@@ -188,9 +189,9 @@ function Register() {
                         {error && <p style={errorStyle}>{error}</p>}
 
                         <Form.Item>
-                            <Button 
-                                type="primary" 
-                                htmlType="submit" 
+                            <Button
+                                type="primary"
+                                htmlType="submit"
                                 style={{width: '100%'}}
                                 loading={isSubmitting}
                                 disabled={isSubmitting}
@@ -199,6 +200,13 @@ function Register() {
                             </Button>
                         </Form.Item>
                     </Form>
+
+                    <Divider plain style={{color: 'gray'}}>or</Divider>
+                    <GoogleLoginButton/>
+
+                    <div style={{textAlign: 'center', marginTop: '12px', color: 'gray'}}>
+                        Already have an account? <Link to="/login">Log in</Link>
+                    </div>
                 </Space>
             </Card>
         </div>
