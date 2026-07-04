@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import styled from 'styled-components';
+import api from '../../components/api';
 import Question from '../../components/Question';
 import withAuth from "../../hoc/withAuth";
 
@@ -83,14 +84,13 @@ const QuestionEditorPage = () => {
 
     const onFinish = async (values) => {
         try {
-            const baseUrl = process.env.REACT_APP_API_URL;
             let response;
             if (id) {
                 // Editing an existing question
-                response = await axios.post(`${baseUrl}/api/edit_question/${id}`, values);
+                response = await api.post(`/api/edit_question/${id}`, values);
             } else {
                 // Creating a new question
-                response = await axios.post(`${baseUrl}/api/create_question/`, values);
+                response = await api.post(`/api/create_question/`, values);
             }
 
             if (response.data.status === 'success') {
