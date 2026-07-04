@@ -2,6 +2,7 @@ import React, {Suspense} from 'react';
 import {Route, Routes} from "react-router-dom";
 import SecondaryLayout from "../layout/SecondaryLayout";
 import GoalSettingPage from "../pages/GoalSettingPage";
+import CompleteProfilePage from "../pages/CompleteProfilePage";
 
 // Lazy load components
 const HomePage = React.lazy(() => import("../pages/HomePage"));
@@ -430,6 +431,11 @@ function Router() {
                         <GoalSettingPage/>
                     </Suspense>
                 }
+            />
+
+            <Route
+                path="/complete_profile"
+                element={<CompleteProfilePage/>}
             />
         </Routes>
     );
