@@ -5,6 +5,7 @@ import GoalSettingPage from "../pages/GoalSettingPage";
 import CompleteProfilePage from "../pages/CompleteProfilePage";
 
 const DiagnosticPage = React.lazy(() => import("../pages/DiagnosticPage"));
+const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
 
 // Lazy load components
 const HomePage = React.lazy(() => import("../pages/HomePage"));
@@ -74,6 +75,14 @@ function Router() {
                     element={
                         <Suspense fallback={<div>Loading...</div>}>
                             <RegisterPage/>
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/settings"
+                    element={
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <SettingsPage/>
                         </Suspense>
                     }
                 />

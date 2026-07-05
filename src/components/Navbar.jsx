@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Link, NavLink, useNavigate} from 'react-router-dom';
-import {Menu, X, ChevronDown, User, LogOut} from 'lucide-react';
+import {Menu, X, ChevronDown, User, LogOut, Settings} from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
 import logo from '../assets/logo192.png';
 
@@ -85,6 +85,13 @@ const Navbar = () => {
                                         className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 no-underline hover:bg-slate-50"
                                     >
                                         <User className="size-4"/> Profile
+                                    </Link>
+                                    <Link
+                                        to="/settings"
+                                        onClick={() => setUserMenuOpen(false)}
+                                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 no-underline hover:bg-slate-50"
+                                    >
+                                        <Settings className="size-4"/> Settings
                                     </Link>
                                     <button
                                         onClick={handleLogout}
