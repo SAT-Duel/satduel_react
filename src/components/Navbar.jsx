@@ -9,6 +9,7 @@ const NAV_LINKS = [
     {label: 'Duel', to: '/match'},
     {label: 'Tournaments', to: '/tournaments'},
     {label: 'Practice Test', to: '/practice_test'},
+    {label: 'Pricing', to: '/pricing'},
 ];
 
 const navLinkClass = ({isActive}) =>
