@@ -1,8 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import Lottie from 'react-lottie';
 import {useNavigate} from 'react-router-dom';
-import {Award, CheckCircle2, Coins, Crown, Flame, LineChart, Lock, RotateCcw, Trophy, X} from 'lucide-react';
-import animationData from '../../animations/lootbox.json';
+import {Award, CheckCircle2, Crown, Flame, LineChart, Lock, RotateCcw, Trophy} from 'lucide-react';
 import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
@@ -68,14 +66,6 @@ function InfiniteQuestionsPage() {
     const [isFinished, setIsFinished] = useState(false);
     const {loading} = useAuth();
 
-    const [isLootboxOpened, setIsLootboxOpened] = useState(false);
-    const [isLootboxVisible, setIsLootboxVisible] = useState(false);
-    const [animationStopped, setAnimationStopped] = useState(true);
-    const [lootboxMessage, setLootboxMessage] = useState('');
-    const [levelUpMessage, setLevelUpMessage] = useState('');
-    const [showReward, setShowReward] = useState(false);
-    const [canCloseLootbox, setCanCloseLootbox] = useState(false);
-
     const hasFetchedData = useRef(false);
     const navigate = useNavigate();
 
@@ -101,7 +91,7 @@ function InfiniteQuestionsPage() {
             setLoadingQuestions(true);
             setError(null);
             const params = {};
-            const effectiveTopic = topic ?? selectedTopic;
+            const effectiveTopic = typeof topic === 'string' ? topic : selectedTopic;
             if (effectiveTopic && effectiveTopic !== 'any') params.type = effectiveTopic;
             const response = await api.get('api/practice/next/', {params});
             setCurrentQuestion(response.data.question || null);
@@ -114,7 +104,10 @@ function InfiniteQuestionsPage() {
                 setLimitReached(true);
             } else if (data?.error === 'premium_required') {
                 setSelectedTopic('any');
-                setError('Topic selection is a premium feature — serving random questions instead.');
+                const response = await api.get('api/practice/next/');
+                setCurrentQuestion(response.data.question || null);
+                setQuota(response.data.quota || null);
+                setQuestionStatus('Blank');
             } else {
                 setError(data?.error || 'Could not load a question.');
             }
@@ -190,55 +183,9 @@ function InfiniteQuestionsPage() {
                     streak: isCorrect ? previousStats.streak + 1 : 0,
                     xp: nextXp,
                     level: getLevel(nextXp),
-                    coins: isCorrect
-                        ? previousStats.coins + Math.floor(Math.random() * 3 * previousStats.multiplier)
-                        : previousStats.coins,
+                    coins: previousStats.coins,
                     multiplier: previousStats.multiplier,
                 };
-
-                if (newStats.level > previousStats.level) {
-                    setLevelUpMessage('Level up');
-
-                    const coinRewards = [
-                        10 * newStats.level,
-                        20 * newStats.level,
-                        30 * newStats.level,
-                        40 * newStats.level,
-                        50 * newStats.level,
-                        66 * newStats.level,
-                        newStats.level ** 2,
-                        newStats.level ** 3,
-                        newStats.level ** 5,
-                        666 * newStats.level,
-                    ];
-                    const multiplierRewards = [
-                        1.01 * newStats.level,
-                        1.02 * newStats.level,
-                        1.05 * newStats.level,
-                        1.06 * newStats.level,
-                        1.1 * newStats.level,
-                        1.2 * newStats.level,
-                        1.25 * newStats.level,
-                    ].map((value) => parseFloat(value.toFixed(2)));
-
-                    if (Math.random() < 0.33) {
-                        const reward = multiplierRewards[Math.floor(Math.random() * multiplierRewards.length)];
-                        setLootboxMessage(`${reward}x permanent coin multiplier`);
-                        newStats.multiplier *= reward;
-                    } else {
-                        const reward = Math.round(
-                            coinRewards[Math.floor(Math.random() * coinRewards.length)] * newStats.multiplier
-                        );
-                        setLootboxMessage(`${reward} coins`);
-                        newStats.coins += reward;
-                    }
-
-                    setIsLootboxVisible(true);
-                    setIsLootboxOpened(false);
-                    setAnimationStopped(true);
-                    setShowReward(false);
-                    setCanCloseLootbox(false);
-                }
 
                 saveStats(newStats);
                 return newStats;
@@ -254,23 +201,6 @@ function InfiniteQuestionsPage() {
         }
     };
 
-    const handleLootboxClick = () => {
-        if (!isLootboxOpened) {
-            setAnimationStopped(false);
-            setIsLootboxOpened(true);
-        } else if (canCloseLootbox) {
-            setIsLootboxVisible(false);
-            setIsLootboxOpened(false);
-            setLevelUpMessage('');
-        }
-    };
-
-    const handleAnimationComplete = () => {
-        setShowReward(true);
-        setCanCloseLootbox(true);
-        setLevelUpMessage('');
-    };
-
     const handleEndSession = () => {
         setIsFinished(true);
         saveStats(stats);
@@ -281,15 +211,6 @@ function InfiniteQuestionsPage() {
     const accuracy = stats.questionsAnswered > 0
         ? `${((stats.correctAnswers / stats.questionsAnswered) * 100).toFixed(1)}%`
         : '—';
-
-    const defaultOptions = {
-        loop: false,
-        autoplay: !animationStopped,
-        animationData,
-        rendererSettings: {
-            preserveAspectRatio: 'xMidYMid slice',
-        },
-    };
 
     if (loadingQuestions && !currentQuestion && !isFinished) {
         return (
@@ -438,7 +359,7 @@ function InfiniteQuestionsPage() {
                                 </div>
 
                                 {questionStatus !== 'Blank' && (
-                                    <Button onClick={fetchNextQuestion} disabled={loadingQuestions}>
+                                    <Button onClick={() => fetchNextQuestion()} disabled={loadingQuestions}>
                                         Next question
                                     </Button>
                                 )}
@@ -471,12 +392,9 @@ function InfiniteQuestionsPage() {
                             ) : (
                                 <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
                                     <p className="m-0 text-sm text-slate-600">
-                                        Free practice serves random topics. Go premium to focus on
-                                        the exact skills you want to drill.
+                                        Free practice serves a random mix of topics, up to
+                                        {quota?.limit ? ` ${quota.limit}` : ' 25'} questions per day.
                                     </p>
-                                    <Button size="sm" className="mt-3">
-                                        <Crown className="size-4"/> Unlock topics
-                                    </Button>
                                 </div>
                             )}
                         </Card>
@@ -526,61 +444,9 @@ function InfiniteQuestionsPage() {
                             </div>
                         </Card>
 
-                        <Card className="p-5">
-                            <h2 className="m-0 text-xl font-bold text-slate-900">Rewards</h2>
-                            <div className="mt-5 space-y-3">
-                                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-                                    <span className="inline-flex items-center gap-2 font-semibold text-slate-600">
-                                        <Coins className="size-4 text-amber-600"/> Coins
-                                    </span>
-                                    <span className="font-bold text-slate-900">{stats.coins}</span>
-                                </div>
-                                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-                                    <span className="font-semibold text-slate-600">Multiplier</span>
-                                    <span className="font-bold text-slate-900">{Number(stats.multiplier || 1).toFixed(2)}x</span>
-                                </div>
-                            </div>
-                        </Card>
                     </aside>
                 </div>
             </PageContainer>
-
-            {isLootboxVisible && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 px-4">
-                    <button
-                        type="button"
-                        onClick={handleLootboxClick}
-                        className="relative w-full max-w-md cursor-pointer rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-2xl"
-                    >
-                        <span className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-xl text-slate-400">
-                            <X className="size-5"/>
-                        </span>
-                        {levelUpMessage && (
-                            <p className="m-0 font-display text-3xl font-bold text-primary-600">{levelUpMessage}</p>
-                        )}
-                        <Lottie
-                            options={defaultOptions}
-                            height={280}
-                            width={280}
-                            isStopped={animationStopped}
-                            eventListeners={[
-                                {
-                                    eventName: 'complete',
-                                    callback: handleAnimationComplete,
-                                },
-                            ]}
-                        />
-                        {showReward ? (
-                            <>
-                                <p className="m-0 text-2xl font-bold text-slate-900">{lootboxMessage}</p>
-                                <p className="m-0 mt-2 text-sm text-slate-500">Click to close.</p>
-                            </>
-                        ) : (
-                            <p className="m-0 text-sm font-semibold text-slate-500">Click the box to open your reward.</p>
-                        )}
-                    </button>
-                </div>
-            )}
         </div>
     );
 }
