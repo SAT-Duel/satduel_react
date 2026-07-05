@@ -6,6 +6,7 @@ import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
 import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
+import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
 
 const LEVEL_THRESHOLDS = [1, 5, 10, 20, 50, 100, 200];
 
@@ -54,6 +55,7 @@ function InfiniteQuestionsPage() {
     const [topics, setTopics] = useState([]);
     const [selectedTopic, setSelectedTopic] = useState('any');
     const [limitReached, setLimitReached] = useState(false);
+    const [billingLoading, setBillingLoading] = useState(false);
     const [stats, setStats] = useState({
         questionsAnswered: 0,
         correctAnswers: 0,
@@ -206,6 +208,16 @@ function InfiniteQuestionsPage() {
         saveStats(stats);
     };
 
+    const handleGetPremium = async () => {
+        setBillingLoading(true);
+        try {
+            await startPremiumCheckout();
+        } catch (e) {
+            setError(billingErrorMessage(e, 'Could not start checkout.'));
+            setBillingLoading(false);
+        }
+    };
+
     const nextLevelXP = getXPForNextLevel(stats.level);
     const xpRemaining = Number.isFinite(nextLevelXP) ? Math.max(nextLevelXP - stats.xp, 0) : 0;
     const accuracy = stats.questionsAnswered > 0
@@ -254,7 +266,7 @@ function InfiniteQuestionsPage() {
                             unlimited practice and topic selection.
                         </p>
                         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                            <Button size="lg">
+                            <Button size="lg" onClick={handleGetPremium} loading={billingLoading}>
                                 <Crown className="size-5"/> Get premium
                             </Button>
                             <Button to="/trainer" variant="secondary" size="lg">
@@ -262,7 +274,7 @@ function InfiniteQuestionsPage() {
                             </Button>
                         </div>
                         <p className="mt-4 text-sm text-slate-400">
-                            Premium is coming soon — pricing will be announced shortly.
+                            Secure checkout is handled by Stripe.
                         </p>
                     </Card>
                 </PageContainer>

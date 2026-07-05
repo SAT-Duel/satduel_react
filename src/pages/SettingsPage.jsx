@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {Link} from 'react-router-dom';
-import {Check, Crown, KeyRound, UserCircle} from 'lucide-react';
+import {Link, useSearchParams} from 'react-router-dom';
+import {Check, CreditCard, Crown, KeyRound, UserCircle} from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
 import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from '../components/ui';
+import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
 
 const AVATAR_COLORS = [
     {key: 'violet', class: 'bg-primary-500'},
@@ -17,9 +18,11 @@ const AVATAR_COLORS = [
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
 function SettingsPage() {
+    const [searchParams] = useSearchParams();
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [billingAction, setBillingAction] = useState(null);
     const [notice, setNotice] = useState(null);
 
     useEffect(() => {
@@ -36,6 +39,18 @@ function SettingsPage() {
             })
             .catch(() => setNotice({type: 'error', text: 'Could not load your profile.'}));
     }, []);
+
+    useEffect(() => {
+        const checkout = searchParams.get('checkout');
+        if (checkout === 'success') {
+            setNotice({
+                type: 'success',
+                text: 'Payment received. Premium access may take a moment to appear while Stripe confirms it.',
+            });
+        } else if (checkout === 'cancelled') {
+            setNotice({type: 'error', text: 'Checkout was cancelled.'});
+        }
+    }, [searchParams]);
 
     const set = (key) => (e) => setForm((f) => ({...f, [key]: e.target.value}));
 
@@ -55,6 +70,28 @@ function SettingsPage() {
             setNotice({type: 'error', text: e.response?.data?.error || 'Could not save your settings.'});
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleUpgrade = async () => {
+        setBillingAction('checkout');
+        setNotice(null);
+        try {
+            await startPremiumCheckout();
+        } catch (e) {
+            setNotice({type: 'error', text: billingErrorMessage(e, 'Could not start checkout.')});
+            setBillingAction(null);
+        }
+    };
+
+    const handleManageBilling = async () => {
+        setBillingAction('portal');
+        setNotice(null);
+        try {
+            await openBillingPortal();
+        } catch (e) {
+            setNotice({type: 'error', text: billingErrorMessage(e, 'Could not open billing settings.')});
+            setBillingAction(null);
         }
     };
 
@@ -175,8 +212,17 @@ function SettingsPage() {
                                         : 'Free — daily practice limit, random topics.'}
                                 </p>
                             </div>
-                            {!profile?.is_premium && (
-                                <Button size="sm">
+                            {profile?.is_premium ? (
+                                <Button
+                                    onClick={handleManageBilling}
+                                    loading={billingAction === 'portal'}
+                                    variant="secondary"
+                                    size="sm"
+                                >
+                                    <CreditCard className="size-4"/> Manage billing
+                                </Button>
+                            ) : (
+                                <Button onClick={handleUpgrade} loading={billingAction === 'checkout'} size="sm">
                                     <Crown className="size-4"/> Upgrade
                                 </Button>
                             )}
