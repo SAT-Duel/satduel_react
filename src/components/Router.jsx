@@ -1,14 +1,15 @@
 import React, {Suspense} from 'react';
-import {Route, Routes} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 import SecondaryLayout from "../layout/SecondaryLayout";
+import AppLayout from "../layout/AppLayout";
 import GoalSettingPage from "../pages/GoalSettingPage";
 import CompleteProfilePage from "../pages/CompleteProfilePage";
+import {useAuth} from "../context/AuthContext";
 
 const DiagnosticPage = React.lazy(() => import("../pages/DiagnosticPage"));
 const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
 const PricingPage = React.lazy(() => import("../pages/PricingPage"));
 
-// Lazy load components
 const HomePage = React.lazy(() => import("../pages/HomePage"));
 const AboutPage = React.lazy(() => import("../pages/AboutPage"));
 const QuestionsPage = React.lazy(() => import("../pages/QuestionPage"));
@@ -51,401 +52,100 @@ const TestResultPage = React.lazy(() => import("../pages/practice_test/TestResul
 const PracticeTestPage = React.lazy(() => import("../pages/practice_test/PracticeTestPage"));
 const ClassListPage = React.lazy(() => import("../pages/classes/ClassListPage"));
 
+const Loading = () => <div className="p-8 text-center text-slate-400">Loading…</div>;
+const S = (el) => <Suspense fallback={<Loading/>}>{el}</Suspense>;
+
+// Prospects see the marketing landing page; logged-in users are pushed straight
+// into the learning experience so they don't linger on the front page.
+function HomeRoute() {
+    const {user, loading} = useAuth();
+    if (loading) return null;
+    return user ? <Navigate to="/trainer" replace/> : S(<HomePage/>);
+}
+
+// Marketing / onboarding: rendered inside the top-nav layout.
+const MARKETING_ROUTES = [
+    {path: '/login', el: <LoginPage/>},
+    {path: '/register', el: <RegisterPage/>},
+    {path: '/diagnostic', el: <DiagnosticPage/>},
+    {path: '/pricing', el: <PricingPage/>},
+    {path: '/about', el: <AboutPage/>},
+    {path: '/confirm-email/:key', el: <ConfirmEmail/>},
+    {path: '/email_verification/:email', el: <EmailVerificationPage/>},
+    {path: '/password_reset', el: <PasswordResetPage/>},
+    {path: '/api/reset/:uidb64/:token', el: <PasswordResetConfirmPage/>},
+];
+
+// The logged-in learning experience: rendered inside the sidebar app shell
+// (AppLayout gates access and redirects anonymous users to /login).
+const APP_ROUTES = [
+    {path: '/trainer', el: <TrainerPage/>},
+    {path: '/infinite_questions', el: <InfiniteQuestionPage/>},
+    {path: '/match', el: <Match/>},
+    {path: '/questions', el: <QuestionsPage/>},
+    {path: '/power_sprint_home', el: <PowerSprintHome/>},
+    {path: '/sat_survival_home', el: <SATSurvivalHomepage/>},
+    {path: '/timed_challenges', el: <TimedChallengePage/>},
+    {path: '/ranking', el: <RankingPage/>},
+    {path: '/bot_training', el: <BotTrainingPage/>},
+    {path: '/profile', el: <ProfilePage/>},
+    {path: '/profile/:userId', el: <ProfilePage/>},
+    {path: '/tournaments', el: <TournamentListPage/>},
+    {path: '/tournaments/info', el: <TournamentPage/>},
+    {path: '/tournament/:tournamentId', el: <TournamentDetailPage/>},
+    {path: '/create_tournament', el: <CreateTournamentPage/>},
+    {path: '/my_tournaments', el: <MyTournamentsPage/>},
+    {path: '/shop', el: <ShopPage/>},
+    {path: '/duels', el: <SATDuelHomePage/>},
+    {path: '/practice_test', el: <PracticeTestPage/>},
+    {path: '/classes', el: <ClassListPage/>},
+    {path: '/settings', el: <SettingsPage/>},
+    {path: '/upgrade', el: <PricingPage/>},  // in-app pricing (keeps the shell)
+    {path: '/admin', el: <AdminHomepage/>},
+    {path: '/admin/questions', el: <QuestionListPage/>},
+    {path: '/admin/create_question', el: <QuestionEditorPage/>},
+    {path: '/admin/edit_question/:id', el: <QuestionEditorPage/>},
+    {path: '/admin/create_tournament', el: <AdminCreateTournamentPage/>},
+];
+
+// Focused, distraction-free experiences: no sidebar or top nav.
+const FULLSCREEN_ROUTES = [
+    {path: '/duel_battle/:roomId', el: <DuelBattle/>},
+    {path: '/battle_result/:roomId', el: <BattleResultPage/>},
+    {path: '/match-loading/:roomId', el: <MatchLoadingPage/>},
+    {path: '/power_sprint', el: <PowerSprintPage/>},
+    {path: '/sat_survival', el: <SATSurvivalPage/>},
+    {path: '/bot_training/start', el: <BotGamePage/>},
+    {path: '/waiting-room/:gameId', el: <WaitingRoomPage/>},
+    {path: '/tournament/:tournamentId/questions', el: <TournamentQuestionPage/>},
+    {path: '/full_length_test', el: <TestPage/>},
+    {path: '/test_result', el: <TestResultPage/>},
+    {path: '/goal_setting', el: <GoalSettingPage/>},
+    {path: '/complete_profile', el: <CompleteProfilePage/>},
+];
+
 function Router() {
     return (
         <Routes>
+            {/* Marketing / onboarding */}
             <Route element={<SecondaryLayout/>}>
-                <Route
-                    path="/"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <HomePage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/login"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <LoginPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/register"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <RegisterPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/settings"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <SettingsPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/pricing"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <PricingPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/diagnostic"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <DiagnosticPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/confirm-email/:key"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <ConfirmEmail/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/email_verification/:email"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <EmailVerificationPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/password_reset"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <PasswordResetPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/api/reset/:uidb64/:token"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <PasswordResetConfirmPage/>
-                        </Suspense>
-                    }
-                />
-
-                <Route
-                    path="/about"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <AboutPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/match"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <Match/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/duel_battle/:roomId"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <DuelBattle/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/battle_result/:roomId"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <BattleResultPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/match-loading/:roomId"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <MatchLoadingPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/questions"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionsPage/>
-                        </Suspense>
-                    }
-                />
-
-                <Route
-                    path="/trainer"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <TrainerPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/infinite_questions"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <InfiniteQuestionPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/power_sprint_home"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <PowerSprintHome/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/power_sprint"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <PowerSprintPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/sat_survival_home"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <SATSurvivalHomepage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/sat_survival"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <SATSurvivalPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/timed_challenges"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <TimedChallengePage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/ranking"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <RankingPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/bot_training"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <BotTrainingPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/bot_training/start"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <BotGamePage/>
-                        </Suspense>
-                    }
-                />
-
-                <Route
-                    path="/profile"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <ProfilePage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/profile/:userId"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <ProfilePage/>
-                        </Suspense>
-                    }
-                />
-
-                <Route
-                    path="/tournaments"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentListPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/tournaments/info"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/tournament/:tournamentId"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentDetailPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/tournament/:tournamentId/questions"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <TournamentQuestionPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/create_tournament"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <CreateTournamentPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/my_tournaments"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <MyTournamentsPage/>
-                        </Suspense>
-                    }
-                />
-
-                <Route
-                    path="/shop"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <ShopPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/admin"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <AdminHomepage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/admin/questions"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionListPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/admin/create_question"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionEditorPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/admin/edit_question/:id"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <QuestionEditorPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/admin/create_tournament"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <AdminCreateTournamentPage/>
-                        </Suspense>
-                    }
-                />
-
-                <Route
-                    path="/duels"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <SATDuelHomePage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/waiting-room/:gameId"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <WaitingRoomPage/>
-                        </Suspense>
-                    }
-                />
-
-                <Route
-                    path="/practice_test"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <PracticeTestPage/>
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/classes"
-                    element={
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <ClassListPage/>
-                        </Suspense>
-                    }
-                />
+                <Route path="/" element={<HomeRoute/>}/>
+                {MARKETING_ROUTES.map((r) => (
+                    <Route key={r.path} path={r.path} element={S(r.el)}/>
+                ))}
             </Route>
 
-            <Route
-                path="/full_length_test"
-                element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <TestPage/>
-                    </Suspense>
-                }
-            />
-            <Route
-                path="/test_result"
-                element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <TestResultPage/>
-                    </Suspense>
-                }
-            />
+            {/* Logged-in app shell */}
+            <Route element={<AppLayout/>}>
+                {APP_ROUTES.map((r) => (
+                    <Route key={r.path} path={r.path} element={S(r.el)}/>
+                ))}
+            </Route>
 
-            <Route
-                path="/goal_setting"
-                element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <GoalSettingPage/>
-                    </Suspense>
-                }
-            />
-
-            <Route
-                path="/complete_profile"
-                element={<CompleteProfilePage/>}
-            />
+            {/* Fullscreen focused flows */}
+            {FULLSCREEN_ROUTES.map((r) => (
+                <Route key={r.path} path={r.path} element={S(r.el)}/>
+            ))}
         </Routes>
     );
 }

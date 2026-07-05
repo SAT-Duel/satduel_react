@@ -1,16 +1,14 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {Link, NavLink, useNavigate} from 'react-router-dom';
-import {Menu, X, ChevronDown, User, LogOut, Settings} from 'lucide-react';
+import React, {useState} from 'react';
+import {Link, NavLink} from 'react-router-dom';
+import {Menu, X} from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
 import logo from '../assets/logo192.png';
-import UserAvatar from './UserAvatar';
 
+// Marketing top nav (logged-out visitors). The learning experience lives in
+// the sidebar app shell, so those links are intentionally not here.
 const NAV_LINKS = [
-    {label: 'Practice', to: '/trainer'},
-    {label: 'Duel', to: '/match'},
-    {label: 'Tournaments', to: '/tournaments'},
-    {label: 'Practice Test', to: '/practice_test'},
     {label: 'Pricing', to: '/pricing'},
+    {label: 'About', to: '/about'},
 ];
 
 const navLinkClass = ({isActive}) =>
@@ -22,28 +20,8 @@ const navLinkClass = ({isActive}) =>
     ].join(' ');
 
 const Navbar = () => {
-    const {user, logout, loading} = useAuth();
-    const navigate = useNavigate();
+    const {user, loading} = useAuth();
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [userMenuOpen, setUserMenuOpen] = useState(false);
-    const userMenuRef = useRef(null);
-
-    useEffect(() => {
-        const close = (e) => {
-            if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
-                setUserMenuOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', close);
-        return () => document.removeEventListener('mousedown', close);
-    }, []);
-
-    const handleLogout = async () => {
-        setUserMenuOpen(false);
-        setMobileOpen(false);
-        await logout();
-        navigate('/login');
-    };
 
     return (
         <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -68,40 +46,12 @@ const Navbar = () => {
                 {/* Desktop auth area */}
                 <div className="hidden items-center gap-2 md:flex">
                     {!loading && user ? (
-                        <div className="relative" ref={userMenuRef}>
-                            <button
-                                onClick={() => setUserMenuOpen((o) => !o)}
-                                className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3.5 py-2 text-[15px] font-semibold text-slate-700 transition-colors hover:border-primary-300"
-                            >
-                                <UserAvatar profile={user} size="xs" className="ring-0"/>
-                                {user.username}
-                                <ChevronDown className="size-4 text-slate-400"/>
-                            </button>
-                            {userMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
-                                    <Link
-                                        to="/profile"
-                                        onClick={() => setUserMenuOpen(false)}
-                                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 no-underline hover:bg-slate-50"
-                                    >
-                                        <User className="size-4"/> Profile
-                                    </Link>
-                                    <Link
-                                        to="/settings"
-                                        onClick={() => setUserMenuOpen(false)}
-                                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 no-underline hover:bg-slate-50"
-                                    >
-                                        <Settings className="size-4"/> Settings
-                                    </Link>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50"
-                                    >
-                                        <LogOut className="size-4"/> Log out
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        <Link
+                            to="/trainer"
+                            className="rounded-xl bg-primary-600 px-4 py-2 text-[15px] font-semibold text-white no-underline transition-colors hover:bg-primary-500"
+                        >
+                            Go to app
+                        </Link>
                     ) : (
                         <>
                             <Link
@@ -147,17 +97,13 @@ const Navbar = () => {
                     </div>
                     <div className="mt-3 border-t border-slate-100 pt-3">
                         {!loading && user ? (
-                            <div className="flex flex-col gap-1">
-                                <NavLink to="/profile" className={navLinkClass} onClick={() => setMobileOpen(false)}>
-                                    Profile ({user.username})
-                                </NavLink>
-                                <button
-                                    onClick={handleLogout}
-                                    className="cursor-pointer rounded-xl px-3.5 py-2 text-left text-[15px] font-semibold text-rose-600 hover:bg-rose-50"
-                                >
-                                    Log out
-                                </button>
-                            </div>
+                            <Link
+                                to="/trainer"
+                                onClick={() => setMobileOpen(false)}
+                                className="block rounded-xl bg-primary-600 px-4 py-2.5 text-center text-[15px] font-semibold text-white no-underline"
+                            >
+                                Go to app
+                            </Link>
                         ) : (
                             <div className="flex gap-2">
                                 <Link
