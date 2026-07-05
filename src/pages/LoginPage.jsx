@@ -4,6 +4,7 @@ import {Link, useNavigate} from 'react-router-dom';
 import {useAuth} from "../context/AuthContext";
 import {Button, Card, Field, Input, DividerLabel, Alert} from "../components/ui";
 import GoogleLoginButton from "../components/GoogleLogin";
+import {DiscordCTA} from "../components/Discord";
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -104,6 +105,10 @@ function Login() {
                             Create an account
                         </Link>
                     </span>
+                </div>
+
+                <div className="mt-6">
+                    <DiscordCTA variant="banner"/>
                 </div>
             </Card>
         </div>

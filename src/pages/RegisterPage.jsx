@@ -4,6 +4,7 @@ import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
 import {Button, Card, Field, Input, Select, DividerLabel, Alert} from '../components/ui';
 import GoogleLoginButton from '../components/GoogleLogin';
+import {DiscordCTA} from '../components/Discord';
 
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
@@ -147,6 +148,10 @@ function Register() {
                         Log in
                     </Link>
                 </p>
+
+                <div className="mt-5">
+                    <DiscordCTA variant="banner"/>
+                </div>
             </Card>
         </div>
     );
