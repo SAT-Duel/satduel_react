@@ -10,6 +10,7 @@ import {
     Zap,
 } from 'lucide-react';
 import {Button, Card, PageContainer} from '../components/ui';
+import {DiscordCTA} from '../components/Discord';
 import {useAuth} from '../context/AuthContext';
 
 const FEATURES = [
@@ -151,11 +152,15 @@ function HomePage() {
                     <p className="mx-auto mt-3 max-w-md text-lg text-slate-600">
                         Answer three questions and get an instant estimate of your level.
                     </p>
-                    <div className="mt-8">
+                    <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                         <Button to="/diagnostic" size="lg">
                             Start the free diagnostic <ArrowRight className="size-5"/>
                         </Button>
+                        <DiscordCTA/>
                     </div>
+                    <p className="mt-4 text-sm text-slate-500">
+                        Or join 400+ students in our Discord community.
+                    </p>
                 </PageContainer>
             </section>
         </div>
