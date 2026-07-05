@@ -1,86 +1,35 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import axios from 'axios';
-import {Typography, Row, Col, Avatar} from 'antd';
-import styled, {keyframes} from 'styled-components';
-import {UserOutlined} from '@ant-design/icons';
-import {useAuth} from "../context/AuthContext";
+import {Swords} from 'lucide-react';
+import {Card, PageContainer, Spinner} from '../components/ui';
+import {useAuth} from '../context/AuthContext';
+import api from '../components/api';
 
-const {Title, Text} = Typography;
+function PlayerBadge({user, fallback}) {
+    const username = user?.username || fallback;
+    return (
+        <div className="flex flex-col items-center">
+            <div className="flex size-20 items-center justify-center rounded-full bg-primary-100 font-display text-2xl font-bold text-primary-700 ring-4 ring-white">
+                {username?.[0]?.toUpperCase() || '?'}
+            </div>
+            <p className="m-0 mt-3 font-bold text-slate-900">{username}</p>
+        </div>
+    );
+}
 
-const MatchLoadingContainer = styled.div`
-    min-height: 100vh;
-    background: linear-gradient(135deg, #F5F7FF 0%, #E8EEFF 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-`;
-
-const LoadingCard = styled.div`
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    padding: 40px;
-    text-align: center;
-    max-width: 600px;
-    width: 100%;
-`;
-
-const pulse = keyframes`
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
-`;
-
-const VersusText = styled(Title)`
-    color: #4C3D97;
-    margin: 20px 0;
-    animation: ${pulse} 1.5s infinite;
-`;
-
-const CountdownText = styled(Title)`
-    font-size: 4rem;
-    color: #4C3D97;
-    margin-top: 30px;
-`;
-
-const PlayerInfo = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-`;
-
-const StyledAvatar = styled(Avatar)`
-    background-color: #4C3D97;
-    margin-bottom: 10px;
-`;
-
-const MatchLoadingPage = () => {
+function MatchLoadingPage() {
     const {roomId} = useParams();
     const [countdown, setCountdown] = useState(5);
     const [opponent, setOpponent] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const navigate = useNavigate();
-    const hasNavigated = useRef(false); // Track if navigation has already occurred
+    const hasNavigated = useRef(false);
     const {token} = useAuth();
 
     useEffect(() => {
         const fetchMatchInfo = async () => {
             try {
-                const baseUrl = import.meta.env.VITE_API_URL;
-                const response = await axios.post(`${baseUrl}/api/match/info/`, {
-                    room_id: roomId
-                }, {
-                    headers: {'Authorization': `Bearer ${token}`}
-                });
+                const response = await api.post('/api/match/info/', {room_id: roomId});
                 setOpponent(response.data.opponent);
                 setCurrentUser(response.data.currentUser);
             } catch (error) {
@@ -88,50 +37,56 @@ const MatchLoadingPage = () => {
             }
         };
 
-        fetchMatchInfo();
+        if (token) fetchMatchInfo();
     }, [roomId, token]);
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setCountdown((prevCount) => {
-                if (prevCount === 1 && !hasNavigated.current) {
+            setCountdown((previousCount) => {
+                if (previousCount === 1 && !hasNavigated.current) {
                     clearInterval(timer);
-                    hasNavigated.current = true; // Avoid multiple navigations
+                    hasNavigated.current = true;
                     navigate(`/duel_battle/${roomId}`);
                 }
-                return prevCount - 1;
+                return previousCount - 1;
             });
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [roomId, navigate]);
+    }, [navigate, roomId]);
 
     return (
-        <MatchLoadingContainer>
-            <LoadingCard>
-                <Title level={2}>Match Found!</Title>
-                <Row justify="space-around" align="middle" style={{marginTop: 30}}>
-                    <Col span={10}>
-                        <PlayerInfo>
-                            <StyledAvatar size={80} icon={<UserOutlined/>}/>
-                            <Text strong>{currentUser?.username || 'You'}</Text>
-                        </PlayerInfo>
-                    </Col>
-                    <Col span={4}>
-                        <VersusText level={3}>VS</VersusText>
-                    </Col>
-                    <Col span={10}>
-                        <PlayerInfo>
-                            <StyledAvatar size={80} icon={<UserOutlined/>}/>
-                            <Text strong>{opponent?.username || 'Opponent'}</Text>
-                        </PlayerInfo>
-                    </Col>
-                </Row>
-                <CountdownText level={2}>{countdown}</CountdownText>
-                <Text type="secondary">Prepare for battle!</Text>
-            </LoadingCard>
-        </MatchLoadingContainer>
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
+            <PageContainer className="max-w-3xl">
+                <Card className="p-6 text-center sm:p-8">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
+                        <Swords className="size-4"/> Match found
+                    </span>
+                    <h1 className="mt-5 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                        Get ready to duel
+                    </h1>
+                    <p className="mx-auto mt-2 max-w-md text-slate-600">
+                        You and your opponent will answer the same SAT questions on the same clock.
+                    </p>
+
+                    <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+                        <PlayerBadge user={currentUser} fallback="You"/>
+                        <div className="flex size-14 items-center justify-center rounded-2xl bg-slate-100 font-display text-xl font-bold text-slate-600">
+                            VS
+                        </div>
+                        <PlayerBadge user={opponent} fallback="Opponent"/>
+                    </div>
+
+                    <div className="mt-10">
+                        <p className="m-0 font-display text-6xl font-bold text-primary-600">{Math.max(countdown, 0)}</p>
+                        <div className="mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-slate-500">
+                            <Spinner className="size-4 border-2"/> Starting battle…
+                        </div>
+                    </div>
+                </Card>
+            </PageContainer>
+        </div>
     );
-};
+}
 
 export default MatchLoadingPage;

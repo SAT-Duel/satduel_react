@@ -1,257 +1,161 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import axios from "axios";
-import {useAuth} from "../context/AuthContext";
 import {useNavigate} from 'react-router-dom';
-import {Button, Row, Col, Typography, Card, message, List, Avatar} from 'antd';
-import {UserOutlined, RocketOutlined, TeamOutlined} from '@ant-design/icons';
-import styled from 'styled-components';
-import '../styles/Match.css';
-import api from "../components/api"; // Assuming you have a CSS file for custom styles
+import {History, Swords, Trophy, Users} from 'lucide-react';
+import {Alert, Button, Card, PageContainer} from '../components/ui';
+import {useAuth} from '../context/AuthContext';
+import api from '../components/api';
 import MatchingModal from '../components/Match/MatchingModal';
 
-const {Title, Paragraph} = Typography;
+const AVATAR_BG = {
+    violet: 'bg-primary-100 text-primary-700',
+    sky: 'bg-sky-100 text-sky-700',
+    emerald: 'bg-emerald-100 text-emerald-700',
+    amber: 'bg-amber-100 text-amber-700',
+    rose: 'bg-rose-100 text-rose-700',
+    slate: 'bg-slate-200 text-slate-700',
+};
 
-const Container = styled.div`
-    min-height: 100vh;
-    background: linear-gradient(135deg, #F5F7FF 0%, #E8EEFF 100%);
-    padding: 60px 20px;
-`;
-
-const ContentWrapper = styled.div`
-    max-width: 1200px;
-    margin: 0 auto;
-`;
-
-const HeroTitle = styled(Title)`
-    font-size: 3.5rem;
-    color: #0B2F7D;
-    margin-bottom: 20px;
-    text-align: center;
-
-    /* Use a different font for "SAT Duel" */
-
-    span.sat-duel {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        //color: #4C3D97;
-        //background: linear-gradient(90deg, #2B7FA3, #C95FFB);
-        //-webkit-background-clip: text;
-        //-webkit-text-fill-color: transparent;
-        background: linear-gradient(75deg, #8f73ff 0%, #34acfb 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-`;
-
-const HeroParagraph = styled(Paragraph)`
-    font-size: 1.25rem;
-    color: #4A4A4A;
-    max-width: 700px;
-    margin: 0 auto 40px;
-    text-align: center;
-`;
-
-const BigButton = styled(Button)`
-    background: #4C3D97;
-    color: #fff;
-    border: none;
-    font-size: 1.25rem;
-    height: auto;
-    padding: 15px 50px;
-    border-radius: 30px;
-    margin: 20px auto;
-    display: block;
-    transition: all 0.3s ease;
-
-    &:hover {
-        background: #3C2D87;
-        color: #fff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(76, 61, 151, 0.2);
-    }
-`;
-
-const StyledCard = styled(Card)`
-    height: 100%;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    }
-
-    .anticon {
-        font-size: 2.5rem;
-        color: #4C3D97;
-    }
-
-    .ant-card-body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-`;
-
-const OnlineUsersContainer = styled.div`
-    margin-top: 60px;
-    padding: 20px;
-    border-radius: 12px;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-`;
-
-const Match = () => {
-    const {token, loading} = useAuth();
+function MatchingPage() {
+    const {token, loading, user} = useAuth();
     const [matching, setMatching] = useState(false);
-    const [roomId, setRoomIdInternal] = useState(null);
+    const [roomId, setRoomId] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
+    const [notice, setNotice] = useState(null);
+    const [profile, setProfile] = useState(null);
+    const [recentMatches, setRecentMatches] = useState([]);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if (loading || !token) return;
+        api.get('api/profile/').then((r) => setProfile(r.data)).catch(() => {});
+        api.get('api/match/get_match_history/')
+            .then((r) => setRecentMatches((r.data || []).slice(0, 5)))
+            .catch(() => {});
+    }, [loading, token]);
+
+    const handleCancel = useCallback(async () => {
+        if (!roomId) return;
+
+        try {
+            await api.post('/api/match/cancel_match/', {room_id: roomId});
+            setNotice({type: 'success', text: 'Duel search canceled.'});
+        } catch (err) {
+            setNotice({type: 'error', text: err.response?.data?.error || 'Could not cancel the duel search.'});
+        } finally {
+            setMatching(false);
+            setRoomId(null);
+        }
+    }, [roomId]);
+
     const handleMatch = async () => {
+        setNotice(null);
         if (!token) {
-            message.error('You must be logged in to start a duel.');
+            setNotice({type: 'error', text: 'Log in to start a live duel.'});
             return;
         }
 
         try {
-            const response = await api.get(`/api/match/`);
-            setRoomIdInternal(response.data.id);
+            const response = await api.get('/api/match/');
+            setRoomId(response.data.id);
             if (response.data.full === 'true') {
                 setMatching(false);
                 navigate(`/match-loading/${response.data.id}`);
                 return;
             }
             setMatching(true);
-            startMatchingTimeout();
         } catch (err) {
-            console.error('Error initiating duel:', err);
-            message.error(err.response?.data?.error || 'An error occurred while initiating the duel.');
+            setNotice({type: 'error', text: err.response?.data?.error || 'Could not start a duel.'});
             setMatching(false);
         }
     };
 
-    const handleCancel = useCallback(async () => {
-        if (!roomId) return;
-        
-        try {
-            await api.post(`/api/match/cancel_match/`, {
-                room_id: roomId
+    useEffect(() => {
+        if (!matching || !roomId) return undefined;
+        const timeout = setTimeout(async () => {
+            await handleCancel();
+            setNotice({
+                type: 'error',
+                text: 'We could not find an opponent this time. Try again, or practice while more students come online.',
             });
-            setMatching(false);
-            setRoomIdInternal(null);
-            message.success('Duel canceled.');
-        } catch (err) {
-            console.error('Error canceling the duel:', err);
-            message.error(err.response?.data?.error || 'An error occurred while canceling the duel.');
-        }
-    }, [roomId]);
-
-    const startMatchingTimeout = () => {
-        setTimeout(async () => {
-            if (matching) {
-                await handleCancel();
-                message.info('We couldn\'t find you an opponent. Please try again later.');
-            }
         }, 60000);
-    };
+        return () => clearTimeout(timeout);
+    }, [handleCancel, matching, roomId]);
 
     useEffect(() => {
         const getStatus = async () => {
             try {
-                const baseUrl = import.meta.env.VITE_API_URL;
-                const response = await axios.get(`${baseUrl}/api/match/status/`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    params: {
-                        room_id: roomId
-                    }
-                });
+                const response = await api.get('/api/match/status/', {params: {room_id: roomId}});
                 if (response.data.status === 'full') {
                     navigate(`/match-loading/${roomId}`);
                 }
-            } catch (err) {
-                console.error('Error checking room status:', err);
+            } catch {
+                // Polling failures are non-blocking; the next tick may recover.
             }
         };
-        if (roomId) {
-            const interval = setInterval(async () => {
-                await getStatus();
-            }, 1000);
-            return () => clearInterval(interval);
-        }
-    }, [roomId, token, navigate, matching]);
+
+        if (!roomId) return undefined;
+        const interval = setInterval(getStatus, 1000);
+        return () => clearInterval(interval);
+    }, [navigate, roomId]);
 
     useEffect(() => {
         const rejoinRoom = async () => {
             try {
-                const baseUrl = import.meta.env.VITE_API_URL;
-                const response = await axios.get(`${baseUrl}/api/match/rejoin/`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const response = await api.get('/api/match/rejoin/');
                 if (response.data.battle_room_id) {
                     navigate(`/duel_battle/${response.data.battle_room_id}`);
                 } else if (response.data.searching_room_id) {
                     setMatching(true);
-                    setRoomIdInternal(response.data.searching_room_id);
+                    setRoomId(response.data.searching_room_id);
                 }
-            } catch (err) {
-                // Handle error
+            } catch {
+                // No active duel to rejoin.
             }
         };
-        if (!loading) {
+
+        if (!loading && token) {
             rejoinRoom();
         }
     }, [loading, navigate, token]);
 
-    // Fetch online users
     useEffect(() => {
         const fetchOnlineUsers = async () => {
             try {
-                const response = await api.get(`api/online_users/`);
-                setOnlineUsers(response.data.users);
-            } catch (err) {
-                console.error('Error fetching online users:', err);
+                const response = await api.get('api/online_users/');
+                setOnlineUsers(response.data.users || []);
+            } catch {
+                setOnlineUsers([]);
             }
         };
 
         fetchOnlineUsers();
-        const interval = setInterval(fetchOnlineUsers, 8000); // Update every 8 seconds
+        const interval = setInterval(fetchOnlineUsers, 8000);
         return () => clearInterval(interval);
-    }, [token]);
+    }, []);
 
     useEffect(() => {
         const sendHeartbeat = async () => {
             try {
-                await api.post(`api/update_online_status/`);
-            } catch (err) {
-                console.error('Error updating online status:', err);
+                await api.post('api/update_online_status/');
+            } catch {
+                // Heartbeat is best-effort.
             }
         };
 
-        if (token) {
-            sendHeartbeat(); // Send an initial heartbeat
-            const interval = setInterval(sendHeartbeat, 8000); // Every 8 seconds
-            return () => clearInterval(interval);
-        }
+        if (!token) return undefined;
+        sendHeartbeat();
+        const interval = setInterval(sendHeartbeat, 8000);
+        return () => clearInterval(interval);
     }, [token]);
 
     useEffect(() => {
         const removeOnlineStatus = async () => {
+            if (!token) return;
             try {
-                await api.post(`api/remove_online_user/`);
-            } catch (err) {
-                console.error('Error removing online status:', err);
+                await api.post('api/remove_online_user/');
+            } catch {
+                // Best-effort cleanup.
             }
-            // if(matching){
-            //     await handleCancel();
-            // }
         };
 
         window.addEventListener('beforeunload', removeOnlineStatus);
@@ -259,78 +163,185 @@ const Match = () => {
             window.removeEventListener('beforeunload', removeOnlineStatus);
             removeOnlineStatus();
         };
-    }, [handleCancel, matching, token]);
+    }, [token]);
+
+    const avatarClass = AVATAR_BG[profile?.avatar] || AVATAR_BG.violet;
+    const myElo = profile?.elo_rating;
+    const wins = recentMatches.filter((m) => m.winner === user?.id).length;
+
+    const opponentOf = (m) => (m.user1?.id === user?.id ? m.user2 : m.user1);
+    const myScore = (m) => (m.user1?.id === user?.id ? m.user1_score : m.user2_score);
+    const theirScore = (m) => (m.user1?.id === user?.id ? m.user2_score : m.user1_score);
+    const resultOf = (m) => {
+        if (m.winner == null) return 'Draw';
+        return m.winner === user?.id ? 'Win' : 'Loss';
+    };
 
     return (
-        <Container>
-            <ContentWrapper>
-                <HeroTitle level={1}>
-                    Engage in an <span className="sat-duel">SAT Duel</span>
-                </HeroTitle>
-                <HeroParagraph>
-                    Test your skills and challenge others in real-time SAT duels.
-                    Compete with students worldwide and climb the leaderboards.
-                </HeroParagraph>
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-10 sm:py-14">
+            <PageContainer>
+                {notice && (
+                    <div className="mb-6 max-w-2xl">
+                        <Alert type={notice.type === 'success' ? 'success' : 'error'}>{notice.text}</Alert>
+                    </div>
+                )}
 
-                <BigButton onClick={handleMatch}>Start a Duel</BigButton>
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+                    {/* Arena */}
+                    <div className="space-y-6">
+                        <Card className="overflow-hidden">
+                            <div className="bg-gradient-to-b from-primary-50/80 to-white px-6 pb-10 pt-8 text-center sm:px-10">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-3.5 py-1 text-sm font-semibold text-primary-700">
+                                    <Swords className="size-4"/> Duel arena
+                                </span>
 
-                <MatchingModal 
-                    visible={matching}
-                    onCancel={handleCancel}
-                />
+                                <div className="mt-8 flex items-center justify-center gap-5 sm:gap-10">
+                                    {/* You */}
+                                    <div className="w-28 sm:w-36">
+                                        <div className={`mx-auto flex size-16 items-center justify-center rounded-2xl text-2xl font-bold sm:size-20 ${avatarClass}`}>
+                                            {user?.username?.[0]?.toUpperCase() || '?'}
+                                        </div>
+                                        <p className="m-0 mt-3 truncate font-bold text-slate-900">{user?.username || 'You'}</p>
+                                        <p className="m-0 mt-0.5 text-sm font-semibold text-primary-600">
+                                            {myElo != null ? `${myElo} rating` : '—'}
+                                        </p>
+                                    </div>
 
-                {/* Online Users Section */}
-                <OnlineUsersContainer>
-                    <Title level={3} style={{textAlign: 'center', color: '#0B2F7D'}}>
-                        <TeamOutlined/> Online Users
-                    </Title>
-                    <Paragraph style={{textAlign: 'center', color: '#4A4A4A'}}>
-                        See who is currently online and ready to duel.
-                    </Paragraph>
-                    <List
-                        itemLayout="horizontal"
-                        dataSource={onlineUsers}
-                        renderItem={user => (
-                            <List.Item>
-                                <List.Item.Meta
-                                    avatar={<Avatar icon={<UserOutlined/>}/>}
-                                    title={<span style={{color: '#0B2F7D'}}>{user.username}</span>}
-                                    description={<span style={{color: '#4A4A4A'}}>{user.status}</span>}
-                                />
-                            </List.Item>
-                        )}
-                    />
-                </OnlineUsersContainer>
+                                    <div className="font-display text-3xl font-bold text-slate-300 sm:text-5xl">VS</div>
 
-                {/* Instructions Section */}
-                <div style={{marginTop: '60px'}}>
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24} md={12}>
-                            <StyledCard>
-                                <RocketOutlined/>
-                                <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>How It Works</Title>
-                                <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
-                                    Click the "Start a Duel" button to be matched with an opponent.
-                                    Battle in real-time SAT quizzes and see who comes out on top.
-                                </Paragraph>
-                            </StyledCard>
-                        </Col>
-                        <Col xs={24} md={12}>
-                            <StyledCard>
-                                <UserOutlined/>
-                                <Title level={3} style={{marginTop: '20px', color: '#0B2F7D'}}>Challenge a
-                                    Friend</Title>
-                                <Paragraph style={{fontSize: '1rem', color: '#4A4A4A'}}>
-                                    Invite your friends to a duel and compete directly with them.
-                                    (Coming Soon)
-                                </Paragraph>
-                            </StyledCard>
-                        </Col>
-                    </Row>
+                                    {/* Mystery opponent */}
+                                    <div className="w-28 sm:w-36">
+                                        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white text-2xl font-bold text-slate-300 sm:size-20">
+                                            ?
+                                        </div>
+                                        <p className="m-0 mt-3 font-bold text-slate-400">Opponent</p>
+                                        <p className="m-0 mt-0.5 text-sm font-semibold text-slate-300">waiting…</p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-9">
+                                    <Button onClick={handleMatch} size="lg" loading={matching} className="min-w-56">
+                                        {matching ? 'Searching…' : 'Find an opponent'}
+                                    </Button>
+                                    <p className="mt-3 text-sm text-slate-400">
+                                        10 questions · 5 minutes · rating on the line
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 text-center">
+                                <div className="px-2 py-4">
+                                    <p className="m-0 text-xl font-bold text-slate-900">{recentMatches.length}</p>
+                                    <p className="m-0 mt-0.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Recent duels</p>
+                                </div>
+                                <div className="px-2 py-4">
+                                    <p className="m-0 text-xl font-bold text-emerald-600">{wins}</p>
+                                    <p className="m-0 mt-0.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Wins</p>
+                                </div>
+                                <div className="px-2 py-4">
+                                    <p className="m-0 text-xl font-bold text-primary-600">{onlineUsers.length}</p>
+                                    <p className="m-0 mt-0.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Online now</p>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Recent duels */}
+                        <Card className="p-5 sm:p-6">
+                            <div className="flex items-center justify-between">
+                                <h2 className="m-0 inline-flex items-center gap-2 text-xl font-bold text-slate-900">
+                                    <History className="size-5 text-slate-400"/> Recent duels
+                                </h2>
+                                <Button to="/profile" variant="ghost" size="sm">View all</Button>
+                            </div>
+                            <div className="mt-4 space-y-2">
+                                {recentMatches.length ? recentMatches.map((m) => {
+                                    const opp = opponentOf(m);
+                                    const result = resultOf(m);
+                                    const resultStyle = result === 'Win'
+                                        ? 'bg-emerald-50 text-emerald-700'
+                                        : result === 'Loss'
+                                            ? 'bg-rose-50 text-rose-600'
+                                            : 'bg-slate-100 text-slate-600';
+                                    return (
+                                        <div key={m.id} className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">
+                                                    {opp?.username?.[0]?.toUpperCase() || '?'}
+                                                </span>
+                                                <div className="min-w-0">
+                                                    <p className="m-0 truncate font-semibold text-slate-800">
+                                                        vs {opp?.username || 'unknown'}
+                                                    </p>
+                                                    <p className="m-0 text-xs text-slate-400">
+                                                        {new Date(m.created_at).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-bold text-slate-700">
+                                                    {myScore(m)}–{theirScore(m)}
+                                                </span>
+                                                <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${resultStyle}`}>
+                                                    {result}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                }) : (
+                                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
+                                        <Trophy className="mx-auto size-8 text-slate-300"/>
+                                        <p className="m-0 mt-2 font-semibold text-slate-700">No duels yet</p>
+                                        <p className="m-0 mt-1 text-sm text-slate-500">
+                                            Your match history will show up here after your first duel.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
+                    </div>
+
+                    {/* Online players */}
+                    <aside>
+                        <Card className="p-5 lg:sticky lg:top-24">
+                            <div className="flex items-center justify-between">
+                                <h2 className="m-0 inline-flex items-center gap-2 text-xl font-bold text-slate-900">
+                                    <Users className="size-5 text-emerald-600"/> Online
+                                </h2>
+                                <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                                    <span className="size-1.5 animate-pulse rounded-full bg-emerald-500"/>
+                                    {onlineUsers.length}
+                                </span>
+                            </div>
+                            <div className="mt-4 max-h-96 space-y-2 overflow-y-auto">
+                                {onlineUsers.length ? onlineUsers.map((onlineUser) => (
+                                    <div key={onlineUser.id || onlineUser.username} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
+                                        <span className="flex size-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
+                                            {onlineUser.username?.[0]?.toUpperCase() || '?'}
+                                        </span>
+                                        <span className="truncate font-semibold text-slate-800">{onlineUser.username}</span>
+                                    </div>
+                                )) : (
+                                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
+                                        <p className="m-0 text-sm font-semibold text-slate-600">Quiet right now</p>
+                                        <p className="m-0 mt-1 text-xs text-slate-400">
+                                            Try a tournament or practice while you wait.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-4 border-t border-slate-100 pt-4">
+                                <Button to="/tournaments" variant="secondary" block size="sm">
+                                    Weekly tournaments
+                                </Button>
+                            </div>
+                        </Card>
+                    </aside>
                 </div>
-            </ContentWrapper>
-        </Container>
-    );
-};
+            </PageContainer>
 
-export default Match;
+            <MatchingModal visible={matching} onCancel={handleCancel}/>
+        </div>
+    );
+}
+
+export default MatchingPage;

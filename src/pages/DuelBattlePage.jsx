@@ -1,119 +1,78 @@
-import React, {useEffect, useState, useCallback} from 'react';
-import styled from 'styled-components';
-import {useAuth} from '../context/AuthContext';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
+import {CheckCircle2, Clock, MinusCircle, Swords, XCircle} from 'lucide-react';
+import {Alert, Card, PageContainer, Spinner} from '../components/ui';
+import {useAuth} from '../context/AuthContext';
 import Question from '../components/Question';
 import useOpponentProgress from '../hooks/useOpponentProgress';
-import Progress from '../components/Progress';
-import {message, Button, Drawer} from 'antd';
-import {MenuOutlined} from '@ant-design/icons';
 import api from '../components/api';
-import {useMediaQuery} from 'react-responsive';
 
-const DuelBattleContainer = styled.div`
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 16px;
-`;
+function formatTime(seconds) {
+    if (seconds === null) return '--:--';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
 
-const ContentWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-
-    @media (min-width: 992px) {
-        flex-direction: row;
+function statusMeta(status) {
+    if (status === 'Correct') {
+        return {
+            icon: CheckCircle2,
+            classes: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        };
     }
-`;
-
-const QuestionsSection = styled.div`
-    flex: 3;
-`;
-
-const ProgressSection = styled.div`
-    flex: 1;
-    background: white;
-    border-radius: 8px;
-    padding: 16px;
-    position: sticky;
-    top: 16px;
-    height: fit-content;
-
-    @media (max-width: 991px) {
-        display: none;
+    if (status === 'Incorrect') {
+        return {
+            icon: XCircle,
+            classes: 'bg-rose-50 text-rose-700 border-rose-200',
+        };
     }
-`;
+    return {
+        icon: MinusCircle,
+        classes: 'bg-slate-50 text-slate-500 border-slate-200',
+    };
+}
 
-const FloatingButton = styled(Button)`
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-`;
+function ProgressRow({status, questionNumber}) {
+    const meta = statusMeta(status);
+    const Icon = meta.icon;
+    return (
+        <div className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold ${meta.classes}`}>
+            <Icon className="size-4"/>
+            <span>Question {questionNumber}</span>
+            <span className="ml-auto">{status}</span>
+        </div>
+    );
+}
 
-const SectionTitle = styled.h2`
-    font-size: 1.5rem;
-    margin-bottom: 24px;
-    color: #1a1a1a;
-    margin-top: 5px;
-`;
-
-const TimeDisplay = styled.div`
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #1a1a1a;
-    background: #f0f0f0;
-    border-radius: 8px;
-    padding: 8px;
-    text-align: center;
-    margin-top: 16px;
-`;
-
-const TextDisplay = styled.p`
-    font-size: 1rem;
-    margin-top: 16px;
-    color: #e0502e;
-    text-align: center;
-`;
-
-const DuelBattle = () => {
+function DuelBattlePage() {
     const {loading} = useAuth();
     const {roomId} = useParams();
     const [questions, setQuestions] = useState([]);
-    const [loadingQuestions, setLoading] = useState(true);
+    const [loadingQuestions, setLoadingQuestions] = useState(true);
     const [trackedQuestionMap, setTrackedQuestionMap] = useState({});
     const [opponentProgress, setOpponentProgress] = useState([]);
     const [endTime, setEndTime] = useState(null);
     const [timeLeft, setTimeLeft] = useState(null);
+    const [notice, setNotice] = useState(null);
     const navigate = useNavigate();
-    const [drawerVisible, setDrawerVisible] = useState(false);
-
-    const isDesktopOrLaptop = useMediaQuery({minWidth: 992});
 
     const endMatch = useCallback(async () => {
         try {
-            await api.post(`api/match/end_match/`, {
-                room_id: roomId,
-            });
+            await api.post('api/match/end_match/', {room_id: roomId});
         } catch (err) {
-            message.error(err.response?.data?.error || 'An error occurred while ending the match.');
+            setNotice({type: 'error', text: err.response?.data?.error || 'Could not end the match.'});
         }
     }, [roomId]);
 
     useEffect(() => {
-        if (loading || loadingQuestions) {
-            return;
-        }
+        if (loading || loadingQuestions) return;
         if (
             questions.length > 0 &&
             opponentProgress.length > 0 &&
             questions.every((entry) => entry.status !== 'Blank') &&
             opponentProgress.every((entry) => entry.status !== 'Blank')
         ) {
-            message.success('Both players have finished the battle. Redirecting to results page.');
             endMatch();
             navigate(`/battle_result/${roomId}`);
         }
@@ -122,179 +81,209 @@ const DuelBattle = () => {
     useEffect(() => {
         const fetchEndTime = async () => {
             try {
-                const response = await api.post(`api/match/get_end_time/`, {
-                    room_id: roomId,
-                });
+                const response = await api.post('api/match/get_end_time/', {room_id: roomId});
                 setEndTime(new Date(response.data.end_time));
             } catch (err) {
-                message.error(err.response?.data?.error || 'An error occurred while fetching end time.');
+                setNotice({type: 'error', text: err.response?.data?.error || 'Could not load battle timer.'});
             }
         };
         fetchEndTime();
     }, [roomId]);
 
     useEffect(() => {
-        if (endTime) {
-            const timer = setInterval(() => {
-                const now = new Date();
-                const difference = endTime - now;
-                if (difference > 0) {
-                    setTimeLeft(Math.round(difference / 1000));
-                } else {
-                    clearInterval(timer);
-                    setTimeLeft(0);
-                    endMatch();
-                    navigate(`/battle_result/${roomId}`);
-                }
-            }, 500);
+        if (!endTime) return undefined;
+        const timer = setInterval(() => {
+            const difference = endTime - new Date();
+            if (difference > 0) {
+                setTimeLeft(Math.round(difference / 1000));
+            } else {
+                clearInterval(timer);
+                setTimeLeft(0);
+                endMatch();
+                navigate(`/battle_result/${roomId}`);
+            }
+        }, 500);
 
-            return () => clearInterval(timer);
-        }
+        return () => clearInterval(timer);
     }, [endMatch, endTime, navigate, roomId]);
 
-    const formatTime = (seconds) => {
-        if (seconds === null) return '--:--';
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
-
     useOpponentProgress(roomId, setOpponentProgress);
-
-    const fetchTrackedQuestions = async (roomId) => {
-        const response = await api.post(`api/match/questions/`, {
-            room_id: roomId,
-        });
-        return response.data;
-    };
 
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
-                const trackedQuestions = await fetchTrackedQuestions(roomId);
-                setQuestions(trackedQuestions);
+                const response = await api.post('api/match/questions/', {room_id: roomId});
+                setQuestions(response.data);
                 const questionMap = {};
-                trackedQuestions.forEach((trackedQuestion) => {
+                response.data.forEach((trackedQuestion) => {
                     questionMap[trackedQuestion.question.id] = trackedQuestion.id;
                 });
                 setTrackedQuestionMap(questionMap);
-
-                setLoading(false);
             } catch (err) {
-                console.error('Error fetching match questions:', err);
-                setLoading(false);
+                setNotice({type: 'error', text: err.response?.data?.error || 'Could not load duel questions.'});
+            } finally {
+                setLoadingQuestions(false);
             }
         };
 
         if (!loading) {
             fetchQuestions();
         }
-    }, [roomId, loading]);
+    }, [loading, roomId]);
 
-    const checkAnswer = async (id, choice) => {
-        const response = await api.post(`api/check_answer/`, {
-            question_id: id,
-            selected_choice: choice,
-        });
-        return response.data.result;
-    };
+    const handleQuestionSubmit = async (id, choice) => {
+        try {
+            const trackedQuestionId = trackedQuestionMap[id];
+            const answerResponse = await api.post('api/check_answer/', {
+                question_id: id,
+                selected_choice: choice,
+            });
+            const result = answerResponse.data.result;
+            const updateResponse = await api.post('api/match/update/', {
+                tracked_question_id: trackedQuestionId,
+                result,
+            });
 
-    const updateStatus = async (tracked_question_id, result) => {
-        const response = await api.post(`api/match/update/`, {
-            tracked_question_id: tracked_question_id,
-            result: result,
-        });
-        if (response.data.status === 'success') {
-            setQuestions((prevQuestions) =>
-                prevQuestions.map((q) =>
-                    q.id === tracked_question_id
-                        ? {...q, status: result === 'correct' ? 'Correct' : 'Incorrect'}
-                        : q
-                )
-            );
+            if (updateResponse.data.status === 'success') {
+                setQuestions((previousQuestions) =>
+                    previousQuestions.map((question) =>
+                        question.id === trackedQuestionId
+                            ? {...question, status: result === 'correct' ? 'Correct' : 'Incorrect'}
+                            : question
+                    )
+                );
+            }
+        } catch (err) {
+            setNotice({type: 'error', text: err.response?.data?.error || 'Could not save your answer.'});
         }
     };
 
-    const handleQuestionSubmit = async (id, choice) => {
-        const trackedQuestionId = trackedQuestionMap[id];
-        const result = await checkAnswer(id, choice);
-        await updateStatus(trackedQuestionId, result);
-    };
-
-    const toggleDrawer = () => {
-        setDrawerVisible(!drawerVisible);
-    };
+    const answeredCount = questions.filter((question) => question.status !== 'Blank').length;
+    const opponentAnsweredCount = opponentProgress.filter((question) => question.status !== 'Blank').length;
+    const userDone = questions.length > 0 && answeredCount === questions.length;
 
     if (loadingQuestions) {
-        return <div>Loading questions...</div>;
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="flex justify-center">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-600">
+                        <Spinner/> Loading duel…
+                    </div>
+                </PageContainer>
+            </div>
+        );
     }
-    if (endTime === null) {
-        return <div>Loading battle information...</div>;
+
+    if (!endTime) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="flex justify-center">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-600">
+                        <Spinner/> Loading battle information…
+                    </div>
+                </PageContainer>
+            </div>
+        );
     }
 
     return (
-        <DuelBattleContainer>
-            <ContentWrapper>
-                <QuestionsSection>
-                    {questions.map((trackedQuestion, i) => (
-                        <Question
-                            questionData={trackedQuestion.question}
-                            key={trackedQuestion.id}
-                            onSubmit={handleQuestionSubmit}
-                            status={trackedQuestion.status}
-                            questionNumber={i + 1}
-                        />
-                    ))}
-                    <TextDisplay>
-                        <b>Please wait for your opponent to finish...</b>
-                        <br/>
-                        Your answers were saved; it's safe to quit.
-                        <br/>
-                        You can find the battle results in Profile &gt; Match History.
-                    </TextDisplay>
-                </QuestionsSection>
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
+            <PageContainer>
+                {notice && (
+                    <div className="mb-6">
+                        <Alert type={notice.type === 'success' ? 'success' : 'error'}>{notice.text}</Alert>
+                    </div>
+                )}
 
-                {isDesktopOrLaptop ? (
-                    <ProgressSection>
-                        <SectionTitle>Opponent's Progress</SectionTitle>
-                        {opponentProgress.map((trackedQuestion, i) => (
-                            <Progress
+                <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
+                                <Swords className="size-4"/> Live duel
+                            </span>
+                            <h1 className="m-0 mt-3 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                                Answer quickly. Stay accurate.
+                            </h1>
+                            <p className="m-0 mt-2 text-slate-600">
+                                Your answers save instantly. Results unlock when both players finish or the timer ends.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+                            <div className="rounded-xl bg-slate-50 p-4">
+                                <p className="m-0 text-sm font-semibold text-slate-500">Time left</p>
+                                <p className="m-0 mt-1 flex items-center gap-2 text-2xl font-bold text-slate-900">
+                                    <Clock className="size-5 text-primary-600"/> {formatTime(timeLeft)}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-slate-50 p-4">
+                                <p className="m-0 text-sm font-semibold text-slate-500">You</p>
+                                <p className="m-0 mt-1 text-2xl font-bold text-slate-900">
+                                    {answeredCount}/{questions.length}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-slate-50 p-4">
+                                <p className="m-0 text-sm font-semibold text-slate-500">Opponent</p>
+                                <p className="m-0 mt-1 text-2xl font-bold text-slate-900">
+                                    {opponentAnsweredCount}/{opponentProgress.length || questions.length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+                    <main className="space-y-5">
+                        {questions.map((trackedQuestion, index) => (
+                            <Question
+                                questionData={trackedQuestion.question}
                                 key={trackedQuestion.id}
+                                onSubmit={handleQuestionSubmit}
                                 status={trackedQuestion.status}
-                                questionNumber={i + 1}
+                                questionNumber={index + 1}
                             />
                         ))}
-                        <SectionTitle>Time Left</SectionTitle>
-                        <TimeDisplay>{formatTime(timeLeft)}</TimeDisplay>
-                    </ProgressSection>
-                ) : (
-                    <>
-                        <FloatingButton type="primary" icon={<MenuOutlined/>} onClick={toggleDrawer}/>
-                        <Drawer
-                            title="Opponent's Progress"
-                            placement="right"
-                            closable={true}
-                            onClose={toggleDrawer}
-                            visible={drawerVisible}
-                            height="50%"
-                        >
-                            <SectionTitle>Opponent's Progress</SectionTitle>
-                            {opponentProgress.map((trackedQuestion, i) => (
-                                <Progress
-                                    key={trackedQuestion.id}
-                                    status={trackedQuestion.status}
-                                    questionNumber={i + 1}
-                                    isMobile={true}
-                                />
-                            ))}
-                            <SectionTitle>Time Left</SectionTitle>
-                            <TimeDisplay>{formatTime(timeLeft)}</TimeDisplay>
-                        </Drawer>
-                    </>
-                )}
-            </ContentWrapper>
-        </DuelBattleContainer>
-    );
-};
 
-export default DuelBattle;
+                        {userDone && (
+                            <Card className="p-5 text-center">
+                                <h2 className="m-0 text-xl font-bold text-slate-900">Answers saved</h2>
+                                <p className="mx-auto mt-2 max-w-md text-slate-600">
+                                    Waiting for your opponent. You can leave safely and find the result later in your profile history.
+                                </p>
+                            </Card>
+                        )}
+                    </main>
+
+                    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+                        <Card className="p-5">
+                            <h2 className="m-0 text-xl font-bold text-slate-900">Opponent progress</h2>
+                            <div className="mt-4 space-y-2">
+                                {opponentProgress.length ? opponentProgress.map((trackedQuestion, index) => (
+                                    <ProgressRow
+                                        key={trackedQuestion.id}
+                                        status={trackedQuestion.status}
+                                        questionNumber={index + 1}
+                                    />
+                                )) : (
+                                    <p className="m-0 text-sm text-slate-500">Waiting for progress updates…</p>
+                                )}
+                            </div>
+                        </Card>
+
+                        <Card className="p-5">
+                            <h2 className="m-0 text-xl font-bold text-slate-900">Match timer</h2>
+                            <div className="mt-4 rounded-2xl bg-primary-50 px-5 py-6 text-center">
+                                <p className="m-0 font-display text-4xl font-bold text-primary-700">
+                                    {formatTime(timeLeft)}
+                                </p>
+                                <p className="m-0 mt-1 text-sm font-semibold text-primary-700">remaining</p>
+                            </div>
+                        </Card>
+                    </aside>
+                </div>
+            </PageContainer>
+        </div>
+    );
+}
+
+export default DuelBattlePage;

@@ -1,194 +1,61 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
-import styled from 'styled-components';
-import axios from 'axios';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Lottie from 'react-lottie';
+import {useNavigate} from 'react-router-dom';
+import {Award, CheckCircle2, Coins, Crown, Flame, LineChart, Lock, RotateCcw, Trophy, X} from 'lucide-react';
 import animationData from '../../animations/lootbox.json';
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
-import withAuth from "../../hoc/withAuth";
+import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
-import {useNavigate} from "react-router-dom";
+import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 
-const PageContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    padding: 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-`;
+const LEVEL_THRESHOLDS = [1, 5, 10, 20, 50, 100, 200];
 
-const ContentWrapper = styled.div`
-    display: flex;
-    width: 100%;
-    max-width: 1200px;
-    gap: 40px;
-`;
+function getLevel(xp) {
+    if (xp < 1) return 0;
+    if (xp < 5) return 1;
+    if (xp < 10) return 2;
+    if (xp < 20) return 3;
+    if (xp < 50) return 4;
+    if (xp < 100) return 5;
+    if (xp < 200) return 6;
+    return 7;
+}
 
-const QuestionContainer = styled.div`
-    flex: 3;
-`;
+function getXPForNextLevel(level) {
+    return LEVEL_THRESHOLDS[level] ?? Infinity;
+}
 
-const StatsContainer = styled.div`
-    flex: 1;
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    height: fit-content;
-`;
+function calculateProgressPercentage(stats) {
+    const previousThreshold = stats.level <= 0 ? 0 : getXPForNextLevel(stats.level - 1);
+    const nextThreshold = getXPForNextLevel(stats.level);
+    if (!Number.isFinite(nextThreshold)) return 100;
+    const progress = ((stats.xp - previousThreshold) / (nextThreshold - previousThreshold)) * 100;
+    return Math.max(0, Math.min(progress, 100));
+}
 
-const StatsTitle = styled.h2`
-    color: #4b0082;
-    margin-bottom: 24px;
-    font-size: 1.5rem;
-    border-bottom: 2px solid #4b0082;
-    padding-bottom: 10px;
-`;
-
-const StatItem = styled.div`
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-`;
-
-const StatLabel = styled.span`
-    font-weight: 600;
-    color: #333;
-`;
-
-const StatValue = styled.span`
-    color: #4b0082;
-    font-weight: 700;
-    font-size: 1.1rem;
-`;
-
-const XPProgressLabel = styled.div`
-    text-align: center;
-    font-size: 1.3rem;
-    color: #4b0082;
-    margin-top: 20px;
-    margin-bottom: 8px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-`;
-
-const ProgressBarWrapper = styled.div`
-    width: 100%;
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-`;
-
-const ProgressBar = styled.div`
-    height: 20px;
-    width: ${({percentage}) => percentage}%;
-    background-color: #4b0082;
-    transition: width 0.5s ease;
-`;
-
-const NextButton = styled.button`
-    background-color: #4b0082;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 24px;
-    transition: all 0.3s ease;
-
-    &:hover {
-        background-color: #3a006f;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-`;
-
-const EndButton = styled.button`
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 24px;
-    margin-left: 12px;
-    transition: all 0.3s ease;
-
-    &:hover {
-        background-color: #c82333;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-`;
-
-const SummaryContainer = styled.div`
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    margin: 20px auto;
-    width: 80%;
-    max-width: 500px;
-    height: 300px;
-    max-height: 80vh;
-    overflow: auto;
-`;
-
-const Overlay = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
-`;
-
-const LootboxContainer = styled.div`
-    position: relative;
-    width: 400px;
-    height: 400px;
-    perspective: 1500px;
-    z-index: 1001;
-    cursor: pointer;
-`;
-
-const LevelUpMessage = styled.div`
-    position: absolute;
-    top: -50px;
-    width: 100%;
-    text-align: center;
-    font-size: 48px;
-    font-weight: bold;
-    color: yellow;
-    text-shadow: 2px 2px 4px #000;
-`;
-
-const LootboxMessage = styled.div`
-    position: absolute;
-    top: -50px;
-    width: 100%;
-    text-align: center;
-    font-size: 36px;
-    font-weight: bold;
-    color: gold;
-    text-shadow: 2px 2px 4px #000;
-`;
+function StatTile({icon: Icon, label, value}) {
+    return (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+                <Icon className="size-5"/>
+            </div>
+            <p className="m-0 text-2xl font-bold text-slate-900">{value}</p>
+            <p className="m-0 mt-1 text-sm font-medium text-slate-500">{label}</p>
+        </div>
+    );
+}
 
 function InfiniteQuestionsPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
-    const [loadingQuestions, setLoading] = useState(true);
+    const [loadingQuestions, setLoadingQuestions] = useState(true);
     const [error, setError] = useState(null);
+    const [quota, setQuota] = useState(null); // {used, limit, remaining, is_premium}
+    const [spElo, setSpElo] = useState(null);
+    const [topics, setTopics] = useState([]);
+    const [selectedTopic, setSelectedTopic] = useState('any');
+    const [limitReached, setLimitReached] = useState(false);
     const [stats, setStats] = useState({
         questionsAnswered: 0,
         correctAnswers: 0,
@@ -199,7 +66,7 @@ function InfiniteQuestionsPage() {
         multiplier: 1,
     });
     const [isFinished, setIsFinished] = useState(false);
-    const {token, loading} = useAuth();
+    const {loading} = useAuth();
 
     const [isLootboxOpened, setIsLootboxOpened] = useState(false);
     const [isLootboxVisible, setIsLootboxVisible] = useState(false);
@@ -212,11 +79,9 @@ function InfiniteQuestionsPage() {
     const hasFetchedData = useRef(false);
     const navigate = useNavigate();
 
-    const baseUrl = import.meta.env.VITE_API_URL;
-
     const saveStats = useCallback(async (statsToSave) => {
         try {
-            const payload = {
+            await api.post('/api/trainer/set_infinite_question_stats/', {
                 correct_number: statsToSave.correctAnswers,
                 incorrect: statsToSave.questionsAnswered - statsToSave.correctAnswers,
                 current_streak: statsToSave.streak,
@@ -224,43 +89,57 @@ function InfiniteQuestionsPage() {
                 level: statsToSave.level,
                 coins: statsToSave.coins,
                 multiplier: statsToSave.multiplier,
-            };
-            console.log("Saving stats:", payload);
-            await axios.post(`${baseUrl}/api/trainer/set_infinite_question_stats/`, payload, {
-                headers: {'Authorization': `Bearer ${token}`}
             });
-        } catch (error) {
-            console.error('Error saving stats:', error.response ? error.response.data : error);
+        } catch (saveError) {
+            console.error('Error saving stats:', saveError.response ? saveError.response.data : saveError);
         }
-    }, [baseUrl, token]);
+    }, []);
 
-    const fetchNextQuestion = useCallback(async () => {
+    const fetchNextQuestion = useCallback(async (topic) => {
         if (isFinished) return;
         try {
-            setLoading(true);
-            const queryParams = new URLSearchParams({
-                type: 'any',
-                difficulty: 'any',
-                page: 1,
-                page_size: 1,
-                random: true
-            }).toString();
-            const response = await api.get(`api/filter_questions/?${queryParams}`);
-            setCurrentQuestion(response.data.questions[0]);
+            setLoadingQuestions(true);
+            setError(null);
+            const params = {};
+            const effectiveTopic = topic ?? selectedTopic;
+            if (effectiveTopic && effectiveTopic !== 'any') params.type = effectiveTopic;
+            const response = await api.get('api/practice/next/', {params});
+            setCurrentQuestion(response.data.question || null);
+            setQuota(response.data.quota || null);
             setQuestionStatus('Blank');
-        } catch (error) {
-            setError(`An error occurred: ${error.response ? error.response.data : 'Server unreachable'}`);
-            console.error("Error fetching question:", error);
+        } catch (fetchError) {
+            const data = fetchError.response?.data;
+            if (data?.error === 'daily_limit') {
+                setQuota(data.quota || null);
+                setLimitReached(true);
+            } else if (data?.error === 'premium_required') {
+                setSelectedTopic('any');
+                setError('Topic selection is a premium feature — serving random questions instead.');
+            } else {
+                setError(data?.error || 'Could not load a question.');
+            }
         } finally {
-            setLoading(false);
+            setLoadingQuestions(false);
         }
-    }, [isFinished]);
+    }, [isFinished, selectedTopic]);
+
+    const fetchPracticeStatus = useCallback(async () => {
+        try {
+            const response = await api.get('api/practice/status/');
+            setQuota(response.data.quota || null);
+            setSpElo(response.data.sp_elo_rating ?? null);
+            setTopics(response.data.topics || []);
+            if (response.data.quota?.remaining === 0) {
+                setLimitReached(true);
+            }
+        } catch {
+            // Non-blocking; the page works without the status panel.
+        }
+    }, []);
 
     const fetchStats = useCallback(async () => {
         try {
-            const response = await axios.get(`${baseUrl}/api/trainer/infinite_question_stats/`, {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
+            const response = await api.get('/api/trainer/infinite_question_stats/');
             const statsData = response.data;
             setStats({
                 questionsAnswered: statsData.correct_number + statsData.incorrect_number,
@@ -269,95 +148,94 @@ function InfiniteQuestionsPage() {
                 xp: statsData.xp,
                 level: statsData.level,
                 coins: statsData.coins,
-                multiplier: statsData.total_multiplier,
+                multiplier: statsData.total_multiplier || statsData.multiplier || 1,
             });
-        } catch (error) {
-            setError('Error fetching stats: ' + (error.response ? error.response.data : 'Server unreachable'));
+        } catch (fetchError) {
+            setError(fetchError.response?.data?.error || 'Could not load your practice stats.');
         }
-    }, [baseUrl, token]);
+    }, []);
 
     useEffect(() => {
         if (!loading && !hasFetchedData.current) {
             fetchNextQuestion();
             fetchStats();
+            fetchPracticeStatus();
             hasFetchedData.current = true;
         }
-    }, [loading, fetchNextQuestion, fetchStats]);
+    }, [fetchNextQuestion, fetchPracticeStatus, fetchStats, loading]);
 
-    const getLevel = (cur_xp) => {
-        if (cur_xp < 1) return 0;
-        if (cur_xp < 5) return 1;
-        if (cur_xp < 10) return 2;
-        if (cur_xp < 20) return 3;
-        if (cur_xp < 50) return 4;
-        if (cur_xp < 100) return 5;
-        if (cur_xp < 200) return 6;
-        return 7;
-    };
-
-    const getXPForNextLevel = (level) => {
-        if (level === 0) return 1;
-        if (level === 1) return 5;
-        if (level === 2) return 10;
-        if (level === 3) return 20;
-        if (level === 4) return 50;
-        if (level === 5) return 100;
-        if (level === 6) return 200;
-        return Infinity; // No higher level
-    };
-
-    const calculateProgressPercentage = () => {
-        const xpForCurrentLevel = getXPForNextLevel(stats.level - 1);
-        const xpForNextLevel = getXPForNextLevel(stats.level);
-        const currentXPInLevel = stats.xp - xpForCurrentLevel;
-        const xpRequiredForNextLevel = xpForNextLevel - xpForCurrentLevel;
-        return Math.min((currentXPInLevel / xpRequiredForNextLevel) * 100, 100);
+    const handleTopicChange = (topic) => {
+        setSelectedTopic(topic);
+        fetchNextQuestion(topic);
     };
 
     const handleQuestionSubmit = async (id, choice) => {
-        if (isFinished) return;
+        if (isFinished || questionStatus !== 'Blank') return;
         try {
-            const response = await api.post(`api/check_answer/`, {
+            const response = await api.post('api/check_answer/', {
                 question_id: id,
-                selected_choice: choice
+                selected_choice: choice,
+                mode: 'practice',
             });
+            if (response.data.quota) setQuota(response.data.quota);
+            if (response.data.sp_elo_rating != null) setSpElo(response.data.sp_elo_rating);
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
 
-            setStats(prevStats => {
+            setStats((previousStats) => {
+                const nextXp = isCorrect ? previousStats.xp + 1 : previousStats.xp;
                 const newStats = {
-                    questionsAnswered: prevStats.questionsAnswered + 1,
-                    correctAnswers: isCorrect ? prevStats.correctAnswers + 1 : prevStats.correctAnswers,
-                    streak: isCorrect ? prevStats.streak + 1 : 0,
-                    xp: isCorrect ? prevStats.xp + 1 : prevStats.xp,
-                    level: getLevel(isCorrect ? prevStats.xp + 1 : prevStats.xp),
-                    coins: isCorrect ? prevStats.coins + Math.floor(Math.random() * 3 * prevStats.multiplier) : prevStats.coins,
-                    multiplier: prevStats.multiplier,
+                    questionsAnswered: previousStats.questionsAnswered + 1,
+                    correctAnswers: isCorrect ? previousStats.correctAnswers + 1 : previousStats.correctAnswers,
+                    streak: isCorrect ? previousStats.streak + 1 : 0,
+                    xp: nextXp,
+                    level: getLevel(nextXp),
+                    coins: isCorrect
+                        ? previousStats.coins + Math.floor(Math.random() * 3 * previousStats.multiplier)
+                        : previousStats.coins,
+                    multiplier: previousStats.multiplier,
                 };
 
-                if (newStats.level > prevStats.level) {
-                    setLevelUpMessage("LEVEL UP!!!");
+                if (newStats.level > previousStats.level) {
+                    setLevelUpMessage('Level up');
 
-                    const coinRewards = [10 * newStats.level, 20 * newStats.level, 30 * newStats.level, 40 * newStats.level, 50 * newStats.level, 66 * newStats.level, newStats.level ** 2, newStats.level ** 3, newStats.level ** 5, 666 * newStats.level];
-                    const multiplierRewards = [1.01 * newStats.level, 1.02 * newStats.level, 1.05 * newStats.level, 1.06 * newStats.level, 1.1 * newStats.level, 1.2 * newStats.level, 1.25 * newStats.level].map(value => parseFloat(value.toFixed(2)));
-
-                    let lootboxMessage;
-                    let reward;
+                    const coinRewards = [
+                        10 * newStats.level,
+                        20 * newStats.level,
+                        30 * newStats.level,
+                        40 * newStats.level,
+                        50 * newStats.level,
+                        66 * newStats.level,
+                        newStats.level ** 2,
+                        newStats.level ** 3,
+                        newStats.level ** 5,
+                        666 * newStats.level,
+                    ];
+                    const multiplierRewards = [
+                        1.01 * newStats.level,
+                        1.02 * newStats.level,
+                        1.05 * newStats.level,
+                        1.06 * newStats.level,
+                        1.1 * newStats.level,
+                        1.2 * newStats.level,
+                        1.25 * newStats.level,
+                    ].map((value) => parseFloat(value.toFixed(2)));
 
                     if (Math.random() < 0.33) {
-                        reward = multiplierRewards[Math.floor(Math.random() * multiplierRewards.length)];
-                        lootboxMessage = `${reward}x Permanent Coin Multiplier`;
+                        const reward = multiplierRewards[Math.floor(Math.random() * multiplierRewards.length)];
+                        setLootboxMessage(`${reward}x permanent coin multiplier`);
                         newStats.multiplier *= reward;
                     } else {
-                        reward = Math.round(coinRewards[Math.floor(Math.random() * coinRewards.length)] * newStats.multiplier);
-                        lootboxMessage = `$${reward}`;
+                        const reward = Math.round(
+                            coinRewards[Math.floor(Math.random() * coinRewards.length)] * newStats.multiplier
+                        );
+                        setLootboxMessage(`${reward} coins`);
                         newStats.coins += reward;
                     }
 
-                    setLootboxMessage(lootboxMessage);
                     setIsLootboxVisible(true);
                     setIsLootboxOpened(false);
-                    setAnimationStopped(true); // Animation stopped initially
+                    setAnimationStopped(true);
                     setShowReward(false);
                     setCanCloseLootbox(false);
                 }
@@ -365,146 +243,325 @@ function InfiniteQuestionsPage() {
                 saveStats(newStats);
                 return newStats;
             });
-        } catch (error) {
-            setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
+        } catch (submitError) {
+            const data = submitError.response?.data;
+            if (data?.error === 'daily_limit') {
+                setQuota(data.quota || null);
+                setLimitReached(true);
+            } else {
+                setError(data?.error || 'Could not check your answer.');
+            }
         }
     };
 
     const handleLootboxClick = () => {
         if (!isLootboxOpened) {
-            setAnimationStopped(false); // Start the animation on click
+            setAnimationStopped(false);
             setIsLootboxOpened(true);
         } else if (canCloseLootbox) {
             setIsLootboxVisible(false);
             setIsLootboxOpened(false);
-            setLevelUpMessage(''); // Clear the level up message when closing the lootbox
+            setLevelUpMessage('');
         }
     };
 
     const handleAnimationComplete = () => {
         setShowReward(true);
         setCanCloseLootbox(true);
-        setLevelUpMessage(''); // Clear the "LEVEL UP" message after the animation completes
+        setLevelUpMessage('');
     };
 
-    const defaultOptions = {
-        loop: false,
-        autoplay: !animationStopped,
-        animationData: animationData,
-        rendererSettings: {
-            preserveAspectRatio: 'xMidYMid slice'
-        }
-    };
-
-    const handleEndEarly = () => {
+    const handleEndSession = () => {
         setIsFinished(true);
         saveStats(stats);
     };
 
-    if (loadingQuestions && !isFinished) return <PageContainer><p>Loading question... Please wait...</p>
-    </PageContainer>;
-    if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
+    const nextLevelXP = getXPForNextLevel(stats.level);
+    const xpRemaining = Number.isFinite(nextLevelXP) ? Math.max(nextLevelXP - stats.xp, 0) : 0;
+    const accuracy = stats.questionsAnswered > 0
+        ? `${((stats.correctAnswers / stats.questionsAnswered) * 100).toFixed(1)}%`
+        : '—';
+
+    const defaultOptions = {
+        loop: false,
+        autoplay: !animationStopped,
+        animationData,
+        rendererSettings: {
+            preserveAspectRatio: 'xMidYMid slice',
+        },
+    };
+
+    if (loadingQuestions && !currentQuestion && !isFinished) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="flex justify-center">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-600">
+                        <Spinner/> Loading question…
+                    </div>
+                </PageContainer>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="max-w-2xl">
+                    <Alert>{error}</Alert>
+                    <Button onClick={() => setError(null)} variant="secondary" className="mt-4">
+                        Dismiss
+                    </Button>
+                </PageContainer>
+            </div>
+        );
+    }
+
+    if (limitReached && !isFinished) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
+                <PageContainer className="max-w-2xl">
+                    <Card className="p-8 text-center">
+                        <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-50">
+                            <Lock className="size-7 text-amber-600"/>
+                        </div>
+                        <h1 className="font-display text-3xl font-bold text-slate-900">
+                            That's your free practice for today
+                        </h1>
+                        <p className="mx-auto mt-3 max-w-md text-slate-600">
+                            You answered {quota?.used ?? quota?.limit ?? ''} questions today — nice work.
+                            Come back tomorrow for {quota?.limit ?? 25} more, or go premium for
+                            unlimited practice and topic selection.
+                        </p>
+                        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                            <Button size="lg">
+                                <Crown className="size-5"/> Get premium
+                            </Button>
+                            <Button to="/trainer" variant="secondary" size="lg">
+                                Back to trainer
+                            </Button>
+                        </div>
+                        <p className="mt-4 text-sm text-slate-400">
+                            Premium is coming soon — pricing will be announced shortly.
+                        </p>
+                    </Card>
+                </PageContainer>
+            </div>
+        );
+    }
+
+    if (isFinished) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
+                <PageContainer className="max-w-3xl">
+                    <Card className="p-6 text-center sm:p-8">
+                        <Trophy className="mx-auto size-12 text-primary-600"/>
+                        <h1 className="mt-4 font-display text-3xl font-bold text-slate-900">Practice session complete</h1>
+                        <p className="mx-auto mt-2 max-w-md text-slate-600">
+                            Your stats were saved. Come back tomorrow to keep the streak moving.
+                        </p>
+                        <div className="mt-8 grid gap-3 sm:grid-cols-4">
+                            <StatTile icon={CheckCircle2} label="Answered" value={stats.questionsAnswered}/>
+                            <StatTile icon={Award} label="Correct" value={stats.correctAnswers}/>
+                            <StatTile icon={Flame} label="Streak" value={stats.streak}/>
+                            <StatTile icon={LineChart} label="Accuracy" value={accuracy}/>
+                        </div>
+                        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                            <Button onClick={() => navigate('/trainer')}>
+                                Return to trainer
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setIsFinished(false);
+                                    fetchNextQuestion();
+                                }}
+                            >
+                                <RotateCcw className="size-4"/> Keep practicing
+                            </Button>
+                        </div>
+                    </Card>
+                </PageContainer>
+            </div>
+        );
+    }
 
     return (
-        <PageContainer>
-            <ContentWrapper>
-                {!isFinished ? (
-                    <>
-                        <QuestionContainer>
-                            {currentQuestion && (
-                                <>
-                                    <Question
-                                        questionData={currentQuestion}
-                                        onSubmit={handleQuestionSubmit}
-                                        status={questionStatus}
-                                        questionNumber={stats.questionsAnswered + 1}
-                                    />
-                                    <XPProgressLabel>{getXPForNextLevel(stats.level) - stats.xp} XP until
-                                        level {stats.level + 1}</XPProgressLabel>
-                                    <ProgressBarWrapper>
-                                        <ProgressBar percentage={calculateProgressPercentage()}/>
-                                    </ProgressBarWrapper>
-                                </>
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
+            <PageContainer>
+                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
+                            <LineChart className="size-4"/> Adaptive practice
+                        </span>
+                        <h1 className="m-0 mt-4 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                            Daily SAT question practice
+                        </h1>
+                        <p className="mt-2 max-w-2xl text-slate-600">
+                            Answer one question at a time. Your streak, XP, and practice rating update as you go.
+                        </p>
+                    </div>
+                    <Button onClick={handleEndSession} variant="secondary">
+                        End session
+                    </Button>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+                    <main>
+                        {currentQuestion && (
+                            <Question
+                                questionData={currentQuestion}
+                                onSubmit={handleQuestionSubmit}
+                                status={questionStatus}
+                                questionNumber={stats.questionsAnswered + 1}
+                            />
+                        )}
+
+                        <Card className="mt-5 p-5">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="m-0 font-semibold text-slate-700">
+                                            {Number.isFinite(nextLevelXP)
+                                                ? `${xpRemaining} XP until level ${stats.level + 1}`
+                                                : 'Max level reached'}
+                                        </p>
+                                        <p className="m-0 text-sm font-bold text-primary-600">
+                                            Level {stats.level}
+                                        </p>
+                                    </div>
+                                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
+                                        <div
+                                            className="h-full rounded-full bg-primary-600 transition-all"
+                                            style={{width: `${calculateProgressPercentage(stats)}%`}}
+                                        />
+                                    </div>
+                                </div>
+
+                                {questionStatus !== 'Blank' && (
+                                    <Button onClick={fetchNextQuestion} disabled={loadingQuestions}>
+                                        Next question
+                                    </Button>
+                                )}
+                            </div>
+                        </Card>
+                    </main>
+
+                    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+                        <Card className="p-5">
+                            <div className="flex items-center justify-between">
+                                <h2 className="m-0 text-xl font-bold text-slate-900">Topic</h2>
+                                {!quota?.is_premium && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                                        <Lock className="size-3"/> Premium
+                                    </span>
+                                )}
+                            </div>
+                            {quota?.is_premium ? (
+                                <div className="mt-4">
+                                    <Select
+                                        value={selectedTopic}
+                                        onChange={(e) => handleTopicChange(e.target.value)}
+                                    >
+                                        <option value="any">All topics (random)</option>
+                                        {topics.map((t) => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
+                                    </Select>
+                                </div>
+                            ) : (
+                                <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                                    <p className="m-0 text-sm text-slate-600">
+                                        Free practice serves random topics. Go premium to focus on
+                                        the exact skills you want to drill.
+                                    </p>
+                                    <Button size="sm" className="mt-3">
+                                        <Crown className="size-4"/> Unlock topics
+                                    </Button>
+                                </div>
                             )}
-                            {questionStatus !== 'Blank' && (
-                                <NextButton onClick={fetchNextQuestion}>Next Question</NextButton>
+                        </Card>
+
+                        <Card className="p-5">
+                            <div className="flex items-center justify-between">
+                                <h2 className="m-0 text-xl font-bold text-slate-900">Today</h2>
+                                {spElo != null && (
+                                    <span className="rounded-full bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
+                                        {spElo} rating
+                                    </span>
+                                )}
+                            </div>
+                            {quota && (
+                                <div className="mt-4">
+                                    {quota.limit == null ? (
+                                        <p className="m-0 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
+                                            <Crown className="size-4"/> Unlimited practice — {quota.used} answered today
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center justify-between text-sm font-semibold text-slate-600">
+                                                <span>{quota.used} of {quota.limit} free questions</span>
+                                                <span>{quota.remaining} left</span>
+                                            </div>
+                                            <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100">
+                                                <div
+                                                    className={`h-full rounded-full transition-all ${
+                                                        quota.remaining <= 5 ? 'bg-amber-500' : 'bg-primary-600'
+                                                    }`}
+                                                    style={{width: `${Math.min(100, (quota.used / quota.limit) * 100)}%`}}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             )}
-                            <EndButton onClick={handleEndEarly}>End Quiz</EndButton>
-                        </QuestionContainer>
-                        <StatsContainer>
-                            <StatsTitle>Your Stats</StatsTitle>
-                            <StatItem>
-                                <StatLabel>Questions Answered:</StatLabel>
-                                <StatValue>{stats.questionsAnswered}</StatValue>
-                            </StatItem>
-                            <StatItem>
-                                <StatLabel>Correct Answers:</StatLabel>
-                                <StatValue>{stats.correctAnswers}</StatValue>
-                            </StatItem>
-                            <StatItem>
-                                <StatLabel>Current Streak:</StatLabel>
-                                <StatValue>{stats.streak}</StatValue>
-                            </StatItem>
-                            <StatItem>
-                                <StatLabel>Level:</StatLabel>
-                                <StatValue>{stats.level}</StatValue>
-                            </StatItem>
-                            <StatItem>
-                                <StatLabel>Coins:</StatLabel>
-                                <StatValue>{stats.coins}</StatValue>
-                            </StatItem>
-                            <StatItem>
-                                <StatLabel>Multiplier:</StatLabel>
-                                <StatValue>{stats.multiplier}</StatValue>
-                            </StatItem>
-                            <StatItem>
-                                <StatLabel>Accuracy:</StatLabel>
-                                <StatValue>
-                                    {stats.questionsAnswered > 0
-                                        ? `${((stats.correctAnswers / stats.questionsAnswered) * 100).toFixed(1)}%`
-                                        : 'N/A'}
-                                </StatValue>
-                            </StatItem>
-                        </StatsContainer>
-                    </>
-                ) : (
-                    <SummaryContainer>
-                        <StatsTitle>Quiz Summary</StatsTitle>
-                        <StatItem>
-                            <StatLabel>Total Questions Answered:</StatLabel>
-                            <StatValue>{stats.questionsAnswered}</StatValue>
-                        </StatItem>
-                        <StatItem>
-                            <StatLabel>Correct Answers:</StatLabel>
-                            <StatValue>{stats.correctAnswers}</StatValue>
-                        </StatItem>
-                        <StatItem>
-                            <StatLabel>Final Streak:</StatLabel>
-                            <StatValue>{stats.streak}</StatValue>
-                        </StatItem>
-                        <StatItem>
-                            <StatLabel>Final Accuracy:</StatLabel>
-                            <StatValue>
-                                {stats.questionsAnswered > 0
-                                    ? `${((stats.correctAnswers / stats.questionsAnswered) * 100).toFixed(1)}%`
-                                    : 'N/A'}
-                            </StatValue>
-                        </StatItem>
-                        <NextButton onClick={() => navigate('/trainer')}>
-                            Return to Trainer
-                        </NextButton>
-                    </SummaryContainer>
-                )}
-            </ContentWrapper>
+                        </Card>
+
+                        <Card className="p-5">
+                            <h2 className="m-0 text-xl font-bold text-slate-900">Session stats</h2>
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                                <StatTile icon={CheckCircle2} label="Answered" value={stats.questionsAnswered}/>
+                                <StatTile icon={Award} label="Correct" value={stats.correctAnswers}/>
+                                <StatTile icon={Flame} label="Streak" value={stats.streak}/>
+                                <StatTile icon={LineChart} label="Accuracy" value={accuracy}/>
+                            </div>
+                        </Card>
+
+                        <Card className="p-5">
+                            <h2 className="m-0 text-xl font-bold text-slate-900">Rewards</h2>
+                            <div className="mt-5 space-y-3">
+                                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                                    <span className="inline-flex items-center gap-2 font-semibold text-slate-600">
+                                        <Coins className="size-4 text-amber-600"/> Coins
+                                    </span>
+                                    <span className="font-bold text-slate-900">{stats.coins}</span>
+                                </div>
+                                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                                    <span className="font-semibold text-slate-600">Multiplier</span>
+                                    <span className="font-bold text-slate-900">{Number(stats.multiplier || 1).toFixed(2)}x</span>
+                                </div>
+                            </div>
+                        </Card>
+                    </aside>
+                </div>
+            </PageContainer>
 
             {isLootboxVisible && (
-                <Overlay onClick={handleLootboxClick}>
-                    <LootboxContainer>
-                        {levelUpMessage && <LevelUpMessage>{levelUpMessage}</LevelUpMessage>}
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 px-4">
+                    <button
+                        type="button"
+                        onClick={handleLootboxClick}
+                        className="relative w-full max-w-md cursor-pointer rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-2xl"
+                    >
+                        <span className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-xl text-slate-400">
+                            <X className="size-5"/>
+                        </span>
+                        {levelUpMessage && (
+                            <p className="m-0 font-display text-3xl font-bold text-primary-600">{levelUpMessage}</p>
+                        )}
                         <Lottie
                             options={defaultOptions}
-                            height={400}
-                            width={400}
+                            height={280}
+                            width={280}
                             isStopped={animationStopped}
                             eventListeners={[
                                 {
@@ -513,11 +570,18 @@ function InfiniteQuestionsPage() {
                                 },
                             ]}
                         />
-                        {showReward && <LootboxMessage>{lootboxMessage}</LootboxMessage>}
-                    </LootboxContainer>
-                </Overlay>
+                        {showReward ? (
+                            <>
+                                <p className="m-0 text-2xl font-bold text-slate-900">{lootboxMessage}</p>
+                                <p className="m-0 mt-2 text-sm text-slate-500">Click to close.</p>
+                            </>
+                        ) : (
+                            <p className="m-0 text-sm font-semibold text-slate-500">Click the box to open your reward.</p>
+                        )}
+                    </button>
+                </div>
             )}
-        </PageContainer>
+        </div>
     );
 }
 

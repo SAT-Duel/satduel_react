@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
-import {BookOpen, Calculator, ArrowRight, CheckCircle2, XCircle} from 'lucide-react';
+import {BookOpen, Calculator, ArrowRight} from 'lucide-react';
 import {Button, Card, PageContainer, Spinner} from '../components/ui';
-import RenderWithMath from '../components/RenderWithMath';
+import PracticeQuestionCard from '../components/practice/PracticeQuestionCard';
 import {useAuth} from '../context/AuthContext';
 
 const baseUrl = import.meta.env.VITE_API_URL;
@@ -92,8 +92,6 @@ function QuestionStep({question, index, total, onAnswered}) {
     const [result, setResult] = useState(null); // 'correct' | 'incorrect'
     const [checking, setChecking] = useState(false);
 
-    const choiceLabels = ['A', 'B', 'C', 'D'];
-
     const submit = async (choiceText) => {
         if (result || checking) return;
         setSelected(choiceText);
@@ -112,72 +110,19 @@ function QuestionStep({question, index, total, onAnswered}) {
     };
 
     return (
-        <div>
-            <div className="mb-6 flex items-center justify-between">
-                <p className="m-0 text-sm font-semibold text-slate-500">
-                    Question {index + 1} of {total}
-                </p>
-                <div className="flex gap-1.5">
-                    {Array.from({length: total}).map((_, i) => (
-                        <span
-                            key={i}
-                            className={`h-2 w-8 rounded-full ${i <= index ? 'bg-primary-500' : 'bg-slate-200'}`}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            <Card className="p-6 sm:p-8">
-                <div className="text-[16px] leading-relaxed text-slate-800">
-                    <RenderWithMath text={question.question}/>
-                </div>
-
-                <div className="mt-6 flex flex-col gap-3">
-                    {question.choices.map((choice, i) => {
-                        const isSelected = selected === choice;
-                        let style = 'border-slate-200 bg-white hover:border-primary-400';
-                        if (result && isSelected) {
-                            style = result === 'correct'
-                                ? 'border-emerald-400 bg-emerald-50'
-                                : 'border-rose-400 bg-rose-50';
-                        } else if (result) {
-                            style = 'border-slate-200 bg-white opacity-60';
-                        }
-                        return (
-                            <button
-                                key={i}
-                                onClick={() => submit(choice)}
-                                disabled={!!result || checking}
-                                className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${style}`}
-                            >
-                                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                                    {choiceLabels[i]}
-                                </span>
-                                <span className="text-[15px] text-slate-800">
-                                    <RenderWithMath text={choice}/>
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {result && (
-                    <div className="mt-6 flex items-center justify-between">
-                        <span className={`flex items-center gap-1.5 font-semibold ${
-                            result === 'correct' ? 'text-emerald-600' : 'text-rose-600'
-                        }`}>
-                            {result === 'correct'
-                                ? <><CheckCircle2 className="size-5"/> Correct!</>
-                                : <><XCircle className="size-5"/> Not quite.</>}
-                        </span>
-                        <Button onClick={() => onAnswered(result === 'correct', question.difficulty)}>
-                            {index + 1 === total ? 'See my result' : 'Next question'}
-                            <ArrowRight className="size-4"/>
-                        </Button>
-                    </div>
-                )}
-            </Card>
-        </div>
+        <PracticeQuestionCard
+            question={question}
+            questionNumber={index + 1}
+            totalQuestions={total}
+            selectedChoice={selected}
+            onSelectChoice={setSelected}
+            onSubmit={submit}
+            submitOnSelect
+            status={result || 'Blank'}
+            checking={checking}
+            primaryAction={() => onAnswered(result === 'correct', question.difficulty)}
+            primaryActionLabel={index + 1 === total ? 'See my result' : 'Next question'}
+        />
     );
 }
 
