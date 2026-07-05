@@ -17,15 +17,8 @@ import {
 import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
-
-const AVATARS = [
-    {id: 'violet', label: 'Violet', classes: 'bg-primary-600 text-white'},
-    {id: 'sky', label: 'Sky', classes: 'bg-sky-500 text-white'},
-    {id: 'emerald', label: 'Emerald', classes: 'bg-emerald-500 text-white'},
-    {id: 'amber', label: 'Amber', classes: 'bg-amber-400 text-slate-900'},
-    {id: 'rose', label: 'Rose', classes: 'bg-rose-500 text-white'},
-    {id: 'slate', label: 'Slate', classes: 'bg-slate-800 text-white'},
-];
+import UserAvatar from '../components/UserAvatar';
+import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 
 const GRADE_OPTIONS = [
     {value: '<1', label: 'Below Grade 1'},
@@ -39,14 +32,6 @@ const TABS = [
     {id: 'friends', label: 'Friends', icon: Users},
 ];
 
-function getAvatar(id) {
-    return AVATARS.find((avatar) => avatar.id === id) || AVATARS[0];
-}
-
-function getInitial(profile) {
-    return profile?.user?.username?.[0]?.toUpperCase() || '?';
-}
-
 function gradeLabel(value) {
     return GRADE_OPTIONS.find((option) => option.value === value)?.label || 'Grade not set';
 }
@@ -54,28 +39,6 @@ function gradeLabel(value) {
 function formatDateTime(value) {
     if (!value) return 'Unknown';
     return new Date(value).toLocaleString();
-}
-
-function AvatarCircle({profile, avatarId, size = 'lg', className = ''}) {
-    const avatar = getAvatar(avatarId || profile?.avatar);
-    const sizes = {
-        sm: 'size-10 text-base',
-        md: 'size-14 text-xl',
-        lg: 'size-28 text-4xl',
-    };
-
-    return (
-        <div
-            className={[
-                'flex shrink-0 items-center justify-center rounded-full font-display font-bold ring-4 ring-white',
-                sizes[size],
-                avatar.classes,
-                className,
-            ].join(' ')}
-        >
-            {getInitial(profile)}
-        </div>
-    );
 }
 
 function Metric({icon: Icon, label, value}) {
@@ -101,7 +64,7 @@ function EmptyState({title, text}) {
 
 function ProfilePage() {
     const {userId} = useParams();
-    const {user: currentUser, token, loading} = useAuth();
+    const {user: currentUser, token, loading, updateUser} = useAuth();
     const navigate = useNavigate();
     const isOwnProfile = !userId || currentUser?.id?.toString() === userId?.toString();
 
@@ -127,6 +90,7 @@ function ProfilePage() {
         grade: '11',
         country: 'US',
         avatar: 'violet',
+        avatar_icon: 'initial',
     });
 
     const viewerUser = isOwnProfile ? currentUser : profile?.user;
@@ -254,6 +218,7 @@ function ProfilePage() {
             grade: profile?.grade || '11',
             country: profile?.country || 'US',
             avatar: profile?.avatar || 'violet',
+            avatar_icon: profile?.avatar_icon || 'initial',
         });
         setNotice(null);
         setEditOpen(true);
@@ -268,12 +233,20 @@ function ProfilePage() {
                 grade: formState.grade,
                 country: formState.country.toUpperCase(),
                 avatar: formState.avatar,
+                avatar_icon: formState.avatar_icon,
                 user: {
                     first_name: formState.first_name,
                     last_name: formState.last_name,
                 },
             });
             setProfile(response.data);
+            updateUser({
+                avatar: response.data.avatar,
+                avatar_icon: response.data.avatar_icon,
+                is_premium: response.data.is_premium,
+                username: response.data.user?.username,
+                email: response.data.user?.email,
+            });
             setEditOpen(false);
             setNotice({type: 'success', text: 'Profile updated.'});
         } catch (err) {
@@ -339,7 +312,7 @@ function ProfilePage() {
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                            <AvatarCircle profile={profile}/>
+                            <UserAvatar profile={profile}/>
                             <div>
                                 <p className="m-0 text-sm font-bold uppercase tracking-wide text-primary-600">
                                     {isOwnProfile ? 'My profile' : 'Student profile'}
@@ -549,7 +522,7 @@ function ProfilePage() {
                                             to={`/profile/${result.id}`}
                                             className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 no-underline transition-colors hover:border-primary-300 hover:bg-primary-50/40"
                                         >
-                                            <AvatarCircle profile={{user: result, avatar: 'violet'}} size="sm"/>
+                                            <UserAvatar profile={{user: result, avatar: 'violet', avatar_icon: 'initial'}} size="sm"/>
                                             <div>
                                                 <p className="m-0 font-semibold text-slate-900">{result.username}</p>
                                                 <p className="m-0 text-sm text-slate-500">{result.email}</p>
@@ -612,7 +585,7 @@ function ProfilePage() {
                                             to={`/profile/${friend.user.id}`}
                                             className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 no-underline transition-colors hover:border-primary-300 hover:bg-primary-50/40"
                                         >
-                                            <AvatarCircle profile={friend} size="sm"/>
+                                            <UserAvatar profile={friend} size="sm"/>
                                             <div className="min-w-0">
                                                 <p className="m-0 truncate font-semibold text-slate-900">{friend.user.username}</p>
                                                 <p className="m-0 text-sm text-slate-500">{gradeLabel(friend.grade)}</p>
@@ -680,8 +653,24 @@ function ProfilePage() {
 
                         <div className="mt-5">
                             <p className="mb-2 text-sm font-semibold text-slate-700">Profile picture</p>
+                            <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="m-0 font-bold text-slate-800">Preview</p>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">
+                                        Pick a background color and an optional Prism Archive character.
+                                    </p>
+                                </div>
+                                <UserAvatar
+                                    profile={profile}
+                                    backgroundId={formState.avatar}
+                                    iconId={formState.avatar_icon}
+                                    size="lg"
+                                    className="mx-auto ring-white sm:mx-0"
+                                />
+                            </div>
+                            <p className="mb-2 text-sm font-semibold text-slate-700">Background color</p>
                             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                                {AVATARS.map((avatar) => (
+                                {AVATAR_BACKGROUNDS.map((avatar) => (
                                     <button
                                         key={avatar.id}
                                         type="button"
@@ -692,8 +681,38 @@ function ProfilePage() {
                                                 : 'border-slate-200 hover:border-primary-300'
                                         }`}
                                     >
-                                        <AvatarCircle profile={profile} avatarId={avatar.id} size="md" className="ring-0"/>
+                                        <UserAvatar profile={profile} backgroundId={avatar.id} iconId={formState.avatar_icon} size="md" className="ring-0"/>
                                         <span className="text-xs font-semibold text-slate-600">{avatar.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mt-5">
+                            <p className="mb-2 text-sm font-semibold text-slate-700">Character</p>
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                {PIXEL_AVATARS.map((avatar) => (
+                                    <button
+                                        key={avatar.id}
+                                        type="button"
+                                        onClick={() => setFormState({...formState, avatar_icon: avatar.id})}
+                                        className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-3 text-left transition-colors ${
+                                            formState.avatar_icon === avatar.id
+                                                ? 'border-primary-500 bg-primary-50'
+                                                : 'border-slate-200 hover:border-primary-300 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <UserAvatar
+                                            profile={profile}
+                                            backgroundId={formState.avatar}
+                                            iconId={avatar.id}
+                                            size="md"
+                                            className="ring-0"
+                                        />
+                                        <span className="min-w-0">
+                                            <span className="block truncate text-sm font-bold text-slate-800">{avatar.label}</span>
+                                            <span className="mt-0.5 block truncate text-xs font-medium text-slate-500">{avatar.tagline}</span>
+                                        </span>
                                     </button>
                                 ))}
                             </div>

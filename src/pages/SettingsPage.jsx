@@ -1,24 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
-import {Check, CreditCard, Crown, KeyRound, UserCircle} from 'lucide-react';
+import {Check, CreditCard, Crown, KeyRound, Palette, Sparkles} from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
 import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from '../components/ui';
 import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
-
-const AVATAR_COLORS = [
-    {key: 'violet', class: 'bg-primary-500'},
-    {key: 'sky', class: 'bg-sky-500'},
-    {key: 'emerald', class: 'bg-emerald-500'},
-    {key: 'amber', class: 'bg-amber-500'},
-    {key: 'rose', class: 'bg-rose-500'},
-    {key: 'slate', class: 'bg-slate-500'},
-];
+import UserAvatar from '../components/UserAvatar';
+import {AVATAR_BACKGROUNDS, AVATAR_STORY, PIXEL_AVATARS} from '../components/avatarCatalog';
+import {useAuth} from '../context/AuthContext';
 
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
 function SettingsPage() {
     const [searchParams] = useSearchParams();
+    const {updateUser} = useAuth();
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -35,6 +30,7 @@ function SettingsPage() {
                     biography: r.data.biography || '',
                     grade: r.data.grade || '11',
                     avatar: r.data.avatar || 'violet',
+                    avatar_icon: r.data.avatar_icon || 'initial',
                 });
             })
             .catch(() => setNotice({type: 'error', text: 'Could not load your profile.'}));
@@ -63,8 +59,16 @@ function SettingsPage() {
                 biography: form.biography,
                 grade: form.grade,
                 avatar: form.avatar,
+                avatar_icon: form.avatar_icon,
             });
             setProfile(resp.data);
+            updateUser({
+                avatar: resp.data.avatar,
+                avatar_icon: resp.data.avatar_icon,
+                is_premium: resp.data.is_premium,
+                username: resp.data.user?.username,
+                email: resp.data.user?.email,
+            });
             setNotice({type: 'success', text: 'Settings saved.'});
         } catch (e) {
             setNotice({type: 'error', text: e.response?.data?.error || 'Could not save your settings.'});
@@ -121,30 +125,89 @@ function SettingsPage() {
 
                 {/* Avatar */}
                 <Card className="mt-6 p-6">
-                    <h2 className="m-0 inline-flex items-center gap-2 text-lg font-bold text-slate-900">
-                        <UserCircle className="size-5 text-slate-400"/> Avatar
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-500">Pick your color. Your initial does the rest.</p>
-                    <div className="mt-4 flex flex-wrap gap-3">
-                        {AVATAR_COLORS.map(({key, class: colorClass}) => {
-                            const selected = form.avatar === key;
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => setForm((f) => ({...f, avatar: key}))}
-                                    aria-label={`${key} avatar`}
-                                    className={[
-                                        'flex size-14 cursor-pointer items-center justify-center rounded-2xl text-xl font-bold text-white transition-all',
-                                        colorClass,
-                                        selected ? 'ring-4 ring-primary-300 scale-105' : 'opacity-70 hover:opacity-100',
-                                    ].join(' ')}
-                                >
-                                    {selected
-                                        ? <Check className="size-6"/>
-                                        : (profile?.user?.username?.[0]?.toUpperCase() || 'A')}
-                                </button>
-                            );
-                        })}
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="m-0 inline-flex items-center gap-2 text-lg font-bold text-slate-900">
+                                <Sparkles className="size-5 text-primary-500"/> Avatar
+                            </h2>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Choose a Prism Archive character, or keep the classic initial mark.
+                            </p>
+                        </div>
+                        <UserAvatar
+                            profile={profile}
+                            backgroundId={form.avatar}
+                            iconId={form.avatar_icon}
+                            size="lg"
+                            className="mx-auto ring-primary-100 sm:mx-0"
+                        />
+                    </div>
+
+                    <div className="mt-6 rounded-2xl border border-primary-100 bg-primary-50/60 p-4">
+                        <p className="m-0 text-sm font-bold text-primary-800">{AVATAR_STORY.title}</p>
+                        <p className="m-0 mt-1 text-sm leading-relaxed text-primary-700">{AVATAR_STORY.text}</p>
+                    </div>
+
+                    <div className="mt-6">
+                        <p className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                            <Palette className="size-4 text-slate-400"/> Background color
+                        </p>
+                        <div className="flex flex-wrap gap-3">
+                            {AVATAR_BACKGROUNDS.map((background) => {
+                                const selected = form.avatar === background.id;
+                                return (
+                                    <button
+                                        key={background.id}
+                                        type="button"
+                                        onClick={() => setForm((f) => ({...f, avatar: background.id}))}
+                                        aria-label={`${background.label} avatar background`}
+                                        className={[
+                                            'flex size-14 cursor-pointer items-center justify-center rounded-2xl border-2 transition-all',
+                                            background.classes,
+                                            selected ? 'border-primary-700 ring-4 ring-primary-200 scale-105' : 'border-transparent opacity-80 hover:opacity-100',
+                                        ].join(' ')}
+                                    >
+                                        {selected && <Check className="size-6"/>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="mt-6">
+                        <p className="mb-3 text-sm font-semibold text-slate-700">Character</p>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            {PIXEL_AVATARS.map((avatar) => {
+                                const selected = form.avatar_icon === avatar.id;
+                                const previewProfile = {
+                                    ...profile,
+                                    avatar: form.avatar,
+                                    avatar_icon: avatar.id,
+                                };
+                                return (
+                                    <button
+                                        key={avatar.id}
+                                        type="button"
+                                        onClick={() => setForm((f) => ({...f, avatar_icon: avatar.id}))}
+                                        className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-3 text-left transition-colors ${
+                                            selected
+                                                ? 'border-primary-500 bg-primary-50'
+                                                : 'border-slate-200 hover:border-primary-300 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <UserAvatar
+                                            profile={previewProfile}
+                                            size="md"
+                                            className="ring-0"
+                                        />
+                                        <span className="min-w-0">
+                                            <span className="block truncate text-sm font-bold text-slate-800">{avatar.label}</span>
+                                            <span className="mt-0.5 block truncate text-xs font-medium text-slate-500">{avatar.tagline}</span>
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </Card>
 

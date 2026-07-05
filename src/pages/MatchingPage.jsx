@@ -5,15 +5,7 @@ import {Alert, Button, Card, PageContainer} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
 import MatchingModal from '../components/Match/MatchingModal';
-
-const AVATAR_BG = {
-    violet: 'bg-primary-100 text-primary-700',
-    sky: 'bg-sky-100 text-sky-700',
-    emerald: 'bg-emerald-100 text-emerald-700',
-    amber: 'bg-amber-100 text-amber-700',
-    rose: 'bg-rose-100 text-rose-700',
-    slate: 'bg-slate-200 text-slate-700',
-};
+import UserAvatar from '../components/UserAvatar';
 
 function MatchingPage() {
     const {token, loading, user} = useAuth();
@@ -165,7 +157,6 @@ function MatchingPage() {
         };
     }, [token]);
 
-    const avatarClass = AVATAR_BG[profile?.avatar] || AVATAR_BG.violet;
     const myElo = profile?.elo_rating;
     const wins = recentMatches.filter((m) => m.winner === user?.id).length;
 
@@ -198,9 +189,12 @@ function MatchingPage() {
                                 <div className="mt-8 flex items-center justify-center gap-5 sm:gap-10">
                                     {/* You */}
                                     <div className="w-28 sm:w-36">
-                                        <div className={`mx-auto flex size-16 items-center justify-center rounded-2xl text-2xl font-bold sm:size-20 ${avatarClass}`}>
-                                            {user?.username?.[0]?.toUpperCase() || '?'}
-                                        </div>
+                                        <UserAvatar
+                                            profile={profile || {user, avatar: 'violet', avatar_icon: 'initial'}}
+                                            size="md"
+                                            rounded="xl"
+                                            className="mx-auto text-2xl ring-0 sm:size-20"
+                                        />
                                         <p className="m-0 mt-3 truncate font-bold text-slate-900">{user?.username || 'You'}</p>
                                         <p className="m-0 mt-0.5 text-sm font-semibold text-primary-600">
                                             {myElo != null ? `${myElo} rating` : '—'}
