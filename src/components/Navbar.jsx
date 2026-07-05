@@ -3,6 +3,7 @@ import {Link, NavLink, useNavigate} from 'react-router-dom';
 import {Menu, X, ChevronDown, User, LogOut, Settings} from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
 import logo from '../assets/logo192.png';
+import UserAvatar from './UserAvatar';
 
 const NAV_LINKS = [
     {label: 'Practice', to: '/trainer'},
@@ -72,9 +73,7 @@ const Navbar = () => {
                                 onClick={() => setUserMenuOpen((o) => !o)}
                                 className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3.5 py-2 text-[15px] font-semibold text-slate-700 transition-colors hover:border-primary-300"
                             >
-                                <span className="flex size-6 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
-                                    {user.username?.[0]?.toUpperCase() || <User className="size-3.5"/>}
-                                </span>
+                                <UserAvatar profile={user} size="xs" className="ring-0"/>
                                 {user.username}
                                 <ChevronDown className="size-4 text-slate-400"/>
                             </button>

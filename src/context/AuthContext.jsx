@@ -36,6 +36,14 @@ export const AuthProvider = ({children}) => {
         setUser({...user, is_first_login: false});
     };
 
+    const updateUser = (updates) => {
+        setUser((previousUser) => {
+            const nextUser = {...(previousUser || {}), ...updates};
+            localStorage.setItem('user', JSON.stringify(nextUser));
+            return nextUser;
+        });
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const refreshAccessToken = async () => {
         try {
@@ -80,7 +88,7 @@ export const AuthProvider = ({children}) => {
     }, [refreshAccessToken, token]);
 
     return (
-        <AuthContext.Provider value={{user, login, logout, token, loading, setFirstLogin}}>
+        <AuthContext.Provider value={{user, login, logout, token, loading, setFirstLogin, updateUser}}>
             {children}
         </AuthContext.Provider>
     );
