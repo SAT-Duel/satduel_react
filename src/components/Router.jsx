@@ -20,7 +20,7 @@ const Match = React.lazy(() => import("../pages/MatchingPage"));
 const DuelBattle = React.lazy(() => import("../pages/DuelBattlePage"));
 const BattleResultPage = React.lazy(() => import("../pages/BattleResultPage"));
 const MatchLoadingPage = React.lazy(() => import("../pages/MatchLoadingPage"));
-const TrainerPage = React.lazy(() => import("../pages/trainer/TrainerPage"));
+const HomeDashboard = React.lazy(() => import("../pages/HomeDashboard"));
 const InfiniteQuestionPage = React.lazy(() => import("../pages/trainer/InfiniteQuestionPage"));
 const ConfirmEmail = React.lazy(() => import("./ConfirmEmail"));
 const EmailVerificationPage = React.lazy(() => import("../pages/EmailVerificationPage"));
@@ -79,7 +79,7 @@ const MARKETING_ROUTES = [
 // The logged-in learning experience: rendered inside the sidebar app shell
 // (AppLayout gates access and redirects anonymous users to /login).
 const APP_ROUTES = [
-    {path: '/trainer', el: <TrainerPage/>},
+    {path: '/trainer', el: <HomeDashboard/>},
     {path: '/infinite_questions', el: <InfiniteQuestionPage/>},
     {path: '/match', el: <Match/>},
     {path: '/questions', el: <QuestionsPage/>},
