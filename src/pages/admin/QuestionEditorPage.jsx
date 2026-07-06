@@ -1,203 +1,208 @@
-import React, {useState, useEffect, useCallback} from 'react';
-import { Form, Input, Select, Button, message, Spin, Modal, Typography } from 'antd';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {ArrowLeft, Eye, Save} from 'lucide-react';
 import api from '../../components/api';
 import Question from '../../components/Question';
-import withAuth from "../../hoc/withAuth";
+import withAuth from '../../hoc/withAuth';
+import {Button, Card, Field, Input, ModalShell, PageContainer, Select, Spinner, Textarea} from '../../components/ui';
+import {notify} from '../../utils/notify';
 
-const { Title } = Typography;
-const { Option } = Select;
-const { TextArea } = Input;
+const blankQuestion = {
+    question: '',
+    choice_a: '',
+    choice_b: '',
+    choice_c: '',
+    choice_d: '',
+    answer: 'A',
+    difficulty: '1',
+    question_type: '',
+    explanation: '',
+};
 
-const Container = styled.div`
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 24px;
-`;
-
-const HeroTitle = styled(Title)`
-    font-size: 3.5rem;
-    color: #0B2F7D;
-    margin-bottom: 20px;
-    text-align: center;
-`;
-
-const StyledForm = styled(Form)`
-    background: #ffffff;
-    padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;
-
-const PreviewButton = styled(Button)`
-    margin-right: 16px;
-`;
-
-const BackButton = styled(Button)`
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-`;
-
-const QuestionEditorPage = () => {
-    const [form] = Form.useForm();
-    const { id } = useParams();
+function QuestionEditorPage() {
+    const {id} = useParams();
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(!!id); // Loading only if editing
+    const [values, setValues] = useState(blankQuestion);
+    const [loading, setLoading] = useState(!!id);
+    const [saving, setSaving] = useState(false);
     const [previewVisible, setPreviewVisible] = useState(false);
-    const [previewData, setPreviewData] = useState(null);
 
-    const fetchQuestion = useCallback( async () => {
+    const updateValue = (field, value) => {
+        setValues((current) => ({...current, [field]: value}));
+    };
+
+    const fetchQuestion = useCallback(async () => {
         try {
             setLoading(true);
-            // Use the authenticated client: answer/explanation are only returned to staff
             const response = await api.get(`/api/get_question/${id}`);
-            const questionData = {
-                'question': response.data.question,
-                'choice_a': response.data.choice_a,
-                'choice_b': response.data.choice_b,
-                'choice_c': response.data.choice_c,
-                'choice_d': response.data.choice_d,
-                'answer': response.data.answer,
-                'difficulty': response.data.difficulty,
-                'question_type': response.data.question_type,
-                'explanation': response.data.explanation,
-            };
-            form.setFieldsValue(questionData);
-            setLoading(false);
+            setValues({
+                question: response.data.question || '',
+                choice_a: response.data.choice_a || '',
+                choice_b: response.data.choice_b || '',
+                choice_c: response.data.choice_c || '',
+                choice_d: response.data.choice_d || '',
+                answer: response.data.answer || 'A',
+                difficulty: String(response.data.difficulty || '1'),
+                question_type: response.data.question_type || '',
+                explanation: response.data.explanation || '',
+            });
         } catch (error) {
             console.error('Error fetching question:', error);
-            message.error('Failed to fetch question data');
+            notify.error('Failed to fetch question data');
+        } finally {
             setLoading(false);
         }
-    }, [form, id]);
+    }, [id]);
 
     useEffect(() => {
-        if (id) {
-            fetchQuestion();
-        }
+        if (id) fetchQuestion();
     }, [fetchQuestion, id]);
 
-    const onFinish = async (values) => {
+    const previewData = useMemo(() => ({
+        id: id || 'new',
+        question: values.question,
+        choices: [values.choice_a, values.choice_b, values.choice_c, values.choice_d],
+        answer: values.answer,
+        explanation: values.explanation,
+    }), [id, values]);
+
+    const validate = () => {
+        const requiredFields = ['question', 'choice_a', 'choice_b', 'choice_c', 'choice_d', 'answer', 'difficulty'];
+        return requiredFields.every((field) => String(values[field] || '').trim());
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        if (!validate()) {
+            notify.warning('Fill in the required question fields first.');
+            return;
+        }
+
         try {
-            let response;
-            if (id) {
-                // Editing an existing question
-                response = await api.post(`/api/edit_question/${id}`, values);
-            } else {
-                // Creating a new question
-                response = await api.post(`/api/create_question/`, values);
-            }
+            setSaving(true);
+            const response = id
+                ? await api.post(`/api/edit_question/${id}`, values)
+                : await api.post('/api/create_question/', values);
 
             if (response.data.status === 'success') {
-                message.success(`Question ${id ? 'updated' : 'created'} successfully`);
+                notify.success(`Question ${id ? 'updated' : 'created'} successfully`);
                 navigate(id ? `/admin/edit_question/${id}` : '/admin/questions');
             } else {
-                message.error(`Failed to ${id ? 'update' : 'create'} question`);
+                notify.error(`Failed to ${id ? 'update' : 'create'} question`);
             }
         } catch (error) {
             console.error(`Error ${id ? 'updating' : 'creating'} question:`, error);
-            message.error(`Failed to ${id ? 'update' : 'create'} question`);
+            notify.error(`Failed to ${id ? 'update' : 'create'} question`);
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handlePreview = () => {
-        const values = form.getFieldsValue();
-        setPreviewData({
-            id: id || 'new',
-            question: values.question,
-            choices: [values.choice_a, values.choice_b, values.choice_c, values.choice_d],
-            answer: values.answer,
-            explanation: values.explanation,
-        });
-        setPreviewVisible(true);
-    };
-
     if (loading) {
-        return <Spin size="large" />;
+        return (
+            <PageContainer className="flex min-h-screen items-center justify-center">
+                <Spinner/>
+            </PageContainer>
+        );
     }
 
     return (
-        <Container>
-            <Link to="/admin/questions">
-                <BackButton type="link" icon={<ArrowLeftOutlined />}>
-                    Return to Question List
-                </BackButton>
-            </Link>
-            <HeroTitle level={1}>{id ? 'Edit Question' : 'Create Question'}</HeroTitle>
-            <StyledForm form={form} onFinish={onFinish} layout="vertical">
-                <Form.Item
-                    name="question"
-                    label="Question"
-                    rules={[{ required: true }]}
-                    tooltip="Use \underline{text} to underline, \textit{text} for italics, \textbf{text} for bold. Use $...$ for inline math and $$...$$ for block math."
-                >
-                    <TextArea rows={15} />
-                </Form.Item>
-                <Form.Item name="choice_a" label="Choice A" rules={[{ required: true }]}>
-                    <TextArea rows={2} />
-                </Form.Item>
-                <Form.Item name="choice_b" label="Choice B" rules={[{ required: true }]}>
-                    <TextArea rows={2} />
-                </Form.Item>
-                <Form.Item name="choice_c" label="Choice C" rules={[{ required: true }]}>
-                    <TextArea rows={2} />
-                </Form.Item>
-                <Form.Item name="choice_d" label="Choice D" rules={[{ required: true }]}>
-                    <TextArea rows={2} />
-                </Form.Item>
-                <Form.Item name="answer" label="Answer" rules={[{ required: true }]}>
-                    <Select>
-                        <Option value="A">A</Option>
-                        <Option value="B">B</Option>
-                        <Option value="C">C</Option>
-                        <Option value="D">D</Option>
-                    </Select>
-                </Form.Item>
-                <Form.Item name="difficulty" label="Difficulty" rules={[{ required: true }]}>
-                    <Select>
-                        {[1, 2, 3, 4, 5].map(d => (
-                            <Option key={d} value={d}>{d}</Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item name="question_type" label="Question Type">
-                    <Input />
-                </Form.Item>
-                <Form.Item name="explanation" label="Explanation">
-                    <TextArea rows={15} />
-                </Form.Item>
-                <Form.Item>
-                    <PreviewButton type="default" onClick={handlePreview}>
-                        Preview
-                    </PreviewButton>
-                    <Button type="primary" htmlType="submit">
-                        Save
-                    </Button>
-                </Form.Item>
-            </StyledForm>
+        <PageContainer className="min-h-screen max-w-4xl py-6 sm:py-8">
+            <Button to="/admin/questions" variant="ghost" className="mb-4 px-0">
+                <ArrowLeft size={18}/> Return to Question List
+            </Button>
 
-            <Modal
-                visible={previewVisible}
-                onCancel={() => setPreviewVisible(false)}
-                footer={null}
-                width={800}
+            <div className="mb-6">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-700">
+                    Admin Editor
+                </div>
+                <h1 className="text-3xl font-black text-slate-950">{id ? 'Edit Question' : 'Create Question'}</h1>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Supports SAT Duel markup: LaTeX math with $...$, plus underline, italics, and bold helpers.
+                </p>
+            </div>
+
+            <Card className="p-5 sm:p-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <Field label="Question">
+                        <Textarea
+                            rows={14}
+                            value={values.question}
+                            onChange={(event) => updateValue('question', event.target.value)}
+                        />
+                    </Field>
+
+                    {['a', 'b', 'c', 'd'].map((choice) => (
+                        <Field key={choice} label={`Choice ${choice.toUpperCase()}`}>
+                            <Textarea
+                                rows={2}
+                                value={values[`choice_${choice}`]}
+                                onChange={(event) => updateValue(`choice_${choice}`, event.target.value)}
+                            />
+                        </Field>
+                    ))}
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field label="Answer">
+                            <Select value={values.answer} onChange={(event) => updateValue('answer', event.target.value)}>
+                                {['A', 'B', 'C', 'D'].map((choice) => (
+                                    <option key={choice} value={choice}>{choice}</option>
+                                ))}
+                            </Select>
+                        </Field>
+                        <Field label="Difficulty">
+                            <Select value={values.difficulty} onChange={(event) => updateValue('difficulty', event.target.value)}>
+                                {[1, 2, 3, 4, 5].map((level) => (
+                                    <option key={level} value={level}>{level}</option>
+                                ))}
+                            </Select>
+                        </Field>
+                    </div>
+
+                    <Field label="Question Type">
+                        <Input
+                            value={values.question_type}
+                            onChange={(event) => updateValue('question_type', event.target.value)}
+                        />
+                    </Field>
+
+                    <Field label="Explanation">
+                        <Textarea
+                            rows={12}
+                            value={values.explanation}
+                            onChange={(event) => updateValue('explanation', event.target.value)}
+                        />
+                    </Field>
+
+                    <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                        <Button type="button" variant="secondary" onClick={() => setPreviewVisible(true)}>
+                            <Eye size={18}/> Preview
+                        </Button>
+                        <Button type="submit" loading={saving}>
+                            <Save size={18}/> Save
+                        </Button>
+                    </div>
+                </form>
+            </Card>
+
+            <ModalShell
+                open={previewVisible}
+                title="Question Preview"
+                onClose={() => setPreviewVisible(false)}
+                maxWidth="max-w-4xl"
+                footer={<Button variant="secondary" onClick={() => setPreviewVisible(false)}>Close</Button>}
             >
-                {previewData && (
-                    <Question
-                        questionData={previewData}
-                        onSubmit={() => { }}
-                        status="Correct"
-                        questionNumber={1}
-                        preview={true}
-                    />
-                )}
-            </Modal>
-        </Container>
+                <Question
+                    questionData={previewData}
+                    onSubmit={() => {}}
+                    status="Blank"
+                    questionNumber={1}
+                    disabled
+                />
+            </ModalShell>
+        </PageContainer>
     );
-};
+}
 
 export default withAuth(QuestionEditorPage, true);

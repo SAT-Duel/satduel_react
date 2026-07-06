@@ -1,80 +1,39 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
-import styled from 'styled-components';
 import axios from 'axios';
-import {Layout, Card, Button, Row, Col, message} from 'antd';
+import {Bot, Clock3} from 'lucide-react';
 import Question from '../components/Question';
 import Progress from '../components/Progress';
+import {Button, Card, PageContainer} from '../components/ui';
+import {notify} from '../utils/notify';
 
-const {Content} = Layout;
+function getTimeForMode(mode) {
+    const timings = {Quick: 5, Standard: 10, Extended: 15};
+    return timings[mode?.split(' ')[0]] || 10;
+}
 
-const PageContainer = styled(Layout)`
-    min-height: 100vh;
-`;
+function getQuestionForMode(mode) {
+    const counts = {Quick: 5, Standard: 10, Extended: 15};
+    return counts[mode?.split(' ')[0]] || 10;
+}
 
-const StyledContent = styled(Content)`
-    max-width: 1200px;
-    margin: 0 auto;
-`;
+function getBotDetails(botName) {
+    const bots = {
+        'Easy Bot': {speed: 35, solveChance: 50},
+        'Medium Bot': {speed: 25, solveChance: 70},
+        'Hard Bot': {speed: 15, solveChance: 90},
+    };
+    return bots[botName] || bots['Medium Bot'];
+}
 
-const BattleContainer = styled.div`
-    display: flex;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
-`;
+function formatTime(seconds) {
+    if (seconds === null) return '--:--';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
 
-const QuestionsSection = styled.div`
-    flex: 3;
-    margin-right: 24px;
-`;
-
-const ProgressSection = styled.div`
-    flex: 1;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 24px;
-    height: fit-content;
-    position: sticky;
-    top: 24px;
-    background: linear-gradient(135deg, #e6e6fa, #e6f7ff);
-`;
-
-const Title = styled.h2`
-    font-size: 1.5rem;
-    margin-bottom: 16px;
-    color: #1a1a1a;
-`;
-
-const TimeDisplay = styled.div`
-    font-size: 2rem;
-    font-weight: bold;
-    color: #1a1a1a;
-    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
-    border-radius: 8px;
-    padding: 12px 16px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-top: 16px;
-`;
-
-const StyledButton = styled(Button)`
-    background-color: #1890ff;
-    border-color: #1890ff;
-    color: white;
-    font-weight: bold;
-    height: 40px;
-    font-size: 16px;
-
-    &:hover, &:focus {
-        background-color: #40a9ff;
-        border-color: #40a9ff;
-        color: white;
-    }
-`;
-
-const BotTrainingBattle = () => {
+function BotTrainingBattle() {
     const location = useLocation();
     const navigate = useNavigate();
     const {selectedBot, selectedMode} = location.state || {};
@@ -85,7 +44,6 @@ const BotTrainingBattle = () => {
     const [isFinished, setIsFinished] = useState(false);
 
     useEffect(() => {
-        console.log(selectedMode)
         if (!selectedBot || !selectedMode) {
             navigate('/bot_training');
             return;
@@ -94,15 +52,14 @@ const BotTrainingBattle = () => {
         const fetchQuestions = async () => {
             try {
                 const baseUrl = import.meta.env.VITE_API_URL;
-                const numQuestion = getQuestionForMode(selectedMode)
-                console.log(numQuestion)
+                const numQuestion = getQuestionForMode(selectedMode);
                 const response = await axios.get(`${baseUrl}/api/questions/?num=${numQuestion}`);
-                setQuestions(response.data.map(q => ({...q, status: 'Blank'})));
-                setBotProgress(response.data.map(q => ({...q, status: 'Blank'})))
+                setQuestions(response.data.map((question) => ({...question, status: 'Blank'})));
+                setBotProgress(response.data.map(() => ({status: 'Blank'})));
                 setTimeLeft(getTimeForMode(selectedMode) * 60);
             } catch (error) {
-                message.error('Error fetching questions');
-                console.error("Error fetching questions:", error);
+                notify.error('Error fetching questions');
+                console.error('Error fetching questions:', error);
             }
         };
 
@@ -110,7 +67,7 @@ const BotTrainingBattle = () => {
     }, [selectedBot, selectedMode, navigate]);
 
     useEffect(() => {
-        if (timeLeft === null) return;
+        if (timeLeft === null) return undefined;
 
         const timer = setInterval(() => {
             setTimeLeft((prevTime) => {
@@ -127,7 +84,7 @@ const BotTrainingBattle = () => {
     }, [timeLeft]);
 
     useEffect(() => {
-        if (questions.length === 0) return;
+        if (questions.length === 0) return undefined;
 
         const bot = getBotDetails(selectedBot);
         const totalQuestions = questions.length;
@@ -136,16 +93,16 @@ const BotTrainingBattle = () => {
         const interval = setInterval(() => {
             if (questionsSolved < totalQuestions && !isFinished) {
                 const isSolved = Math.random() < bot.solveChance / 100;
-                questionsSolved++;
-                setBotProgress(prev => {
-                    const newProgress = [...prev];
-                    newProgress[questionsSolved - 1] = {status: isSolved ? 'Correct' : 'Incorrect'};
-                    return newProgress;
+                questionsSolved += 1;
+                setBotProgress((progress) => {
+                    const nextProgress = [...progress];
+                    nextProgress[questionsSolved - 1] = {status: isSolved ? 'Correct' : 'Incorrect'};
+                    return nextProgress;
                 });
             } else {
                 clearInterval(interval);
             }
-        }, (getTimeForMode(selectedMode) *bot.speed* 1000) / totalQuestions);
+        }, (getTimeForMode(selectedMode) * bot.speed * 1000) / totalQuestions);
 
         return () => clearInterval(interval);
     }, [questions, selectedBot, selectedMode, isFinished]);
@@ -155,98 +112,87 @@ const BotTrainingBattle = () => {
             const baseUrl = import.meta.env.VITE_API_URL;
             const response = await axios.post(`${baseUrl}/api/check_answer/`, {
                 question_id: id,
-                selected_choice: choice
+                selected_choice: choice,
             });
             const isCorrect = response.data.result === 'correct';
-            setQuestions(prevQuestions =>
-                prevQuestions.map(q => q.id === id ? {...q, status: isCorrect ? 'Correct' : 'Incorrect'} : q)
-            );
+            setQuestions((prevQuestions) => (
+                prevQuestions.map((question) => (
+                    question.id === id ? {...question, status: isCorrect ? 'Correct' : 'Incorrect'} : question
+                ))
+            ));
         } catch (error) {
-            message.error('Error checking answer');
-            console.error("Error checking answer:", error);
+            notify.error('Error checking answer');
+            console.error('Error checking answer:', error);
         }
     };
 
-    const formatTime = (seconds) => {
-        if (seconds === null) return '--:--';
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
+    const userCorrect = questions.filter((question) => question.status === 'Correct').length;
+    const botCorrect = botProgress.filter((progress) => progress.status === 'Correct').length;
 
-    const getTimeForMode = (mode) => {
-        const timings = {'Quick': 5, 'Standard': 10, 'Extended': 15};
-        return timings[mode.split(' ')[0]] || 10;
-    };
-
-    const getQuestionForMode = (mode) => {
-        const timings = {'Quick': 5, 'Standard': 10, 'Extended': 15};
-        return timings[mode.split(' ')[0]] || 10;
-    };
-
-    const getBotDetails = (botName) => {
-        const bots = {
-            'Easy Bot': {speed: 35, solveChance: 50},
-            'Medium Bot': {speed: 25, solveChance: 70},
-            'Hard Bot': {speed: 15, solveChance: 90},
-        };
-        return bots[botName] || bots['Medium Bot'];
-    };
-
-    const renderBattle = () => (
-        <BattleContainer>
-            <QuestionsSection>
-                {questions.map((question, index) => (
-                    <Question
-                        key={question.id}
-                        questionData={question}
-                        onSubmit={handleQuestionSubmit}
-                        status={question.status}
-                        questionNumber={index + 1}
-                    />
-                ))}
-            </QuestionsSection>
-            <ProgressSection>
-                <Title level={4}>Bot's Progress</Title>
-                {botProgress.map((progress, index) => (
-                    <Progress key={index} status={progress.status} questionNumber={index + 1}/>
-                ))}
-                <Title level={4}>Time Left</Title>
-                <TimeDisplay>{formatTime(timeLeft)}</TimeDisplay>
-            </ProgressSection>
-        </BattleContainer>
-    );
-
-    const renderFinished = () => {
-        const userCorrect = questions.filter(q => q.status === 'Correct').length;
-        const botCorrect = botProgress.filter(p => p.status === 'Correct').length;
+    if (isFinished) {
         const result = userCorrect > botCorrect ? 'You Win!' : userCorrect < botCorrect ? 'Bot Wins!' : 'It\'s a Tie!';
 
         return (
-            <Card title={result} style={{textAlign: 'center'}}>
-                <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                        <Title level={4}>Your Score: {userCorrect}</Title>
-                    </Col>
-                    <Col span={12}>
-                        <Title level={4}>Bot's Score: {botCorrect}</Title>
-                    </Col>
-                </Row>
-                <StyledButton onClick={() => navigate('/bot_training')}>
-                    Back to Training Setup
-                </StyledButton>
-            </Card>
+            <PageContainer className="flex min-h-screen items-center justify-center py-8">
+                <Card className="w-full max-w-xl p-6 text-center sm:p-8">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border-2 border-primary-200 bg-primary-50 text-primary-700">
+                        <Bot size={26}/>
+                    </div>
+                    <h1 className="text-3xl font-black text-slate-950">{result}</h1>
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <p className="text-sm font-black text-slate-400">Your Score</p>
+                            <p className="mt-1 text-4xl font-black text-slate-950">{userCorrect}</p>
+                        </div>
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <p className="text-sm font-black text-slate-400">Bot Score</p>
+                            <p className="mt-1 text-4xl font-black text-slate-950">{botCorrect}</p>
+                        </div>
+                    </div>
+                    <Button className="mt-6" onClick={() => navigate('/bot_training')}>
+                        Back to Training Setup
+                    </Button>
+                </Card>
+            </PageContainer>
         );
-    };
+    }
 
     return (
-        <PageContainer>
-            <StyledContent>
-                {!isFinished && renderBattle()}
-                {isFinished && renderFinished()}
-            </StyledContent>
+        <PageContainer className="min-h-screen py-6 sm:py-8">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-700">
+                        <Bot size={14}/> {selectedBot}
+                    </div>
+                    <h1 className="text-3xl font-black text-slate-950">{selectedMode}</h1>
+                </div>
+                <Card className="flex items-center gap-3 px-4 py-3">
+                    <Clock3 size={20} className="text-primary-700"/>
+                    <span className="text-2xl font-black text-slate-950">{formatTime(timeLeft)}</span>
+                </Card>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <div className="space-y-5">
+                    {questions.map((question, index) => (
+                        <Question
+                            key={question.id}
+                            questionData={question}
+                            onSubmit={handleQuestionSubmit}
+                            status={question.status}
+                            questionNumber={index + 1}
+                        />
+                    ))}
+                </div>
+                <Card className="h-fit p-5 lg:sticky lg:top-6">
+                    <h2 className="mb-4 text-lg font-black text-slate-950">Bot Progress</h2>
+                    {botProgress.map((progress, index) => (
+                        <Progress key={index} status={progress.status} questionNumber={index + 1}/>
+                    ))}
+                </Card>
+            </div>
         </PageContainer>
     );
-};
+}
 
 export default BotTrainingBattle;

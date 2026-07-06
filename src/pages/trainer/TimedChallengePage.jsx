@@ -1,108 +1,28 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
-import styled from 'styled-components';
-import {Card, Typography, Modal, Button, Badge} from 'antd';
-import {ClockCircleOutlined, StopOutlined} from '@ant-design/icons';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {Clock3, X} from 'lucide-react';
 import Question from '../../components/Question';
 import api from '../../components/api';
+import {Button, Card, ModalShell, PageContainer, Spinner} from '../../components/ui';
 
-const {Title, Text} = Typography;
-
-// Timing constants (in seconds)
 const INITIAL_TIME = 120;
 const MIN_TIME = 30;
 const TIME_DECREMENT = 10;
 const MAX_FAILS = 3;
 
-// Containers & Layout
-const PageContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
-    background: #f0f2f5;
-    min-height: 100vh;
-`;
+function StatusPill({status}) {
+    const classes = status === 'Correct'
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+        : status === 'Incorrect'
+            ? 'border-rose-200 bg-rose-50 text-rose-700'
+            : 'border-slate-200 bg-slate-50 text-slate-500';
 
-const TimerContainer = styled.div`
-    background: #fff;
-    padding: 16px 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    width: 100%;
-    max-width: 800px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-`;
-
-const ContentWrapper = styled.div`
-    display: flex;
-    width: 100%;
-    max-width: 1200px;
-    gap: 32px;
-`;
-
-// Styled Cards
-const QuestionCard = styled(Card)`
-    flex: 3;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-
-    .ant-card-body {
-        padding: 24px;
-    }
-`;
-
-const StatsCard = styled(Card)`
-    flex: 1;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    text-align: center;
-
-    .ant-card-body {
-        padding: 24px;
-    }
-`;
-
-// UI Elements
-const TimerDisplay = styled(Title)`
-    margin: 0;
-    color: #1890ff;
-    font-size: 2rem !important;
-`;
-
-const ChancesContainer = styled.div`
-    display: flex;
-    gap: 12px;
-`;
-
-const ChanceBox = styled.div`
-    width: 28px;
-    height: 28px;
-    border: 2px solid ${props => (props.filled ? '#ff4d4f' : '#d9d9d9')};
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: ${props => (props.filled ? '#ff4d4f' : 'transparent')};
-`;
-
-const NextButton = styled(Button)`
-    margin-top: 24px;
-    width: 100%;
-    background: #1890ff;
-    border: none;
-    font-weight: 600;
-
-    &:hover, &:focus {
-        background: #40a9ff;
-    }
-`;
+    return (
+        <span className={`rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.12em] ${classes}`}>
+            {status}
+        </span>
+    );
+}
 
 export default function TimedChallengePage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -118,13 +38,12 @@ export default function TimedChallengePage() {
     const timerRef = useRef(null);
     const navigate = useNavigate();
 
-    // Fetch a question
     const fetchNextQuestion = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams({random: true, page: 1, page_size: 1});
             const res = await api.get(`api/filter_questions/?${params.toString()}`);
-            setCurrentQuestion(res.data.questions[0]);
+            setCurrentQuestion(res.data.questions?.[0] || null);
             setQuestionStatus('Blank');
         } catch {
             setError('Failed to load question.');
@@ -133,106 +52,143 @@ export default function TimedChallengePage() {
         }
     }, []);
 
-    // Initial load
     useEffect(() => {
         if (!hasFetched.current) fetchNextQuestion();
         hasFetched.current = true;
     }, [fetchNextQuestion]);
 
-    // Handle failures
     const handleFail = useCallback(() => {
-        setFailCount(f => {
-            const next = f + 1;
+        clearInterval(timerRef.current);
+        setFailCount((failures) => {
+            const next = failures + 1;
             if (next >= MAX_FAILS) setGameOver(true);
             return next;
         });
         setQuestionStatus('Incorrect');
     }, []);
 
-    // Timer logic
     useEffect(() => {
         clearInterval(timerRef.current);
-        if (!currentQuestion || gameOver) return;
+        if (!currentQuestion || gameOver || questionStatus !== 'Blank') return;
         setTimeLeft(timePerQuestion);
         timerRef.current = setInterval(() => {
-            setTimeLeft(t => {
-                if (t <= 1) {
+            setTimeLeft((seconds) => {
+                if (seconds <= 1) {
                     clearInterval(timerRef.current);
                     handleFail();
                     return 0;
                 }
-                return t - 1;
+                return seconds - 1;
             });
         }, 1000);
         return () => clearInterval(timerRef.current);
-    }, [currentQuestion, timePerQuestion, gameOver, handleFail]);
+    }, [currentQuestion, timePerQuestion, gameOver, questionStatus, handleFail]);
 
-    // Submit answer
     const handleQuestionSubmit = async (id, choice) => {
+        clearInterval(timerRef.current);
         try {
             const res = await api.post('api/check_answer/', {question_id: id, selected_choice: choice});
             if (res.data.result === 'correct') {
                 setQuestionStatus('Correct');
-                setCorrectCount(c => c + 1);
-            } else handleFail();
+                setCorrectCount((count) => count + 1);
+            } else {
+                handleFail();
+            }
         } catch {
             setError('Submission error.');
         }
     };
 
-    // Move to next
     const handleNext = () => {
-        setTimePerQuestion(tp => Math.max(MIN_TIME, tp - TIME_DECREMENT));
+        setTimePerQuestion((seconds) => Math.max(MIN_TIME, seconds - TIME_DECREMENT));
         fetchNextQuestion();
     };
 
-    if (loading) return <PageContainer><Text>Loading...</Text></PageContainer>;
-    if (error) return <PageContainer><Text type="danger">{error}</Text></PageContainer>;
+    if (loading) {
+        return (
+            <PageContainer className="flex min-h-screen items-center justify-center">
+                <Spinner/>
+            </PageContainer>
+        );
+    }
+
+    if (error) {
+        return (
+            <PageContainer className="flex min-h-screen items-center justify-center py-8">
+                <Card className="max-w-xl p-6 text-center text-rose-600">{error}</Card>
+            </PageContainer>
+        );
+    }
 
     return (
-        <PageContainer>
-            <TimerContainer>
-                <Text><ClockCircleOutlined/> Time Left</Text>
-                <TimerDisplay level={2}>{timeLeft}s</TimerDisplay>
-                <ChancesContainer>
-                    {Array(MAX_FAILS).fill().map((_, i) => <ChanceBox key={i}
-                                                                      filled={i < failCount}><StopOutlined/></ChanceBox>)}
-                </ChancesContainer>
-            </TimerContainer>
+        <PageContainer className="min-h-screen py-6 sm:py-8">
+            <Card className="mb-5 p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-11 items-center justify-center rounded-2xl border-2 border-cyan-200 bg-cyan-50 text-cyan-700">
+                            <Clock3 size={22}/>
+                        </div>
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Time Left</p>
+                            <p className="text-3xl font-black text-slate-950">{timeLeft}s</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {Array.from({length: MAX_FAILS}).map((_, index) => (
+                            <div
+                                key={index}
+                                className={[
+                                    'flex size-8 items-center justify-center rounded-xl border-2',
+                                    index < failCount
+                                        ? 'border-rose-300 bg-rose-50 text-rose-600'
+                                        : 'border-slate-200 bg-slate-50 text-transparent',
+                                ].join(' ')}
+                            >
+                                <X size={16}/>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </Card>
 
-            <ContentWrapper>
-                <QuestionCard title={`Question ${correctCount + failCount + 1}`} extra={<Badge
-                    status={questionStatus === 'Correct' ? 'success' : questionStatus === 'Incorrect' ? 'error' : 'default'}
-                    text={questionStatus}/>}>
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <Card className="p-4 sm:p-5">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                        <h1 className="text-lg font-black text-slate-950">Question {correctCount + failCount + 1}</h1>
+                        <StatusPill status={questionStatus}/>
+                    </div>
                     <Question
                         questionData={currentQuestion}
                         status={questionStatus}
                         onSubmit={handleQuestionSubmit}
+                        questionNumber={correctCount + failCount + 1}
                     />
                     {questionStatus !== 'Blank' && !gameOver && (
-                        <NextButton type="primary" block onClick={handleNext}>Next Question</NextButton>
+                        <Button className="mt-4" onClick={handleNext} block>Next Question</Button>
                     )}
-                </QuestionCard>
+                </Card>
 
-                <StatsCard>
-                    <Title level={4}>Correct Answers</Title>
-                    <Title level={1}>{correctCount}</Title>
-                    <Text>You’ve answered these correctly</Text>
-                </StatsCard>
-            </ContentWrapper>
+                <Card className="h-fit p-6 text-center lg:sticky lg:top-6">
+                    <h2 className="text-lg font-black text-slate-950">Correct Answers</h2>
+                    <div className="my-3 text-6xl font-black text-primary-700">{correctCount}</div>
+                    <p className="text-sm leading-6 text-slate-500">Answered correctly this run</p>
+                </Card>
+            </div>
 
-            <Modal
-                visible={gameOver}
+            <ModalShell
+                open={gameOver}
                 title="Game Over"
-                centered
-                onOk={() => window.location.reload()}
-                onCancel={() => navigate('/trainer')}
-                okText="Retry"
-                cancelText="Back to Trainer"
+                onClose={() => navigate('/trainer')}
+                footer={(
+                    <>
+                        <Button variant="secondary" onClick={() => navigate('/trainer')}>Back to Trainer</Button>
+                        <Button onClick={() => window.location.reload()}>Retry</Button>
+                    </>
+                )}
             >
-                <Title level={3}>Final Score</Title>
-                <Text strong style={{fontSize: '1.5rem'}}>{correctCount}</Text>
-            </Modal>
+                <p className="text-sm leading-6 text-slate-500">Final score</p>
+                <div className="mt-3 text-5xl font-black text-slate-950">{correctCount}</div>
+            </ModalShell>
         </PageContainer>
     );
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import {CheckOutlined, CloseOutlined, MinusOutlined} from '@ant-design/icons';
+import {Check, Minus, X} from 'lucide-react';
 
 const StatusWrapper = styled.div`
     display: flex;
@@ -40,11 +40,11 @@ const getStatusColor = (status) => {
 const getStatusIcon = (status) => {
     switch (status) {
         case 'Correct':
-            return <CheckOutlined/>;
+            return <Check size={14}/>;
         case 'Incorrect':
-            return <CloseOutlined/>;
+            return <X size={14}/>;
         default:
-            return <MinusOutlined/>;
+            return <Minus size={14}/>;
     }
 };
 

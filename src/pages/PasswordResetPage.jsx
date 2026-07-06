@@ -1,103 +1,75 @@
 import React, {useState} from 'react';
-import {Form, Input, Button, Card, Typography, Space, message} from 'antd';
+import {Mail} from 'lucide-react';
 import api from '../components/api';
+import {Button, Card, Field, Input, PageContainer} from '../components/ui';
+import {notify} from '../utils/notify';
 
-const {Title} = Typography;
+function getCSRFToken() {
+    const name = 'csrftoken';
+    if (!document.cookie) return null;
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i += 1) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === `${name}=`) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+    }
+    return null;
+}
 
-const containerStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    background: '#f0f2f5',
-};
-
-const cardStyle = {
-    width: 400,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    borderRadius: '8px',
-    padding: '20px',
-    backgroundColor: '#ffffff'
-};
-
-const titleStyle = {
-    textAlign: 'center',
-    marginBottom: '20px',
-};
-
-const PasswordResetPage = () => {
+function PasswordResetPage() {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // useEffect(() => {
-    //
-    //     console.log(getCSRFToken())
-    // })
-
-    const handlePasswordResetRequest = async () => {
+    const handlePasswordResetRequest = async (event) => {
+        event.preventDefault();
         setLoading(true);
-        const getCSRFToken = () => {
-            const name = 'csrftoken';
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        return decodeURIComponent(cookie.substring(name.length + 1));
-                    }
-                }
-            }
-            return null;
-        }
         try {
             const baseUrl = import.meta.env.VITE_API_URL;
-            const response = await api.post(`${baseUrl}/api/password_reset/`, {email},
-                {
-                    headers: {
-                        'X-CSRFToken': getCSRFToken(), // Include the CSRF token in the headers
-                    },
-                }
-            );
+            const response = await api.post(`${baseUrl}/api/password_reset/`, {email}, {
+                headers: {'X-CSRFToken': getCSRFToken()},
+            });
             if (response.status === 200) {
-                message.success('Password reset link sent to your email.');
+                notify.success('Password reset link sent to your email.');
             }
-        } catch (error) {
-            message.error('Error sending password reset link. Please try again later.');
+        } catch {
+            notify.error('Error sending password reset link. Please try again later.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={containerStyle}>
-            <Card style={cardStyle}>
-                <Space direction="vertical" style={{width: '100%'}}>
-                    <Title level={2} style={titleStyle}>Password Reset</Title>
-                    <Form
-                        name="password_reset_request"
-                        onFinish={handlePasswordResetRequest}
-                    >
-                        <Form.Item
-                            name="email"
-                            rules={[{required: true, message: 'Please input your email!'}]}
-                        >
+        <div className="sat-bubble-field min-h-screen py-12 sm:py-16">
+            <PageContainer className="max-w-md">
+                <Card className="sat-arena-card p-6 sm:p-8">
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+                        <Mail className="size-7"/>
+                    </div>
+                    <h1 className="m-0 mt-5 text-center font-display text-3xl font-black text-slate-950">
+                        Password reset
+                    </h1>
+                    <p className="m-0 mt-2 text-center text-sm text-slate-500">
+                        Enter your account email and we will send a reset link.
+                    </p>
+                    <form onSubmit={handlePasswordResetRequest} className="mt-6 space-y-4">
+                        <Field label="Email">
                             <Input
-                                placeholder="Email"
+                                type="email"
+                                placeholder="you@example.com"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(event) => setEmail(event.target.value)}
+                                required
                             />
-                        </Form.Item>
-
-                        <Form.Item>
-                            <Button type="primary" htmlType="submit" loading={loading} style={{width: '100%'}}>
-                                Send Password Reset Link
-                            </Button>
-                        </Form.Item>
-                    </Form>
-                </Space>
-            </Card>
+                        </Field>
+                        <Button type="submit" block loading={loading}>
+                            Send reset link
+                        </Button>
+                    </form>
+                </Card>
+            </PageContainer>
         </div>
     );
-};
+}
 
 export default PasswordResetPage;

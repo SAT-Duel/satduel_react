@@ -1,9 +1,9 @@
 import React from 'react';
 import {GoogleOAuthProvider, GoogleLogin} from '@react-oauth/google';
-import {message} from 'antd';
 import axios from 'axios';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
+import {notify} from '../utils/notify';
 
 const CLIENT_ID =
     import.meta.env.VITE_GOOGLE_CLIENT_ID ||
@@ -40,12 +40,12 @@ const GoogleLoginButton = () => {
             }
         } catch (error) {
             const msg = error.response?.data?.error || 'Google sign-in failed. Please try again.';
-            message.error(msg);
+            notify.error(msg);
         }
     };
 
     const handleError = () => {
-        message.error('Google sign-in was cancelled or failed.');
+        notify.error('Google sign-in was cancelled or failed.');
     };
 
     return (

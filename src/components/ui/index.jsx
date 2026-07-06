@@ -111,6 +111,21 @@ export const Input = React.forwardRef(function Input({className = '', ...rest}, 
     );
 });
 
+export const Textarea = React.forwardRef(function Textarea({className = '', ...rest}, ref) {
+    return (
+        <textarea
+            ref={ref}
+            className={[
+                'w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-[15px]',
+                'text-slate-800 placeholder:text-slate-400 outline-none transition-colors',
+                'focus:border-primary-500',
+                className,
+            ].join(' ')}
+            {...rest}
+        />
+    );
+});
+
 export function Select({className = '', children, ...rest}) {
     return (
         <select
@@ -123,6 +138,69 @@ export function Select({className = '', children, ...rest}) {
         >
             {children}
         </select>
+    );
+}
+
+export function Toggle({checked, onChange, disabled = false, label, description}) {
+    return (
+        <button
+            type="button"
+            role="switch"
+            aria-checked={checked}
+            disabled={disabled}
+            onClick={() => onChange?.(!checked)}
+            className={[
+                'flex w-full items-center justify-between gap-4 rounded-2xl border-2 px-4 py-3 text-left',
+                'transition-colors disabled:opacity-60 disabled:pointer-events-none',
+                checked ? 'border-primary-300 bg-primary-50' : 'border-slate-200 bg-white',
+            ].join(' ')}
+        >
+            <span>
+                {label && <span className="block text-sm font-semibold text-slate-800">{label}</span>}
+                {description && <span className="mt-0.5 block text-sm text-slate-500">{description}</span>}
+            </span>
+            <span
+                className={[
+                    'relative h-7 w-12 shrink-0 rounded-full border-2 transition-colors',
+                    checked ? 'border-primary-700 bg-primary-600' : 'border-slate-300 bg-slate-200',
+                ].join(' ')}
+            >
+                <span
+                    className={[
+                        'absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform',
+                        checked ? 'translate-x-5' : 'translate-x-0.5',
+                    ].join(' ')}
+                />
+            </span>
+        </button>
+    );
+}
+
+export function ModalShell({open, title, onClose, children, footer, maxWidth = 'max-w-lg'}) {
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-8">
+            <div className={`max-h-[90vh] w-full ${maxWidth} overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl`}>
+                <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+                    {title && <h2 className="text-xl font-black text-slate-950">{title}</h2>}
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-full border border-slate-200 px-2.5 py-1 text-sm font-black text-slate-500 hover:bg-slate-50"
+                        aria-label="Close"
+                    >
+                        X
+                    </button>
+                </div>
+                <div className="px-5 py-5">{children}</div>
+                {footer && (
+                    <div className="flex flex-col-reverse gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:justify-end">
+                        {footer}
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }
 

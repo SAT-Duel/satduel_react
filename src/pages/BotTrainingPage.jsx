@@ -1,148 +1,94 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Layout, Typography, Card, Button, Row, Col, Select, Form } from 'antd';
-import { RobotOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {Bot, Gauge, Timer} from 'lucide-react';
+import {Button, Card, PageContainer, Select} from '../components/ui';
+import {notify} from '../utils/notify';
 
-const { Content } = Layout;
-const { Title, Paragraph } = Typography;
-const { Option } = Select;
+const bots = [
+    {name: 'Easy Bot', score: 1000, speed: 100, solveChance: 50},
+    {name: 'Medium Bot', score: 1400, speed: 150, solveChance: 70},
+    {name: 'Hard Bot', score: 1800, speed: 200, solveChance: 90},
+];
 
-const StyledContent = styled(Content)`
-    padding: 30px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-`;
+const modes = [
+    {name: 'Quick Sprint', questions: 5, time: 5},
+    {name: 'Standard Sprint', questions: 10, time: 10},
+    {name: 'Extended Sprint', questions: 15, time: 15},
+];
 
-const GradientBackground = styled.div`
-    background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
-    padding: 40px 0;
-    margin-bottom: 50px;
-`;
-
-const WhiteText = styled.div`
-    color: white;
-    text-align: center;
-`;
-
-const StyledTitle = styled(Title)`
-    color: white !important;
-    font-size: 3rem !important;
-    margin-bottom: 10px !important;
-`;
-
-const StyledSubtitle = styled(Paragraph)`
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.2rem;
-    max-width: 800px;
-    margin: 0 auto;
-`;
-
-const StyledCard = styled(Card)`
-    margin-bottom: 20px;
-    border-radius: 15px;
-    overflow: hidden;
-`;
-
-const StyledButton = styled(Button)`
-    background-color: #00b09b;
-    border-color: #00b09b;
-    color: white;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    padding: 10px 20px;
-    
-    &:hover, &:focus {
-        background-color: #008c7a;
-        border-color: #008c7a;
-        color: white;
-    }
-`;
-
-const BotTrainingSetup = () => {
-    const [form] = Form.useForm();
+function BotTrainingSetup() {
+    const [selectedBot, setSelectedBot] = useState('');
+    const [selectedMode, setSelectedMode] = useState('');
     const navigate = useNavigate();
 
-    const bots = [
-        { name: 'Easy Bot', score: 1000, speed: 100, solveChance: 50 },
-        { name: 'Medium Bot', score: 1400, speed: 150, solveChance: 70 },
-        { name: 'Hard Bot', score: 1800, speed: 200, solveChance: 90 },
-    ];
-
-    const modes = [
-        { name: 'Quick Sprint', questions: 5, time: 5 },
-        { name: 'Standard Sprint', questions: 10, time: 10 },
-        { name: 'Extended Sprint', questions: 15, time: 15 },
-    ];
-
-    const handleStart = (values) => {
-        navigate('/bot_training/start', { state: values });
+    const handleStart = (event) => {
+        event.preventDefault();
+        if (!selectedBot || !selectedMode) {
+            notify.warning('Choose a bot and a training mode first.');
+            return;
+        }
+        navigate('/bot_training/start', {state: {selectedBot, selectedMode}});
     };
 
     return (
-        <Layout>
-            <GradientBackground>
-                <StyledContent>
-                    <WhiteText>
-                        <StyledTitle level={2}>Bot Training Setup</StyledTitle>
-                        <StyledSubtitle>
-                            Choose your AI opponent and training mode to begin your practice session.
-                        </StyledSubtitle>
-                    </WhiteText>
-                </StyledContent>
-            </GradientBackground>
+        <PageContainer className="min-h-screen py-8 sm:py-10">
+            <Card className="mb-6 p-6 sm:p-8">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-700">
+                            <Bot size={14}/> Bot Training
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-950">Bot Training Setup</h1>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+                            Choose an AI opponent and a sprint format to begin a solo duel.
+                        </p>
+                    </div>
+                </div>
+            </Card>
 
-            <StyledContent>
-                <Form form={form} onFinish={handleStart} layout="vertical">
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24} md={12}>
-                            <StyledCard title="Select Your AI Opponent">
-                                <Form.Item
-                                    name="selectedBot"
-                                    rules={[{ required: true, message: 'Please select a bot' }]}
-                                >
-                                    <Select placeholder="Choose a bot">
-                                        {bots.map((bot, index) => (
-                                            <Option key={index} value={bot.name}>
-                                                <RobotOutlined /> {bot.name} (Score: {bot.score})
-                                                <br />
-                                                <small>Speed: {bot.speed}, Solve Chance: {bot.solveChance}%</small>
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
-                            </StyledCard>
-                        </Col>
-                        <Col xs={24} md={12}>
-                            <StyledCard title="Select Training Mode">
-                                <Form.Item
-                                    name="selectedMode"
-                                    rules={[{ required: true, message: 'Please select a training mode' }]}
-                                >
-                                    <Select placeholder="Choose a mode">
-                                        {modes.map((mode, index) => (
-                                            <Option key={index} value={mode.name}>
-                                                {mode.name} ({mode.questions} questions in {mode.time} minutes)
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
-                            </StyledCard>
-                        </Col>
-                    </Row>
-                    <Row justify="center" style={{ marginTop: '30px' }}>
-                        <Col>
-                            <Form.Item>
-                                <StyledButton type="primary" htmlType="submit" size="large">
-                                    Start Training
-                                </StyledButton>
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                </Form>
-            </StyledContent>
-        </Layout>
+            <form onSubmit={handleStart} className="space-y-6">
+                <div className="grid gap-4 lg:grid-cols-2">
+                    <Card className="p-5">
+                        <div className="mb-4 flex items-center gap-3">
+                            <div className="flex size-11 items-center justify-center rounded-2xl border-2 border-primary-200 bg-primary-50 text-primary-700">
+                                <Gauge size={22}/>
+                            </div>
+                            <h2 className="text-xl font-black text-slate-950">Select Your AI Opponent</h2>
+                        </div>
+                        <Select value={selectedBot} onChange={(event) => setSelectedBot(event.target.value)}>
+                            <option value="">Choose a bot</option>
+                            {bots.map((bot) => (
+                                <option key={bot.name} value={bot.name}>
+                                    {bot.name} · Score {bot.score} · Speed {bot.speed} · Solve {bot.solveChance}%
+                                </option>
+                            ))}
+                        </Select>
+                    </Card>
+
+                    <Card className="p-5">
+                        <div className="mb-4 flex items-center gap-3">
+                            <div className="flex size-11 items-center justify-center rounded-2xl border-2 border-primary-200 bg-primary-50 text-primary-700">
+                                <Timer size={22}/>
+                            </div>
+                            <h2 className="text-xl font-black text-slate-950">Select Training Mode</h2>
+                        </div>
+                        <Select value={selectedMode} onChange={(event) => setSelectedMode(event.target.value)}>
+                            <option value="">Choose a mode</option>
+                            {modes.map((mode) => (
+                                <option key={mode.name} value={mode.name}>
+                                    {mode.name} · {mode.questions} questions in {mode.time} minutes
+                                </option>
+                            ))}
+                        </Select>
+                    </Card>
+                </div>
+
+                <div className="flex justify-center">
+                    <Button type="submit" size="lg">Start Training</Button>
+                </div>
+            </form>
+        </PageContainer>
     );
-};
+}
 
 export default BotTrainingSetup;

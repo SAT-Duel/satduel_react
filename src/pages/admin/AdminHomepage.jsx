@@ -1,108 +1,73 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Row, Col, Typography, Card } from 'antd';
-import { FileTextOutlined, DatabaseOutlined, TrophyOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
-import withAuth from "../../hoc/withAuth";
+import {useNavigate} from 'react-router-dom';
+import {Database, FileText, Trophy} from 'lucide-react';
+import {Card, PageContainer} from '../../components/ui';
+import withAuth from '../../hoc/withAuth';
 
-const { Title, Paragraph } = Typography;
+const tools = [
+    {
+        title: 'Question List',
+        description: 'Manage, preview, create, and edit the question bank.',
+        icon: FileText,
+        action: 'questions',
+    },
+    {
+        title: 'Backend Database',
+        description: 'Open the Django admin for data operations that are not exposed here.',
+        icon: Database,
+        action: 'backend',
+    },
+    {
+        title: 'Create Tournament',
+        description: 'Build a curated tournament from selected questions.',
+        icon: Trophy,
+        action: 'tournament',
+    },
+];
 
-const Container = styled.div`
-    min-height: 100vh;
-    background: linear-gradient(135deg, #F5F7FF 0%, #E8EEFF 100%);
-    padding: 60px 20px;
-`;
-
-const ContentWrapper = styled.div`
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-`;
-
-const HeroTitle = styled(Title)`
-    font-size: 3rem;
-    color: #0B2F7D;
-    margin-bottom: 40px;
-`;
-
-const StyledCard = styled(Card)`
-    height: 100%;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-        cursor: pointer;
-    }
-
-    .anticon {
-        font-size: 3rem;
-        color: #4C3D97;
-    }
-
-    .ant-card-body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-`;
-
-const AdminHome = () => {
+function AdminHome() {
     const navigate = useNavigate();
 
-    const handleNavigateToQuestions = () => {
-        navigate('/admin/questions');
-    };
-
-    const handleNavigateToBackend = () => {
-        window.location.href = 'https://satduel-e07814415d4e.herokuapp.com/admin/';
-    };
-
-    const handleNavigateToCreateTournament = () => {
-        // Placeholder link, replace with your actual tournament creation link
-        navigate('/admin/create_tournament');
+    const handleToolClick = (action) => {
+        if (action === 'backend') {
+            window.location.href = 'https://satduel-e07814415d4e.herokuapp.com/admin/';
+            return;
+        }
+        navigate(action === 'questions' ? '/admin/questions' : '/admin/create_tournament');
     };
 
     return (
-        <Container>
-            <ContentWrapper>
-                <HeroTitle level={1}>Admin Tools</HeroTitle>
-                <Row gutter={[24, 24]}>
-                    <Col xs={24} md={8}>
-                        <StyledCard onClick={handleNavigateToQuestions}>
-                            <FileTextOutlined />
-                            <Title level={4} style={{ marginTop: '20px', color: '#0B2F7D' }}>Question List</Title>
-                            <Paragraph style={{ fontSize: '1rem', color: '#4A4A4A' }}>
-                                Manage and edit the questions in the database.
-                            </Paragraph>
-                        </StyledCard>
-                    </Col>
-                    <Col xs={24} md={8}>
-                        <StyledCard onClick={handleNavigateToBackend}>
-                            <DatabaseOutlined />
-                            <Title level={4} style={{ marginTop: '20px', color: '#0B2F7D' }}>Backend Database</Title>
-                            <Paragraph style={{ fontSize: '1rem', color: '#4A4A4A' }}>
-                                Access and manage the backend database.
-                            </Paragraph>
-                        </StyledCard>
-                    </Col>
-                    <Col xs={24} md={8}>
-                        <StyledCard onClick={handleNavigateToCreateTournament}>
-                            <TrophyOutlined />
-                            <Title level={4} style={{ marginTop: '20px', color: '#0B2F7D' }}>Create Tournament</Title>
-                            <Paragraph style={{ fontSize: '1rem', color: '#4A4A4A' }}>
-                                Create and manage new tournaments.
-                            </Paragraph>
-                        </StyledCard>
-                    </Col>
-                </Row>
-            </ContentWrapper>
-        </Container>
+        <PageContainer className="min-h-screen py-8 sm:py-10">
+            <div className="mb-8">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-700">
+                    Staff Console
+                </div>
+                <h1 className="text-4xl font-black text-slate-950 sm:text-5xl">Admin Tools</h1>
+                <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
+                    Lightweight operations for keeping SAT Duel content and tournaments moving.
+                </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+                {tools.map(({title, description, icon: Icon, action}) => (
+                    <button
+                        key={title}
+                        type="button"
+                        onClick={() => handleToolClick(action)}
+                        className="text-left"
+                    >
+                        <Card hover className="h-full p-6">
+                            <div className="mb-5 flex size-14 items-center justify-center rounded-2xl border-2 border-primary-200 bg-primary-50 text-primary-700">
+                                <Icon size={26}/>
+                            </div>
+                            <h2 className="text-xl font-black text-slate-950">{title}</h2>
+                            <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+                        </Card>
+                    </button>
+                ))}
+            </div>
+        </PageContainer>
     );
-};
+}
 
 export default withAuth(AdminHome, true);
