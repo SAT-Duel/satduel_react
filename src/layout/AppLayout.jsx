@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Navigate, NavLink, Outlet, useNavigate} from 'react-router-dom';
 import {
     Home,
@@ -101,9 +101,36 @@ function ProfileFooter({user, onLogout, onNavigate}) {
 }
 
 const AppLayout = () => {
-    const {user, loading, logout} = useAuth();
+    const {user, loading, logout, refreshUser} = useAuth();
     const navigate = useNavigate();
     const [drawerOpen, setDrawerOpen] = useState(false);
+
+    useEffect(() => {
+        if (!user) return undefined;
+
+        let active = true;
+        const syncUser = () => {
+            if (!active) return;
+            refreshUser().catch(() => {
+                // Keep navigation usable if a background entitlement refresh fails.
+            });
+        };
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                syncUser();
+            }
+        };
+
+        syncUser();
+        window.addEventListener('focus', syncUser);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            active = false;
+            window.removeEventListener('focus', syncUser);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [refreshUser, user?.id]);
 
     // Auth gate for the whole learning experience.
     if (loading) {
