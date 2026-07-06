@@ -284,7 +284,7 @@ function HomeDashboard() {
                         <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase text-white">
                             <CircleDot className="size-3.5 text-cyan-300"/> Arena dashboard
                         </span>
-                        <h1 className="m-0 mt-2 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
+                        <h1 className="m-0 mt-4 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
                             {greeting()}, {user?.username}
                         </h1>
                         <p className="m-0 mt-1 text-slate-500">Start with today’s reps, then watch your Elo move.</p>

@@ -1,197 +1,211 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Typography, message, Row, Col, Modal } from 'antd';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import React, {useEffect, useState} from 'react';
+import {ArrowRight, CalendarClock, Clock3, FileQuestion, Trophy, Users, X} from 'lucide-react';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from "../context/AuthContext";
-import styled from 'styled-components';
+import {useNavigate, useParams} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
 import TournamentLeaderboard from '../components/Tournament/TournamentLeaderboard';
+import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
+import api from '../components/api';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
-const { Title, Text } = Typography;
+function DetailItem({icon: Icon, label, value}) {
+    return (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 text-xs font-black uppercase text-slate-400">
+                <Icon className="size-4 text-primary-600"/> {label}
+            </div>
+            <p className="m-0 mt-2 font-bold text-slate-900">{value}</p>
+        </div>
+    );
+}
 
-const PageContainer = styled.div`
-    padding: 24px;
-    background: linear-gradient(135deg, #f0f2f5, #e6f7ff);
-    min-height: 100vh;
-`;
+function ReviewConfirmModal({open, onClose, onReview}) {
+    if (!open) return null;
 
-const StyledCard = styled(Card)`
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-`;
+    return (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/50 px-4 py-4 sm:items-center">
+            <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="m-0 font-display text-2xl font-black text-slate-950">Tournament already finished</h2>
+                        <p className="m-0 mt-2 text-sm leading-relaxed text-slate-500">
+                            You can still review the questions and your submitted answers.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex size-10 cursor-pointer items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"
+                        aria-label="Close review modal"
+                    >
+                        <X className="size-5"/>
+                    </button>
+                </div>
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <Button variant="secondary" onClick={onClose}>No thanks</Button>
+                    <Button onClick={onReview}>Review questions</Button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
-const InfoContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-`;
-
-const InfoItem = styled.div`
-    background-color: #ffffff;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-`;
-
-const InfoLabel = styled(Text)`
-    font-weight: bold;
-    color: #1890ff;
-`;
-
-const InfoValue = styled(Text)`
-    color: #262626;
-`;
-
-const InfoDescription = styled(InfoValue)`
-    font-size: 16px;
-    white-space: pre-wrap;
-`;
-
-const JoinButton = styled(Button)`
-    margin-top: 24px;
-    height: 48px;
-    font-size: 18px;
-    width: 100%;
-`;
-
-const TournamentDetail = () => {
-    const { token } = useAuth();
+function TournamentDetailPage() {
+    const {token} = useAuth();
     const [tournament, setTournament] = useState(null);
     const [loading, setLoading] = useState(true);
     const [leaderboardData, setLeaderboardData] = useState([]);
-    const { tournamentId } = useParams();
-    const baseUrl = import.meta.env.VITE_API_URL;
+    const [notice, setNotice] = useState(null);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const {tournamentId} = useParams();
     const navigate = useNavigate();
 
-    const convertDurationToSeconds = (duration) => {
-        const [hours, minutes, seconds] = duration.split(':').map(Number);
+    const convertDurationToSeconds = (value) => {
+        const [hours, minutes, seconds] = value.split(':').map(Number);
         return hours * 3600 + minutes * 60 + seconds;
     };
 
     useEffect(() => {
         const fetchTournamentDetail = async () => {
             try {
-                const response = await axios.get(`${baseUrl}/api/tournaments/${tournamentId}/`);
+                const response = await api.get(`api/tournaments/${tournamentId}/`);
                 setTournament(response.data);
-                setLoading(false);
             } catch (error) {
-                message.error('Failed to fetch tournament details');
+                setNotice({type: 'error', text: 'Failed to fetch tournament details.'});
+            } finally {
                 setLoading(false);
             }
         };
+
         const fetchLeaderboard = async () => {
             try {
-                const response = await axios.get(`${baseUrl}/api/tournaments/${tournamentId}/leaderboard/`);
+                const response = await api.get(`api/tournaments/${tournamentId}/leaderboard/`);
                 setLeaderboardData(response.data);
-            } catch (err) {
-                message.error(err.response?.data?.error || 'An error occurred while fetching leaderboard.');
+            } catch (error) {
+                setNotice({type: 'error', text: error.response?.data?.error || 'Could not load leaderboard.'});
             }
         };
+
         fetchTournamentDetail();
         fetchLeaderboard();
-    }, [baseUrl, tournamentId]);
+    }, [tournamentId]);
 
     const handleStartTournament = async () => {
         if (!token) {
-            message.error('You need to be logged in to start the tournament');
+            setNotice({type: 'error', text: 'You need to be logged in to start the tournament.'});
             return;
         }
+
         try {
-            const response = await axios.post(`${baseUrl}/api/tournaments/${tournamentId}/join/`, {}, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await api.post(`api/tournaments/${tournamentId}/join/`, {});
             if (response.data.status === 'Active') {
                 navigate(`/tournament/${tournamentId}/questions/`);
-                message.success('Tournament joined successfully');
             } else {
-                showReviewModal();
+                setReviewModalOpen(true);
             }
         } catch (error) {
-            message.error('Failed to start the tournament');
+            setNotice({type: 'error', text: error.response?.data?.error || 'Failed to start the tournament.'});
         }
-    };
-
-    const showReviewModal = () => {
-        Modal.confirm({
-            title: 'Tournament Already Finished',
-            icon: <ExclamationCircleOutlined />,
-            content: 'You have already finished this tournament, but you can still review the questions. Would you like to proceed?',
-            okText: 'Yes, Review Questions',
-            cancelText: 'No, Thanks',
-            onOk() {
-                navigate(`/tournament/${tournamentId}/questions?readonly=true`);
-            },
-        });
     };
 
     if (loading) {
-        return <PageContainer>Loading...</PageContainer>;
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="flex justify-center">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-600">
+                        <Spinner/> Loading tournament…
+                    </div>
+                </PageContainer>
+            </div>
+        );
     }
 
     if (!tournament) {
-        return <PageContainer>Tournament not found</PageContainer>;
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="max-w-2xl">
+                    <Alert>Tournament not found.</Alert>
+                    <Button to="/tournaments" variant="secondary" className="mt-4">Back to tournaments</Button>
+                </PageContainer>
+            </div>
+        );
     }
 
-    return (
-        <PageContainer>
-            <Row gutter={24}>
-                <Col xs={24} lg={12}>
-                    <StyledCard>
-                        <Title level={2}>{tournament.name}</Title>
-                        <InfoContainer>
-                            <InfoItem>
-                                <InfoLabel>Description: </InfoLabel> <br/>
-                                <InfoDescription>{tournament.description}</InfoDescription>
-                            </InfoItem>
-                            <InfoItem>
-                                <InfoLabel>Start Time: </InfoLabel>
-                                <InfoValue>{dayjs(tournament.start_time).format('YYYY-MM-DD HH:mm')}</InfoValue>
-                            </InfoItem>
-                            <InfoItem>
-                                <InfoLabel>End Time: </InfoLabel>
-                                <InfoValue>{dayjs(tournament.end_time).format('YYYY-MM-DD HH:mm')}</InfoValue>
-                            </InfoItem>
-                            <InfoItem>
-                                <InfoLabel>Time: </InfoLabel>
-                                <InfoValue>{dayjs.duration(convertDurationToSeconds(tournament.duration) * 1000).humanize()}</InfoValue>
-                            </InfoItem>
-                            <InfoItem>
-                                <InfoLabel>Number of Questions: </InfoLabel>
-                                <InfoValue>{tournament.questionNumber}</InfoValue>
-                            </InfoItem>
-                            <InfoItem>
-                                <InfoLabel>Number of Participants: </InfoLabel>
-                                <InfoValue>{tournament.participantNumber}</InfoValue>
-                            </InfoItem>
-                        </InfoContainer>
-                        <JoinButton type="primary" onClick={handleStartTournament}>
-                            Join Tournament
-                        </JoinButton>
-                    </StyledCard>
-                </Col>
-                <Col xs={24} lg={12}>
-                    <StyledCard>
-                        <TournamentLeaderboard leaderboardData={leaderboardData}
-                                               tournamentStartTime={tournament.start_time} />
-                    </StyledCard>
-                </Col>
-            </Row>
-        </PageContainer>
-    );
-};
+    const tournamentDuration = tournament.duration
+        ? dayjs.duration(convertDurationToSeconds(tournament.duration) * 1000).humanize()
+        : 'Timed round';
 
-export default TournamentDetail;
+    return (
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
+            <PageContainer>
+                {notice && (
+                    <div className="mb-6 max-w-3xl">
+                        <Alert type={notice.type}>{notice.text}</Alert>
+                    </div>
+                )}
+
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+                    <main className="space-y-5">
+                        <Card className="sat-arena-card overflow-hidden">
+                            <div className="sat-duel-lanes bg-slate-950 p-6 text-white sm:p-8">
+                                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-black text-cyan-200">
+                                    <Trophy className="size-4"/> Tournament detail
+                                </span>
+                                <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight sm:text-5xl">
+                                    {tournament.name}
+                                </h1>
+                                <p className="m-0 mt-4 max-w-2xl whitespace-pre-wrap text-lg leading-relaxed text-slate-300">
+                                    {tournament.description || 'Compete on a timed SAT question set and compare your run on the live leaderboard.'}
+                                </p>
+                            </div>
+                            <div className="grid gap-3 p-5 sm:grid-cols-2">
+                                <DetailItem icon={CalendarClock} label="Starts" value={dayjs(tournament.start_time).format('MMM D, YYYY h:mm A')}/>
+                                <DetailItem icon={CalendarClock} label="Ends" value={dayjs(tournament.end_time).format('MMM D, YYYY h:mm A')}/>
+                                <DetailItem icon={Clock3} label="Duration" value={tournamentDuration}/>
+                                <DetailItem icon={FileQuestion} label="Questions" value={tournament.questionNumber}/>
+                                <DetailItem icon={Users} label="Participants" value={tournament.participantNumber}/>
+                            </div>
+                            <div className="sat-score-strip px-5 py-5">
+                                <Button onClick={handleStartTournament} size="lg">
+                                    Join tournament <ArrowRight className="size-5"/>
+                                </Button>
+                            </div>
+                        </Card>
+
+                        <Card className="sat-arena-card p-5 sm:p-6">
+                            <h2 className="m-0 font-display text-2xl font-black text-slate-950">What matters in this round</h2>
+                            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                {[
+                                    ['Accuracy first', 'Your score is driven by correct answers, not extra effects.'],
+                                    ['Timer pressure', 'Work steadily; the leaderboard reveals progress as time passes.'],
+                                    ['Review later', 'Finished rounds can still be reviewed from the tournament screen.'],
+                                ].map(([title, copy]) => (
+                                    <div key={title} className="rounded-2xl bg-slate-50 p-4">
+                                        <p className="m-0 font-black text-slate-900">{title}</p>
+                                        <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">{copy}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    </main>
+
+                    <aside className="lg:sticky lg:top-24 lg:self-start">
+                        <TournamentLeaderboard leaderboardData={leaderboardData} tournamentStartTime={tournament.start_time}/>
+                    </aside>
+                </div>
+            </PageContainer>
+
+            <ReviewConfirmModal
+                open={reviewModalOpen}
+                onClose={() => setReviewModalOpen(false)}
+                onReview={() => navigate(`/tournament/${tournamentId}/questions?readonly=true`)}
+            />
+        </div>
+    );
+}
+
+export default TournamentDetailPage;

@@ -1,184 +1,122 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Layout, Typography, Button, Row, Col } from 'antd';
-import {
-  TrophyOutlined,
-  TeamOutlined,
-  RocketOutlined,
-  BarChartOutlined,
-} from '@ant-design/icons';
-import styled from 'styled-components';
-import Aos from 'aos';
-import 'aos/dist/aos.css';
-import FeatureCard from '../components/Tournament/FeatureCard';
-import BenefitCard from '../components/Tournament/BenefitCard';
+import React from 'react';
+import {ArrowRight, BarChart3, Clock3, ShieldCheck, Trophy, Users} from 'lucide-react';
+import {Button, Card, PageContainer} from '../components/ui';
 
-const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+const FEATURES = [
+    {
+        title: 'Find a round',
+        description: 'Public tournaments sit in one clean arena list. Private rounds stay accessible by code.',
+        icon: Trophy,
+    },
+    {
+        title: 'Answer under pressure',
+        description: 'The timer gives practice a real test-day edge without hiding the learning goal.',
+        icon: Clock3,
+    },
+    {
+        title: 'Compare fairly',
+        description: 'Everyone plays the same question set, so leaderboard movement is easy to understand.',
+        icon: ShieldCheck,
+    },
+];
 
-const PageHeader = styled.div`
-  background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
-  color: white;
-  padding: 60px 0 70px;
-  text-align: center;
-`;
-
-const ContentSection = styled.div`
-  padding: 30px 0;
-  background-color: #f0f2f5;
-`;
-
-const StyledContent = styled(Content)`
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const CTAButton = styled(Button)`
-  font-size: 16px;
-  height: auto;
-  padding: 10px 25px;
-  border-radius: 50px;
-  background: #ff4500;
-  border-color: #ff4500;
-  margin-top: 20px;
-  transition: all 0.3s;
-
-  &:hover,
-  &:focus {
-    background: #ff6347;
-    border-color: #ff6347;
-    transform: scale(1.05);
-  }
-`;
-
-const TournamentBenefitsSection = styled.section`
-  margin-top: 60px;
-`;
+const BENEFITS = [
+    ['Competitive focus', 'A tournament should make a practice session feel important enough to finish.'],
+    ['Community signal', 'Seeing other students working makes SAT prep feel less isolated.'],
+    ['Useful analytics', 'Score, timing, and question history point users back into targeted practice.'],
+    ['Low clutter', 'No coins or side systems. The core loop is questions, timing, leaderboard.'],
+];
 
 function TournamentPage() {
-  useEffect(() => {
-    Aos.init({ duration: 1000, once: true });
-  }, []);
+    return (
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)]">
+            <section className="sat-arena-surface border-b border-slate-200">
+                <PageContainer className="py-12 sm:py-16">
+                    <div className="mx-auto max-w-3xl text-center">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
+                            <Trophy className="size-4 text-amber-300"/> Tournament mode
+                        </span>
+                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
+                            Practice with stakes, without adding noise.
+                        </h1>
+                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                            SAT Duel tournaments turn a timed question set into a shared arena: same questions, same clock, clear leaderboard.
+                        </p>
+                        <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+                            <Button to="/tournaments" size="lg">
+                                View tournaments <ArrowRight className="size-5"/>
+                            </Button>
+                            <Button to="/create_tournament" variant="secondary" size="lg">
+                                Create private round
+                            </Button>
+                        </div>
+                    </div>
+                </PageContainer>
+            </section>
 
-  const features = [
-    {
-      title: 'Find Tournaments',
-      description: 'Search and join community tournaments that match your skill level and goals.',
-      gradient: 'linear-gradient(135deg, #FF4E50 0%, #F9D423 100%)',
-      icon: <TrophyOutlined />,
-    },
-    {
-      title: 'Flexible Entry',
-      description: 'Enter tournaments anytime before the deadline and compete at your convenience.',
-      gradient: 'linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)',
-      icon: <TeamOutlined />,
-    },
-    {
-      title: 'Fair Competition',
-      description: 'Tackle the same questions as other participants and see how you rank in the community.',
-      gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-      icon: <RocketOutlined />,
-    },
-  ];
+            <PageContainer className="py-12 sm:py-16">
+                <div className="grid gap-4 md:grid-cols-3">
+                    {FEATURES.map(({title, description, icon: Icon}) => (
+                        <Card key={title} hover className="sat-arena-card p-5">
+                            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+                                <Icon className="size-6"/>
+                            </div>
+                            <h2 className="m-0 mt-5 font-display text-xl font-black text-slate-950">{title}</h2>
+                            <p className="m-0 mt-2 text-sm leading-relaxed text-slate-500">{description}</p>
+                        </Card>
+                    ))}
+                </div>
 
-  const benefits = [
-    {
-      title: 'Competitive Edge',
-      description: 'Challenge yourself against peers and rise to the top of the leaderboard.',
-      icon: <TrophyOutlined />,
-      gradient: 'linear-gradient(135deg, #FF9966 0%, #FF5E62 100%)',
-    },
-    {
-      title: 'Community Learning',
-      description: 'Join a vibrant community of learners and share strategies for success.',
-      icon: <TeamOutlined />,
-      gradient: 'linear-gradient(135deg, #4E54C8 0%, #8F94FB 100%)',
-    },
-    {
-      title: 'Accelerated Growth',
-      description: 'Push your limits and see rapid improvement in your SAT skills.',
-      icon: <RocketOutlined />,
-      gradient: 'linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)',
-    },
-    {
-      title: 'Performance Insights',
-      description: 'Gain valuable insights into your strengths and areas for improvement.',
-      icon: <BarChartOutlined />,
-      gradient: 'linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%)',
-    },
-  ];
+                <section className="mt-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+                    <div>
+                        <p className="m-0 text-xs font-black uppercase text-primary-600">Why it exists</p>
+                        <h2 className="m-0 mt-3 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                            Tournaments are for motivation, not distraction.
+                        </h2>
+                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                            The product should not make students track five currencies. Tournament mode should give them one clear reason to sit down and finish a serious round.
+                        </p>
+                    </div>
 
-  return (
-    <Layout>
-      <PageHeader>
-        <Title level={1} style={{ color: 'white', fontSize: '2.5rem' }}>
-          SAT Prep Tournaments
-        </Title>
-        <Paragraph
-          style={{
-            color: 'white',
-            fontSize: '1rem',
-            maxWidth: '800px',
-            margin: '0 auto 20px',
-          }}
-        >
-          Elevate your scores with our innovative, engaging, and personalized tournament mode.
-        </Paragraph>
-        <Link to="/tournaments">
-          <CTAButton type="primary" size="large">
-            View All Tournaments
-          </CTAButton>
-        </Link>
-      </PageHeader>
-
-      <ContentSection>
-        <StyledContent>
-          <Row gutter={[16, 16]} justify="center">
-            {features.map((feature, index) => (
-              <Col
-                xs={24}
-                sm={12}
-                md={8}
-                key={index}
-                data-aos="fade-up"
-                data-aos-delay={`${index * 100}`}
-              >
-                <FeatureCard feature={feature} />
-              </Col>
-            ))}
-          </Row>
-
-          <TournamentBenefitsSection>
-            <Title
-              level={2}
-              style={{
-                textAlign: 'center',
-                marginBottom: '30px',
-                color: '#4834d4',
-              }}
-            >
-              Tournament Benefits
-            </Title>
-            <Row gutter={[16, 16]} justify="center">
-              {benefits.map((benefit, index) => (
-                <Col
-                  xs={24}
-                  sm={12}
-                  md={6}
-                  key={index}
-                  data-aos="fade-up"
-                  data-aos-delay={`${index * 100}`}
-                >
-                  <BenefitCard benefit={benefit} />
-                </Col>
-              ))}
-            </Row>
-          </TournamentBenefitsSection>
-        </StyledContent>
-      </ContentSection>
-    </Layout>
-  );
+                    <Card className="sat-arena-card overflow-hidden">
+                        <div className="sat-duel-lanes bg-slate-950 p-5 text-white">
+                            <div className="flex items-center justify-between">
+                                <span className="font-black">Weekly Bubble Arena</span>
+                                <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs font-black text-emerald-200">
+                                    Live
+                                </span>
+                            </div>
+                            <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+                                <div className="rounded-2xl bg-white/10 p-3">
+                                    <Users className="mx-auto size-5 text-cyan-200"/>
+                                    <p className="m-0 mt-2 font-display text-2xl font-black">42</p>
+                                    <p className="m-0 text-[10px] font-black uppercase text-slate-300">players</p>
+                                </div>
+                                <div className="rounded-2xl bg-white/10 p-3">
+                                    <Clock3 className="mx-auto size-5 text-amber-200"/>
+                                    <p className="m-0 mt-2 font-display text-2xl font-black">25m</p>
+                                    <p className="m-0 text-[10px] font-black uppercase text-slate-300">timer</p>
+                                </div>
+                                <div className="rounded-2xl bg-white/10 p-3">
+                                    <BarChart3 className="mx-auto size-5 text-emerald-200"/>
+                                    <p className="m-0 mt-2 font-display text-2xl font-black">10</p>
+                                    <p className="m-0 text-[10px] font-black uppercase text-slate-300">questions</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid gap-3 p-5 sm:grid-cols-2">
+                            {BENEFITS.map(([title, copy]) => (
+                                <div key={title} className="rounded-2xl bg-slate-50 p-4">
+                                    <p className="m-0 font-black text-slate-900">{title}</p>
+                                    <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">{copy}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                </section>
+            </PageContainer>
+        </div>
+    );
 }
 
 export default TournamentPage;

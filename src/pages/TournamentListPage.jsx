@@ -1,63 +1,69 @@
 import React, {useEffect, useState} from 'react';
-import {Layout, Typography, Row, Col, Button, Modal, Input, message, Space, Card, Divider} from 'antd';
-import {TrophyOutlined, LoginOutlined, InfoCircleOutlined, RightOutlined} from '@ant-design/icons';
-import {Link, useNavigate} from 'react-router-dom';
-import styled from 'styled-components';
+import {ArrowRight, ClipboardPenLine, DoorOpen, Info, Trophy, Users, X} from 'lucide-react';
+import {useNavigate} from 'react-router-dom';
 import api from '../components/api';
 import TournamentCard from '../components/Tournament/TournamentCard';
+import {Alert, Button, Card, Input, PageContainer, Spinner} from '../components/ui';
 
-const {Content} = Layout;
-const {Title, Paragraph, Text} = Typography;
+const INFO_CARDS = [
+    {
+        title: 'Same arena, same questions',
+        description: 'Everyone works through the same tournament set, so the leaderboard feels fair and concrete.',
+        icon: Trophy,
+    },
+    {
+        title: 'Useful pressure',
+        description: 'Timed rounds add urgency without adding a pile of extra game systems to track.',
+        icon: Users,
+    },
+    {
+        title: 'Review after the round',
+        description: 'Use the leaderboard and question history to spot exactly where points were won or lost.',
+        icon: ClipboardPenLine,
+    },
+];
 
-const StyledHeader = styled(Layout.Header)`
-    background: linear-gradient(135deg, #2b4c8c 0%, #1a365d 100%);
-    padding: 60px 20px;
-    text-align: center;
-    height: auto;
-    position: relative;
-    overflow: hidden;
-`;
+function JoinCodeModal({open, value, onChange, onClose, onSubmit}) {
+    if (!open) return null;
 
-const HeaderContent = styled.div`
-    position: relative;
-    z-index: 2;
-    max-width: 800px;
-    margin: 0 auto;
-`;
+    return (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/50 px-4 py-4 sm:items-center">
+            <form onSubmit={onSubmit} className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+                <div className="mb-5 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="m-0 font-display text-2xl font-black text-slate-950">Join private tournament</h2>
+                        <p className="m-0 mt-1 text-sm text-slate-500">Enter the code from your instructor or tournament host.</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex size-10 cursor-pointer items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"
+                        aria-label="Close join code modal"
+                    >
+                        <X className="size-5"/>
+                    </button>
+                </div>
+                <Input
+                    value={value}
+                    onChange={(event) => onChange(event.target.value)}
+                    placeholder="Tournament code"
+                    autoFocus
+                />
+                <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+                    <Button type="submit">Join tournament</Button>
+                </div>
+            </form>
+        </div>
+    );
+}
 
-const HeaderOverlay = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 20% 150%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
-    z-index: 1;
-`;
-
-const StyledContent = styled(Content)`
-    padding: 40px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    background: #ffffff;
-`;
-
-const InfoCard = styled(Card)`
-    background: #f8f9fa;
-    border: 1px solid #e8e8e8;
-    transition: all 0.3s;
-    height: 100%;
-    
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-`;
-
-const TournamentListPage = () => {
+function TournamentListPage() {
     const [tournaments, setTournaments] = useState([]);
     const [joinCodeModalVisible, setJoinCodeModalVisible] = useState(false);
     const [joinCode, setJoinCode] = useState('');
+    const [notice, setNotice] = useState(null);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -66,20 +72,19 @@ const TournamentListPage = () => {
                 const response = await api.get('api/tournaments/');
                 setTournaments(response.data);
             } catch (error) {
-                console.error('Error fetching tournaments:', error);
+                setNotice({type: 'error', text: error.response?.data?.error || 'Failed to load tournaments.'});
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchTournaments();
     }, []);
 
-    const handleJoinTournament = () => {
-        setJoinCodeModalVisible(true);
-    };
-
-    const handleJoinCodeSubmit = async () => {
+    const handleJoinCodeSubmit = async (event) => {
+        event.preventDefault();
         if (!joinCode.trim()) {
-            message.warning('Please enter a join code.');
+            setNotice({type: 'error', text: 'Please enter a join code.'});
             return;
         }
 
@@ -87,152 +92,117 @@ const TournamentListPage = () => {
             const response = await api.post('api/tournaments/join_from_code/', {
                 join_code: joinCode.trim(),
             });
-            const tournamentId = response.data.id;
-            message.success('Successfully joined the tournament!');
+            setNotice({type: 'success', text: 'Tournament joined. Opening the arena now.'});
             setJoinCodeModalVisible(false);
             setJoinCode('');
-            navigate(`/tournament/${tournamentId}`);
+            navigate(`/tournament/${response.data.id}`);
         } catch (error) {
-            console.error('Error joining tournament:', error);
-            if (error.response && error.response.data && error.response.data.error) {
-                message.error(error.response.data.error);
-            } else {
-                message.error('Invalid join code. Please try again.');
-            }
+            setNotice({
+                type: 'error',
+                text: error.response?.data?.error || 'Invalid join code. Please try again.',
+            });
         }
     };
 
-    const handleJoinCodeCancel = () => {
-        setJoinCodeModalVisible(false);
-        setJoinCode('');
-    };
-
     return (
-        <Layout className="tournament-layout">
-            <StyledHeader>
-                <HeaderContent>
-                    <Title level={1} style={{ 
-                        color: '#ffffff', 
-                        marginBottom: 16, 
-                        fontSize: '2.5rem',
-                        fontWeight: 600 
-                    }}>
-                        SAT Tournament Arena
-                    </Title>
-                    <Paragraph style={{ 
-                        fontSize: 18, 
-                        color: '#ffffff', 
-                        opacity: 0.9,
-                        margin: '0 auto',
-                        maxWidth: '600px'
-                    }}>
-                        Compete with students worldwide, test your skills, and climb the rankings
-                    </Paragraph>
-                </HeaderContent>
-                <HeaderOverlay />
-            </StyledHeader>
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
+            <PageContainer>
+                {notice && (
+                    <div className="mb-6 max-w-3xl">
+                        <Alert type={notice.type}>{notice.text}</Alert>
+                    </div>
+                )}
 
-            <StyledContent>
-                {/* Tournament List Section */}
-                <div style={{ marginBottom: 64 }}>
-                    <div style={{ textAlign: 'center', marginBottom: 40 }}>
-                        <Title level={2} style={{ fontWeight: 600 }}>Available Tournaments</Title>
-                        <Text type="secondary" style={{ fontSize: 16 }}>
-                            Join these competitions to test your skills and compete with others
-                        </Text>
+                <section className="sat-arena-card overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white">
+                    <div className="sat-duel-lanes relative overflow-hidden bg-slate-950 px-5 py-8 text-white sm:px-8 sm:py-10">
+                        <div className="relative max-w-3xl">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-black text-cyan-200">
+                                <Trophy className="size-4"/> Tournament arena
+                            </span>
+                            <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight sm:text-5xl">
+                                Timed rounds, shared pressure, honest rankings.
+                            </h1>
+                            <p className="m-0 mt-4 max-w-2xl text-lg leading-relaxed text-slate-300">
+                                Join a tournament when you want practice to feel like an event, not another loose question session.
+                            </p>
+                        </div>
                     </div>
 
-                    <Row gutter={[24, 24]}>
-                        {tournaments.map((tournament) => (
-                            <Col xs={24} sm={12} md={8} key={tournament.id}>
-                                <TournamentCard tournament={tournament} />
-                            </Col>
+                    <div className="grid gap-3 border-t border-slate-200 bg-white p-4 sm:grid-cols-3 sm:p-5">
+                        {INFO_CARDS.map(({title, description, icon: Icon}) => (
+                            <div key={title} className="rounded-2xl bg-slate-50 p-4">
+                                <Icon className="size-5 text-primary-600"/>
+                                <p className="m-0 mt-3 font-black text-slate-950">{title}</p>
+                                <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">{description}</p>
+                            </div>
                         ))}
-                    </Row>
-
-                    <Divider style={{ margin: '40px 0' }} />
-                    
-                    {/* Private Tournament Section */}
-                    <div style={{ textAlign: 'center', marginBottom: 40 }}>
-                        <Space direction="vertical" size="large" align="center">
-                            <Text>Have a private tournament code?</Text>
-                            <Button 
-                                type="primary"
-                                icon={<LoginOutlined />}
-                                onClick={handleJoinTournament}
-                                size="large"
-                            >
-                                Join Private Tournament
-                            </Button>
-                        </Space>
                     </div>
-                </div>
+                </section>
 
-                {/* Info Section */}
-                <div style={{ background: '#fafafa', padding: '48px 24px', borderRadius: '8px' }}>
-                    
-                    <Row gutter={[24, 24]}>
-                        {[
-                            {
-                                title: "Competitive Learning",
-                                description: "Challenge yourself against peers and accelerate your progress",
-                                icon: <TrophyOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-                            },
-                            {
-                                title: "Real-Time Rankings",
-                                description: "Track your performance and see how you rank against others",
-                                icon: <InfoCircleOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-                            },
-                            {
-                                title: "Detailed Analytics",
-                                description: "Get comprehensive insights into your performance",
-                                icon: <RightOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-                            }
-                        ].map((item, index) => (
-                            <Col xs={24} md={8} key={index}>
-                                <InfoCard>
-                                    <Space direction="vertical" size="middle">
-                                        {item.icon}
-                                        <Title level={4} style={{ marginTop: 0 }}>{item.title}</Title>
-                                        <Text type="secondary">{item.description}</Text>
-                                    </Space>
-                                </InfoCard>
-                            </Col>
-                        ))}
-                    </Row>
-
-                    <div style={{ textAlign: 'center', marginTop: 40 }}>
-                        <Link to="/tournaments/info">
-                            <Button type="primary" icon={<RightOutlined />}>
-                                Learn More About Tournaments
+                <section className="mt-10">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 className="m-0 font-display text-2xl font-black text-slate-950">Available tournaments</h2>
+                            <p className="m-0 mt-1 text-sm text-slate-500">Pick a live or scheduled arena and compete on the same question set.</p>
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                            <Button variant="secondary" onClick={() => setJoinCodeModalVisible(true)}>
+                                <DoorOpen className="size-4"/> Join private
                             </Button>
-                        </Link>
+                            <Button to="/tournaments/info">
+                                How tournaments work <ArrowRight className="size-4"/>
+                            </Button>
+                        </div>
                     </div>
-                </div>
 
-                {/* Keep existing Modal */}
-                <Modal
-                    title="Join Private Tournament"
-                    visible={joinCodeModalVisible}
-                    onOk={handleJoinCodeSubmit}
-                    onCancel={handleJoinCodeCancel}
-                    okText="Join Tournament"
-                    cancelText="Cancel"
-                >
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                        <Text>Enter the tournament code provided by your instructor:</Text>
-                        <Input
-                            size="large"
-                            placeholder="Enter tournament code"
-                            value={joinCode}
-                            onChange={(e) => setJoinCode(e.target.value)}
-                            style={{ marginTop: 12 }}
-                        />
-                    </Space>
-                </Modal>
-            </StyledContent>
-        </Layout>
+                    {loading ? (
+                        <Card className="mt-5 flex items-center justify-center gap-3 p-8 text-slate-600">
+                            <Spinner/> Loading tournaments…
+                        </Card>
+                    ) : tournaments.length ? (
+                        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            {tournaments.map((tournament) => (
+                                <TournamentCard key={tournament.id} tournament={tournament}/>
+                            ))}
+                        </div>
+                    ) : (
+                        <Card className="sat-arena-card mt-5 p-8 text-center">
+                            <Info className="mx-auto size-9 text-slate-300"/>
+                            <h3 className="m-0 mt-3 font-display text-2xl font-black text-slate-950">No public tournaments yet</h3>
+                            <p className="mx-auto mt-2 max-w-md text-slate-500">
+                                Private tournaments can still be joined with a code. Public rounds will appear here when they are available.
+                            </p>
+                            <Button className="mt-5" variant="secondary" onClick={() => setJoinCodeModalVisible(true)}>
+                                Join with code
+                            </Button>
+                        </Card>
+                    )}
+                </section>
+
+                <section className="mt-10 rounded-[1.5rem] border border-slate-200 bg-white p-5 sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="m-0 text-xs font-black uppercase text-primary-600">Hosting a class?</p>
+                            <h2 className="m-0 mt-2 font-display text-2xl font-black text-slate-950">Create a controlled tournament.</h2>
+                            <p className="m-0 mt-1 text-sm text-slate-500">Use private codes when you want a classroom or club-only leaderboard.</p>
+                        </div>
+                        <Button to="/create_tournament">Create tournament</Button>
+                    </div>
+                </section>
+            </PageContainer>
+
+            <JoinCodeModal
+                open={joinCodeModalVisible}
+                value={joinCode}
+                onChange={setJoinCode}
+                onClose={() => {
+                    setJoinCodeModalVisible(false);
+                    setJoinCode('');
+                }}
+                onSubmit={handleJoinCodeSubmit}
+            />
+        </div>
     );
-};
+}
 
 export default TournamentListPage;

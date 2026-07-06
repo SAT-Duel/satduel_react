@@ -1,111 +1,77 @@
-import React from "react";
-import { Button, Radio, Space, Typography } from "antd";
-import { BookOutlined, BookFilled } from "@ant-design/icons";
+import React from 'react';
+import {Bookmark, BookmarkCheck} from 'lucide-react';
 
-const { Text } = Typography;
-
-const AnswerSection = ({ currentQuestion, question, selectedAnswer, setSelectedAnswer, reviewQuestions, setReviewQuestions }) => {
-    const splitText = (text) => {
-        const parts = text.split('\n'); // Split text by \n
-        const lastPart = parts.slice(-1)[0]; // The last part
-        return lastPart;
-    };
-
-    const choices = question.choices;
-    const formated_choices = [
-        { letter: 'A', text: choices[0] },
-        { letter: 'B', text: choices[1] },
-        { letter: 'C', text: choices[2] },
-        { letter: 'D', text: choices[3] }
+function AnswerSection({currentQuestion, question, selectedAnswer, setSelectedAnswer, reviewQuestions, setReviewQuestions}) {
+    const prompt = question.question.split('\n').slice(-1)[0];
+    const choices = [
+        {letter: 'A', text: question.choices[0]},
+        {letter: 'B', text: question.choices[1]},
+        {letter: 'C', text: question.choices[2]},
+        {letter: 'D', text: question.choices[3]},
     ];
 
-    // Check if the current question is marked for review
     const isMarkedForReview = reviewQuestions.includes(currentQuestion);
 
-    // Toggle review status for the current question
     const toggleReviewStatus = () => {
-        setReviewQuestions(prevReviewQuestions => {
-            if (isMarkedForReview) {
-                // Remove the question from the review list
-                return prevReviewQuestions.filter(q => q !== currentQuestion);
-            } else {
-                // Add the question to the review list
-                return [...prevReviewQuestions, currentQuestion];
-            }
-        });
+        setReviewQuestions((previous) => (
+            isMarkedForReview
+                ? previous.filter((q) => q !== currentQuestion)
+                : [...previous, currentQuestion]
+        ));
     };
 
     return (
-        <div style={{ padding: '24px' }}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Space align="center">
-                    <Button
-                        type="primary"
-                        shape="square"
-                        style={{
-                            background: isMarkedForReview ? 'red' : '#1d2b53',
-                            height: '32px',
-                            width: '32px'
-                        }}
-                    >
+        <div className="p-5 sm:p-6">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <span className="sat-answer-bubble-filled inline-flex size-10 items-center justify-center rounded-full font-black text-white">
                         {currentQuestion}
-                    </Button>
-                    <Button
-                        type="text"
-                        icon={isMarkedForReview ? <BookFilled /> : <BookOutlined />}
+                    </span>
+                    <button
+                        type="button"
                         onClick={toggleReviewStatus}
-                        style={{
-                            color: isMarkedForReview ? 'red' : 'inherit'
-                        }}
+                        className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-black ${
+                            isMarkedForReview
+                                ? 'border-amber-300 bg-amber-50 text-amber-700'
+                                : 'border-slate-200 bg-white text-slate-500 hover:border-primary-200 hover:text-primary-700'
+                        }`}
                     >
-                        {isMarkedForReview ? 'Marked for Review' : 'Mark for Review'}
-                    </Button>
-                </Space>
+                        {isMarkedForReview ? <BookmarkCheck className="size-4"/> : <Bookmark className="size-4"/>}
+                        {isMarkedForReview ? 'Marked' : 'Mark for review'}
+                    </button>
+                </div>
+            </div>
 
-                <Text strong>
-                    {splitText(question.question)}
-                </Text>
+            <p className="m-0 mb-5 text-base font-bold leading-relaxed text-slate-900">{prompt}</p>
 
-                <Radio.Group
-                    onChange={(e) => setSelectedAnswer({ ...selectedAnswer, [currentQuestion]: e.target.value })}
-                    value={selectedAnswer[currentQuestion]}
-                    style={{ width: '100%' }}
-                >
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                        {formated_choices.map(({ letter, text }) => (
-                            <Radio.Button
-                                key={letter}
-                                value={letter}
-                                style={{
-                                    width: '100%',
-                                    height: 'auto',
-                                    padding: '12px',
-                                    textAlign: 'left',
-                                    borderRadius: '8px',
-                                    marginBottom: '8px'
-                                }}
-                            >
-                                <Space>
-                                    <div style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        border: '1px solid #d9d9d9',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        {letter}
-                                    </div>
-                                    <span>{text}</span>
-                                </Space>
-                            </Radio.Button>
-                        ))}
-                    </Space>
-                </Radio.Group>
-            </Space>
+            <div className="space-y-3" role="radiogroup" aria-label={`Question ${currentQuestion} choices`}>
+                {choices.map(({letter, text}) => {
+                    const selected = selectedAnswer[currentQuestion] === letter;
+                    return (
+                        <button
+                            key={letter}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            onClick={() => setSelectedAnswer({...selectedAnswer, [currentQuestion]: letter})}
+                            className={`flex w-full cursor-pointer items-start gap-3 rounded-2xl border p-4 text-left transition ${
+                                selected
+                                    ? 'border-primary-500 bg-primary-50 text-slate-950 shadow-sm'
+                                    : 'border-slate-200 bg-white text-slate-700 hover:border-primary-300'
+                            }`}
+                        >
+                            <span className={`sat-answer-bubble inline-flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-black ${
+                                selected ? 'sat-answer-bubble-filled text-white' : 'bg-white text-slate-500'
+                            }`}>
+                                {letter}
+                            </span>
+                            <span className="pt-1 text-sm leading-relaxed sm:text-base">{text}</span>
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
-};
+}
 
 export default AnswerSection;

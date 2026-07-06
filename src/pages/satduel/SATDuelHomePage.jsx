@@ -65,7 +65,7 @@ function SATDuelHomePage() {
     };
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-10 sm:py-14">
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-10 sm:py-14">
             <PageContainer>
                 {notice && (
                     <div className="mb-6 max-w-2xl">
@@ -103,7 +103,7 @@ function SATDuelHomePage() {
                     ) : games.length ? (
                         <div className="grid gap-4 md:grid-cols-2">
                             {games.map((game) => (
-                                <Card key={game.id} className="p-5" hover>
+                                <Card key={game.id} className="sat-arena-card p-5" hover>
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex items-start gap-3">
                                             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
@@ -135,7 +135,7 @@ function SATDuelHomePage() {
                             ))}
                         </div>
                     ) : (
-                        <Card className="p-8 text-center">
+                        <Card className="sat-arena-card p-8 text-center">
                             <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
                                 <Swords className="size-6"/>
                             </div>

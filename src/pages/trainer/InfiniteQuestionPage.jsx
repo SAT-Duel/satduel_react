@@ -9,7 +9,7 @@ import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
 
 function StatTile({icon: Icon, label, value}) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
                 <Icon className="size-5"/>
             </div>
@@ -243,9 +243,9 @@ function InfiniteQuestionsPage() {
 
     if (limitReached) {
         return (
-            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
+            <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-16">
                 <PageContainer className="max-w-2xl">
-                    <Card className="p-8 text-center">
+                    <Card className="sat-arena-card p-8 text-center">
                         <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-50">
                             <Lock className="size-7 text-amber-600"/>
                         </div>
@@ -274,13 +274,13 @@ function InfiniteQuestionsPage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
             <PageContainer>
-                <div className="mb-8">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
+                <div className="mb-8 rounded-[1.75rem] border border-slate-200 bg-white/85 p-5 shadow-sm sm:p-6">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3.5 py-1.5 text-sm font-black text-white">
                         <LineChart className="size-4"/> Adaptive practice
                     </span>
-                    <h1 className="m-0 mt-4 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                    <h1 className="m-0 mt-4 font-display text-3xl font-black text-slate-950 sm:text-4xl">
                         Daily SAT question practice
                     </h1>
                     <p className="mt-2 max-w-2xl text-slate-600">
@@ -299,7 +299,7 @@ function InfiniteQuestionsPage() {
                             />
                         )}
 
-                        <Card className="mt-5 p-5">
+                        <Card className="sat-arena-card mt-5 p-5">
                             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                 <RatingPulse feedback={ratingFeedback}/>
                                 {questionStatus !== 'Blank' && (
@@ -312,7 +312,7 @@ function InfiniteQuestionsPage() {
                     </main>
 
                     <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-                        <Card className="p-5">
+                        <Card className="sat-arena-card p-5">
                             <div className="flex items-center justify-between">
                                 <h2 className="m-0 text-xl font-bold text-slate-900">Topic</h2>
                                 {!quota?.is_premium && (
@@ -343,7 +343,7 @@ function InfiniteQuestionsPage() {
                             )}
                         </Card>
 
-                        <Card className="p-5">
+                        <Card className="sat-arena-card p-5">
                             <div className="flex items-center justify-between">
                                 <h2 className="m-0 text-xl font-bold text-slate-900">Today</h2>
                                 {spElo != null && (
@@ -378,7 +378,7 @@ function InfiniteQuestionsPage() {
                             )}
                         </Card>
 
-                        <Card className="p-5">
+                        <Card className="sat-arena-card p-5">
                             <h2 className="m-0 text-xl font-bold text-slate-900">This session</h2>
                             <div className="mt-5 grid grid-cols-2 gap-3">
                                 <StatTile icon={CheckCircle2} label="Answered" value={stats.questionsAnswered}/>

@@ -187,7 +187,7 @@ function DuelBattlePage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
             <PageContainer>
                 {notice && (
                     <div className="mb-6">
@@ -195,10 +195,10 @@ function DuelBattlePage() {
                     </div>
                 )}
 
-                <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div className="sat-arena-card mb-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3.5 py-1.5 text-sm font-black text-white">
                                 <Swords className="size-4"/> Live duel
                             </span>
                             <h1 className="m-0 mt-3 font-display text-3xl font-bold text-slate-900 sm:text-4xl">

@@ -169,7 +169,7 @@ function MatchingPage() {
     };
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-10 sm:py-14">
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-10 sm:py-14">
             <PageContainer>
                 {notice && (
                     <div className="mb-6 max-w-2xl">
@@ -180,9 +180,9 @@ function MatchingPage() {
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                     {/* Arena */}
                     <div className="space-y-6">
-                        <Card className="overflow-hidden">
-                            <div className="bg-gradient-to-b from-primary-50/80 to-white px-6 pb-10 pt-8 text-center sm:px-10">
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-3.5 py-1 text-sm font-semibold text-primary-700">
+                        <Card className="sat-arena-card overflow-hidden">
+                            <div className="sat-duel-lanes bg-gradient-to-b from-primary-50/80 to-white px-6 pb-10 pt-8 text-center sm:px-10">
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3.5 py-1.5 text-sm font-black text-white">
                                     <Swords className="size-4"/> Duel arena
                                 </span>
 
@@ -240,7 +240,7 @@ function MatchingPage() {
                         </Card>
 
                         {/* Recent duels */}
-                        <Card className="p-5 sm:p-6">
+                        <Card className="sat-arena-card p-5 sm:p-6">
                             <div className="flex items-center justify-between">
                                 <h2 className="m-0 inline-flex items-center gap-2 text-xl font-bold text-slate-900">
                                     <History className="size-5 text-slate-400"/> Recent duels
@@ -296,7 +296,7 @@ function MatchingPage() {
 
                     {/* Online players */}
                     <aside>
-                        <Card className="p-5 lg:sticky lg:top-24">
+                        <Card className="sat-arena-card p-5 lg:sticky lg:top-24">
                             <div className="flex items-center justify-between">
                                 <h2 className="m-0 inline-flex items-center gap-2 text-xl font-bold text-slate-900">
                                     <Users className="size-5 text-emerald-600"/> Online
