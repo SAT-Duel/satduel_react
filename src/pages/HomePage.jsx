@@ -7,8 +7,10 @@ import {
     CircleDot,
     ClipboardCheck,
     Clock3,
+    Crown,
     Flame,
     LineChart,
+    Lock,
     ShieldCheck,
     Sparkles,
     Swords,
@@ -19,6 +21,9 @@ import {
 } from 'lucide-react';
 import {Button, Card, PageContainer} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
+import prismPage from '../assets/avatars/pixel/prism-page.png';
+import novaQuill from '../assets/avatars/pixel/nova-quill.png';
+import emberAbacus from '../assets/avatars/pixel/ember-abacus.png';
 
 const HERO_METRICS = [
     {label: 'Question bank', value: '1,800+'},
@@ -76,6 +81,33 @@ const LOOP_STEPS = [
         title: 'Build a repeatable habit',
         text: 'Daily progress is built around streak, Practice Rating, and real answered questions.',
     },
+];
+
+const HOME_PRICING_PLANS = [
+    {
+        name: 'Free',
+        price: '$0',
+        note: '25 questions daily',
+        tone: 'bg-white text-slate-950 border-slate-200',
+        icon: Zap,
+        iconClass: 'bg-slate-100 text-slate-600',
+        features: ['Daily practice', 'Diagnostic estimate', 'Duels and tests'],
+    },
+    {
+        name: 'Premium',
+        price: '$9.99',
+        note: 'per month',
+        tone: 'bg-slate-950 text-white border-primary-300',
+        icon: Crown,
+        iconClass: 'bg-white/10 text-amber-300',
+        features: ['Unlimited practice', 'Pick exact topics', 'Stripe invoices'],
+    },
+];
+
+const FLOATING_AVATARS = [
+    {src: prismPage, alt: 'Prism Page avatar', className: '-left-5 top-8 rotate-[-8deg]'},
+    {src: novaQuill, alt: 'Nova Quill avatar', className: '-right-4 top-20 rotate-[7deg]'},
+    {src: emberAbacus, alt: 'Ember Abacus avatar', className: 'bottom-5 left-10 rotate-[5deg]'},
 ];
 
 function BubbleMark({choice, active = false}) {
@@ -158,6 +190,94 @@ function ArenaPreview() {
                 </div>
             </Card>
         </div>
+    );
+}
+
+function MiniPlanCard({plan}) {
+    const Icon = plan.icon;
+    const isPremium = plan.name === 'Premium';
+
+    return (
+        <div className={`sat-arena-card overflow-hidden rounded-[1.5rem] border ${plan.tone}`}>
+            <div className="p-5">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className={`flex size-10 items-center justify-center rounded-2xl ${plan.iconClass}`}>
+                            <Icon className="size-5"/>
+                        </div>
+                        <div>
+                            <p className={`m-0 text-xs font-black uppercase ${isPremium ? 'text-cyan-200' : 'text-slate-400'}`}>
+                                {isPremium ? 'Focused lane' : 'Starter lane'}
+                            </p>
+                            <h3 className="m-0 mt-1 text-xl font-black">{plan.name}</h3>
+                        </div>
+                    </div>
+                    {isPremium && (
+                        <span className="rounded-full bg-primary-500 px-2.5 py-1 text-xs font-black text-white">
+                            Popular
+                        </span>
+                    )}
+                </div>
+
+                <div className="mt-5 flex items-end gap-2">
+                    <span className="font-display text-4xl font-black">{plan.price}</span>
+                    <span className={`pb-1 text-sm font-bold ${isPremium ? 'text-slate-300' : 'text-slate-500'}`}>
+                        {plan.note}
+                    </span>
+                </div>
+
+                <div className="mt-5 space-y-2">
+                    {plan.features.map((feature) => (
+                        <div key={feature} className="flex items-center gap-2 text-sm font-semibold">
+                            <CheckCircle2 className={`size-4 ${isPremium ? 'text-emerald-300' : 'text-emerald-600'}`}/>
+                            <span className={isPremium ? 'text-slate-200' : 'text-slate-600'}>{feature}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className={isPremium ? 'border-t border-white/10 bg-white/5 px-5 py-4' : 'sat-score-strip px-5 py-4'}>
+                <Button to="/pricing" variant={isPremium ? 'primary' : 'secondary'} block>
+                    Compare plans <ArrowRight className="size-4"/>
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+function HomePricingSection() {
+    return (
+        <section className="sat-bubble-field relative overflow-hidden border-t border-slate-200">
+            <PageContainer className="relative py-14 sm:py-20">
+                {FLOATING_AVATARS.map((avatar) => (
+                    <div
+                        key={avatar.alt}
+                        className={`absolute hidden rounded-[1.5rem] border border-slate-200 bg-white/90 p-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] md:block ${avatar.className}`}
+                        aria-hidden="true"
+                    >
+                        <img src={avatar.src} alt="" className="image-render-pixel size-16"/>
+                    </div>
+                ))}
+
+                <div className="mx-auto max-w-2xl text-center">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
+                        <Lock className="size-4 text-cyan-300"/> Start free, upgrade later
+                    </span>
+                    <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                        Keep practicing when momentum hits.
+                    </h2>
+                    <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                        Try the arena first. Premium is there when you want unlimited rounds and exact-topic drills.
+                    </p>
+                </div>
+
+                <div className="mx-auto mt-9 grid max-w-4xl gap-4 md:grid-cols-2">
+                    {HOME_PRICING_PLANS.map((plan) => (
+                        <MiniPlanCard key={plan.name} plan={plan}/>
+                    ))}
+                </div>
+            </PageContainer>
+        </section>
     );
 }
 
@@ -334,6 +454,8 @@ function HomePage() {
                     </div>
                 </PageContainer>
             </section>
+
+            <HomePricingSection/>
 
             <section className="relative overflow-hidden bg-slate-950 text-white">
                 <div className="sat-duel-lanes absolute inset-0 opacity-20"/>
