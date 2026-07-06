@@ -1,321 +1,425 @@
-import React, {useEffect, useRef} from 'react';
-import {Layout, Typography, Row, Col, Card, Avatar, Divider, Form, Input, Button, message} from 'antd';
-import { TeamOutlined, TrophyOutlined, HistoryOutlined, BulbOutlined, StarOutlined, GlobalOutlined, HeartOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
-import Aos from 'aos';
-import 'aos/dist/aos.css';
+import React, {useEffect, useRef, useState} from 'react';
+import {Helmet} from 'react-helmet';
+import {useLocation} from 'react-router-dom';
+import {
+    BookOpenCheck,
+    CheckCircle2,
+    CircleDot,
+    Flame,
+    Heart,
+    Lightbulb,
+    Mail,
+    MessageSquare,
+    Send,
+    ShieldCheck,
+    Sparkles,
+    Swords,
+    Target,
+    Trophy,
+    Users,
+} from 'lucide-react';
 import emailjs from 'emailjs-com';
-import {useLocation} from "react-router-dom";
+import {Alert, Button, Card, Input, PageContainer} from '../components/ui';
 import clement from '../assets/teamphoto/clementzhou.jpg';
 import alex from '../assets/teamphoto/alexjin.jpg';
-// import weiwei from '../assets/teamphoto/weiwei.jpg'
-import bryan from '../assets/teamphoto/9dc66da09989aebf1037be575264899c.jpg'
-const { Content } = Layout;
-const { Title, Paragraph } = Typography;
-const { TextArea } = Input;
+import weiwei from '../assets/teamphoto/weiwei.jpg';
+import bryan from '../assets/teamphoto/9dc66da09989aebf1037be575264899c.jpg';
 
-const PageHeader = styled.div`
-    background: linear-gradient(75deg, #214570 0%, #463b80 100%);
-    color: white;
-    padding: 60px 0;
-    text-align: center;
-    position: relative;
-`;
+const PRINCIPLES = [
+    {
+        icon: Target,
+        eyebrow: 'Practice loop',
+        title: 'Make the next rep obvious',
+        text: 'Students should always know what to answer, what changed, and why the next round matters.',
+        accent: 'bg-primary-100 text-primary-700',
+    },
+    {
+        icon: Swords,
+        eyebrow: 'Duel pressure',
+        title: 'Use competition carefully',
+        text: 'The arena is motivating because it is clear, scored, and fair. It should never bury the student in noise.',
+        accent: 'bg-cyan-100 text-cyan-700',
+    },
+    {
+        icon: Trophy,
+        eyebrow: 'Progress signal',
+        title: 'Keep score without clutter',
+        text: 'Practice rating, duel rating, streak, and answered questions are the core signals worth protecting.',
+        accent: 'bg-emerald-100 text-emerald-700',
+    },
+];
 
-const ContentSection = styled.div`
-    padding: 50px 0;
-    background-color: #f9f9f9;
-`;
+const TEAM = [
+    {
+        name: 'Clement Zhou',
+        role: 'Co-founder & CEO',
+        avatar: clement,
+        lane: 'Product',
+    },
+    {
+        name: 'Alex Jin',
+        role: 'Co-founder & CTO',
+        avatar: alex,
+        lane: 'Engineering',
+    },
+    {
+        name: 'Weiwei Luo',
+        role: 'President & Project Manager',
+        avatar: weiwei,
+        lane: 'Operations',
+    },
+    {
+        name: 'Bryan Zhou',
+        role: 'Marketing and Finance Management',
+        avatar: bryan,
+        lane: 'Growth',
+    },
+];
 
-const StyledCard = styled(Card)`
-    height: 100%;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+const VALUES = [
+    {
+        icon: Lightbulb,
+        title: 'Inventive',
+        text: 'Build SAT-native interfaces, not generic study dashboards.',
+        color: 'text-primary-700 bg-primary-100',
+    },
+    {
+        icon: ShieldCheck,
+        title: 'Honest',
+        text: 'Use real numbers, clear limits, and progress signals students can trust.',
+        color: 'text-emerald-700 bg-emerald-100',
+    },
+    {
+        icon: BookOpenCheck,
+        title: 'Useful',
+        text: 'Every screen should help a student answer more thoughtfully.',
+        color: 'text-cyan-700 bg-cyan-100',
+    },
+    {
+        icon: Heart,
+        title: 'Motivating',
+        text: 'A little game energy should create momentum, not distraction.',
+        color: 'text-rose-700 bg-rose-100',
+    },
+];
 
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    }
-`;
+const FAQS = [
+    {
+        question: 'What is the best way to contact you?',
+        answer: 'Send a note through the form or email satduel@gmail.com directly.',
+    },
+    {
+        question: 'How long does it take to get a response?',
+        answer: 'We aim to respond within 24-48 hours.',
+    },
+    {
+        question: 'Can I visit your office?',
+        answer: 'SAT Duel is online-only right now, so there is no physical office for visits.',
+    },
+    {
+        question: 'Do you offer customer support?',
+        answer: 'Yes. Reach out with account, billing, or product questions and we will help.',
+    },
+];
 
-const IconWrapper = styled.div`
-    font-size: 3rem;
-    color: #4834d4;
-    margin-bottom: 20px;
-`;
+function ArenaBubbleRow() {
+    return (
+        <div className="mt-6 grid grid-cols-4 gap-2">
+            {['A', 'B', 'C', 'D'].map((choice, index) => (
+                <div key={choice} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
+                    <span
+                        className={[
+                            'mx-auto flex size-9 items-center justify-center rounded-full text-sm font-black',
+                            index === 1
+                                ? 'sat-answer-bubble-filled text-white'
+                                : 'bg-slate-900 text-slate-400 shadow-[inset_0_0_0_2px_rgba(148,163,184,0.65)]',
+                        ].join(' ')}
+                    >
+                        {choice}
+                    </span>
+                    <p className="m-0 mt-2 text-xs font-black uppercase text-slate-400">
+                        {index === 1 ? 'Focus' : 'Noise'}
+                    </p>
+                </div>
+            ))}
+        </div>
+    );
+}
 
-const TeamMemberCard = styled(Card)`
-    text-align: center;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+function PrincipleCard({principle}) {
+    const Icon = principle.icon;
+    return (
+        <Card hover className="sat-arena-card overflow-hidden">
+            <div className="p-6">
+                <div className={`mb-5 flex size-12 items-center justify-center rounded-2xl ${principle.accent}`}>
+                    <Icon className="size-6"/>
+                </div>
+                <p className="m-0 text-xs font-black uppercase text-slate-400">{principle.eyebrow}</p>
+                <h3 className="m-0 mt-2 font-display text-xl font-black text-slate-950">{principle.title}</h3>
+                <p className="m-0 mt-3 text-[15px] leading-relaxed text-slate-600">{principle.text}</p>
+            </div>
+            <div className="sat-score-strip flex items-center justify-between px-6 py-3">
+                <span className="text-xs font-black uppercase text-slate-500">Design rule</span>
+                <CircleDot className="size-5 text-primary-600"/>
+            </div>
+        </Card>
+    );
+}
 
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    }
-`;
+function TeamCard({member}) {
+    return (
+        <Card className="sat-arena-card overflow-hidden text-center">
+            <div className="sat-score-strip h-3"/>
+            <div className="p-5">
+                <div className="mx-auto size-28 overflow-hidden rounded-[1.5rem] border-4 border-white bg-slate-100 shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
+                    <img
+                        src={member.avatar}
+                        alt={member.name}
+                        className="h-full w-full object-cover"
+                    />
+                </div>
+                <h3 className="m-0 mt-4 font-display text-lg font-black text-slate-950">{member.name}</h3>
+                <p className="m-0 mt-1 text-sm font-semibold text-slate-600">{member.role}</p>
+                <span className="mt-4 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black uppercase text-slate-500">
+                    {member.lane}
+                </span>
+            </div>
+        </Card>
+    );
+}
 
-const ValuesCard = styled(Card)`
-    height: 100%;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    text-align: center;
-    padding: 20px;
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    }
-`;
-
-const ContactForm = styled(Form)`
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 24px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-`;
-
-const valuesIcons = {
-    Innovation: <BulbOutlined style={{ fontSize: '3rem', color: '#ff5733' }} />,
-    Excellence: <StarOutlined style={{ fontSize: '3rem', color: '#ffbd33' }} />,
-    Accessibility: <GlobalOutlined style={{ fontSize: '3rem', color: '#33d9ff' }} />,
-    Engagement: <HeartOutlined style={{ fontSize: '3rem', color: '#ff33a6' }} />,
-};
+function ValueCard({value}) {
+    const Icon = value.icon;
+    return (
+        <Card className="sat-arena-card p-5">
+            <div className={`mb-4 flex size-11 items-center justify-center rounded-2xl ${value.color}`}>
+                <Icon className="size-5"/>
+            </div>
+            <h3 className="m-0 font-display text-lg font-black text-slate-950">{value.title}</h3>
+            <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">{value.text}</p>
+        </Card>
+    );
+}
 
 function AboutPage() {
-    const { hash } = useLocation(); // Get the current hash from the URL
+    const {hash} = useLocation();
+    const form = useRef(null);
+    const [status, setStatus] = useState(null);
+    const [sending, setSending] = useState(false);
 
     useEffect(() => {
-        if (hash) {
-            const element = document.querySelector(hash); // Select the element by hash
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth' }); // Scroll to the element
-            }
+        if (!hash) return;
+        const element = document.querySelector(hash);
+        if (element) {
+            element.scrollIntoView({behavior: 'smooth'});
         }
-    }, [hash]); // Re-run if hash changes
-    useEffect(() => {
-        Aos.init({ duration: 1000, once: true });
-    }, []);
+    }, [hash]);
 
-    const teamMembers = [
-        {
-            name: "Clement Zhou",
-            role: "Co-founder & CEO",
-            avatar: clement,
-        },
-        {
-            name: "Alex Jin",
-            role: "Co-founder & CTO",
-            avatar: alex
-        },
-        // {
-        //     name: "Weiwei Luo",
-        //     role: "President & Project Manager",
-        //     avatar: weiwei
-        // },
-        {
-            name: "Bryan Zhou",
-            role: "Marketing and Finance Management",
-            avatar: bryan,
-        }
-    ];
-    const form = useRef();
-    const onFinish = () => {
-        console.log(form.current);
-        emailjs
-            .sendForm(
-                'service_6c2ymlq', // Replace with your service ID
-                'template_1qosfaq', // Replace with your template ID
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setSending(true);
+        setStatus(null);
+        try {
+            await emailjs.sendForm(
+                'service_6c2ymlq',
+                'template_1qosfaq',
                 form.current,
-                'eqBzs3BVZxwSyxMQE' // Replace with your public key
-            )
-            .then(
-                (result) => {
-                    console.log(result.text);
-                    message.success('Email sent successfully!');
-                },
-                (error) => {
-                    console.log(error.text);
-                    message.error('Failed to send email. Please try again.');
-                }
+                'eqBzs3BVZxwSyxMQE'
             );
+            form.current.reset();
+            setStatus({type: 'success', text: 'Email sent successfully. We will get back to you soon.'});
+        } catch (error) {
+            setStatus({type: 'error', text: 'Failed to send email. You can also email satduel@gmail.com directly.'});
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
-        <Layout>
-            <PageHeader id="header">
-                <Title level={1} style={{ color: 'white', marginBottom: '20px' }}>
-                    About Us
-                </Title>
-                <Paragraph style={{ color: 'white', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}>
-                    We're on a mission to revolutionize SAT preparation through innovative technology and engaging
-                    learning experiences.
-                </Paragraph>
-            </PageHeader>
-            <ContentSection>
-                <Content style={{ padding: '0 50px', maxWidth: '1200px', margin: '0 auto' }}>
-                    <Row gutter={[48, 48]}>
-                        <Col xs={24} md={8} data-aos="fade-up" data-aos-delay="100">
-                            <StyledCard>
-                                <IconWrapper>
-                                    <HistoryOutlined />
-                                </IconWrapper>
-                                <Title level={3}>Our Story</Title>
-                                <Paragraph>
-                                    Founded in June 2024, we set out to create a platform that makes SAT preparation not just
-                                    effective, but also engaging and fun.
-                                </Paragraph>
-                            </StyledCard>
-                        </Col>
-                        <Col xs={24} md={8} data-aos="fade-up" data-aos-delay="200">
-                            <StyledCard>
-                                <IconWrapper>
-                                    <TrophyOutlined />
-                                </IconWrapper>
-                                <Title level={3}>Our Mission</Title>
-                                <Paragraph>
-                                    We're committed to empowering students worldwide to achieve their best possible SAT
-                                    scores through personalized, interactive learning.
-                                </Paragraph>
-                            </StyledCard>
-                        </Col>
-                        <Col xs={24} md={8} data-aos="fade-up" data-aos-delay="300">
-                            <StyledCard>
-                                <IconWrapper>
-                                    <TeamOutlined />
-                                </IconWrapper>
-                                <Title level={3}>Our Team</Title>
-                                <Paragraph>
-                                    Our diverse team of educators, technologists, and innovators is passionate about
-                                    creating the best SAT prep experience possible.
-                                </Paragraph>
-                            </StyledCard>
-                        </Col>
-                    </Row>
+        <div className="bg-white text-slate-900">
+            <Helmet>
+                <title>About - SAT Duel</title>
+                <meta
+                    name="description"
+                    content="Learn about SAT Duel, the team behind the platform, and the mission to make SAT preparation focused and motivating."
+                />
+            </Helmet>
 
-                    <Divider />
-
-                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
-                        Meet Our Team
-                    </Title>
-                    <Row gutter={[24, 24]} justify="center">
-                        {teamMembers.map((member, index) => (
-                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up" data-aos-delay={`${index * 100}`}>
-                                <TeamMemberCard>
-                                    <Avatar size={128} src={member.avatar} />
-                                    <Title level={4} style={{ marginTop: '20px', marginBottom: '5px' }}>{member.name}</Title>
-                                    <Paragraph>{member.role}</Paragraph>
-                                </TeamMemberCard>
-                            </Col>
-                        ))}
-                    </Row>
-
-                    <Divider />
-
-                    <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
-                        Our Values
-                    </Title>
-                    <Row gutter={[24, 24]}>
-                        {['Innovation', 'Excellence', 'Accessibility', 'Engagement'].map((value, index) => (
-                            <Col xs={24} sm={12} md={6} key={index} data-aos="fade-up" data-aos-delay={`${index * 100}`}>
-                                <ValuesCard>
-                                    {valuesIcons[value]}
-                                    <Title level={4} style={{ marginTop: '20px' }}>{value}</Title>
-                                    <Paragraph>
-                                        We believe in {value.toLowerCase()} as a core principle guiding our work and our
-                                        interaction with students.
-                                    </Paragraph>
-                                </ValuesCard>
-                            </Col>
-                        ))}
-                    </Row>
-
-                    <Divider />
-
-                    <div id="contact-us">
-                        <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
-                            Contact Us
-                        </Title>
-
-                        <Row justify="center">
-                            <Col xs={24} md={12}>
-                                <p>Send an email to <b>satduel@gmail.com</b></p>
-                                <ContactForm layout="vertical" onFinish={onFinish} data-aos="fade-up" ref={form}>
-                                    <Form.Item
-                                        label="Name"
-                                        name="name"
-                                        rules={[{required: true, message: 'Please enter your name'}]}
-                                    >
-                                        <Input placeholder="Your Name"/>
-                                    </Form.Item>
-                                    <Form.Item
-                                        label="Email"
-                                        name="email"
-                                        rules={[
-                                            {required: true, message: 'Please enter your email'},
-                                            {type: 'email', message: 'Please enter a valid email'}
-                                        ]}
-                                    >
-                                        <Input placeholder="Your Email"/>
-                                    </Form.Item>
-                                    <Form.Item
-                                        label="Message"
-                                        name="message"
-                                        rules={[{required: true, message: 'Please enter your message'}]}
-                                    >
-                                        <TextArea rows={4} placeholder="Your Message"/>
-                                    </Form.Item>
-                                    <Form.Item>
-                                        <Button type="primary" htmlType="submit" block>
-                                            Send Message
-                                        </Button>
-                                    </Form.Item>
-                                </ContactForm>
-                            </Col>
-                        </Row>
+            <section id="header" className="sat-arena-surface overflow-hidden border-b border-slate-200">
+                <PageContainer className="grid gap-10 py-10 sm:py-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-14">
+                    <div className="text-center lg:text-left">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white/80 px-4 py-2 text-sm font-black text-primary-700 shadow-sm">
+                            <Sparkles className="size-4"/> Built for focused SAT momentum
+                        </span>
+                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                            The SAT should feel less like a pile of worksheets.
+                        </h1>
+                        <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-slate-600 lg:mx-0">
+                            SAT Duel is a practice arena for students who want clear questions, visible progress, and just enough competition to come back tomorrow.
+                        </p>
                     </div>
 
-                    <Divider/>
-
-                    <div id="faq">
-                        <Title level={2} style={{ textAlign: 'center', marginTop: '60px', marginBottom: '40px' }}>
-                            Frequently Asked Questions
-                        </Title>
-                        <Row gutter={[24, 24]}>
-                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="100">
-                                <StyledCard>
-                                    <Title level={4}>What is the best way to contact you?</Title>
-                                    <Paragraph>You can contact us using the form above or via email at satduel@gmail.com</Paragraph>
-                                </StyledCard>
-                            </Col>
-                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="200">
-                                <StyledCard>
-                                    <Title level={4}>How long does it take to get a response?</Title>
-                                    <Paragraph>We aim to respond to all inquiries within 24-48 hours.</Paragraph>
-                                </StyledCard>
-                            </Col>
-                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="300">
-                                <StyledCard>
-                                    <Title level={4}>Can I visit your office?</Title>
-                                    <Paragraph>Currently, we are an online-only company and do not have physical offices for visits.</Paragraph>
-                                </StyledCard>
-                            </Col>
-                            <Col xs={24} md={12} data-aos="fade-up" data-aos-delay="400">
-                                <StyledCard>
-                                    <Title level={4}>Do you offer customer support?</Title>
-                                    <Paragraph>Yes, our customer support team is available to help with any issues or questions you may have.</Paragraph>
-                                </StyledCard>
-                            </Col>
-                        </Row>
+                    <div className="sat-arena-card hidden overflow-hidden rounded-[1.75rem] border border-slate-800 bg-slate-950 text-white lg:block">
+                        <div className="p-6">
+                            <p className="m-0 text-xs font-black uppercase text-cyan-200">Company score slip</p>
+                            <h2 className="m-0 mt-2 font-display text-2xl font-black">Why we are building this</h2>
+                            <p className="m-0 mt-3 text-[15px] leading-relaxed text-slate-300">
+                                Founded in June 2024, SAT Duel started from a simple belief: SAT prep works better when students can see the next round, the feedback, and the score movement immediately.
+                            </p>
+                            <ArenaBubbleRow/>
+                        </div>
+                        <div className="grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 bg-white/5 px-5 py-4 text-center">
+                            <div>
+                                <p className="m-0 text-xs font-black uppercase text-slate-400">Founded</p>
+                                <p className="m-0 mt-1 font-display text-xl font-black">2024</p>
+                            </div>
+                            <div>
+                                <p className="m-0 text-xs font-black uppercase text-slate-400">Team</p>
+                                <p className="m-0 mt-1 font-display text-xl font-black">4</p>
+                            </div>
+                            <div>
+                                <p className="m-0 text-xs font-black uppercase text-slate-400">Mission</p>
+                                <p className="m-0 mt-1 font-display text-xl font-black">Focus</p>
+                            </div>
+                        </div>
                     </div>
-                </Content>
-            </ContentSection>
-        </Layout>
+                </PageContainer>
+            </section>
+
+            <section className="bg-white">
+                <PageContainer className="py-12 sm:py-16">
+                    <div className="mx-auto max-w-2xl text-center">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
+                            <Flame className="size-4 text-amber-300"/> What guides the product
+                        </span>
+                        <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                            Calm study. Clear score. One more round.
+                        </h2>
+                    </div>
+
+                    <div className="mt-10 grid gap-5 md:grid-cols-3">
+                        {PRINCIPLES.map((principle) => (
+                            <PrincipleCard key={principle.title} principle={principle}/>
+                        ))}
+                    </div>
+                </PageContainer>
+            </section>
+
+            <section className="sat-bubble-field border-y border-slate-200">
+                <PageContainer className="py-12 sm:py-16">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="m-0 text-xs font-black uppercase text-primary-600">Team</p>
+                            <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">Meet the builders</h2>
+                        </div>
+                        <p className="m-0 max-w-xl text-sm leading-relaxed text-slate-600">
+                            A small team means every detail matters: question flow, payment trust, mobile layout, and the feeling after a student submits an answer.
+                        </p>
+                    </div>
+
+                    <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {TEAM.map((member) => (
+                            <TeamCard key={member.name} member={member}/>
+                        ))}
+                    </div>
+                </PageContainer>
+            </section>
+
+            <section className="bg-white">
+                <PageContainer className="py-12 sm:py-16">
+                    <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+                        <div>
+                            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700">
+                                <CheckCircle2 className="size-4"/> Values
+                            </span>
+                            <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                                The small design decisions are the product.
+                            </h2>
+                            <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                                We want SAT Duel to feel memorable without becoming loud. The answer bubbles, score slips, and duel lanes are there to make learning feel concrete.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {VALUES.map((value) => (
+                                <ValueCard key={value.title} value={value}/>
+                            ))}
+                        </div>
+                    </div>
+                </PageContainer>
+            </section>
+
+            <section id="contact-us" className="sat-bubble-field border-y border-slate-200">
+                <PageContainer className="grid gap-10 py-12 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+                    <div>
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
+                            <Mail className="size-4 text-cyan-300"/> Contact
+                        </span>
+                        <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                            Send us a note.
+                        </h2>
+                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                            Product feedback, billing questions, school partnerships, or bug reports all go to the same place.
+                        </p>
+                        <p className="m-0 mt-5 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700">
+                            <MessageSquare className="size-4 text-primary-600"/> satduel@gmail.com
+                        </p>
+                    </div>
+
+                    <Card className="sat-arena-card p-5 sm:p-6">
+                        {status && (
+                            <div className="mb-4">
+                                <Alert type={status.type}>{status.text}</Alert>
+                            </div>
+                        )}
+
+                        <form ref={form} onSubmit={handleSubmit} className="space-y-4">
+                            <label className="block">
+                                <span className="mb-1.5 block text-sm font-black text-slate-700">Name</span>
+                                <Input name="name" placeholder="Your name" required/>
+                            </label>
+                            <label className="block">
+                                <span className="mb-1.5 block text-sm font-black text-slate-700">Email</span>
+                                <Input name="email" type="email" placeholder="you@example.com" required/>
+                            </label>
+                            <label className="block">
+                                <span className="mb-1.5 block text-sm font-black text-slate-700">Message</span>
+                                <textarea
+                                    name="message"
+                                    rows={5}
+                                    placeholder="What should we know?"
+                                    required
+                                    className="w-full resize-y rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-primary-500"
+                                />
+                            </label>
+                            <Button type="submit" block loading={sending}>
+                                Send message <Send className="size-4"/>
+                            </Button>
+                        </form>
+                    </Card>
+                </PageContainer>
+            </section>
+
+            <section id="faq" className="bg-white">
+                <PageContainer className="py-12 sm:py-16">
+                    <div className="mb-8 text-center">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-black text-primary-700">
+                            <Users className="size-4"/> FAQ
+                        </span>
+                        <h2 className="m-0 mt-5 font-display text-3xl font-black text-slate-950">Quick answers</h2>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {FAQS.map((faq) => (
+                            <Card key={faq.question} className="sat-arena-card p-5">
+                                <h3 className="m-0 text-lg font-black text-slate-950">{faq.question}</h3>
+                                <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">{faq.answer}</p>
+                            </Card>
+                        ))}
+                    </div>
+                </PageContainer>
+            </section>
+        </div>
     );
 }
 
