@@ -113,22 +113,12 @@ function TournamentListPage() {
                     </div>
                 )}
 
-                <section className="sat-arena-card overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white">
-                    <div className="sat-duel-lanes relative overflow-hidden bg-slate-950 px-5 py-8 text-white sm:px-8 sm:py-10">
-                        <div className="relative max-w-3xl">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-black text-cyan-200">
-                                <Trophy className="size-4"/> Tournament arena
-                            </span>
-                            <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight sm:text-5xl">
-                                Timed rounds, shared pressure, honest rankings.
-                            </h1>
-                            <p className="m-0 mt-4 max-w-2xl text-lg leading-relaxed text-slate-300">
-                                Join a tournament when you want practice to feel like an event, not another loose question session.
-                            </p>
-                        </div>
-                    </div>
+                <section>
+                    <h1 className="mb-6 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
+                        Tournaments
+                    </h1>
 
-                    <div className="grid gap-3 border-t border-slate-200 bg-white p-4 sm:grid-cols-3 sm:p-5">
+                    <div className="grid gap-3 sm:grid-cols-3">
                         {INFO_CARDS.map(({title, description, icon: Icon}) => (
                             <div key={title} className="rounded-2xl bg-slate-50 p-4">
                                 <Icon className="size-5 text-primary-600"/>

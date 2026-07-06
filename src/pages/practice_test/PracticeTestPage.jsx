@@ -133,23 +133,10 @@ function PracticeTestPage() {
 
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)]">
-            <section className="sat-arena-surface border-b border-slate-200">
-                <PageContainer className="py-12 sm:py-16">
-                    <div className="mx-auto max-w-3xl text-center">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
-                            <BookOpenCheck className="size-4 text-cyan-300"/> Practice tests
-                        </span>
-                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
-                            Simulate the SAT when you need a real checkpoint.
-                        </h1>
-                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
-                            Practice tests are for measuring. Daily practice is for improving. Keep this page calm, serious, and easy to start.
-                        </p>
-                    </div>
-                </PageContainer>
-            </section>
-
-            <PageContainer className="py-10 sm:py-14">
+            <PageContainer className="py-8 sm:py-12">
+                <h1 className="mb-6 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
+                    Practice Tests
+                </h1>
                 {showFirstRunBanner && (
                     <div className="mb-6">
                         <Alert type="success">
