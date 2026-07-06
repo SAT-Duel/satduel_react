@@ -1,37 +1,11 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {Award, CheckCircle2, Crown, Flame, LineChart, Lock, RotateCcw, Trophy} from 'lucide-react';
+import {Award, CheckCircle2, Crown, Flame, LineChart, Lock, TrendingDown, TrendingUp} from 'lucide-react';
 import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
 import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
-
-const LEVEL_THRESHOLDS = [1, 5, 10, 20, 50, 100, 200];
-
-function getLevel(xp) {
-    if (xp < 1) return 0;
-    if (xp < 5) return 1;
-    if (xp < 10) return 2;
-    if (xp < 20) return 3;
-    if (xp < 50) return 4;
-    if (xp < 100) return 5;
-    if (xp < 200) return 6;
-    return 7;
-}
-
-function getXPForNextLevel(level) {
-    return LEVEL_THRESHOLDS[level] ?? Infinity;
-}
-
-function calculateProgressPercentage(stats) {
-    const previousThreshold = stats.level <= 0 ? 0 : getXPForNextLevel(stats.level - 1);
-    const nextThreshold = getXPForNextLevel(stats.level);
-    if (!Number.isFinite(nextThreshold)) return 100;
-    const progress = ((stats.xp - previousThreshold) / (nextThreshold - previousThreshold)) * 100;
-    return Math.max(0, Math.min(progress, 100));
-}
 
 function StatTile({icon: Icon, label, value}) {
     return (
@@ -45,50 +19,92 @@ function StatTile({icon: Icon, label, value}) {
     );
 }
 
+function playRatingSound(isPositive) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
+    try {
+        const context = new AudioContext();
+        const gain = context.createGain();
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.26);
+        gain.connect(context.destination);
+
+        const notes = isPositive ? [660, 880] : [330, 260];
+        notes.forEach((frequency, index) => {
+            const oscillator = context.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, context.currentTime + index * 0.09);
+            oscillator.connect(gain);
+            oscillator.start(context.currentTime + index * 0.09);
+            oscillator.stop(context.currentTime + index * 0.09 + 0.16);
+        });
+    } catch {
+        // Audio feedback is progressive enhancement.
+    }
+}
+
+function RatingPulse({feedback}) {
+    if (!feedback) {
+        return (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="m-0 text-sm font-bold text-slate-700">Practice Elo is live</p>
+                <p className="m-0 mt-1 text-sm text-slate-500">
+                    Your first attempt at each question moves your rating.
+                </p>
+            </div>
+        );
+    }
+
+    const positive = feedback.delta >= 0;
+    const Icon = positive ? TrendingUp : TrendingDown;
+    return (
+        <div
+            key={feedback.id}
+            className={`rounded-2xl border p-4 transition-all ${
+                positive
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-rose-200 bg-rose-50 text-rose-700'
+            }`}
+        >
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <p className="m-0 text-sm font-black">{positive ? 'Rating up' : 'Rating adjusted'}</p>
+                    <p className="m-0 mt-1 text-sm font-semibold">
+                        {feedback.previous} → {feedback.next}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2 font-black">
+                    <Icon className="size-5"/>
+                    {feedback.delta > 0 ? `+${feedback.delta}` : feedback.delta}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function InfiniteQuestionsPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
     const [loadingQuestions, setLoadingQuestions] = useState(true);
     const [error, setError] = useState(null);
-    const [quota, setQuota] = useState(null); // {used, limit, remaining, is_premium}
+    const [quota, setQuota] = useState(null);
     const [spElo, setSpElo] = useState(null);
     const [topics, setTopics] = useState([]);
     const [selectedTopic, setSelectedTopic] = useState('any');
     const [limitReached, setLimitReached] = useState(false);
     const [billingLoading, setBillingLoading] = useState(false);
+    const [ratingFeedback, setRatingFeedback] = useState(null);
     const [stats, setStats] = useState({
         questionsAnswered: 0,
         correctAnswers: 0,
         streak: 0,
-        xp: 0,
-        level: 0,
-        coins: 0,
-        multiplier: 1,
     });
-    const [isFinished, setIsFinished] = useState(false);
     const {loading} = useAuth();
-
     const hasFetchedData = useRef(false);
-    const navigate = useNavigate();
-
-    const saveStats = useCallback(async (statsToSave) => {
-        try {
-            await api.post('/api/trainer/set_infinite_question_stats/', {
-                correct_number: statsToSave.correctAnswers,
-                incorrect: statsToSave.questionsAnswered - statsToSave.correctAnswers,
-                current_streak: statsToSave.streak,
-                xp: statsToSave.xp,
-                level: statsToSave.level,
-                coins: statsToSave.coins,
-                multiplier: statsToSave.multiplier,
-            });
-        } catch (saveError) {
-            console.error('Error saving stats:', saveError.response ? saveError.response.data : saveError);
-        }
-    }, []);
 
     const fetchNextQuestion = useCallback(async (topic) => {
-        if (isFinished) return;
         try {
             setLoadingQuestions(true);
             setError(null);
@@ -99,6 +115,7 @@ function InfiniteQuestionsPage() {
             setCurrentQuestion(response.data.question || null);
             setQuota(response.data.quota || null);
             setQuestionStatus('Blank');
+            setRatingFeedback(null);
         } catch (fetchError) {
             const data = fetchError.response?.data;
             if (data?.error === 'daily_limit') {
@@ -116,7 +133,7 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoadingQuestions(false);
         }
-    }, [isFinished, selectedTopic]);
+    }, [selectedTopic]);
 
     const fetchPracticeStatus = useCallback(async () => {
         try {
@@ -132,32 +149,13 @@ function InfiniteQuestionsPage() {
         }
     }, []);
 
-    const fetchStats = useCallback(async () => {
-        try {
-            const response = await api.get('/api/trainer/infinite_question_stats/');
-            const statsData = response.data;
-            setStats({
-                questionsAnswered: statsData.correct_number + statsData.incorrect_number,
-                correctAnswers: statsData.correct_number,
-                streak: statsData.current_streak,
-                xp: statsData.xp,
-                level: statsData.level,
-                coins: statsData.coins,
-                multiplier: statsData.total_multiplier || statsData.multiplier || 1,
-            });
-        } catch (fetchError) {
-            setError(fetchError.response?.data?.error || 'Could not load your practice stats.');
-        }
-    }, []);
-
     useEffect(() => {
         if (!loading && !hasFetchedData.current) {
             fetchNextQuestion();
-            fetchStats();
             fetchPracticeStatus();
             hasFetchedData.current = true;
         }
-    }, [fetchNextQuestion, fetchPracticeStatus, fetchStats, loading]);
+    }, [fetchNextQuestion, fetchPracticeStatus, loading]);
 
     const handleTopicChange = (topic) => {
         setSelectedTopic(topic);
@@ -165,7 +163,7 @@ function InfiniteQuestionsPage() {
     };
 
     const handleQuestionSubmit = async (id, choice) => {
-        if (isFinished || questionStatus !== 'Blank') return;
+        if (questionStatus !== 'Blank') return;
         try {
             const response = await api.post('api/check_answer/', {
                 question_id: id,
@@ -174,24 +172,25 @@ function InfiniteQuestionsPage() {
             });
             if (response.data.quota) setQuota(response.data.quota);
             if (response.data.sp_elo_rating != null) setSpElo(response.data.sp_elo_rating);
+
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
+            setStats((previousStats) => ({
+                questionsAnswered: previousStats.questionsAnswered + 1,
+                correctAnswers: isCorrect ? previousStats.correctAnswers + 1 : previousStats.correctAnswers,
+                streak: isCorrect ? previousStats.streak + 1 : 0,
+            }));
 
-            setStats((previousStats) => {
-                const nextXp = isCorrect ? previousStats.xp + 1 : previousStats.xp;
-                const newStats = {
-                    questionsAnswered: previousStats.questionsAnswered + 1,
-                    correctAnswers: isCorrect ? previousStats.correctAnswers + 1 : previousStats.correctAnswers,
-                    streak: isCorrect ? previousStats.streak + 1 : 0,
-                    xp: nextXp,
-                    level: getLevel(nextXp),
-                    coins: previousStats.coins,
-                    multiplier: previousStats.multiplier,
+            if (response.data.rated) {
+                const feedback = {
+                    id: Date.now(),
+                    previous: response.data.sp_elo_rating_previous,
+                    next: response.data.sp_elo_rating,
+                    delta: response.data.sp_elo_rating_delta,
                 };
-
-                saveStats(newStats);
-                return newStats;
-            });
+                setRatingFeedback(feedback);
+                playRatingSound(feedback.delta >= 0);
+            }
         } catch (submitError) {
             const data = submitError.response?.data;
             if (data?.error === 'daily_limit') {
@@ -201,11 +200,6 @@ function InfiniteQuestionsPage() {
                 setError(data?.error || 'Could not check your answer.');
             }
         }
-    };
-
-    const handleEndSession = () => {
-        setIsFinished(true);
-        saveStats(stats);
     };
 
     const handleGetPremium = async () => {
@@ -218,13 +212,11 @@ function InfiniteQuestionsPage() {
         }
     };
 
-    const nextLevelXP = getXPForNextLevel(stats.level);
-    const xpRemaining = Number.isFinite(nextLevelXP) ? Math.max(nextLevelXP - stats.xp, 0) : 0;
     const accuracy = stats.questionsAnswered > 0
-        ? `${((stats.correctAnswers / stats.questionsAnswered) * 100).toFixed(1)}%`
+        ? `${Math.round((stats.correctAnswers / stats.questionsAnswered) * 100)}%`
         : '—';
 
-    if (loadingQuestions && !currentQuestion && !isFinished) {
+    if (loadingQuestions && !currentQuestion) {
         return (
             <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
                 <PageContainer className="flex justify-center">
@@ -249,7 +241,7 @@ function InfiniteQuestionsPage() {
         );
     }
 
-    if (limitReached && !isFinished) {
+    if (limitReached) {
         return (
             <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
                 <PageContainer className="max-w-2xl">
@@ -261,16 +253,15 @@ function InfiniteQuestionsPage() {
                             That's your free practice for today
                         </h1>
                         <p className="mx-auto mt-3 max-w-md text-slate-600">
-                            You answered {quota?.used ?? quota?.limit ?? ''} questions today — nice work.
-                            Come back tomorrow for {quota?.limit ?? 25} more, or go premium for
-                            unlimited practice and topic selection.
+                            You answered {quota?.used ?? quota?.limit ?? ''} questions today. Come back tomorrow
+                            for {quota?.limit ?? 25} more, or go premium for unlimited practice and topic selection.
                         </p>
                         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                             <Button size="lg" onClick={handleGetPremium} loading={billingLoading}>
                                 <Crown className="size-5"/> Get premium
                             </Button>
                             <Button to="/trainer" variant="secondary" size="lg">
-                                Back to trainer
+                                Back to home
                             </Button>
                         </div>
                         <p className="mt-4 text-sm text-slate-400">
@@ -282,60 +273,19 @@ function InfiniteQuestionsPage() {
         );
     }
 
-    if (isFinished) {
-        return (
-            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
-                <PageContainer className="max-w-3xl">
-                    <Card className="p-6 text-center sm:p-8">
-                        <Trophy className="mx-auto size-12 text-primary-600"/>
-                        <h1 className="mt-4 font-display text-3xl font-bold text-slate-900">Practice session complete</h1>
-                        <p className="mx-auto mt-2 max-w-md text-slate-600">
-                            Your stats were saved. Come back tomorrow to keep the streak moving.
-                        </p>
-                        <div className="mt-8 grid gap-3 sm:grid-cols-4">
-                            <StatTile icon={CheckCircle2} label="Answered" value={stats.questionsAnswered}/>
-                            <StatTile icon={Award} label="Correct" value={stats.correctAnswers}/>
-                            <StatTile icon={Flame} label="Streak" value={stats.streak}/>
-                            <StatTile icon={LineChart} label="Accuracy" value={accuracy}/>
-                        </div>
-                        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                            <Button onClick={() => navigate('/trainer')}>
-                                Return to trainer
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    setIsFinished(false);
-                                    fetchNextQuestion();
-                                }}
-                            >
-                                <RotateCcw className="size-4"/> Keep practicing
-                            </Button>
-                        </div>
-                    </Card>
-                </PageContainer>
-            </div>
-        );
-    }
-
     return (
         <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
             <PageContainer>
-                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
-                            <LineChart className="size-4"/> Adaptive practice
-                        </span>
-                        <h1 className="m-0 mt-4 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
-                            Daily SAT question practice
-                        </h1>
-                        <p className="mt-2 max-w-2xl text-slate-600">
-                            Answer one question at a time. Your streak, XP, and practice rating update as you go.
-                        </p>
-                    </div>
-                    <Button onClick={handleEndSession} variant="secondary">
-                        End session
-                    </Button>
+                <div className="mb-8">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1 text-sm font-semibold text-primary-700">
+                        <LineChart className="size-4"/> Adaptive practice
+                    </span>
+                    <h1 className="m-0 mt-4 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                        Daily SAT question practice
+                    </h1>
+                    <p className="mt-2 max-w-2xl text-slate-600">
+                        Answer one question at a time. Your practice Elo updates live after each first attempt.
+                    </p>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -350,26 +300,8 @@ function InfiniteQuestionsPage() {
                         )}
 
                         <Card className="mt-5 p-5">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <p className="m-0 font-semibold text-slate-700">
-                                            {Number.isFinite(nextLevelXP)
-                                                ? `${xpRemaining} XP until level ${stats.level + 1}`
-                                                : 'Max level reached'}
-                                        </p>
-                                        <p className="m-0 text-sm font-bold text-primary-600">
-                                            Level {stats.level}
-                                        </p>
-                                    </div>
-                                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
-                                        <div
-                                            className="h-full rounded-full bg-primary-600 transition-all"
-                                            style={{width: `${calculateProgressPercentage(stats)}%`}}
-                                        />
-                                    </div>
-                                </div>
-
+                            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                <RatingPulse feedback={ratingFeedback}/>
                                 {questionStatus !== 'Blank' && (
                                     <Button onClick={() => fetchNextQuestion()} disabled={loadingQuestions}>
                                         Next question
@@ -416,7 +348,7 @@ function InfiniteQuestionsPage() {
                                 <h2 className="m-0 text-xl font-bold text-slate-900">Today</h2>
                                 {spElo != null && (
                                     <span className="rounded-full bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
-                                        {spElo} rating
+                                        {spElo} Elo
                                     </span>
                                 )}
                             </div>
@@ -424,7 +356,7 @@ function InfiniteQuestionsPage() {
                                 <div className="mt-4">
                                     {quota.limit == null ? (
                                         <p className="m-0 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
-                                            <Crown className="size-4"/> Unlimited practice — {quota.used} answered today
+                                            <Crown className="size-4"/> Unlimited practice · {quota.used} answered today
                                         </p>
                                     ) : (
                                         <>
@@ -447,7 +379,7 @@ function InfiniteQuestionsPage() {
                         </Card>
 
                         <Card className="p-5">
-                            <h2 className="m-0 text-xl font-bold text-slate-900">Session stats</h2>
+                            <h2 className="m-0 text-xl font-bold text-slate-900">This session</h2>
                             <div className="mt-5 grid grid-cols-2 gap-3">
                                 <StatTile icon={CheckCircle2} label="Answered" value={stats.questionsAnswered}/>
                                 <StatTile icon={Award} label="Correct" value={stats.correctAnswers}/>
@@ -455,7 +387,6 @@ function InfiniteQuestionsPage() {
                                 <StatTile icon={LineChart} label="Accuracy" value={accuracy}/>
                             </div>
                         </Card>
-
                     </aside>
                 </div>
             </PageContainer>

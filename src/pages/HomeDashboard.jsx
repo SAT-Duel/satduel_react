@@ -6,8 +6,6 @@ import {
     Swords,
     Trophy,
     Target,
-    Coins,
-    Star,
     ArrowRight,
     Crown,
     ChevronDown,
@@ -35,7 +33,7 @@ function greeting() {
 }
 
 // ---------------------------------------------------------------------------
-// The rating / reward systems, described so users know what each is and how to
+// The core progress systems, described so users know what each is and how to
 // earn it. This is the source of truth for the "Your progress" cards and the
 // "How it works" explainer.
 // ---------------------------------------------------------------------------
@@ -59,16 +57,6 @@ const STAT_DEFS = [
         detail: 'Your competitive rank (everyone starts at 1500). Beating a higher-rated opponent earns more; losing to a lower-rated one costs more. This is separate from your Practice Rating.',
     },
     {
-        key: 'level',
-        label: 'Level',
-        icon: Star,
-        color: 'text-amber-700 bg-amber-100',
-        get: (d) => d.stats?.level ?? 0,
-        sub: (d) => `${d.stats?.xp ?? 0} XP`,
-        earn: 'Earn 1 XP for every correct practice answer.',
-        detail: 'Your overall experience. Each correct practice answer gives XP, and XP fills your level bar. Levels unlock rewards along the way.',
-    },
-    {
         key: 'streak',
         label: 'Day Streak',
         icon: Flame,
@@ -78,22 +66,13 @@ const STAT_DEFS = [
         detail: 'Consecutive days you have practiced. Finish your Daily Focused Practice each day to keep the flame alive — streaks are the single best predictor of score improvement.',
     },
     {
-        key: 'coins',
-        label: 'Coins',
-        icon: Coins,
-        color: 'text-yellow-700 bg-yellow-100',
-        get: (d) => d.stats?.coins ?? 0,
-        earn: 'Earn coins for correct answers; spend them in the Shop.',
-        detail: 'Correct answers earn coins. Pets boost how many you get per answer. Spend them in the Shop on pets and cosmetics.',
-    },
-    {
         key: 'solved',
-        label: 'Problems Solved',
+        label: 'Questions Answered',
         icon: CheckCircle2,
         color: 'text-emerald-700 bg-emerald-100',
-        get: (d) => d.profile?.problems_solved ?? 0,
-        earn: 'Every question you answer anywhere on SAT Duel counts.',
-        detail: 'A lifetime tally of every question you have answered — practice, duels, and tournaments all add to it.',
+        get: (d) => (d.stats?.correct_number ?? 0) + (d.stats?.incorrect_number ?? 0),
+        earn: 'Every practice answer you submit counts here.',
+        detail: 'A direct count from your practice history. This replaces the old inflated solved counter and keeps the homepage honest.',
     },
 ];
 
@@ -124,14 +103,14 @@ function HowItWorks() {
             >
                 <span className="flex items-center gap-2.5 font-bold text-slate-900">
                     <Sparkles className="size-5 text-primary-600"/>
-                    How ratings &amp; rewards work
+                    How progress works
                 </span>
                 <ChevronDown className={`size-5 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}/>
             </button>
             {open && (
                 <div className="border-t border-slate-100 px-5 py-4">
                     <p className="m-0 mb-4 text-sm text-slate-500">
-                        SAT Duel tracks a few different things. Here's what each one means and the fastest way to grow it.
+                        SAT Duel now keeps the main loop focused: ratings, streak, and real answered questions.
                     </p>
                     <div className="space-y-4">
                         {STAT_DEFS.map((def) => {
@@ -312,9 +291,9 @@ function HomeDashboard() {
                 <section className="mt-10">
                     <h2 className="m-0 font-display text-xl font-bold text-slate-900">Your progress</h2>
                     <p className="m-0 mt-1 text-sm text-slate-500">
-                        What each number means — and the fastest way to grow it.
+                        The four numbers that matter: practice skill, duel skill, streak, and honest reps.
                     </p>
-                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
                         {STAT_DEFS.map((def) => (
                             <StatCard key={def.key} def={def} data={data}/>
                         ))}

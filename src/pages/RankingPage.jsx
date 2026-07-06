@@ -43,9 +43,9 @@ function metricValue(entry, metric) {
 }
 
 function secondaryLine(entry) {
-    const solved = entry?.problems_solved ?? 0;
+    const answered = entry?.questions_answered ?? 0;
     const grade = entry?.grade ? `Grade ${entry.grade}` : 'Student';
-    return `${grade} · ${solved} solved`;
+    return `${grade} · ${answered} answered`;
 }
 
 function RankBadge({rank}) {
