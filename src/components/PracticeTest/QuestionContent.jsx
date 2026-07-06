@@ -1,20 +1,14 @@
-import React from "react";
-import {Typography} from "antd";
-import RenderWithMath from "../RenderWithMath";
-
-const {Paragraph} = Typography;
+import React from 'react';
+import RenderWithMath from '../RenderWithMath';
 
 function QuestionContent({question}) {
-    const splitText = (text) => {
-        const parts = text.split('\n'); // Split text by \n
-        const mainParts = parts.slice(0, -1).join('\n'); // All but the last part
-        return mainParts;
-    };
+    const splitText = (text) => text.split('\n').slice(0, -1).join('\n');
+
     return (
-        <div style={{padding: '24px'}}>
-            <Paragraph style={{fontSize: '16px', lineHeight: '1.8'}}>
+        <div className="p-5 sm:p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 leading-relaxed text-slate-800 sm:p-6">
                 <RenderWithMath text={splitText(question.question)}/>
-            </Paragraph>
+            </div>
         </div>
     );
 }

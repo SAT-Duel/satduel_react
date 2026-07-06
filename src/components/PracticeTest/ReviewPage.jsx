@@ -1,49 +1,25 @@
 import React from 'react';
-import { Typography } from 'antd';
 import QuestionNavigation from './QuestionNavigation';
 
-const { Title, Text } = Typography;
-const textStyles = {
-    fontSize: '16px',
-    lineHeight: '1.8',
-};
-
-function ReviewPage({ currentQuestion, totalQuestions, setCurrentQuestion, reviewQuestions, answeredQuestions }) {
+function ReviewPage({currentQuestion, totalQuestions, setCurrentQuestion, reviewQuestions, answeredQuestions}) {
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '60vh',
-                padding: '20px',
-            }}
-        >
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <Title level={2}>Check Your Work</Title>
-                <Text style={textStyles}>On test day, you won’t be able to move on to the next module until time expires.</Text>
-                <br />
-                <Text style={textStyles}>For these practice tests, you can click <strong>Submit</strong> when you’re ready to move on.</Text>
-            </div>
-
-            <div
-                style={{
-                    width: '100%',
-                    maxWidth: '600px',
-                    background: '#fff',
-                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                    borderRadius: '8px',
-                    padding: '20px',
-                }}
-            >
-                <QuestionNavigation
-                    currentQuestion={currentQuestion}
-                    totalQuestions={totalQuestions}
-                    setCurrentQuestion={setCurrentQuestion}
-                    reviewQuestions={reviewQuestions}
-                    answeredQuestions={answeredQuestions}
-                />
+        <div className="flex min-h-[60vh] items-center justify-center p-5">
+            <div className="w-full max-w-2xl">
+                <div className="mb-6 text-center">
+                    <h1 className="m-0 font-display text-3xl font-black text-slate-950">Check your work</h1>
+                    <p className="m-0 mt-2 text-slate-500">
+                        Review unanswered or marked questions before submitting this practice test.
+                    </p>
+                </div>
+                <div className="sat-arena-card rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                    <QuestionNavigation
+                        currentQuestion={currentQuestion}
+                        totalQuestions={totalQuestions}
+                        setCurrentQuestion={setCurrentQuestion}
+                        reviewQuestions={reviewQuestions}
+                        answeredQuestions={answeredQuestions}
+                    />
+                </div>
             </div>
         </div>
     );

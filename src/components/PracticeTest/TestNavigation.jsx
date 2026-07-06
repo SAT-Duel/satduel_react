@@ -1,118 +1,69 @@
-import {Button, Layout, Modal, Space, Typography} from "antd";
-import {CheckOutlined, DownOutlined, LeftOutlined, RightOutlined} from "@ant-design/icons";
-import React, {useState} from "react";
-import {useAuth} from "../../context/AuthContext";
-import QuestionNavigation from "./QuestionNavigation";
-
-const {Footer} = Layout;
-const {Text} = Typography;
+import React, {useState} from 'react';
+import {Check, ChevronDown, ChevronLeft, ChevronRight} from 'lucide-react';
+import {useAuth} from '../../context/AuthContext';
+import QuestionNavigation from './QuestionNavigation';
+import {Button} from '../ui';
 
 function TestNavigation({
-                            currentQuestion,
-                            totalQuestions,
-                            setCurrentQuestion,
-                            reviewQuestions,
-                            answeredQuestions,
-                            handelSubmit
-                        }) {
+    currentQuestion,
+    totalQuestions,
+    setCurrentQuestion,
+    reviewQuestions,
+    answeredQuestions,
+    handelSubmit,
+}) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {user} = useAuth();
 
-    const footerStyles = {
-        position: 'fixed',
-        bottom: 0,
-        width: '100%',
-        padding: '16px 24px',
-        background: '#e4ebf7',
-        borderTop: '1px solid #f0f0f0',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 1000,
-        height: '80px'
-    };
-
-    const dropdownStyles = {
-        position: 'absolute',
-        left: '50%',
-        transform: 'translateX(-50%)',
-    };
-
-    const questionButtonStyles = {
-        backgroundColor: '#1d2b53',  // Dark blue color
-        color: 'white',
-        border: 'none',
-        '&:hover': {
-            backgroundColor: '#2a3c70'  // Slightly lighter blue for hover
-        }
-    };
-
     return (
         <>
-            <Modal
-                open={isModalVisible}
-                footer={null}
-                closable={false}
-                width={600}
-                style={{top: 20}}
-                maskClosable={true}
-                onCancel={() => setIsModalVisible(false)}
-            >
-                <QuestionNavigation setIsOpen={setIsModalVisible} currentQuestion={currentQuestion}
-                                    totalQuestions={totalQuestions} setCurrentQuestion={setCurrentQuestion}
-                                    reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions}/>
-            </Modal>
-            <Footer style={footerStyles}>
-                <Text strong style={{fontSize: '16px'}}>
-                    {user?user.username:'Anonymous User'}
-                </Text>
-
-                {/* Center section - Question dropdown */}
-                {currentQuestion <= totalQuestions &&
-                    <div style={dropdownStyles}>
-                        <Button
-                            style={questionButtonStyles}
-                            onClick={() => setIsModalVisible(true)}
-                        >
-                            Question {currentQuestion} of {totalQuestions} <DownOutlined/>
-                        </Button>
+            {isModalVisible && (
+                <div className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/50 px-4 py-4 sm:items-center">
+                    <div className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+                        <QuestionNavigation
+                            setIsOpen={setIsModalVisible}
+                            currentQuestion={currentQuestion}
+                            totalQuestions={totalQuestions}
+                            setCurrentQuestion={setCurrentQuestion}
+                            reviewQuestions={reviewQuestions}
+                            answeredQuestions={answeredQuestions}
+                        />
                     </div>
-                }
+                </div>
+            )}
 
-                {/* Right section - Navigation buttons */}
-                <Space size="middle">
-                    {currentQuestion > 1 && (
-                        <Button
-                            size="large"
-                            icon={<LeftOutlined/>}
-                            style={{padding: '0 24px'}}
-                            onClick={() => setCurrentQuestion(currentQuestion - 1)}
-                        >
-                            Previous
+            <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+                <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+                    <p className="m-0 truncate text-sm font-black text-slate-700">
+                        {user ? user.username : 'Anonymous User'}
+                    </p>
+
+                    {currentQuestion <= totalQuestions ? (
+                        <Button variant="secondary" size="sm" onClick={() => setIsModalVisible(true)}>
+                            Question {currentQuestion} of {totalQuestions} <ChevronDown className="size-4"/>
                         </Button>
+                    ) : (
+                        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-black text-slate-500">Review</span>
                     )}
-                    {currentQuestion <= totalQuestions && (
-                        <Button
-                            type="primary"
-                            size="large"
-                            style={{padding: '0 24px'}}
-                            onClick={() => setCurrentQuestion(currentQuestion + 1)}
-                        >
-                            Next <RightOutlined/>
-                        </Button>
-                    )}
-                    {currentQuestion > totalQuestions && (
-                        <Button
-                            type="primary"
-                            size="large"
-                            style={{padding: '0 24px', background: '#52c41a'}}
-                            onClick={() => handelSubmit()}
-                        >
-                            Submit <CheckOutlined/>
-                        </Button>
-                    )}
-                </Space>
-            </Footer>
+
+                    <div className="flex justify-end gap-2">
+                        {currentQuestion > 1 && (
+                            <Button size="sm" variant="secondary" onClick={() => setCurrentQuestion(currentQuestion - 1)}>
+                                <ChevronLeft className="size-4"/> Previous
+                            </Button>
+                        )}
+                        {currentQuestion <= totalQuestions ? (
+                            <Button size="sm" onClick={() => setCurrentQuestion(currentQuestion + 1)}>
+                                Next <ChevronRight className="size-4"/>
+                            </Button>
+                        ) : (
+                            <Button size="sm" onClick={() => handelSubmit()}>
+                                Submit <Check className="size-4"/>
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </footer>
         </>
     );
 }

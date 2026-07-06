@@ -1,82 +1,120 @@
-import React from 'react';
-import {Typography, Card, Button, Row, Col, Layout, Space, Steps, Tour, Divider, Alert} from 'antd';
-import {ClockCircleOutlined, BookOutlined, TrophyOutlined, RightOutlined, InfoCircleOutlined} from '@ant-design/icons';
-import {useNavigate, useLocation} from "react-router-dom";
-import {useState, useEffect, useRef} from 'react';
-import {useAuth} from "../../context/AuthContext";
-import api from "../../components/api";
+import React, {useEffect, useState} from 'react';
+import {ArrowRight, BookOpenCheck, Clock3, Info, Sparkles, Trophy} from 'lucide-react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {useAuth} from '../../context/AuthContext';
+import api from '../../components/api';
+import {Alert, Button, Card, PageContainer} from '../../components/ui';
 
-const {Title, Paragraph, Text} = Typography;
-const {Header, Content} = Layout;
+const TESTS = [
+    {
+        id: 1,
+        title: 'SAT Diagnostic Test',
+        description: 'Start here to get a quick baseline score and a cleaner next-step signal.',
+        time: '25 minutes',
+        questions: 10,
+        difficulty: 'Adaptive',
+        recommended: true,
+        link: '/full_length_test/',
+        tag: 'Recommended',
+        comingSoon: false,
+        time_seconds: 25 * 60,
+    },
+    {
+        id: 2,
+        title: 'Practice Test #1',
+        description: 'March 2024 SAT Official Practice Test.',
+        time: '3 hours',
+        questions: 98,
+        difficulty: 'Official SAT Level',
+        link: '/full_length_test/1',
+        tag: 'Soon',
+        comingSoon: true,
+        time_seconds: 3 * 60 * 60,
+    },
+];
 
-//TODO: After the user clicks the "Finish" button, is_first_login should be set to false
-const PracticeTestPage = () => {
+const FEATURES = [
+    {
+        title: 'Realistic rhythm',
+        description: 'A focused test shell with timer, review marking, and section navigation.',
+        icon: Clock3,
+    },
+    {
+        title: 'Official-style questions',
+        description: 'Practice on SAT question formats without the extra game-mode clutter.',
+        icon: BookOpenCheck,
+    },
+    {
+        title: 'Result review',
+        description: 'Score first, then inspect missed questions and explanations.',
+        icon: Trophy,
+    },
+];
+
+function TestCard({test, onStart}) {
+    return (
+        <Card className={`sat-arena-card relative flex h-full flex-col overflow-hidden ${test.recommended ? 'border-primary-300' : ''}`}>
+            <div className={test.recommended ? 'sat-score-strip h-1 border-0' : 'h-1 bg-slate-100'}/>
+            {test.tag && (
+                <span className={`absolute right-4 top-4 rounded-full px-2.5 py-1 text-xs font-black uppercase ${
+                    test.recommended ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>
+                    {test.tag}
+                </span>
+            )}
+            <div className="flex flex-1 flex-col p-5">
+                <h3 className="m-0 pr-20 font-display text-2xl font-black text-slate-950">{test.title}</h3>
+                <p className="m-0 mt-3 text-sm leading-relaxed text-slate-500">{test.description}</p>
+
+                <div className="mt-5 grid gap-2">
+                    {[
+                        ['Duration', test.time],
+                        ['Questions', test.questions],
+                        ['Difficulty', test.difficulty],
+                    ].map(([label, value]) => (
+                        <div key={label} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                            <span className="font-black text-slate-500">{label}</span>
+                            <span className="font-bold text-slate-900">{value}</span>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="mt-auto pt-6">
+                    <Button
+                        block
+                        variant={test.recommended ? 'primary' : 'secondary'}
+                        disabled={test.comingSoon}
+                        onClick={() => onStart(test)}
+                    >
+                        {test.comingSoon ? 'Coming soon' : 'Start test'} {!test.comingSoon && <ArrowRight className="size-4"/>}
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    );
+}
+
+function PracticeTestPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [isTourOpen, setIsTourOpen] = useState(false);
-    const diagnosticCardRef = useRef(null);
     const {user, setFirstLogin} = useAuth();
+    const [showFirstRunBanner, setShowFirstRunBanner] = useState(false);
 
     useEffect(() => {
-        // Show tour if user is new, coming from goal setting, or if it's their first login
-        const shouldShowTour =
+        setShowFirstRunBanner(
             !user ||
             location.state?.fromGoalSetting ||
             location.state?.isNewUser ||
-            user?.is_first_login;
-
-        setIsTourOpen(shouldShowTour);
+            user?.is_first_login
+        );
     }, [location, user]);
 
-    const tourSteps = [
-        {
-            title: 'Start Your Journey!',
-            description: 'Take our free diagnostic test to get an initial assessment of your skills. No login required!',
-            target: () => diagnosticCardRef.current,
-            placement: 'right',
-        }
-    ];
-
-    const tests = [
-        {
-            id: 1,
-            title: "SAT Diagnostic Test",
-            description: "Start here! Get a baseline score and personalized study plan",
-            time: "25 minutes",
-            questions: 10,
-            difficulty: "Adaptive",
-            recommended: true,
-            link: '/full_length_test/',
-            tag: 'RECOMMENDED',
-            comingSoon: false,
-            time_seconds: 25 * 60
-        },
-        {
-            id: 2,
-            title: "Practice Test #1",
-            description: "March 2024 SAT Official Practice Test",
-            time: "3 hours",
-            questions: 98,
-            difficulty: "Official SAT Level",
-            link: '/full_length_test/1',
-            tag: 'NEW',
-            comingSoon: true,
-            time_seconds: 3 * 60 * 60
-        },
-        // Add more tests as needed
-    ];
-
-    const handleTourClose = async () => {
-        setIsTourOpen(false);
-
-        // Only update if user is logged in and it's their first login
+    const closeFirstRunBanner = async () => {
+        setShowFirstRunBanner(false);
         if (user?.is_first_login) {
             try {
-                // Update backend
                 await api.post('api/profile/update_first_login/');
-
                 localStorage.setItem('is_first_login', 'false');
-                // Update user context if needed
                 setFirstLogin();
             } catch (error) {
                 console.error('Failed to update first login status:', error);
@@ -84,265 +122,102 @@ const PracticeTestPage = () => {
         }
     };
 
-    return (
-        <Layout className="practice-test-layout">
-            {/* Updated Hero Section */}
-            <Header style={{
-                background: 'linear-gradient(135deg, #2b4c8c 0%, #1a365d 100%)',
-                padding: '60px 20px',
-                textAlign: 'center',
-                height: 'auto',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                <div style={{
-                    position: 'relative',
-                    zIndex: 2,
-                    maxWidth: '800px',
-                    margin: '0 auto'
-                }}>
-                    <Title level={1} style={{
-                        color: '#ffffff',
-                        marginBottom: 16,
-                        fontSize: '2.5rem',
-                        fontWeight: 600
-                    }}>
-                        SAT Practice Tests
-                    </Title>
-                    <Paragraph style={{
-                        fontSize: 18,
-                        color: '#ffffff',
-                        opacity: 0.9,
-                        margin: '0 auto',
-                        maxWidth: '600px'
-                    }}>
-                        Prepare with confidence using College Board approved practice materials
-                    </Paragraph>
-                </div>
-                {/* Subtle overlay pattern */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'radial-gradient(circle at 20% 150%, rgba(255, 255, 255, 0.08) 0%, transparent 50%)',
-                    zIndex: 1
-                }}/>
-            </Header>
+    const startTest = (test) => {
+        navigate(test.link, {
+            state: {
+                testId: test.id,
+                initialSeconds: test.time_seconds,
+            },
+        });
+    };
 
-            <Content style={{
-                padding: '40px 20px',
-                maxWidth: '1200px',
-                margin: '0 auto',
-                background: '#ffffff'
-            }}>
-                {/* New User Alert */}
-                {user?.is_first_login && (
-                    <Alert
-                        message="Welcome to SAT Practice!"
-                        description="We recommend starting with the Diagnostic Test to get your baseline score."
-                        type="info"
-                        showIcon
-                        style={{marginBottom: 32}}
-                        action={
-                            <Button type="primary" size="small">
-                                Take Diagnostic
-                            </Button>
-                        }
-                    />
+    return (
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)]">
+            <section className="sat-arena-surface border-b border-slate-200">
+                <PageContainer className="py-12 sm:py-16">
+                    <div className="mx-auto max-w-3xl text-center">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
+                            <BookOpenCheck className="size-4 text-cyan-300"/> Practice tests
+                        </span>
+                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
+                            Simulate the SAT when you need a real checkpoint.
+                        </h1>
+                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                            Practice tests are for measuring. Daily practice is for improving. Keep this page calm, serious, and easy to start.
+                        </p>
+                    </div>
+                </PageContainer>
+            </section>
+
+            <PageContainer className="py-10 sm:py-14">
+                {showFirstRunBanner && (
+                    <div className="mb-6">
+                        <Alert type="success">
+                            Welcome to SAT practice. Start with the diagnostic if you want the fastest baseline.
+                            <button
+                                type="button"
+                                onClick={closeFirstRunBanner}
+                                className="ml-3 cursor-pointer border-0 bg-transparent font-black text-emerald-800 underline"
+                            >
+                                Got it
+                            </button>
+                        </Alert>
+                    </div>
                 )}
 
-                {/* Features Section - More subtle and professional */}
-                <Row gutter={[24, 24]} style={{marginBottom: 48}}>
-                    <Col xs={24} md={8}>
-                        <Card hoverable bordered={false} style={{
-                            textAlign: 'center',
-                            background: '#ffffff',
-                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
-                        }}>
-                            <Space direction="vertical" align="center" style={{width: '100%'}}>
-                                <ClockCircleOutlined style={{fontSize: 48, color: '#1890ff'}}/>
-                                <Title level={4}>Realistic Testing Experience</Title>
-                                <Text type="secondary">
-                                    Take full-length tests with the same layout and timing experience as Bluebook.
-                                </Text>
-                            </Space>
+                <div className="grid gap-4 md:grid-cols-3">
+                    {FEATURES.map(({title, description, icon: Icon}) => (
+                        <Card key={title} className="sat-arena-card p-5">
+                            <Icon className="size-6 text-primary-600"/>
+                            <h2 className="m-0 mt-4 text-lg font-black text-slate-950">{title}</h2>
+                            <p className="m-0 mt-2 text-sm leading-relaxed text-slate-500">{description}</p>
                         </Card>
-                    </Col>
-
-                    <Col xs={24} md={8}>
-                        <Card hoverable bordered={false} style={{
-                            textAlign: 'center',
-                            background: '#ffffff',
-                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
-                        }}>
-                            <Space direction="vertical" align="center" style={{width: '100%'}}>
-                                <BookOutlined style={{fontSize: 48, color: '#1890ff'}}/>
-                                <Title level={4}>Official Questions</Title>
-                                <Text type="secondary">
-                                    Practice with official SAT questions from Educator Question Bank. © 2024 College
-                                    Board
-                                </Text>
-                            </Space>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} md={8}>
-                        <Card hoverable bordered={false} style={{
-                            textAlign: 'center',
-                            background: '#ffffff',
-                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
-                        }}>
-                            <Space direction="vertical" align="center" style={{width: '100%'}}>
-                                <TrophyOutlined style={{fontSize: 48, color: '#1890ff'}}/>
-                                <Title level={4}>Detailed Analytics</Title>
-                                <Text type="secondary">
-                                    Get comprehensive score reports and performance analysis
-                                </Text>
-                            </Space>
-                        </Card>
-                    </Col>
-                </Row>
-
-                {/* Test Selection Section - Enhanced visual hierarchy */}
-                <div style={{marginBottom: 64}}>
-                    <div style={{textAlign: 'center', marginBottom: 40}}>
-                        <Title level={2} style={{fontWeight: 600, fontSize: '2rem'}}>
-                            Available Practice Tests
-                        </Title>
-                        <Text type="secondary" style={{fontSize: 16}}>
-                            Select the test that matches your preparation level
-                        </Text>
-                    </div>
-
-                    <Row gutter={[24, 24]}>
-                        {tests.map((test) => (
-                            <Col xs={24} md={12} lg={8} key={test.id}>
-                                <Card
-                                    ref={test.id === 1 ? diagnosticCardRef : null}
-                                    hoverable
-                                    className={`test-card ${test.recommended ? 'recommended-test' : ''}`}
-                                    style={{
-                                        height: '100%',
-                                        borderRadius: '8px',
-                                        border: test.recommended ? '2px solid #1890ff' : '1px solid #f0f0f0'
-                                    }}
-                                >
-                                    {test.tag && (
-                                        <div className="test-tag" style={{
-                                            position: 'absolute',
-                                            top: 12,
-                                            right: 12,
-                                            background: test.tag === 'NEW' ? '#52c41a' : '#1890ff',
-                                            color: 'white',
-                                            padding: '2px 8px',
-                                            borderRadius: '4px',
-                                            fontSize: '12px'
-                                        }}>
-                                            {test.tag}
-                                        </div>
-                                    )}
-
-                                    <Title level={4} style={{marginBottom: 16}}>{test.title}</Title>
-                                    <Paragraph type="secondary" style={{
-                                        marginBottom: 24,
-                                        minHeight: '44px'
-                                    }}>
-                                        {test.description}
-                                    </Paragraph>
-
-                                    <Space direction="vertical" style={{width: '100%'}}>
-                                        <Row justify="space-between" align="middle">
-                                            <Col span={12}><Text strong>Duration</Text></Col>
-                                            <Col span={12} style={{textAlign: 'right'}}>
-                                                <Text>{test.time}</Text>
-                                            </Col>
-                                        </Row>
-                                        <Divider style={{margin: '12px 0'}}/>
-                                        <Row justify="space-between" align="middle">
-                                            <Col span={12}><Text strong>Questions</Text></Col>
-                                            <Col span={12} style={{textAlign: 'right'}}>
-                                                <Text>{test.questions}</Text>
-                                            </Col>
-                                        </Row>
-                                        <Divider style={{margin: '12px 0'}}/>
-                                        <Row justify="space-between" align="middle">
-                                            <Col span={12}><Text strong>Difficulty</Text></Col>
-                                            <Col span={12} style={{textAlign: 'right'}}>
-                                                <Text>{test.difficulty}</Text>
-                                            </Col>
-                                        </Row>
-
-                                        <Button
-                                            type={test.recommended ? "primary" : "default"}
-                                            block
-                                            icon={test.comingSoon ? null : <RightOutlined/>}
-                                            style={{
-                                                marginTop: 24,
-                                                height: '40px',
-                                            }}
-                                            onClick={() => {
-                                                navigate(test.link, {
-                                                    state: {
-                                                        testId: test.id,
-                                                        initialSeconds: test.time_seconds
-                                                    }
-                                                });
-                                            }}
-                                            disabled={test.comingSoon}
-                                        >
-                                            {test.comingSoon ? 'Coming Soon' : 'Start Test'}
-                                        </Button>
-                                    </Space>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
+                    ))}
                 </div>
 
-                {/* Instructions Section - More visual appeal */}
-                <Card
-                    style={{
-                        marginTop: 48,
-                        borderRadius: '8px',
-                        background: '#fafafa'
-                    }}
-                >
-                    <Space align="start" style={{marginBottom: 24}}>
-                        <InfoCircleOutlined style={{fontSize: 24, color: '#1890ff'}}/>
-                        <Title level={3} style={{margin: 0}}>Before You Begin</Title>
-                    </Space>
+                <section className="mt-12">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="m-0 flex items-center gap-2 text-xs font-black uppercase text-primary-600">
+                                <Sparkles className="size-4"/> Choose your checkpoint
+                            </p>
+                            <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">Available practice tests</h2>
+                            <p className="m-0 mt-1 text-sm text-slate-500">Start with the shortest useful signal, then grow into full-length tests.</p>
+                        </div>
+                    </div>
 
-                    <Steps
-                        direction="vertical"
-                        current={-1}
-                        items={[
-                            {
-                                title: 'Choose Your Test',
-                                description: "Select a test that matches your current preparation level"
-                            },
-                            {
-                                title: 'Prepare Your Environment',
-                                description: 'Find a quiet space and ensure you have the recommended time available'
-                            },
-                            {
-                                title: 'Complete the Test',
-                                description: 'Work through all sections, following official SAT timing guidelines'
-                            }
-                        ]}
-                    />
+                    <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {TESTS.map((test) => (
+                            <TestCard key={test.id} test={test} onStart={startTest}/>
+                        ))}
+                    </div>
+                </section>
+
+                <Card className="sat-arena-card mt-12 p-5 sm:p-6">
+                    <div className="flex items-start gap-3">
+                        <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+                            <Info className="size-5"/>
+                        </div>
+                        <div>
+                            <h2 className="m-0 font-display text-2xl font-black text-slate-950">Before you begin</h2>
+                            <div className="mt-4 grid gap-3 md:grid-cols-3">
+                                {[
+                                    ['Choose your test', 'Use the diagnostic for a fast baseline or wait for full-length releases.'],
+                                    ['Clear your space', 'Practice tests work best when you can focus for the full timer.'],
+                                    ['Review afterward', 'The score matters less than the pattern behind your misses.'],
+                                ].map(([title, copy]) => (
+                                    <div key={title} className="rounded-2xl bg-slate-50 p-4">
+                                        <p className="m-0 font-black text-slate-900">{title}</p>
+                                        <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">{copy}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 </Card>
-
-                <Tour
-                    open={isTourOpen}
-                    onClose={handleTourClose}
-                    steps={tourSteps}
-                    mask={true}
-                />
-            </Content>
-        </Layout>
+            </PageContainer>
+        </div>
     );
-};
+}
 
 export default PracticeTestPage;
