@@ -399,12 +399,12 @@ function ProfilePage() {
                                     <p className="m-0 mt-1 text-sm text-slate-500">Correct</p>
                                 </div>
                                 <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{stats?.level ?? 0}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Level</p>
+                                    <p className="m-0 text-2xl font-bold text-slate-900">{stats?.current_streak ?? 0}</p>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">Current streak</p>
                                 </div>
                                 <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{stats?.xp ?? 0}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">XP</p>
+                                    <p className="m-0 text-2xl font-bold text-slate-900">{accuracy}</p>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">Accuracy</p>
                                 </div>
                             </div>
                         </Card>

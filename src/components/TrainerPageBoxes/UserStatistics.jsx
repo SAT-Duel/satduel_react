@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, message } from 'antd';
 import {
-  DollarCircleOutlined,
-  ThunderboltOutlined,
-  StarOutlined,
+  CheckCircleOutlined,
+  FireOutlined,
   RiseOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
@@ -37,10 +36,9 @@ const iconStyle = {
 const UserStatisticsCard = () => {
   const { token } = useAuth();
   const [statistics, setStatistics] = useState({
-    coins: 0,
-    xp: 0,
-    level: 0,
-    total_multiplier: 1.0,
+    correct_number: 0,
+    incorrect_number: 0,
+    current_streak: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -57,10 +55,9 @@ const UserStatisticsCard = () => {
         });
 
         setStatistics({
-          coins: statsResponse.data.coins,
-          xp: statsResponse.data.xp,
-          level: statsResponse.data.level,
-          total_multiplier: statsResponse.data.total_multiplier,
+          correct_number: statsResponse.data.correct_number,
+          incorrect_number: statsResponse.data.incorrect_number,
+          current_streak: statsResponse.data.current_streak,
         });
         setLoading(false);
       } catch (error) {
@@ -72,6 +69,9 @@ const UserStatisticsCard = () => {
     fetchStatistics();
   }, [token]);
 
+  const totalAnswered = (statistics.correct_number || 0) + (statistics.incorrect_number || 0);
+  const accuracy = totalAnswered ? `${Math.round((statistics.correct_number / totalAnswered) * 100)}%` : '—';
+
   return (
     <Card
       loading={loading}
@@ -82,32 +82,32 @@ const UserStatisticsCard = () => {
       <Row gutter={16}>
         <Col span={6}>
           <Statistic
-            title={<span style={whiteTextStyle}>Coins</span>}
-            value={statistics.coins}
-            prefix={<DollarCircleOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+            title={<span style={whiteTextStyle}>Answered</span>}
+            value={totalAnswered}
+            prefix={<CheckCircleOutlined style={{ ...iconStyle, color: '#10b981' }} />}
             valueStyle={whiteTextStyle}
           />
         </Col>
         <Col span={6}>
           <Statistic
-            title={<span style={whiteTextStyle}>XP</span>}
-            value={statistics.xp}
-            prefix={<ThunderboltOutlined style={{ ...iconStyle, color: '#ff4d4f' }} />}
+            title={<span style={whiteTextStyle}>Correct</span>}
+            value={statistics.correct_number}
+            prefix={<CheckCircleOutlined style={{ ...iconStyle, color: '#10b981' }} />}
             valueStyle={whiteTextStyle}
           />
         </Col>
         <Col span={6}>
           <Statistic
-            title={<span style={whiteTextStyle}>Level</span>}
-            value={statistics.level}
-            prefix={<StarOutlined style={{ ...iconStyle, color: '#FFD700' }} />}
+            title={<span style={whiteTextStyle}>Streak</span>}
+            value={statistics.current_streak}
+            prefix={<FireOutlined style={{ ...iconStyle, color: '#f97316' }} />}
             valueStyle={whiteTextStyle}
           />
         </Col>
         <Col span={6}>
           <Statistic
-            title={<span style={whiteTextStyle}>Multiplier</span>}
-            value={statistics.total_multiplier.toFixed(2)}
+            title={<span style={whiteTextStyle}>Accuracy</span>}
+            value={accuracy}
             prefix={<RiseOutlined style={{ ...iconStyle, color: '#FFA500' }} />}
             valueStyle={whiteTextStyle}
           />

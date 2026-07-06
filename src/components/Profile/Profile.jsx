@@ -2,10 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {useAuth} from "../../context/AuthContext";
 import {Card, Form, Button, message, Row, Col, Statistic} from "antd";
 import {
-    DollarOutlined,
-    StarOutlined,
     RiseOutlined,
-    ThunderboltOutlined
+    CheckCircleOutlined,
+    FireOutlined,
 } from '@ant-design/icons';
 import {useNavigate} from 'react-router-dom';
 import api from "../api";
@@ -46,10 +45,9 @@ function Profile({user_id = null}) {
         sp_elo_rating: '', // Singleplayer Elo
     });
     const [statistics, setStatistics] = useState({
-        coins: 0,
-        xp: 0,
-        level: 0,
-        total_multiplier: 1.0
+        correct_number: 0,
+        incorrect_number: 0,
+        current_streak: 0,
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [form] = Form.useForm();
@@ -121,6 +119,8 @@ function Profile({user_id = null}) {
     const navigateToAdminPage = () => {
         navigate('/admin');
     };
+    const totalAnswered = (statistics?.correct_number || 0) + (statistics?.incorrect_number || 0);
+    const accuracy = totalAnswered ? `${Math.round((statistics.correct_number / totalAnswered) * 100)}%` : '—';
 
     return (
         <div style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
@@ -171,17 +171,17 @@ function Profile({user_id = null}) {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Statistic
-                                title={<span style={whiteTextStyle}>Coins</span>}
-                                value={statistics.coins}
-                                prefix={<DollarOutlined style={{...iconStyle, color: '#FFD700'}}/>}
+                                title={<span style={whiteTextStyle}>Answered</span>}
+                                value={totalAnswered}
+                                prefix={<CheckCircleOutlined style={{...iconStyle, color: '#10b981'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
                         </Col>
                         <Col span={12}>
                             <Statistic
-                                title={<span style={whiteTextStyle}>Level</span>}
-                                value={statistics.level}
-                                prefix={<StarOutlined style={{...iconStyle, color: '#FFD700'}}/>}
+                                title={<span style={whiteTextStyle}>Correct</span>}
+                                value={statistics.correct_number}
+                                prefix={<CheckCircleOutlined style={{...iconStyle, color: '#10b981'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
                         </Col>
@@ -189,16 +189,16 @@ function Profile({user_id = null}) {
                     <Row gutter={16} style={{marginTop: '20px'}}>
                         <Col span={12}>
                             <Statistic
-                                title={<span style={whiteTextStyle}>XP</span>}
-                                value={statistics.xp}
-                                prefix={<ThunderboltOutlined style={{...iconStyle, color: '#ff4d4f'}}/>}
+                                title={<span style={whiteTextStyle}>Current Streak</span>}
+                                value={statistics.current_streak}
+                                prefix={<FireOutlined style={{...iconStyle, color: '#f97316'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
                         </Col>
                         <Col span={12}>
                             <Statistic
-                                title={<span style={whiteTextStyle}>Multiplier</span>}
-                                value={statistics.total_multiplier?.toFixed(2)}
+                                title={<span style={whiteTextStyle}>Accuracy</span>}
+                                value={accuracy}
                                 prefix={<RiseOutlined style={{...iconStyle, color: '#FFA500'}}/>}
                                 valueStyle={whiteTextStyle}
                             />
