@@ -278,17 +278,10 @@ function HomeDashboard() {
         <div className="sat-bubble-field min-h-screen py-6 sm:py-8">
             <PageContainer>
                 {/* Greeting */}
-                <div className="mb-6 rounded-[1.75rem] border border-slate-200 bg-white/85 p-4 shadow-sm backdrop-blur sm:p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase text-white">
-                            <CircleDot className="size-3.5 text-cyan-300"/> Arena dashboard
-                        </span>
-                        <h1 className="m-0 mt-4 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
-                            {greeting()}, {user?.username}
-                        </h1>
-                        <p className="m-0 mt-1 text-slate-500">Start with today’s reps, then watch your Elo move.</p>
-                    </div>
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                    <h1 className="m-0 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
+                        {greeting()}, {user?.username}
+                    </h1>
                     <div className="flex items-center gap-2">
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3.5 py-1.5 text-sm font-bold text-orange-700">
                             <Flame className="size-4"/> {data.loginStreak} day streak
@@ -298,7 +291,6 @@ function HomeDashboard() {
                                 <Crown className="size-4"/> Premium
                             </span>
                         )}
-                    </div>
                     </div>
                 </div>
 
@@ -324,10 +316,7 @@ function HomeDashboard() {
                             </div>
 
                             <div className="flex-1">
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-3 py-1 text-xs font-black text-primary-700 shadow-sm">
-                                    <BookOpenCheck className="size-3.5"/> Today’s lane
-                                </span>
-                                <h2 className="m-0 mt-2 font-display text-2xl font-black text-slate-950">
+                                <h2 className="m-0 font-display text-2xl font-black text-slate-950">
                                     Daily Focused Practice
                                 </h2>
                                 <p className="m-0 mt-1 text-[15px] text-slate-600">

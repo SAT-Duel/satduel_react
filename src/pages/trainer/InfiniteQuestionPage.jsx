@@ -276,16 +276,11 @@ function InfiniteQuestionsPage() {
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
             <PageContainer>
-                <div className="mb-8 rounded-[1.75rem] border border-slate-200 bg-white/85 p-5 shadow-sm sm:p-6">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3.5 py-1.5 text-sm font-black text-white">
-                        <LineChart className="size-4"/> Adaptive practice
+                <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+                    <h1 className="m-0 font-display text-2xl font-bold text-slate-900">Practice</h1>
+                    <span className="text-sm font-medium text-slate-400">
+                        Question {stats.questionsAnswered + 1}
                     </span>
-                    <h1 className="m-0 mt-4 font-display text-3xl font-black text-slate-950 sm:text-4xl">
-                        Daily SAT question practice
-                    </h1>
-                    <p className="mt-2 max-w-2xl text-slate-600">
-                        Answer one question at a time. Your practice Elo updates live after each first attempt.
-                    </p>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">

@@ -224,15 +224,9 @@ function RankingPage() {
             <PageContainer>
                 <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-sm font-semibold ${config.accent}`}>
-                            <Icon className="size-4"/> Leaderboard
-                        </span>
-                        <h1 className="m-0 mt-4 font-display text-3xl font-black text-slate-900 sm:text-4xl">
-                            Global student rankings
+                        <h1 className="m-0 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
+                            Leaderboard
                         </h1>
-                        <p className="mt-2 max-w-2xl text-slate-600">
-                            Ratings and streaks from real SAT Duel practice and duels.
-                        </p>
                     </div>
                     <Button to="/infinite_questions" variant="secondary">
                         Practice now <ArrowUpRight className="size-4"/>
