@@ -4,6 +4,10 @@
  * SAT Duel design system.
  * Clean, modern "Brilliant-like" look: white surfaces, bold slate type,
  * violet accent, chunky rounded interactive elements.
+ *
+ * Bubble Arena layer:
+ * SAT-native answer bubbles, duel lanes, and score-strip surfaces. These are
+ * meant to be quiet enough for study, but distinctive enough to feel ownable.
  */
 @theme {
     --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -20,6 +24,11 @@
     --color-primary-700: #6b28d9;
     --color-primary-800: #5a21b6;
     --color-primary-900: #4b1d95;
+
+    --color-arena-cyan: #06b6d4;
+    --color-arena-emerald: #10b981;
+    --color-arena-amber: #f59e0b;
+    --color-arena-ink: #111827;
 
     --radius-card: 1rem;
 }
@@ -39,4 +48,78 @@ code {
 
 .image-render-pixel {
     image-rendering: pixelated;
+}
+
+.sat-arena-surface {
+    position: relative;
+    isolation: isolate;
+    background:
+        linear-gradient(180deg, #ffffff 0%, #fbfbff 45%, #f7fbff 100%);
+}
+
+.sat-arena-surface::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    background-image:
+        radial-gradient(ellipse 58% 40% at center, rgba(124, 58, 237, 0.11) 0 40%, transparent 42%),
+        radial-gradient(ellipse 58% 40% at center, rgba(6, 182, 212, 0.08) 0 38%, transparent 41%);
+    background-position: 0 0, 23px 16px;
+    background-size: 46px 32px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.24) 68%, transparent 100%);
+    pointer-events: none;
+}
+
+.sat-bubble-field {
+    position: relative;
+    isolation: isolate;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.98));
+}
+
+.sat-bubble-field::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    background-image:
+        radial-gradient(ellipse 56% 36% at center, rgba(15, 23, 42, 0.045) 0 39%, transparent 41%);
+    background-position: 12px 10px;
+    background-size: 42px 28px;
+    mask-image: linear-gradient(90deg, transparent, black 16%, black 84%, transparent);
+    pointer-events: none;
+}
+
+.sat-arena-card {
+    border: 1px solid rgba(148, 163, 184, 0.38);
+    box-shadow:
+        0 1px 0 rgba(15, 23, 42, 0.04),
+        0 18px 46px rgba(15, 23, 42, 0.09);
+}
+
+.sat-score-strip {
+    background:
+        linear-gradient(90deg, rgba(124, 58, 237, 0.12), rgba(6, 182, 212, 0.11), rgba(16, 185, 129, 0.10));
+    border-top: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.sat-duel-lanes {
+    background-image:
+        linear-gradient(90deg, rgba(124, 58, 237, 0.22) 0 2px, transparent 2px 100%),
+        linear-gradient(90deg, rgba(6, 182, 212, 0.18) 0 2px, transparent 2px 100%),
+        linear-gradient(0deg, rgba(15, 23, 42, 0.06) 0 1px, transparent 1px 100%);
+    background-position: 22% 0, 78% 0, 0 0;
+    background-size: 100% 100%, 100% 100%, 100% 22px;
+}
+
+.sat-answer-bubble {
+    box-shadow: inset 0 0 0 2px rgba(148, 163, 184, 0.9);
+}
+
+.sat-answer-bubble-filled {
+    background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+    box-shadow:
+        inset 0 0 0 2px rgba(90, 33, 182, 0.95),
+        0 3px 0 rgba(90, 33, 182, 0.35);
 }
