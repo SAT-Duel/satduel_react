@@ -197,18 +197,18 @@ function PricingPage() {
             </Helmet>
 
             <section className="sat-arena-surface overflow-hidden border-b border-slate-200">
-                <PageContainer className="grid gap-10 py-10 sm:py-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-14">
-                    <div className="text-center lg:text-left">
+                <PageContainer className="py-10 sm:py-12">
+                    <div className="mx-auto max-w-3xl text-center">
                         <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white/80 px-4 py-2 text-sm font-black text-primary-700 shadow-sm">
                             <Sparkles className="size-4"/> SAT Duel Premium
                         </span>
-                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                            Practice longer. Target sharper.
+                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
+                            Choose your practice lane.
                         </h1>
-                        <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-slate-600 lg:mx-0">
+                        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                             Free is for building the habit. Premium is for students who want unlimited reps and exact-topic drills inside the arena.
                         </p>
-                        <div className="mt-7 flex flex-wrap justify-center gap-2 lg:justify-start">
+                        <div className="mt-6 flex flex-wrap justify-center gap-2">
                             {['Unlimited reps', 'Topic selection', 'Stripe invoices'].map((label) => (
                                 <span key={label} className="rounded-full border border-slate-200 bg-white/85 px-3 py-1.5 text-sm font-black text-slate-700 shadow-sm">
                                     {label}
@@ -217,102 +217,114 @@ function PricingPage() {
                         </div>
                     </div>
 
-                    <div className="hidden lg:block">
-                        <ScoreSlip/>
+                    {notice && (
+                        <div className="mx-auto mt-6 max-w-3xl">
+                            <Alert type={notice.type}>{notice.text}</Alert>
+                        </div>
+                    )}
+
+                    <div className="mx-auto mt-8 grid max-w-5xl gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                        <Card className="sat-arena-card overflow-hidden">
+                            <div className="p-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                                        <Zap className="size-5"/>
+                                    </div>
+                                    <div>
+                                        <p className="m-0 text-xs font-black uppercase text-slate-400">Starter lane</p>
+                                        <h2 className="m-0 mt-1 text-xl font-black text-slate-950">Free</h2>
+                                    </div>
+                                </div>
+
+                                <div className="mt-7 flex items-end gap-2">
+                                    <span className="font-display text-5xl font-black text-slate-950">$0</span>
+                                    <span className="pb-1 text-sm font-bold text-slate-500">forever</span>
+                                </div>
+
+                                <p className="m-0 mt-3 text-sm leading-relaxed text-slate-500">
+                                    Enough to try the loop and build a daily SAT habit.
+                                </p>
+
+                                <div className="mt-6">
+                                    <FeatureList items={FREE_FEATURES}/>
+                                </div>
+                            </div>
+
+                            <div className="sat-score-strip px-6 py-5">
+                                <Button to={user ? '/trainer' : '/register'} variant="secondary" block>
+                                    {user ? 'Continue free practice' : 'Create a free account'}
+                                </Button>
+                            </div>
+                        </Card>
+
+                        <Card className="sat-arena-card overflow-hidden border-primary-300">
+                            <div className="border-b border-primary-200 bg-slate-950 p-6 text-white">
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-amber-300">
+                                            <Crown className="size-6"/>
+                                        </div>
+                                        <div>
+                                            <p className="m-0 text-xs font-black uppercase text-cyan-200">Focused lane</p>
+                                            <h2 className="m-0 mt-1 text-2xl font-black text-white">Premium</h2>
+                                        </div>
+                                    </div>
+                                    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary-500 px-3 py-1 text-xs font-black text-white">
+                                        <CircleDot className="size-3.5"/> Most focused
+                                    </span>
+                                </div>
+
+                                <div className="mt-7 flex items-end gap-2">
+                                    <span className="font-display text-5xl font-black text-white">$9.99</span>
+                                    <span className="pb-1 text-sm font-bold text-slate-300">USD / month</span>
+                                </div>
+                            </div>
+
+                            <div className="p-6">
+                                <FeatureList items={PREMIUM_FEATURES} premium/>
+
+                                <div className="mt-7">
+                                    {loading ? (
+                                        <Button block loading>Loading account</Button>
+                                    ) : isPremium ? (
+                                        <Button block variant="secondary" onClick={handleManageBilling} loading={billingAction === 'portal'}>
+                                            <CreditCard className="size-4"/> Manage billing
+                                        </Button>
+                                    ) : user ? (
+                                        <Button block onClick={handleUpgrade} loading={billingAction === 'checkout'}>
+                                            Start secure checkout <ArrowRight className="size-4"/>
+                                        </Button>
+                                    ) : (
+                                        <Button to="/register" block>
+                                            Create account to upgrade <ArrowRight className="size-4"/>
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <p className="m-0 mt-4 flex items-center gap-2 text-sm text-slate-400">
+                                    <Lock className="size-4"/> Secure checkout and invoices are handled by Stripe.
+                                </p>
+                            </div>
+                        </Card>
                     </div>
                 </PageContainer>
             </section>
 
-            <PageContainer className="py-10 sm:py-14">
-                {notice && (
-                    <div className="mx-auto mb-6 max-w-3xl">
-                        <Alert type={notice.type}>{notice.text}</Alert>
+            <PageContainer className="py-12 sm:py-16">
+                <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+                    <div>
+                        <p className="m-0 text-xs font-black uppercase text-primary-600">Why upgrade</p>
+                        <h2 className="m-0 mt-3 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                            Premium removes friction after the habit is working.
+                        </h2>
+                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                            This is the calmer part of the page: no sales maze, just the exact reasons the paid plan exists.
+                        </p>
                     </div>
-                )}
 
-                <div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-                    <Card className="sat-arena-card overflow-hidden">
-                        <div className="p-6">
-                            <div className="flex items-center gap-3">
-                                <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
-                                    <Zap className="size-5"/>
-                                </div>
-                                <div>
-                                    <p className="m-0 text-xs font-black uppercase text-slate-400">Starter lane</p>
-                                    <h2 className="m-0 mt-1 text-xl font-black text-slate-950">Free</h2>
-                                </div>
-                            </div>
-
-                            <div className="mt-7 flex items-end gap-2">
-                                <span className="font-display text-5xl font-black text-slate-950">$0</span>
-                                <span className="pb-1 text-sm font-bold text-slate-500">forever</span>
-                            </div>
-
-                            <p className="m-0 mt-3 text-sm leading-relaxed text-slate-500">
-                                Enough to try the loop and build a daily SAT habit.
-                            </p>
-
-                            <div className="mt-6">
-                                <FeatureList items={FREE_FEATURES}/>
-                            </div>
-                        </div>
-
-                        <div className="sat-score-strip px-6 py-5">
-                            <Button to={user ? '/trainer' : '/register'} variant="secondary" block>
-                                {user ? 'Continue free practice' : 'Create a free account'}
-                            </Button>
-                        </div>
-                    </Card>
-
-                    <Card className="sat-arena-card overflow-hidden border-primary-300">
-                        <div className="border-b border-primary-200 bg-slate-950 p-6 text-white">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-amber-300">
-                                        <Crown className="size-6"/>
-                                    </div>
-                                    <div>
-                                        <p className="m-0 text-xs font-black uppercase text-cyan-200">Focused lane</p>
-                                        <h2 className="m-0 mt-1 text-2xl font-black text-white">Premium</h2>
-                                    </div>
-                                </div>
-                                <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary-500 px-3 py-1 text-xs font-black text-white">
-                                    <CircleDot className="size-3.5"/> Most focused
-                                </span>
-                            </div>
-
-                            <div className="mt-7 flex items-end gap-2">
-                                <span className="font-display text-5xl font-black text-white">$9.99</span>
-                                <span className="pb-1 text-sm font-bold text-slate-300">USD / month</span>
-                            </div>
-                        </div>
-
-                        <div className="p-6">
-                            <FeatureList items={PREMIUM_FEATURES} premium/>
-
-                            <div className="mt-7">
-                                {loading ? (
-                                    <Button block loading>Loading account</Button>
-                                ) : isPremium ? (
-                                    <Button block variant="secondary" onClick={handleManageBilling} loading={billingAction === 'portal'}>
-                                        <CreditCard className="size-4"/> Manage billing
-                                    </Button>
-                                ) : user ? (
-                                    <Button block onClick={handleUpgrade} loading={billingAction === 'checkout'}>
-                                        Start secure checkout <ArrowRight className="size-4"/>
-                                    </Button>
-                                ) : (
-                                    <Button to="/register" block>
-                                        Create account to upgrade <ArrowRight className="size-4"/>
-                                    </Button>
-                                )}
-                            </div>
-
-                            <p className="m-0 mt-4 flex items-center gap-2 text-sm text-slate-400">
-                                <Lock className="size-4"/> Secure checkout and invoices are handled by Stripe.
-                            </p>
-                        </div>
-                    </Card>
+                    <div className="hidden lg:block">
+                        <ScoreSlip/>
+                    </div>
                 </div>
 
                 <div className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">

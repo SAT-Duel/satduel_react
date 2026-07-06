@@ -70,7 +70,7 @@ const TEAM = [
     },
     {
         name: 'Bryan Zhou',
-        role: 'Marketing and Finance Management',
+        role: 'Marketing & Finance',
         avatar: bryan,
         lane: 'Growth',
     },
