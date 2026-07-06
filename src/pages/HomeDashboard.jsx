@@ -225,7 +225,7 @@ function SecondaryTile({label, icon: Icon, to, blurb, navigate}) {
 }
 
 function HomeDashboard() {
-    const {user} = useAuth();
+    const {user, updateUser} = useAuth();
     const navigate = useNavigate();
     const [data, setData] = useState({profile: null, stats: null, quota: null, daily: null});
     const [loading, setLoading] = useState(true);
@@ -239,6 +239,18 @@ function HomeDashboard() {
                 api.get('api/practice/status/').then((r) => r.data).catch(() => null),
             ]);
             if (cancelled) return;
+            if (profile) {
+                updateUser({
+                    id: profile.user?.id,
+                    username: profile.user?.username,
+                    email: profile.user?.email,
+                    first_name: profile.user?.first_name,
+                    last_name: profile.user?.last_name,
+                    is_premium: profile.is_premium,
+                    avatar: profile.avatar,
+                    avatar_icon: profile.avatar_icon,
+                });
+            }
             setData({
                 profile,
                 stats,
@@ -251,7 +263,7 @@ function HomeDashboard() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [updateUser]);
 
     const daily = data.daily;
     const dailyGoal = daily?.goal ?? DAILY_GOAL;

@@ -133,7 +133,7 @@ function ScoreSlip() {
 }
 
 function PricingPage() {
-    const {user, loading} = useAuth();
+    const {user, loading, updateUser} = useAuth();
     const [searchParams] = useSearchParams();
     const [notice, setNotice] = useState(null);
     const [billingAction, setBillingAction] = useState(null);
@@ -158,11 +158,23 @@ function PricingPage() {
             return;
         }
         api.get('api/profile/')
-            .then((response) => setProfile(response.data))
+            .then((response) => {
+                setProfile(response.data);
+                updateUser({
+                    id: response.data.user?.id,
+                    username: response.data.user?.username,
+                    email: response.data.user?.email,
+                    first_name: response.data.user?.first_name,
+                    last_name: response.data.user?.last_name,
+                    is_premium: response.data.is_premium,
+                    avatar: response.data.avatar,
+                    avatar_icon: response.data.avatar_icon,
+                });
+            })
             .catch(() => {
                 // Non-blocking: the CTA can still start checkout from auth state.
             });
-    }, [user]);
+    }, [updateUser, user?.id]);
 
     const handleUpgrade = async () => {
         setBillingAction('checkout');

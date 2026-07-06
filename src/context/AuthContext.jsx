@@ -1,8 +1,22 @@
-import React, {createContext, useContext, useState, useEffect} from 'react';
+import React, {createContext, useCallback, useContext, useState, useEffect} from 'react';
 import axios from "axios";
+import api from '../components/api';
 import {notify} from '../utils/notify';
 
 const AuthContext = createContext(null);
+
+function profileToUserUpdates(profile) {
+    return {
+        id: profile.user?.id,
+        username: profile.user?.username,
+        email: profile.user?.email,
+        first_name: profile.user?.first_name,
+        last_name: profile.user?.last_name,
+        is_premium: profile.is_premium,
+        avatar: profile.avatar,
+        avatar_icon: profile.avatar_icon,
+    };
+}
 
 export const AuthProvider = ({children}) => {
     const [user, setUser] = useState(null);
@@ -36,13 +50,19 @@ export const AuthProvider = ({children}) => {
         setUser({...user, is_first_login: false});
     };
 
-    const updateUser = (updates) => {
+    const updateUser = useCallback((updates) => {
         setUser((previousUser) => {
             const nextUser = {...(previousUser || {}), ...updates};
             localStorage.setItem('user', JSON.stringify(nextUser));
             return nextUser;
         });
-    };
+    }, []);
+
+    const refreshUser = useCallback(async () => {
+        const response = await api.get('api/profile/');
+        updateUser(profileToUserUpdates(response.data));
+        return response.data;
+    }, [updateUser]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const refreshAccessToken = async () => {
@@ -88,7 +108,7 @@ export const AuthProvider = ({children}) => {
     }, [refreshAccessToken, token]);
 
     return (
-        <AuthContext.Provider value={{user, login, logout, token, loading, setFirstLogin, updateUser}}>
+        <AuthContext.Provider value={{user, login, logout, token, loading, setFirstLogin, updateUser, refreshUser}}>
             {children}
         </AuthContext.Provider>
     );
