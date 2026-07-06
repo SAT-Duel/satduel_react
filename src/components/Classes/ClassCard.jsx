@@ -1,70 +1,42 @@
 import React from 'react';
-import {Card, Button, Avatar, Tag} from 'antd';
-import {Link} from 'react-router-dom';
-
-const {Meta} = Card;
+import {ArrowRight, Hash, Users} from 'lucide-react';
+import {Card, Button} from '../ui';
 
 const ClassCard = ({cls}) => {
+    const initial = cls.name?.[0]?.toUpperCase() || 'C';
+
     return (
-        <Card
-            style={{
-                width: '100%',
-                borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'transform 0.2s',
-                height: '100%',
-                ':hover': {
-                    transform: 'translateY(-4px)'
-                }
-            }}
-            actions={[
-                <Button type="link" key="view">
-                    <Link to={`/classes/${cls.id}`}>Enter Class</Link>
-                </Button>
-            ]}
-        >
-            <Meta
-                avatar={<Avatar
-                    size={48}
-                    style={{
-                        backgroundColor: '#1890ff',
-                        fontSize: '20px',
-                        fontWeight: 600
-                    }}
-                >
-                    {cls.name[0]}
-                </Avatar>}
-                title={<span style={{fontSize: '18px', fontWeight: 600}}>{cls.name}</span>}
-                description={
-                    <>
-                        <div style={{
-                            margin: '8px 0',
-                            color: '#595959',
-                            minHeight: '40px'
-                        }}>
-                            {cls.description || 'No description'}
-                        </div>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                        }}>
-                            <Tag color="blue" style={{borderRadius: '6px'}}>
-                                Code: {cls.code}
-                            </Tag>
-                            <Button
-                                type="primary"
-                                shape="round"
-                                size="small"
-                            >
-                                Enter
-                            </Button>
-                        </div>
-                    </>
-                }
-            />
+        <Card hover className="flex h-full flex-col p-5">
+            <div className="flex items-start gap-4">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border-2 border-cyan-200 bg-cyan-50 text-lg font-black text-cyan-700">
+                    {initial}
+                </div>
+                <div className="min-w-0">
+                    <h3 className="truncate text-lg font-black text-slate-950">{cls.name}</h3>
+                    <p className="mt-1 line-clamp-3 min-h-12 text-sm leading-6 text-slate-500">
+                        {cls.description || 'No description yet.'}
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+                <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
+                    <Hash size={13}/>
+                    {cls.code}
+                </span>
+                {Number.isFinite(cls.student_count) && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
+                        <Users size={13}/>
+                        {cls.student_count}
+                    </span>
+                )}
+            </div>
+
+            <Button to={`/classes/${cls.id}`} className="mt-5" size="sm" block>
+                Enter Class <ArrowRight size={16}/>
+            </Button>
         </Card>
     );
 };
 
-export default ClassCard; 
+export default ClassCard;

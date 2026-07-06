@@ -1,162 +1,51 @@
-import React, { useState } from 'react';
-import { Typography, Button, Row, Col, message, List } from 'antd';
+import React, {useState} from 'react';
 import Lottie from 'react-lottie';
-import axios from 'axios';  
-import { useAuth } from "../context/AuthContext";
-import styled from 'styled-components';
+import axios from 'axios';
+import {Sparkles} from 'lucide-react';
+import {useAuth} from '../context/AuthContext';
 import pet1AnimationData from '../animations/pets/pet1.json';
 import pet2AnimationData from '../animations/pets/pet2.json';
-
-const { Title, Text } = Typography;
-
-const Container = styled.div`
-    min-height: 100vh;
-    background: linear-gradient(135deg, #F5F7FF 0%, #E8EEFF 100%);
-    padding: 60px 20px;
-`;
-
-const ContentWrapper = styled.div`
-    max-width: 1200px;
-    margin: 0 auto;
-    text-align: center;
-`;
-
-const MainHeader = styled(Title)`
-    font-size: 3.5rem;
-    color: #0B2F7D;
-    margin-bottom: 20px;
-    text-align: center;
-    background: linear-gradient(90deg, #2B7FA3, #C95FFB);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-`;
-
-const SubHeader = styled(Title)`
-    font-size: 2.5rem;
-    color: #4C3D97;
-    margin-bottom: 40px;
-    text-align: center;
-    background: linear-gradient(90deg, #6a11cb, #2575fc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-`;
-
-const PetItem = styled.div`
-    text-align: center;
-    cursor: pointer;
-    padding: 20px;
-    border-radius: 15px;
-    background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%);
-    transition: transform 0.3s, box-shadow 0.3s;
-
-    &:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
-    }
-`;
-
-const PetPriceButton = styled(Button)`
-    margin-top: 10px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-weight: bold;
-    transition: background-color 0.3s;
-
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.3);
-        color: white;
-    }
-`;
-
-const Overlay = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
-`;
-
-const Popup = styled.div`
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    max-width: 500px;
-    width: 100%;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.3s ease-in-out;
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.9); }
-        to { opacity: 1; transform: scale(1); }
-    }
-`;
-
-const CloseButton = styled(Button)`
-    background-color: #f44336;
-    border: none;
-    color: white;
-    font-weight: bold;
-    margin-top: 20px;
-    transition: background-color 0.3s;
-
-    &:hover {
-        background-color: #d32f2f;
-    }
-`;
+import {Button, Card, ModalShell, PageContainer} from '../components/ui';
+import {notify} from '../utils/notify';
 
 const defaultOptions = (animationData) => ({
     loop: true,
     autoplay: true,
-    animationData: animationData,
+    animationData,
     rendererSettings: {
         preserveAspectRatio: 'xMidYMid slice',
     },
 });
 
-const Shop = () => {
-    const [selectedPet, setSelectedPet] = useState(null);
-    const { token } = useAuth();
+const pets = [
+    {
+        id: 1,
+        name: 'Gaming Cat',
+        price: 25,
+        description: 'Level 1 Base Perks:',
+        benefits: ['Permanent 1% Coin Multiplier', 'Unlocks the ability to find gaming treasures in SAT Alcumus'],
+        animationData: pet1AnimationData,
+    },
+    {
+        id: 34,
+        name: 'Bessie The Cow',
+        price: 250,
+        description: 'Level 1 Base Perks:',
+        benefits: ['Permanent 50% Coin Multiplier', 'MILK?!'],
+        animationData: pet2AnimationData,
+    },
+];
 
-    const pets = [
-        {
-            id: 1,
-            name: 'Gaming Cat',
-            price: 25,
-            description: 'Level 1 Base Perks:',
-            benefits: ['Permanent 1% Coin Multiplier', 'Unlocks the ability to find gaming treasures in SAT Alcumus'],
-            animationData: pet1AnimationData,
-        },
-        {
-            id: 34,
-            name: 'Bessie The Cow',
-            price: 250,
-            description: 'Level 1 Base Perks:',
-            benefits: ['Permanent 50% Coin Multiplier', 'MILK?!'],
-            animationData: pet2AnimationData,
-        },
-    ];
+function Shop() {
+    const [selectedPet, setSelectedPet] = useState(null);
+    const {token} = useAuth();
 
     const handlePetBuy = async (id) => {
         try {
-            const payload = {
-                id: id
-            };
-            const baseUrl = import.meta.env.VITE_API_URL; // Assuming you have this set in your environment
-            console.log(baseUrl);
-            console.log(token);
-            const response = await axios.post(`${baseUrl}/api/buy_pet/`, payload, {
+            const baseUrl = import.meta.env.VITE_API_URL;
+            const response = await axios.post(`${baseUrl}/api/buy_pet/`, {id}, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
 
@@ -164,63 +53,69 @@ const Shop = () => {
 
             if (response.status === 200) {
                 if (result.purchased) {
-                    message.success(result.message);
+                    notify.success(result.message);
                 } else {
-                    message.error(result.message);
+                    notify.error(result.message);
                 }
             } else {
-                message.error(result.error || 'Purchase failed.');
+                notify.error(result.error || 'Purchase failed.');
             }
         } catch (error) {
             console.error('Error purchasing pet:', error);
-            message.error('Purchase failed.');
+            notify.error('Purchase failed.');
         }
     };
 
-    const openPetDetails = (pet) => {
-        setSelectedPet(pet);
-    };
-
-    const closePetDetails = () => {
-        setSelectedPet(null);
-    };
-
     return (
-        <Container>
-            <ContentWrapper>
-                <MainHeader>Coin Shop</MainHeader>
-                <SubHeader>Pets</SubHeader>
-                <Row gutter={[24, 24]}>
-                    {pets.map((pet) => (
-                        <Col key={pet.id} xs={24} sm={12} md={8}>
-                            <PetItem onClick={() => openPetDetails(pet)}>
-                                <Lottie options={defaultOptions(pet.animationData)} height={150} width={150} />
-                                <PetPriceButton onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePetBuy(pet.id);
-                                }}>
-                                    {pet.price} Coins
-                                </PetPriceButton>
-                            </PetItem>
-                        </Col>
-                    ))}
-                </Row>
+        <PageContainer className="min-h-screen py-8 sm:py-10">
+            <div className="mb-8 text-center">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-primary-700">
+                    <Sparkles size={14}/> Legacy Shop
+                </div>
+                <h1 className="text-4xl font-black text-slate-950 sm:text-5xl">Coin Shop</h1>
+                <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+                    Pet cosmetics and old coin perks live here while the product moves toward a cleaner progress system.
+                </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {pets.map((pet) => (
+                    <Card key={pet.id} hover className="p-5 text-center">
+                        <button type="button" onClick={() => setSelectedPet(pet)} className="w-full">
+                            <div className="mx-auto mb-4 flex h-40 items-center justify-center">
+                                <Lottie options={defaultOptions(pet.animationData)} height={150} width={150}/>
+                            </div>
+                            <h2 className="text-xl font-black text-slate-950">{pet.name}</h2>
+                            <p className="mt-1 text-sm text-slate-500">{pet.description}</p>
+                        </button>
+                        <Button className="mt-5" onClick={() => handlePetBuy(pet.id)} block>
+                            {pet.price} Coins
+                        </Button>
+                    </Card>
+                ))}
+            </div>
+
+            <ModalShell
+                open={!!selectedPet}
+                title={selectedPet?.name}
+                onClose={() => setSelectedPet(null)}
+                footer={<Button onClick={() => setSelectedPet(null)}>OK</Button>}
+            >
                 {selectedPet && (
-                    <Overlay onClick={closePetDetails}>
-                        <Popup onClick={(e) => e.stopPropagation()}>
-                            <Title level={2}>{selectedPet.name}</Title>
-                            <Text>{selectedPet.description}</Text>
-                            <List
-                                dataSource={selectedPet.benefits}
-                                renderItem={item => <List.Item>- {item}</List.Item>}
-                            />
-                            <CloseButton onClick={closePetDetails}>OK</CloseButton>
-                        </Popup>
-                    </Overlay>
+                    <>
+                        <p className="mb-4 text-sm font-semibold text-slate-600">{selectedPet.description}</p>
+                        <ul className="space-y-2">
+                            {selectedPet.benefits.map((benefit) => (
+                                <li key={benefit} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                    {benefit}
+                                </li>
+                            ))}
+                        </ul>
+                    </>
                 )}
-            </ContentWrapper>
-        </Container>
+            </ModalShell>
+        </PageContainer>
     );
-};
+}
 
 export default Shop;

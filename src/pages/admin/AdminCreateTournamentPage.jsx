@@ -1,80 +1,91 @@
-import React, {useState, useEffect, useCallback} from 'react';
-import {
-    Card,
-    Select,
-    Pagination,
-    Row,
-    Col,
-    Button,
-    Descriptions,
-    Form,
-    Input,
-    DatePicker,
-    InputNumber,
-    Switch,
-    Typography,
-    message,
-    Modal,
-} from 'antd';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {PlusOutlined, DeleteOutlined} from '@ant-design/icons';
+import {ChevronLeft, ChevronRight, Plus, Search, Trash2} from 'lucide-react';
 import axios from 'axios';
 import RenderWithMath from '../../components/RenderWithMath';
 import withAuth from '../../hoc/withAuth';
-import styled from 'styled-components';
-import api from "../../components/api";
+import api from '../../components/api';
+import {Button, Card, Field, Input, ModalShell, PageContainer, Select, Textarea, Toggle} from '../../components/ui';
+import {notify} from '../../utils/notify';
 
-const {Option} = Select;
-const {Title} = Typography;
-const {TextArea} = Input;
+const questionTypes = [
+    'Cross-Text Connections',
+    'Text Structure and Purpose',
+    'Words in Context',
+    'Rhetorical Synthesis',
+    'Transitions',
+    'Central Ideas and Details',
+    'Command of Evidence',
+    'Inferences',
+    'Boundaries',
+    'Form, Structure, and Sense',
+];
 
-const Container = styled.div`
-    padding: 20px;
-`;
+const difficulties = ['1', '2', '3', '4', '5'];
 
-const QuestionSelectionTitle = styled(Title)`
-    margin-top: 40px;
-    margin-bottom: 20px;
-    text-align: center;
-    color: #0b2f7d;
-`;
+const initialTournament = {
+    name: '',
+    description: '',
+    start_time: '',
+    end_time: '',
+    duration: '',
+    private: false,
+};
 
-const FormContainer = styled.div`
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
-    margin: 0 auto;
-`;
+function QuestionCard({question, selected, onClick, action}) {
+    return (
+        <button type="button" onClick={onClick} className="text-left">
+            <Card
+                hover
+                className={[
+                    'h-full p-4',
+                    selected ? 'border-primary-400 bg-primary-50/60 ring-2 ring-primary-100' : '',
+                ].join(' ')}
+            >
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                        ID {question.id}
+                    </span>
+                    {action}
+                </div>
+                <div className="line-clamp-5 text-sm leading-6 text-slate-700">
+                    <RenderWithMath text={question.question}/>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-500">
+                    <span className="rounded-full bg-white px-2.5 py-1">Difficulty {question.difficulty || 'N/A'}</span>
+                    <span className="rounded-full bg-white px-2.5 py-1">{question.question_type || 'Uncategorized'}</span>
+                </div>
+            </Card>
+        </button>
+    );
+}
 
-const AdminCreateTournamentPage = () => {
+function formatApiTime(value) {
+    return new Date(value).toISOString().split('.')[0] + 'Z';
+}
+
+function AdminCreateTournamentPage() {
     const [questions, setQuestions] = useState([]);
     const [selectedQuestions, setSelectedQuestions] = useState([]);
     const [selectedType, setSelectedType] = useState('any');
     const [selectedDifficulty, setSelectedDifficulty] = useState('any');
-    const [totalPage, setTotalPage] = useState(1);
+    const [total, setTotal] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(15); // 15 questions per page
-    const [form] = Form.useForm();
+    const [formValues, setFormValues] = useState(initialTournament);
     const [joinCodeModalVisible, setJoinCodeModalVisible] = useState(false);
     const [joinCode, setJoinCode] = useState('');
-
-    const questionTypes = [
-        'Cross-Text Connections',
-        'Text Structure and Purpose',
-        'Words in Context',
-        'Rhetorical Synthesis',
-        'Transitions',
-        'Central Ideas and Details',
-        'Command of Evidence',
-        'Inferences',
-        'Boundaries',
-        'Form, Structure, and Sense',
-    ];
-    const difficulties = ['1', '2', '3', '4', '5'];
-
+    const [creating, setCreating] = useState(false);
+    const pageSize = 15;
     const navigate = useNavigate();
+
+    const totalPages = useMemo(
+        () => Math.max(1, Math.ceil((Number(total) || 0) / pageSize)),
+        [total]
+    );
+
+    const updateFormValue = (field, value) => {
+        setFormValues((current) => ({...current, [field]: value}));
+    };
 
     const fetchQuestions = useCallback(async () => {
         const baseUrl = import.meta.env.VITE_API_URL;
@@ -88,256 +99,255 @@ const AdminCreateTournamentPage = () => {
                     page_size: pageSize,
                 },
             });
-            setQuestions(response.data.questions);
-            setTotalPage(response.data.total);
+            setQuestions(response.data.questions || []);
+            setTotal(response.data.total || 0);
         } catch (error) {
             console.error('Error fetching questions:', error);
+            notify.error('Failed to fetch questions');
         }
-    }, [currentPage, pageSize, selectedDifficulty, selectedType]);
+    }, [currentPage, selectedDifficulty, selectedType]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
         fetchQuestions();
-    }, [fetchQuestions, currentPage, selectedType, selectedDifficulty]);
-
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-        window.scrollTo(0, 0);
-    };
-
-    const handleSearch = () => {
-        setCurrentPage(1); // Reset to the first page on new search
-        fetchQuestions();
-        window.scrollTo(0, 0);
-    };
+    }, [fetchQuestions]);
 
     const handleSelectQuestion = (question) => {
-        if (selectedQuestions.some((q) => q.id === question.id)) {
-            setSelectedQuestions(selectedQuestions.filter((q) => q.id !== question.id));
-        } else {
-            setSelectedQuestions([...selectedQuestions, question]);
+        setSelectedQuestions((current) => (
+            current.some((q) => q.id === question.id)
+                ? current.filter((q) => q.id !== question.id)
+                : [...current, question]
+        ));
+    };
+
+    const handleCreateTournament = async (event) => {
+        event.preventDefault();
+
+        if (!formValues.name.trim() || !formValues.description.trim() || !formValues.start_time || !formValues.end_time || !formValues.duration) {
+            notify.warning('Fill in the tournament details first.');
+            return;
         }
-    };
 
-    const handleRemoveSelectedQuestion = (id) => {
-        setSelectedQuestions(selectedQuestions.filter((q) => q.id !== id));
-    };
+        if (selectedQuestions.length === 0) {
+            notify.warning('Select at least one question.');
+            return;
+        }
 
-    const handleCreateTournament = async (values) => {
-        const selectedQuestionIds = selectedQuestions.map((q) => q.id);
-        const durationInSeconds = values.duration * 60;
+        const durationInSeconds = Number(formValues.duration) * 60;
         const formattedDuration = new Date(durationInSeconds * 1000).toISOString().substring(11, 19);
-        const startDate = new Date(values.start_time);
-        const endDate = new Date(values.end_time);
-        const formattedStartTime = startDate.toISOString().split('.')[0] + 'Z';
-        const formattedEndTime = endDate.toISOString().split('.')[0] + 'Z';
-
-        if (values.private === null) {
-            values.private = false;
-        }
         const tournamentData = {
-            ...values,
-            start_time: formattedStartTime,
-            end_time: formattedEndTime,
+            ...formValues,
+            start_time: formatApiTime(formValues.start_time),
+            end_time: formatApiTime(formValues.end_time),
             duration: formattedDuration,
-            question_ids: selectedQuestionIds,
-            private: values.private,
+            question_ids: selectedQuestions.map((q) => q.id),
         };
 
         try {
-            const response = await api.post(`api/tournaments/admin_create/`, tournamentData);
+            setCreating(true);
+            const response = await api.post('api/tournaments/admin_create/', tournamentData);
             const tournament = response.data;
 
             if (tournament.join_code) {
                 setJoinCode(tournament.join_code);
                 setJoinCodeModalVisible(true);
             } else {
-                message.success('Tournament created successfully!');
+                notify.success('Tournament created successfully!');
                 navigate('/tournaments');
             }
         } catch (error) {
             console.error('Error creating tournament:', error);
-            message.error('Failed to create tournament');
+            notify.error('Failed to create tournament');
+        } finally {
+            setCreating(false);
         }
     };
 
-    const handleModalOk = () => {
-        setJoinCodeModalVisible(false);
-        navigate('/my_tournaments');
+    const goToPage = (page) => {
+        setCurrentPage(Math.min(Math.max(page, 1), totalPages));
     };
 
-    const handleModalCancel = () => {
+    const closeJoinCodeModal = () => {
         setJoinCodeModalVisible(false);
         navigate('/my_tournaments');
     };
 
     return (
-        <Container>
-            <Title level={2} style={{marginBottom: '20px', textAlign: 'center'}}>
-                Create a New Tournament
-            </Title>
-            <Form form={form} layout="vertical" onFinish={handleCreateTournament}>
-                <FormContainer>
-                    <Form.Item name="name" label="Tournament Name" rules={[{required: true}]}>
-                        <Input placeholder="Enter tournament name"/>
-                    </Form.Item>
-                    <Form.Item name="description" label="Description" rules={[{required: true}]}>
-                        <TextArea rows={4} placeholder="Enter tournament description"/>
-                    </Form.Item>
-                    <Form.Item name="start_time" label="Start Time" rules={[{required: true}]}>
-                        <DatePicker showTime placeholder="Select start time" style={{width: '100%'}}/>
-                    </Form.Item>
-                    <Form.Item name="end_time" label="End Time" rules={[{required: true}]}>
-                        <DatePicker showTime placeholder="Select end time" style={{width: '100%'}}/>
-                    </Form.Item>
-                    <Form.Item name="duration" label="Duration (minutes)" rules={[{required: true}]}>
-                        <InputNumber
-                            min={1}
-                            placeholder="Enter duration in minutes"
-                            style={{width: '100%'}}
-                        />
-                    </Form.Item>
-                    <Form.Item name="private" label="Private Tournament" valuePropName="checked">
-                        <Switch defaultChecked={false}/>
-                    </Form.Item>
-                </FormContainer>
-
-                <QuestionSelectionTitle level={4}>Select Questions for the Tournament</QuestionSelectionTitle>
-                <div
-                    style={{
-                        marginBottom: 20,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: '10px',
-                    }}
-                >
-                    <Select
-                        style={{width: 200}}
-                        value={selectedType}
-                        onChange={setSelectedType}
-                        placeholder="Select Type"
-                    >
-                        <Option key="any" value="any">
-                            Any Type
-                        </Option>
-                        {questionTypes.map((type) => (
-                            <Option key={type} value={type}>
-                                {type}
-                            </Option>
-                        ))}
-                    </Select>
-                    <Select
-                        style={{width: 200}}
-                        value={selectedDifficulty}
-                        onChange={setSelectedDifficulty}
-                        placeholder="Select Difficulty"
-                    >
-                        <Option key="any" value="any">
-                            Any Difficulty
-                        </Option>
-                        {difficulties.map((difficulty) => (
-                            <Option key={difficulty} value={difficulty}>
-                                {difficulty}
-                            </Option>
-                        ))}
-                    </Select>
-                    <Button type="primary" onClick={handleSearch}>
-                        Search
-                    </Button>
+        <PageContainer className="min-h-screen py-6 sm:py-8">
+            <div className="mb-6">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-700">
+                    Admin Tournament
                 </div>
-
-                <Row gutter={[16, 16]}>
-                    {questions.map((question) => (
-                        <Col span={8} key={question.id}>
-                            <Card
-                                title={`ID: ${question.id}`}
-                                bordered={false}
-                                onClick={() => handleSelectQuestion(question)}
-                                hoverable
-                                style={{
-                                    backgroundColor: selectedQuestions.some((q) => q.id === question.id)
-                                        ? '#e6f7ff'
-                                        : '#fff',
-                                }}
-                            >
-                                <RenderWithMath text={question.question}/>
-                                <Descriptions size="small" column={1}>
-                                    <Descriptions.Item label="Type">{question.question_type}</Descriptions.Item>
-                                    <Descriptions.Item label="Difficulty">{question.difficulty}</Descriptions.Item>
-                                </Descriptions>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-
-                <Pagination
-                    current={currentPage}
-                    pageSize={pageSize}
-                    total={totalPage}
-                    onChange={handlePageChange}
-                    style={{marginTop: '20px', textAlign: 'center'}}
-                />
-
-                <div style={{marginTop: 40}}>
-                    <Title level={4}>Selected Questions</Title>
-                    {selectedQuestions.map((question) => (
-                        <Card
-                            key={question.id}
-                            title={`ID: ${question.id}`}
-                            bordered={true}
-                            style={{marginBottom: 20}}
-                            extra={
-                                <Button
-                                    type="link"
-                                    icon={<DeleteOutlined/>}
-                                    onClick={() => handleRemoveSelectedQuestion(question.id)}
-                                />
-                            }
-                        >
-                            <RenderWithMath text={question.question}/>
-                            <Descriptions size="small" column={1}>
-                                <Descriptions.Item label="Type">{question.question_type}</Descriptions.Item>
-                                <Descriptions.Item label="Difficulty">{question.difficulty}</Descriptions.Item>
-                            </Descriptions>
-                        </Card>
-                    ))}
-
-                    <Form.Item style={{marginTop: 20}}>
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined/>}
-                            style={{backgroundColor: '#6d31a3', borderColor: '#FFD700'}}
-                            htmlType="submit"
-                            disabled={selectedQuestions.length === 0}
-                        >
-                            Create Tournament
-                        </Button>
-                    </Form.Item>
-                </div>
-            </Form>
-
-            {/* Join Code Modal */}
-            <Modal
-                title="Tournament Created!"
-                visible={joinCodeModalVisible}
-                onOk={handleModalOk}
-                onCancel={handleModalCancel}
-            >
-                <p>Your tournament join code is:</p>
-                <p
-                    style={{
-                        fontSize: '24px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        marginTop: '20px',
-                    }}
-                >
-                    {joinCode}
+                <h1 className="text-3xl font-black text-slate-950">Create a New Tournament</h1>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Create the tournament details, then select the questions that belong in the set.
                 </p>
-                <p>Please share this code with participants to allow them to join your tournament.</p>
-            </Modal>
-        </Container>
+            </div>
+
+            <form onSubmit={handleCreateTournament} className="space-y-8">
+                <Card className="p-5 sm:p-6">
+                    <div className="grid gap-5 lg:grid-cols-2">
+                        <Field label="Tournament Name">
+                            <Input
+                                value={formValues.name}
+                                onChange={(event) => updateFormValue('name', event.target.value)}
+                                placeholder="July SAT Duel"
+                            />
+                        </Field>
+                        <Field label="Duration (minutes)">
+                            <Input
+                                type="number"
+                                min="1"
+                                value={formValues.duration}
+                                onChange={(event) => updateFormValue('duration', event.target.value)}
+                                placeholder="30"
+                            />
+                        </Field>
+                        <Field label="Start Time">
+                            <Input
+                                type="datetime-local"
+                                value={formValues.start_time}
+                                onChange={(event) => updateFormValue('start_time', event.target.value)}
+                            />
+                        </Field>
+                        <Field label="End Time">
+                            <Input
+                                type="datetime-local"
+                                value={formValues.end_time}
+                                onChange={(event) => updateFormValue('end_time', event.target.value)}
+                            />
+                        </Field>
+                    </div>
+                    <div className="mt-5">
+                        <Field label="Description">
+                            <Textarea
+                                rows={4}
+                                value={formValues.description}
+                                onChange={(event) => updateFormValue('description', event.target.value)}
+                                placeholder="What students should expect from this tournament"
+                            />
+                        </Field>
+                    </div>
+                    <div className="mt-5">
+                        <Toggle
+                            checked={formValues.private}
+                            onChange={(checked) => updateFormValue('private', checked)}
+                            label="Private Tournament"
+                            description="Private tournaments generate a join code for invited participants."
+                        />
+                    </div>
+                </Card>
+
+                <section>
+                    <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-950">Select Questions</h2>
+                            <p className="mt-1 text-sm text-slate-500">{selectedQuestions.length} selected</p>
+                        </div>
+                        <Card className="p-3">
+                            <div className="grid gap-3 md:grid-cols-[260px_180px_auto]">
+                                <Select value={selectedType} onChange={(event) => setSelectedType(event.target.value)}>
+                                    <option value="any">Any Type</option>
+                                    {questionTypes.map((type) => (
+                                        <option key={type} value={type}>{type}</option>
+                                    ))}
+                                </Select>
+                                <Select
+                                    value={selectedDifficulty}
+                                    onChange={(event) => setSelectedDifficulty(event.target.value)}
+                                >
+                                    <option value="any">Any Difficulty</option>
+                                    {difficulties.map((difficulty) => (
+                                        <option key={difficulty} value={difficulty}>{difficulty}</option>
+                                    ))}
+                                </Select>
+                                <Button type="button" onClick={() => {
+                                    setCurrentPage(1);
+                                    fetchQuestions();
+                                }}>
+                                    <Search size={18}/> Search
+                                </Button>
+                            </div>
+                        </Card>
+                    </div>
+
+                    <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                        {questions.map((question) => {
+                            const selected = selectedQuestions.some((q) => q.id === question.id);
+                            return (
+                                <QuestionCard
+                                    key={question.id}
+                                    question={question}
+                                    selected={selected}
+                                    onClick={() => handleSelectQuestion(question)}
+                                    action={selected && (
+                                        <span className="rounded-full bg-primary-600 px-2.5 py-1 text-xs font-black text-white">
+                                            Selected
+                                        </span>
+                                    )}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-6 flex flex-col items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row">
+                        <p className="text-sm font-semibold text-slate-500">
+                            Page {currentPage} of {totalPages} · {total} total questions
+                        </p>
+                        <div className="flex gap-2">
+                            <Button type="button" variant="secondary" size="sm" disabled={currentPage <= 1} onClick={() => goToPage(currentPage - 1)}>
+                                <ChevronLeft size={16}/> Previous
+                            </Button>
+                            <Button type="button" variant="secondary" size="sm" disabled={currentPage >= totalPages} onClick={() => goToPage(currentPage + 1)}>
+                                Next <ChevronRight size={16}/>
+                            </Button>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 className="mb-4 text-2xl font-black text-slate-950">Selected Questions</h2>
+                    {selectedQuestions.length === 0 ? (
+                        <Card className="p-6 text-sm font-semibold text-slate-500">
+                            No questions selected yet.
+                        </Card>
+                    ) : (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {selectedQuestions.map((question) => (
+                                <QuestionCard
+                                    key={question.id}
+                                    question={question}
+                                    selected={false}
+                                    onClick={() => setSelectedQuestions((current) => current.filter((q) => q.id !== question.id))}
+                                    action={<Trash2 size={18} className="text-rose-500"/>}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="mt-6 flex justify-end">
+                        <Button type="submit" disabled={selectedQuestions.length === 0} loading={creating}>
+                            <Plus size={18}/> Create Tournament
+                        </Button>
+                    </div>
+                </section>
+            </form>
+
+            <ModalShell
+                open={joinCodeModalVisible}
+                title="Tournament Created"
+                onClose={closeJoinCodeModal}
+                footer={<Button onClick={closeJoinCodeModal}>Done</Button>}
+            >
+                <p className="text-sm leading-6 text-slate-500">
+                    Share this join code with participants to let them enter the tournament.
+                </p>
+                <div className="mt-5 rounded-2xl border-2 border-dashed border-primary-300 bg-primary-50 px-5 py-6 text-center text-3xl font-black tracking-[0.18em] text-primary-700">
+                    {joinCode}
+                </div>
+            </ModalShell>
+        </PageContainer>
     );
-};
+}
 
 export default withAuth(AdminCreateTournamentPage, true);

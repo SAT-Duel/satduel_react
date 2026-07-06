@@ -4,13 +4,11 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@ant-design/icons": "^5.3.7",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@react-oauth/google": "^0.12.1",
     "@tailwindcss/vite": "^4.3.2",
-    "antd": "^5.19.3",
     "aos": "^2.3.4",
     "axios": "^1.18.1",
     "country-codes-list": "^1.6.11",

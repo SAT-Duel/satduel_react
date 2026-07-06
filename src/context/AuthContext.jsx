@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState, useEffect} from 'react';
 import axios from "axios";
-import {message} from 'antd';
+import {notify} from '../utils/notify';
 
 const AuthContext = createContext(null);
 
@@ -26,7 +26,7 @@ export const AuthProvider = ({children}) => {
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
-            message.success(response.data.message);
+            notify.success(response.data.message);
         } catch (error) {
             console.error('Logout failed', error);
         }

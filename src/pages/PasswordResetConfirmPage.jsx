@@ -1,41 +1,21 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // or useNavigate if you're using React Router v6
-import { Form, Input, Button, Card, Typography, Space, message } from 'antd';
+import React, {useState} from 'react';
+import {LockKeyhole} from 'lucide-react';
+import {useParams, useNavigate} from 'react-router-dom';
 import api from '../components/api';
+import {Button, Card, Field, Input, PageContainer} from '../components/ui';
+import {notify} from '../utils/notify';
 
-const { Title } = Typography;
-
-const containerStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    background: '#f0f2f5',
-};
-
-const cardStyle = {
-    width: 400,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    borderRadius: '8px',
-    padding: '20px',
-    backgroundColor: '#ffffff'
-};
-
-const titleStyle = {
-    textAlign: 'center',
-    marginBottom: '20px',
-};
-
-const PasswordResetConfirmPage = () => {
+function PasswordResetConfirmPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const { uidb64, token } = useParams();
-    const navigate = useNavigate(); // or useNavigate() in React Router v6
+    const {uidb64, token} = useParams();
+    const navigate = useNavigate();
 
-    const handlePasswordResetConfirm = async () => {
+    const handlePasswordResetConfirm = async (event) => {
+        event.preventDefault();
         if (password !== confirmPassword) {
-            message.error('Passwords do not match.');
+            notify.error('Passwords do not match.');
             return;
         }
 
@@ -43,64 +23,58 @@ const PasswordResetConfirmPage = () => {
         try {
             const baseUrl = import.meta.env.VITE_API_URL;
             const response = await api.post(`${baseUrl}/api/reset/${uidb64}/${token}/`, {
-                'new_password1': password,
-                'new_password2': confirmPassword
+                new_password1: password,
+                new_password2: confirmPassword,
             });
 
             if (response.status === 200) {
-                message.success('Password reset successful.');
-                navigate('/login'); // Redirect to login page
+                notify.success('Password reset successful.');
+                navigate('/login');
             } else {
-                message.error('Invalid token or link expired.');
+                notify.error('Invalid token or link expired.');
             }
-        } catch (error) {
-            message.error('Error resetting password. Please try again.');
+        } catch {
+            notify.error('Error resetting password. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={containerStyle}>
-            <Card style={cardStyle}>
-                <Space direction="vertical" style={{ width: '100%' }}>
-                    <Title level={2} style={titleStyle}>Set New Password</Title>
-                    <Form
-                        name="password_reset_confirm"
-                        onFinish={handlePasswordResetConfirm}
-                    >
-                        <Form.Item
-                            name="password"
-                            rules={[{ required: true, message: 'Please input your new password!' }]}
-                        >
-                            <Input.Password
-                                placeholder="New Password"
+        <div className="sat-bubble-field min-h-screen py-12 sm:py-16">
+            <PageContainer className="max-w-md">
+                <Card className="sat-arena-card p-6 sm:p-8">
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+                        <LockKeyhole className="size-7"/>
+                    </div>
+                    <h1 className="m-0 mt-5 text-center font-display text-3xl font-black text-slate-950">
+                        Set new password
+                    </h1>
+                    <form onSubmit={handlePasswordResetConfirm} className="mt-6 space-y-4">
+                        <Field label="New password">
+                            <Input
+                                type="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(event) => setPassword(event.target.value)}
+                                required
                             />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="confirm_password"
-                            rules={[{ required: true, message: 'Please confirm your new password!' }]}
-                        >
-                            <Input.Password
-                                placeholder="Confirm New Password"
+                        </Field>
+                        <Field label="Confirm password">
+                            <Input
+                                type="password"
                                 value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                onChange={(event) => setConfirmPassword(event.target.value)}
+                                required
                             />
-                        </Form.Item>
-
-                        <Form.Item>
-                            <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
-                                Reset Password
-                            </Button>
-                        </Form.Item>
-                    </Form>
-                </Space>
-            </Card>
+                        </Field>
+                        <Button type="submit" block loading={loading}>
+                            Reset password
+                        </Button>
+                    </form>
+                </Card>
+            </PageContainer>
         </div>
     );
-};
+}
 
 export default PasswordResetConfirmPage;

@@ -1,55 +1,10 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
-import styled from 'styled-components';
-import {Card, Typography, Modal, Button} from 'antd';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import axios from 'axios';
+import {Flame} from 'lucide-react';
 import Question from '../../components/Question';
-import axios from "axios";
-import {useAuth} from "../../context/AuthContext";
-import api from "../../components/api";
-
-const {Title, Text} = Typography;
-
-const PageContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    padding: 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-`;
-
-const ContentWrapper = styled.div`
-    display: flex;
-    width: 100%;
-    max-width: 1200px;
-    gap: 40px;
-`;
-
-const QuestionContainer = styled.div`
-    flex: 3;
-`;
-
-const StatsContainer = styled(Card)`
-    flex: 1;
-    height: fit-content;
-    text-align: center;
-`;
-
-const StreakCounter = styled(Title)`
-    font-size: 4rem;
-    margin-bottom: 0;
-    color: #1890ff;
-`;
-
-const ResultModal = styled(Modal)`
-    text-align: center;
-
-    .ant-modal-content {
-        border-radius: 8px;
-    }
-`;
-
-const NextButton = styled(Button)`
-    margin-top: 16px;
-`;
+import {useAuth} from '../../context/AuthContext';
+import api from '../../components/api';
+import {Button, Card, ModalShell, PageContainer, Spinner} from '../../components/ui';
 
 function SATSurvivalPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -61,7 +16,6 @@ function SATSurvivalPage() {
     const {token} = useAuth();
     const hasFetchedData = useRef(false);
 
-
     const fetchNextQuestion = useCallback(async () => {
         try {
             setLoading(true);
@@ -70,14 +24,14 @@ function SATSurvivalPage() {
                 difficulty: 'any',
                 page: 1,
                 page_size: 1,
-                random: true
+                random: true,
             }).toString();
             const response = await api.get(`api/filter_questions/?${queryParams}`);
-            setCurrentQuestion(response.data.questions[0]);
+            setCurrentQuestion(response.data.questions?.[0] || null);
             setQuestionStatus('Blank');
-        } catch (error) {
-            setError(`An error occurred: ${error.response ? error.response.data : 'Server unreachable'}`);
-            console.error("Error fetching question:", error);
+        } catch (fetchError) {
+            setError(`An error occurred: ${fetchError.response ? fetchError.response.data : 'Server unreachable'}`);
+            console.error('Error fetching question:', fetchError);
         } finally {
             setLoading(false);
         }
@@ -93,36 +47,49 @@ function SATSurvivalPage() {
     const handleQuestionSubmit = async (id, choice) => {
         try {
             const baseUrl = import.meta.env.VITE_API_URL;
-            const response = await api.post(`${baseUrl}/api/check_answer/`, {
+            const response = await api.post('api/check_answer/', {
                 question_id: id,
-                selected_choice: choice
+                selected_choice: choice,
             });
             const isCorrect = response.data.result === 'correct';
 
             if (isCorrect) {
                 setQuestionStatus('Correct');
-                setStreak(prevStreak => prevStreak + 1);
+                setStreak((prevStreak) => prevStreak + 1);
             } else {
                 setQuestionStatus('Incorrect');
                 setGameOver(true);
                 await axios.patch(`${baseUrl}/api/profile/update_streak/`, {
-                    max_streak: streak
+                    max_streak: streak,
                 }, {
-                    headers: {'Authorization': `Bearer ${token}`}
+                    headers: {Authorization: `Bearer ${token}`},
                 });
             }
-        } catch (error) {
-            setError('Error checking answer: ' + (error.response ? error.response.data.error : 'Server unreachable'));
+        } catch (submitError) {
+            setError(`Error checking answer: ${submitError.response ? submitError.response.data.error : 'Server unreachable'}`);
         }
     };
 
-    if (loading) return <PageContainer><p>Loading question... Please wait...</p></PageContainer>;
-    if (error) return <PageContainer><p>Error loading question: {error}</p></PageContainer>;
+    if (loading) {
+        return (
+            <PageContainer className="flex min-h-screen items-center justify-center">
+                <Spinner/>
+            </PageContainer>
+        );
+    }
+
+    if (error) {
+        return (
+            <PageContainer className="flex min-h-screen items-center justify-center py-8">
+                <Card className="max-w-xl p-6 text-center text-rose-600">{error}</Card>
+            </PageContainer>
+        );
+    }
 
     return (
-        <PageContainer>
-            <ContentWrapper>
-                <QuestionContainer>
+        <PageContainer className="min-h-screen py-6 sm:py-8">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <div>
                     {currentQuestion && (
                         <Question
                             questionData={currentQuestion}
@@ -132,27 +99,43 @@ function SATSurvivalPage() {
                         />
                     )}
                     {questionStatus === 'Correct' && (
-                        <NextButton type="primary" onClick={fetchNextQuestion}>Next Question</NextButton>
+                        <Button className="mt-4" onClick={fetchNextQuestion}>
+                            Next Question
+                        </Button>
                     )}
-                </QuestionContainer>
-                <StatsContainer>
-                    <Title level={3}>Current Streak</Title>
-                    <StreakCounter level={1}>{streak}</StreakCounter>
-                    <Text type="secondary">Questions answered correctly</Text>
-                </StatsContainer>
-            </ContentWrapper>
+                </div>
 
-            <ResultModal
-                visible={gameOver}
-                onOk={() => window.location.reload()}
-                onCancel={() => window.location.href = '/trainer'}
-                okText="Try Again"
-                cancelText="Back to Trainer"
+                <Card className="h-fit p-6 text-center lg:sticky lg:top-6">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border-2 border-rose-200 bg-rose-50 text-rose-600">
+                        <Flame size={26}/>
+                    </div>
+                    <h2 className="text-lg font-black text-slate-950">Current Streak</h2>
+                    <div className="my-3 text-6xl font-black text-primary-700">{streak}</div>
+                    <p className="text-sm leading-6 text-slate-500">Questions answered correctly</p>
+                </Card>
+            </div>
+
+            <ModalShell
+                open={gameOver}
+                title="Game Over"
+                onClose={() => { window.location.href = '/trainer'; }}
+                footer={(
+                    <>
+                        <Button variant="secondary" onClick={() => { window.location.href = '/trainer'; }}>
+                            Back to Trainer
+                        </Button>
+                        <Button onClick={() => window.location.reload()}>Try Again</Button>
+                    </>
+                )}
             >
-                <Title level={2}>Game Over!</Title>
-                <Title level={3}>Your final score: {streak}</Title>
-                <Text>Great job! You answered {streak} questions correctly in a row.</Text>
-            </ResultModal>
+                <p className="text-sm leading-6 text-slate-500">
+                    Great job. You answered {streak} questions correctly in a row.
+                </p>
+                <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
+                    <div className="text-sm font-black uppercase tracking-[0.16em] text-slate-400">Final Score</div>
+                    <div className="mt-2 text-5xl font-black text-slate-950">{streak}</div>
+                </div>
+            </ModalShell>
         </PageContainer>
     );
 }

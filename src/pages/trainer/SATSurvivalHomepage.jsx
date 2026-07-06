@@ -1,139 +1,58 @@
 import React from 'react';
-import { Card, Button, Typography, List } from 'antd';
-import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFire, faRocket, faBolt, faTrophy, faPlay } from '@fortawesome/free-solid-svg-icons';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import {Bolt, Flame, Play, Rocket, Trophy} from 'lucide-react';
+import {Button, Card, PageContainer} from '../../components/ui';
 
-// Initialize AOS
-AOS.init({ duration: 1000, once: true });
+const rules = [
+    {
+        icon: Rocket,
+        title: 'Progressive Difficulty',
+        text: 'Start with easier questions and climb into harder ones as your streak grows.',
+    },
+    {
+        icon: Bolt,
+        title: 'Endurance Challenge',
+        text: 'Keep answering until a mistake ends the run.',
+    },
+    {
+        icon: Trophy,
+        title: 'Skill Mastery',
+        text: 'Use the streak format to build focus and pressure tolerance.',
+    },
+];
 
-const { Title, Paragraph } = Typography;
+function SATSurvivalHomepage() {
+    return (
+        <PageContainer className="min-h-screen py-8 sm:py-10">
+            <Card className="mb-6 overflow-hidden p-6 sm:p-8">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-rose-600">
+                            <Flame size={14}/> Survival Mode
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-950 sm:text-5xl">SAT Survival</h1>
+                        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
+                            Build unbreakable knowledge through a question streak that only ends when you miss.
+                        </p>
+                    </div>
+                    <Button to="/sat_survival" size="lg">
+                        <Play size={18}/> Start Training
+                    </Button>
+                </div>
+            </Card>
 
-const PageContainer = styled.div`
-  min-height: 100vh;
-  background-color: #f4f1f8;
-  padding: 40px;
-`;
-
-const ContentWrapper = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const HeaderSection = styled.div`
-  background-color: #8e44ad;
-  color: white;
-  padding: 60px;
-  border-radius: 15px;
-  text-align: center;
-  margin-bottom: 40px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-  }
-`;
-
-const StyledCard = styled(Card)`
-  border-radius: 15px;
-  margin-bottom: 30px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  }
-`;
-
-const StartButton = styled(Button)`
-  background-color: #8e44ad;
-  border-color: #8e44ad;
-  height: auto;
-  padding: 12px 40px;
-  font-size: 1.2rem;
-  border-radius: 30px;
-  margin-top: 20px;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: #9b59b6;
-    border-color: #9b59b6;
-    transform: scale(1.05);
-  }
-`;
-
-const IconWrapper = styled.div`
-  font-size: 48px;
-  margin-bottom: 20px;
-  color: #f1c40f;
-`;
-
-const ListItemIcon = styled(FontAwesomeIcon)`
-  font-size: 24px;
-  color: #8e44ad;
-`;
-
-const ListItemTitle = styled(Title)`
-  && {
-    margin-bottom: 0;
-  }
-`;
-
-const SATSurvivalHomepage = () => {
-  return (
-    <PageContainer>
-      <ContentWrapper>
-        <HeaderSection data-aos="fade-down">
-          <IconWrapper>
-            <FontAwesomeIcon icon={faFire} />
-          </IconWrapper>
-          <Title level={1} style={{ color: 'white', marginBottom: 20 }}>SAT Survival</Title>
-          <Paragraph style={{ color: 'white', fontSize: '1.1rem' }}>
-            Build unbreakable knowledge through progressive difficulty levels.
-          </Paragraph>
-        </HeaderSection>
-
-        <StyledCard data-aos="fade-up">
-          <Title level={2} style={{ color: '#8e44ad', marginBottom: 30 }}>How It Works</Title>
-          <List
-            itemLayout="horizontal"
-            dataSource={[
-              { icon: faRocket, text: "Start with easier questions and progress to more challenging ones.", title: "Progressive Difficulty" },
-              { icon: faBolt, text: "Answer as many questions as you can without making a mistake.", title: "Endurance Challenge" },
-              { icon: faTrophy, text: "Compete for the highest streak and improve your SAT skills!", title: "Skill Mastery" },
-            ]}
-            renderItem={item => (
-              <List.Item>
-                <List.Item.Meta
-                  avatar={<ListItemIcon icon={item.icon} />}
-                  title={<ListItemTitle level={4}>{item.title}</ListItemTitle>}
-                  description={<Paragraph>{item.text}</Paragraph>}
-                />
-              </List.Item>
-            )}
-          />
-        </StyledCard>
-
-        <StyledCard data-aos="fade-up">
-          <Title level={2} style={{ color: '#8e44ad' }}>Ready to Challenge Yourself?</Title>
-          <Paragraph style={{ fontSize: '1.1rem' }}>
-            Start your SAT Survival journey and push your limits!
-          </Paragraph>
-          <Link to="/sat_survival">
-            <StartButton type="primary" size="large" icon={<FontAwesomeIcon icon={faPlay} />}>
-              Start Training
-            </StartButton>
-          </Link>
-        </StyledCard>
-      </ContentWrapper>
-    </PageContainer>
-  );
-};
+            <div className="grid gap-4 md:grid-cols-3">
+                {rules.map(({icon: Icon, title, text}) => (
+                    <Card key={title} className="p-5">
+                        <div className="mb-4 flex size-12 items-center justify-center rounded-2xl border-2 border-primary-200 bg-primary-50 text-primary-700">
+                            <Icon size={24}/>
+                        </div>
+                        <h2 className="text-lg font-black text-slate-950">{title}</h2>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">{text}</p>
+                    </Card>
+                ))}
+            </div>
+        </PageContainer>
+    );
+}
 
 export default SATSurvivalHomepage;
