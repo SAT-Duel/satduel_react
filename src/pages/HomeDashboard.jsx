@@ -66,9 +66,9 @@ const STAT_DEFS = [
         icon: Flame,
         bubble: 'C',
         color: 'text-orange-700 bg-orange-100',
-        get: (d) => d.loginStreak ?? 0,
-        earn: 'Practice every day. Miss a day and it resets.',
-        detail: 'Consecutive days you have practiced. Finish your Daily Focused Practice each day to keep the flame alive — streaks are the single best predictor of score improvement.',
+        get: (d) => d.daily?.streak ?? 0,
+        earn: 'Answer 10 practice questions a day. Miss a day and it resets.',
+        detail: 'Consecutive days you have finished your Daily Focused Practice (10 answered questions before your local midnight). Miss a day and the flame goes out — streaks are the single best predictor of score improvement.',
     },
     {
         key: 'solved',
@@ -227,24 +227,23 @@ function SecondaryTile({label, icon: Icon, to, blurb, navigate}) {
 function HomeDashboard() {
     const {user} = useAuth();
     const navigate = useNavigate();
-    const [data, setData] = useState({profile: null, stats: null, quota: null, loginStreak: 0});
+    const [data, setData] = useState({profile: null, stats: null, quota: null, daily: null});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
-            const [profile, stats, status, streak] = await Promise.all([
+            const [profile, stats, status] = await Promise.all([
                 api.get('api/profile/').then((r) => r.data).catch(() => null),
                 api.get('api/trainer/infinite_question_stats/').then((r) => r.data).catch(() => null),
                 api.get('api/practice/status/').then((r) => r.data).catch(() => null),
-                api.get('api/user_streak/').then((r) => r.data).catch(() => null),
             ]);
             if (cancelled) return;
             setData({
                 profile,
                 stats,
                 quota: status?.quota || null,
-                loginStreak: streak?.login_streak ?? 0,
+                daily: status?.daily || null,
             });
             setLoading(false);
         };
@@ -254,10 +253,13 @@ function HomeDashboard() {
         };
     }, []);
 
-    const doneToday = data.quota?.used ?? 0;
-    const shownDoneToday = Math.min(doneToday, DAILY_GOAL);
-    const dailyProgress = Math.min(100, (doneToday / DAILY_GOAL) * 100);
-    const dailyComplete = doneToday >= DAILY_GOAL;
+    const daily = data.daily;
+    const dailyGoal = daily?.goal ?? DAILY_GOAL;
+    const doneToday = daily?.count ?? 0;
+    const shownDoneToday = Math.min(doneToday, dailyGoal);
+    const dailyProgress = Math.min(100, (doneToday / dailyGoal) * 100);
+    const dailyComplete = daily?.completed_today ?? doneToday >= dailyGoal;
+    const streak = daily?.streak ?? 0;
     const isPremium = data.profile?.is_premium ?? user?.is_premium;
 
     const dailyRing = useMemo(() => {
@@ -283,8 +285,19 @@ function HomeDashboard() {
                         {greeting()}, {user?.username}
                     </h1>
                     <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3.5 py-1.5 text-sm font-bold text-orange-700">
-                            <Flame className="size-4"/> {data.loginStreak} day streak
+                        <span
+                            className={[
+                                'inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-bold',
+                                dailyComplete
+                                    ? 'border-orange-200 bg-orange-100 text-orange-700'
+                                    : 'border-slate-200 bg-white text-slate-500',
+                            ].join(' ')}
+                            title={dailyComplete
+                                ? 'Daily goal complete — streak is safe!'
+                                : `Answer ${dailyGoal} questions today to keep your streak`}
+                        >
+                            <Flame className={`size-4 ${dailyComplete ? 'text-orange-500' : 'text-slate-400'}`}/>
+                            {streak} day streak
                         </span>
                         {isPremium && (
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1.5 text-sm font-bold text-primary-700">
@@ -311,7 +324,7 @@ function HomeDashboard() {
                                     />
                                 </svg>
                                 <span className="absolute text-sm font-bold text-slate-700">
-                                    {shownDoneToday}/{DAILY_GOAL}
+                                    {shownDoneToday}/{dailyGoal}
                                 </span>
                             </div>
 
@@ -321,8 +334,8 @@ function HomeDashboard() {
                                 </h2>
                                 <p className="m-0 mt-1 text-[15px] text-slate-600">
                                     {dailyComplete
-                                        ? "Nice — you've hit today's goal. Keep going to stretch your streak!"
-                                        : `Answer ${DAILY_GOAL - doneToday} more question${DAILY_GOAL - doneToday === 1 ? '' : 's'} to finish today and keep your streak.`}
+                                        ? `Day ${streak} in the books — your streak is safe. Keep going if you're on a roll!`
+                                        : `Answer ${Math.max(0, dailyGoal - doneToday)} more question${dailyGoal - doneToday === 1 ? '' : 's'} to finish today and keep your streak.`}
                                 </p>
                                 <ProgressBubbles value={doneToday}/>
                                 <div className="mt-4">
@@ -332,6 +345,31 @@ function HomeDashboard() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Last 7 days */}
+                        {daily?.week?.length > 0 && (
+                            <div className="relative flex items-center justify-between gap-1 border-t border-slate-100 px-6 py-4">
+                                {daily.week.map((day) => (
+                                    <div key={day.date} className="flex flex-1 flex-col items-center gap-1.5" title={`${day.date}: ${day.count} answered`}>
+                                        <span
+                                            className={[
+                                                'flex size-8 items-center justify-center rounded-full',
+                                                day.completed
+                                                    ? 'bg-orange-100'
+                                                    : day.is_today
+                                                        ? 'border-2 border-dashed border-primary-300 bg-white'
+                                                        : 'bg-slate-100',
+                                            ].join(' ')}
+                                        >
+                                            <Flame className={`size-4 ${day.completed ? 'text-orange-500' : 'text-slate-300'}`}/>
+                                        </span>
+                                        <span className={`text-[11px] font-bold ${day.is_today ? 'text-primary-600' : 'text-slate-400'}`}>
+                                            {day.is_today ? 'Today' : day.weekday}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </Card>
 
                     {/* Quick actions */}

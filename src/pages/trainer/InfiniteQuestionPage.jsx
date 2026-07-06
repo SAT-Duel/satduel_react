@@ -96,6 +96,8 @@ function InfiniteQuestionsPage() {
     const [limitReached, setLimitReached] = useState(false);
     const [billingLoading, setBillingLoading] = useState(false);
     const [ratingFeedback, setRatingFeedback] = useState(null);
+    const [daily, setDaily] = useState(null);
+    const [streakCelebration, setStreakCelebration] = useState(null);
     const [stats, setStats] = useState({
         questionsAnswered: 0,
         correctAnswers: 0,
@@ -141,6 +143,7 @@ function InfiniteQuestionsPage() {
             setQuota(response.data.quota || null);
             setSpElo(response.data.sp_elo_rating ?? null);
             setTopics(response.data.topics || []);
+            setDaily(response.data.daily || null);
             if (response.data.quota?.remaining === 0) {
                 setLimitReached(true);
             }
@@ -172,6 +175,12 @@ function InfiniteQuestionsPage() {
             });
             if (response.data.quota) setQuota(response.data.quota);
             if (response.data.sp_elo_rating != null) setSpElo(response.data.sp_elo_rating);
+            if (response.data.daily) {
+                setDaily(response.data.daily);
+                if (response.data.daily.streak_extended) {
+                    setStreakCelebration(response.data.daily.streak);
+                }
+            }
 
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
@@ -347,6 +356,21 @@ function InfiniteQuestionsPage() {
                                     </span>
                                 )}
                             </div>
+                            {daily && (
+                                <div className="mt-4 flex items-center justify-between rounded-xl bg-orange-50/70 px-4 py-3">
+                                    <span className="inline-flex items-center gap-2 text-sm font-bold text-slate-700">
+                                        <Flame className={`size-4 ${daily.completed_today ? 'text-orange-500' : 'text-slate-300'}`}/>
+                                        {daily.completed_today
+                                            ? `Streak safe — day ${daily.streak}`
+                                            : `Daily goal: ${Math.min(daily.count, daily.goal)}/${daily.goal}`}
+                                    </span>
+                                    {!daily.completed_today && (
+                                        <span className="text-xs font-semibold text-slate-400">
+                                            {daily.goal - daily.count} to go
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                             {quota && (
                                 <div className="mt-4">
                                     {quota.limit == null ? (
@@ -385,6 +409,29 @@ function InfiniteQuestionsPage() {
                     </aside>
                 </div>
             </PageContainer>
+
+            {/* Streak-extended celebration (the 10th answer of the day) */}
+            {streakCelebration != null && (
+                <div
+                    className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/50 px-4"
+                    onClick={() => setStreakCelebration(null)}
+                >
+                    <div className="sat-arena-card w-full max-w-sm rounded-[1.75rem] border border-orange-200 bg-white p-8 text-center shadow-2xl">
+                        <div className="mx-auto flex size-20 animate-bounce items-center justify-center rounded-full bg-orange-100">
+                            <Flame className="size-10 text-orange-500"/>
+                        </div>
+                        <p className="m-0 mt-5 font-display text-3xl font-black text-slate-950">
+                            Day {streakCelebration}!
+                        </p>
+                        <p className="m-0 mt-2 text-[15px] text-slate-600">
+                            Daily goal complete — your streak is safe. Come back tomorrow to keep the flame alive.
+                        </p>
+                        <Button className="mt-6" block onClick={() => setStreakCelebration(null)}>
+                            Keep practicing
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
