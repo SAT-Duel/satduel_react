@@ -17,6 +17,8 @@ import {
     BookText,
     Lock,
     CheckCircle2,
+    CircleDot,
+    BookOpenCheck,
 } from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
@@ -40,8 +42,9 @@ function greeting() {
 const STAT_DEFS = [
     {
         key: 'practice_rating',
-        label: 'Practice Rating',
+        label: 'Practice Elo',
         icon: Target,
+        bubble: 'A',
         color: 'text-primary-700 bg-primary-100',
         get: (d) => d.profile?.sp_elo_rating ?? '—',
         earn: 'Answer practice questions — only your first try at each one counts.',
@@ -49,8 +52,9 @@ const STAT_DEFS = [
     },
     {
         key: 'duel_rating',
-        label: 'Duel Rating',
+        label: 'Duel Elo',
         icon: Swords,
+        bubble: 'B',
         color: 'text-rose-700 bg-rose-100',
         get: (d) => d.profile?.elo_rating ?? '—',
         earn: 'Win duels against other students.',
@@ -60,6 +64,7 @@ const STAT_DEFS = [
         key: 'streak',
         label: 'Day Streak',
         icon: Flame,
+        bubble: 'C',
         color: 'text-orange-700 bg-orange-100',
         get: (d) => d.loginStreak ?? 0,
         earn: 'Practice every day. Miss a day and it resets.',
@@ -69,6 +74,7 @@ const STAT_DEFS = [
         key: 'solved',
         label: 'Questions Answered',
         icon: CheckCircle2,
+        bubble: 'D',
         color: 'text-emerald-700 bg-emerald-100',
         get: (d) => (d.stats?.correct_number ?? 0) + (d.stats?.incorrect_number ?? 0),
         earn: 'Every practice answer you submit counts here.',
@@ -79,24 +85,62 @@ const STAT_DEFS = [
 function StatCard({def, data}) {
     const Icon = def.icon;
     return (
-        <Card className="p-4">
-            <div className={`mb-3 flex size-10 items-center justify-center rounded-xl ${def.color}`}>
-                <Icon className="size-5"/>
+        <Card className="sat-arena-card relative overflow-hidden p-4">
+            <div className="sat-score-strip absolute inset-x-0 top-0 h-1 border-0"/>
+            <div className="flex items-start justify-between gap-3">
+                <div className={`mb-3 flex size-10 items-center justify-center rounded-xl ${def.color}`}>
+                    <Icon className="size-5"/>
+                </div>
+                <span className="sat-answer-bubble inline-flex size-8 items-center justify-center rounded-full bg-white text-xs font-black text-slate-500">
+                    {def.bubble}
+                </span>
             </div>
             <div className="flex items-baseline gap-2">
-                <p className="m-0 text-2xl font-bold text-slate-900">{def.get(data)}</p>
+                <p className="m-0 font-display text-3xl font-black text-slate-950">{def.get(data)}</p>
                 {def.sub && <span className="text-sm font-semibold text-slate-400">{def.sub(data)}</span>}
             </div>
-            <p className="m-0 mt-0.5 text-sm font-semibold text-slate-700">{def.label}</p>
+            <p className="m-0 mt-0.5 text-sm font-black text-slate-800">{def.label}</p>
             <p className="m-0 mt-2 text-xs leading-relaxed text-slate-500">{def.earn}</p>
         </Card>
+    );
+}
+
+function SectionHeader({icon: Icon, title, subtitle, action, quiet = false}) {
+    return (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h2 className={`m-0 flex items-center gap-2 font-display text-xl font-black ${quiet ? 'text-slate-800' : 'text-slate-950'}`}>
+                    {Icon && <Icon className={`size-5 ${quiet ? 'text-slate-400' : 'text-primary-600'}`}/>}
+                    {title}
+                </h2>
+                {subtitle && <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">{subtitle}</p>}
+            </div>
+            {action}
+        </div>
+    );
+}
+
+function ProgressBubbles({value, total = DAILY_GOAL}) {
+    const filled = Math.min(total, Math.max(0, Math.round(value)));
+    return (
+        <div className="mt-4 grid grid-cols-10 gap-1.5" aria-hidden="true">
+            {Array.from({length: total}).map((_, index) => (
+                <span
+                    key={index}
+                    className={[
+                        'h-2.5 rounded-full transition-colors',
+                        index < filled ? 'bg-primary-600 shadow-[0_2px_0_rgba(90,33,182,0.25)]' : 'bg-slate-200',
+                    ].join(' ')}
+                />
+            ))}
+        </div>
     );
 }
 
 function HowItWorks() {
     const [open, setOpen] = useState(false);
     return (
-        <Card className="mt-4 overflow-hidden">
+        <Card className="sat-arena-card mt-4 overflow-hidden">
             <button
                 onClick={() => setOpen((o) => !o)}
                 className="flex w-full cursor-pointer items-center justify-between gap-3 px-5 py-4 text-left"
@@ -145,6 +189,41 @@ const STUDY_GUIDES = [
     {label: 'Reading & Writing', icon: BookText, color: 'bg-violet-100 text-violet-700'},
 ];
 
+function QuickActionCard({label, icon: Icon, to, blurb, tone, navigate}) {
+    return (
+        <button
+            onClick={() => navigate(to)}
+            className="sat-arena-card group flex cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md"
+        >
+            <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+                <Icon className="size-5"/>
+            </div>
+            <div className="min-w-0 flex-1">
+                <p className="m-0 font-black text-slate-950">{label}</p>
+                <p className="m-0 truncate text-xs text-slate-500">{blurb}</p>
+            </div>
+            <ArrowRight className="size-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-primary-500"/>
+        </button>
+    );
+}
+
+function SecondaryTile({label, icon: Icon, to, blurb, navigate}) {
+    return (
+        <button
+            onClick={() => navigate(to)}
+            className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-primary-300 hover:shadow-md"
+        >
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                <Icon className="size-5"/>
+            </div>
+            <div className="min-w-0">
+                <p className="m-0 font-semibold text-slate-900">{label}</p>
+                <p className="m-0 text-xs text-slate-500">{blurb}</p>
+            </div>
+        </button>
+    );
+}
+
 function HomeDashboard() {
     const {user} = useAuth();
     const navigate = useNavigate();
@@ -176,6 +255,7 @@ function HomeDashboard() {
     }, []);
 
     const doneToday = data.quota?.used ?? 0;
+    const shownDoneToday = Math.min(doneToday, DAILY_GOAL);
     const dailyProgress = Math.min(100, (doneToday / DAILY_GOAL) * 100);
     const dailyComplete = doneToday >= DAILY_GOAL;
     const isPremium = data.profile?.is_premium ?? user?.is_premium;
@@ -188,39 +268,45 @@ function HomeDashboard() {
 
     if (loading) {
         return (
-            <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="flex min-h-[60vh] items-center justify-center bg-slate-50">
                 <Spinner/>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 py-8">
+        <div className="sat-bubble-field min-h-screen py-6 sm:py-8">
             <PageContainer>
                 {/* Greeting */}
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div className="mb-6 rounded-[1.75rem] border border-slate-200 bg-white/85 p-4 shadow-sm backdrop-blur sm:p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h1 className="m-0 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase text-white">
+                            <CircleDot className="size-3.5 text-cyan-300"/> Arena dashboard
+                        </span>
+                        <h1 className="m-0 mt-2 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
                             {greeting()}, {user?.username}
                         </h1>
-                        <p className="m-0 mt-1 text-slate-500">Here's your prep at a glance.</p>
+                        <p className="m-0 mt-1 text-slate-500">Start with today’s reps, then watch your Elo move.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-3.5 py-1.5 text-sm font-bold text-orange-700">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3.5 py-1.5 text-sm font-bold text-orange-700">
                             <Flame className="size-4"/> {data.loginStreak} day streak
                         </span>
                         {isPremium && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3.5 py-1.5 text-sm font-bold text-primary-700">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1.5 text-sm font-bold text-primary-700">
                                 <Crown className="size-4"/> Premium
                             </span>
                         )}
+                    </div>
                     </div>
                 </div>
 
                 {/* Daily focused practice + quick actions */}
                 <div className="grid gap-4 lg:grid-cols-3">
-                    <Card className="lg:col-span-2 overflow-hidden">
-                        <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
+                    <Card className="sat-arena-card relative overflow-hidden lg:col-span-2">
+                        <div className="sat-duel-lanes absolute inset-0 opacity-[0.16]"/>
+                        <div className="relative flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
                             {/* Progress ring */}
                             <div className="relative flex size-24 shrink-0 items-center justify-center">
                                 <svg className="size-24 -rotate-90" viewBox="0 0 80 80">
@@ -233,15 +319,15 @@ function HomeDashboard() {
                                     />
                                 </svg>
                                 <span className="absolute text-sm font-bold text-slate-700">
-                                    {doneToday}/{DAILY_GOAL}
+                                    {shownDoneToday}/{DAILY_GOAL}
                                 </span>
                             </div>
 
                             <div className="flex-1">
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">
-                                    <Target className="size-3.5"/> Free · every day
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-3 py-1 text-xs font-black text-primary-700 shadow-sm">
+                                    <BookOpenCheck className="size-3.5"/> Today’s lane
                                 </span>
-                                <h2 className="m-0 mt-2 font-display text-xl font-bold text-slate-900">
+                                <h2 className="m-0 mt-2 font-display text-2xl font-black text-slate-950">
                                     Daily Focused Practice
                                 </h2>
                                 <p className="m-0 mt-1 text-[15px] text-slate-600">
@@ -249,6 +335,7 @@ function HomeDashboard() {
                                         ? "Nice — you've hit today's goal. Keep going to stretch your streak!"
                                         : `Answer ${DAILY_GOAL - doneToday} more question${DAILY_GOAL - doneToday === 1 ? '' : 's'} to finish today and keep your streak.`}
                                 </p>
+                                <ProgressBubbles value={doneToday}/>
                                 <div className="mt-4">
                                     <Button onClick={() => navigate('/infinite_questions')}>
                                         {dailyComplete ? 'Keep practicing' : 'Start today’s practice'} <ArrowRight className="size-4"/>
@@ -260,39 +347,32 @@ function HomeDashboard() {
 
                     {/* Quick actions */}
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
-                        <button
-                            onClick={() => navigate('/match')}
-                            className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-primary-300 hover:shadow-md"
-                        >
-                            <div className="flex size-10 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
-                                <Swords className="size-5"/>
-                            </div>
-                            <div>
-                                <p className="m-0 font-bold text-slate-900">Duel</p>
-                                <p className="m-0 text-xs text-slate-500">Race another student</p>
-                            </div>
-                        </button>
-                        <button
-                            onClick={() => navigate('/tournaments')}
-                            className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-primary-300 hover:shadow-md"
-                        >
-                            <div className="flex size-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                                <Trophy className="size-5"/>
-                            </div>
-                            <div>
-                                <p className="m-0 font-bold text-slate-900">Tournaments</p>
-                                <p className="m-0 text-xs text-slate-500">Compete for the top</p>
-                            </div>
-                        </button>
+                        <QuickActionCard
+                            label="Duel"
+                            icon={Swords}
+                            to="/match"
+                            blurb="Race another student"
+                            tone="bg-rose-100 text-rose-700"
+                            navigate={navigate}
+                        />
+                        <QuickActionCard
+                            label="Tournaments"
+                            icon={Trophy}
+                            to="/tournaments"
+                            blurb="Compete for the top"
+                            tone="bg-amber-100 text-amber-700"
+                            navigate={navigate}
+                        />
                     </div>
                 </div>
 
                 {/* Your progress */}
                 <section className="mt-10">
-                    <h2 className="m-0 font-display text-xl font-bold text-slate-900">Your progress</h2>
-                    <p className="m-0 mt-1 text-sm text-slate-500">
-                        The four numbers that matter: practice skill, duel skill, streak, and honest reps.
-                    </p>
+                    <SectionHeader
+                        icon={Target}
+                        title="Your progress"
+                        subtitle="The four numbers that matter: practice skill, duel skill, streak, and honest reps."
+                    />
                     <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
                         {STAT_DEFS.map((def) => (
                             <StatCard key={def.key} def={def} data={data}/>
@@ -303,25 +383,20 @@ function HomeDashboard() {
 
                 {/* Study guides — premium */}
                 <section className="mt-10">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="m-0 flex items-center gap-2 font-display text-xl font-bold text-slate-900">
-                                <Brain className="size-5 text-primary-600"/> AI Study Guides
-                            </h2>
-                            <p className="m-0 mt-1 text-sm text-slate-500">
-                                Personalized guides for every SAT skill. {isPremium ? 'Coming soon.' : 'A premium feature.'}
-                            </p>
-                        </div>
-                        {!isPremium && (
+                    <SectionHeader
+                        icon={Brain}
+                        title="AI Study Guides"
+                        subtitle={`Personalized guides for every SAT skill. ${isPremium ? 'Coming soon.' : 'A premium feature.'}`}
+                        action={!isPremium && (
                             <Button to="/upgrade" variant="secondary" size="sm">
                                 <Crown className="size-4 text-amber-500"/> Unlock
                             </Button>
                         )}
-                    </div>
+                    />
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         {STUDY_GUIDES.map(({label, icon: Icon, color}) => (
-                            <div key={label} className="relative flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5">
-                                <div className={`flex size-12 items-center justify-center rounded-xl ${color}`}>
+                            <div key={label} className="sat-arena-card relative flex items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5">
+                                <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${color}`}>
                                     <Icon className="size-6"/>
                                 </div>
                                 <div className="flex-1">
@@ -338,25 +413,22 @@ function HomeDashboard() {
 
                 {/* Mini games — the fun, secondary stuff */}
                 <section className="mt-10">
-                    <h2 className="m-0 flex items-center gap-2 font-display text-xl font-bold text-slate-900">
-                        <Gamepad2 className="size-5 text-slate-400"/> Mini games
-                    </h2>
-                    <p className="m-0 mt-1 text-sm text-slate-500">Quick, fun ways to sharpen up between sessions.</p>
+                    <SectionHeader
+                        icon={Gamepad2}
+                        title="Mini games"
+                        subtitle="Quick, fun ways to sharpen up between focused sessions."
+                        quiet
+                    />
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                         {MINI_GAMES.map(({label, icon: Icon, to, blurb}) => (
-                            <button
+                            <SecondaryTile
                                 key={to}
-                                onClick={() => navigate(to)}
-                                className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-primary-300 hover:shadow-md"
-                            >
-                                <div className="flex size-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                                    <Icon className="size-5"/>
-                                </div>
-                                <div>
-                                    <p className="m-0 font-semibold text-slate-900">{label}</p>
-                                    <p className="m-0 text-xs text-slate-500">{blurb}</p>
-                                </div>
-                            </button>
+                                label={label}
+                                icon={Icon}
+                                to={to}
+                                blurb={blurb}
+                                navigate={navigate}
+                            />
                         ))}
                     </div>
                 </section>
