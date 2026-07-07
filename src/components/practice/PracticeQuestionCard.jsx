@@ -34,6 +34,7 @@ function PracticeQuestionCard({
     explanation,
     primaryAction,
     primaryActionLabel,
+    showQuestionNumber = true,
     className = '',
 }) {
     const normalizedStatus = normalizeStatus(status);
@@ -57,11 +58,13 @@ function PracticeQuestionCard({
         <div className={className}>
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p className="m-0 text-sm font-semibold text-slate-500">
-                        Question {questionNumber || 1}{totalQuestions ? ` of ${totalQuestions}` : ''}
-                    </p>
+                    {showQuestionNumber && (
+                        <p className="m-0 text-sm font-semibold text-slate-500">
+                            Question {questionNumber || 1}{totalQuestions ? ` of ${totalQuestions}` : ''}
+                        </p>
+                    )}
                     {(question?.question_type || question?.difficulty) && (
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <div className={`${showQuestionNumber ? 'mt-2' : ''} flex flex-wrap gap-2`}>
                             {question?.question_type && (
                                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600">
                                     {question.question_type}
