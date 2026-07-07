@@ -5,7 +5,7 @@ import {useNavigate, useParams} from 'react-router-dom';
 import Question from '../components/Question';
 import Leaderboard from '../components/Tournament/TournamentLeaderboard';
 import TournamentInfo from '../components/Tournament/TournamentInfo';
-import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
+import {Alert, Button, PageContainer, Spinner} from '../components/ui';
 import api from '../components/api';
 
 function ConfirmFinishModal({open, readOnly, onClose, onConfirm}) {
@@ -57,7 +57,7 @@ function MobilePanel({open, onClose, children}) {
         <div className="fixed inset-0 z-[70] bg-slate-950/50 lg:hidden">
             <div className="ml-auto flex h-full w-full max-w-sm flex-col overflow-y-auto bg-slate-50 p-4 shadow-2xl">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="m-0 font-display text-xl font-black text-slate-950">Round panel</h2>
+                    <h2 className="m-0 font-display text-xl font-black text-slate-950">Tournament panel</h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -227,47 +227,42 @@ function TournamentQuestionPage() {
     }
 
     return (
-        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-6 sm:py-8">
-            <PageContainer>
+        <div className="min-h-screen bg-slate-50 py-4 sm:py-6">
+            <PageContainer className="max-w-[1180px]">
                 {notice && (
                     <div className="mb-5">
                         <Alert type={notice.type}>{notice.text}</Alert>
                     </div>
                 )}
 
-                <Card className="sat-arena-card mb-5 overflow-hidden">
-                    <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <header className="mb-5 border-b border-slate-200 pb-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1.5 text-sm font-black text-white">
-                                <TrophyDot/> Tournament round
-                            </span>
-                            <h1 className="m-0 mt-3 font-display text-3xl font-black text-slate-950">
-                                {isReadOnly ? 'Review your tournament run' : 'Answer with pace and accuracy.'}
+                            <h1 className="m-0 font-display text-2xl font-black text-slate-950 sm:text-3xl">
+                                {isReadOnly ? 'Review tournament' : participantInfo?.tournament?.name || 'Tournament'}
                             </h1>
                             <p className="m-0 mt-1 text-sm text-slate-500">
-                                {answeredCount}/{questions.length} answered. The leaderboard updates as answers are submitted.
+                                {answeredCount}/{questions.length} answered. Leaderboard updates after each answer.
                             </p>
                         </div>
-                        <div className="flex flex-col gap-3 sm:flex-row">
+                        <div className="flex flex-col gap-2 sm:flex-row">
                             <Button variant="secondary" onClick={() => setPanelOpen(true)} className="lg:hidden">
-                                <Menu className="size-4"/> Round panel
+                                <Menu className="size-4"/> Panel
                             </Button>
                             <Button variant={isReadOnly ? 'secondary' : 'danger'} onClick={() => setConfirmOpen(true)}>
                                 <ArrowLeft className="size-4"/> {isReadOnly ? 'Go back' : 'Finish tournament'}
                             </Button>
                         </div>
                     </div>
-                    <div className="sat-score-strip px-5 py-3">
-                        <div className="h-2 overflow-hidden rounded-full bg-white/70">
-                            <div
-                                className="h-full rounded-full bg-primary-600 transition-all"
-                                style={{width: `${questions.length ? (answeredCount / questions.length) * 100 : 0}%`}}
-                            />
-                        </div>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
+                        <div
+                            className="h-full rounded-full bg-primary-600 transition-all"
+                            style={{width: `${questions.length ? (answeredCount / questions.length) * 100 : 0}%`}}
+                        />
                     </div>
-                </Card>
+                </header>
 
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_310px] xl:grid-cols-[minmax(0,1fr)_330px]">
                     <main className="space-y-5">
                         {questions.map((question, i) => (
                             <Question
@@ -281,7 +276,7 @@ function TournamentQuestionPage() {
                         ))}
                     </main>
 
-                    <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block lg:self-start">
+                    <aside className="hidden space-y-3 lg:sticky lg:top-5 lg:block lg:max-h-[calc(100vh-2.5rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
                         {sidePanel}
                     </aside>
                 </div>
@@ -290,7 +285,7 @@ function TournamentQuestionPage() {
             <button
                 type="button"
                 onClick={() => setPanelOpen(true)}
-                className="fixed bottom-5 right-5 z-50 flex size-14 cursor-pointer items-center justify-center rounded-full border-2 border-primary-800 bg-primary-600 text-white shadow-[0_4px_0_0_var(--color-primary-800)] lg:hidden"
+                className="fixed bottom-5 right-5 z-50 flex size-12 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-lg lg:hidden"
                 aria-label="Open tournament panel"
             >
                 <Menu className="size-6"/>
@@ -308,10 +303,6 @@ function TournamentQuestionPage() {
             />
         </div>
     );
-}
-
-function TrophyDot() {
-    return <span className="size-2 rounded-full bg-cyan-300"/>;
 }
 
 export default TournamentQuestionPage;
