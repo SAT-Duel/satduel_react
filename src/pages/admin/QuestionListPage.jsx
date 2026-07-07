@@ -1,56 +1,72 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {ChevronLeft, ChevronRight, Plus, Search} from 'lucide-react';
+import {useLocation, useNavigate, useSearchParams} from 'react-router-dom';
+import {ChevronLeft, ChevronRight, Plus} from 'lucide-react';
 import RenderWithMath from '../../components/RenderWithMath';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
 import {Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 
-const questionTypes = [
-    // Reading & Writing
-    'Cross-Text Connections',
-    'Text Structure and Purpose',
-    'Words in Context',
-    'Rhetorical Synthesis',
-    'Transitions',
-    'Central Ideas and Details',
-    'Command of Evidence',
-    'Inferences',
-    'Boundaries',
-    'Form, Structure, and Sense',
-    // Math (official College Board skill names, matching the AI generator)
-    'Linear equations in one variable',
-    'Linear functions',
-    'Linear equations in two variables',
-    'Systems of two linear equations in two variables',
-    'Linear inequalities in one or two variables',
-    'Equivalent expressions',
-    'Nonlinear equations in one variable and systems of equations in two variables',
-    'Nonlinear functions',
-    'Ratios, rates, proportional relationships, and units',
-    'Percentages',
-    'One-variable data: distributions and measures of center and spread',
-    'Two-variable data: models and scatterplots',
-    'Probability and conditional probability',
-    'Inference from sample statistics and margin of error',
-    'Evaluating statistical claims: observational studies and experiments',
-    'Area and volume',
-    'Lines, angles, and triangles',
-    'Right triangles and trigonometry',
-    'Circles',
-];
+const questionTypesBySubject = {
+    english: [
+        'Cross-Text Connections',
+        'Text Structure and Purpose',
+        'Words in Context',
+        'Rhetorical Synthesis',
+        'Transitions',
+        'Central Ideas and Details',
+        'Command of Evidence',
+        'Inferences',
+        'Boundaries',
+        'Form, Structure, and Sense',
+    ],
+    math: [
+        'Linear equations in one variable',
+        'Linear functions',
+        'Linear equations in two variables',
+        'Systems of two linear equations in two variables',
+        'Linear inequalities in one or two variables',
+        'Equivalent expressions',
+        'Nonlinear equations in one variable and systems of equations in two variables',
+        'Nonlinear functions',
+        'Ratios, rates, proportional relationships, and units',
+        'Percentages',
+        'One-variable data: distributions and measures of center and spread',
+        'Two-variable data: models and scatterplots',
+        'Probability and conditional probability',
+        'Inference from sample statistics and margin of error',
+        'Evaluating statistical claims: observational studies and experiments',
+        'Area and volume',
+        'Lines, angles, and triangles',
+        'Right triangles and trigonometry',
+        'Circles',
+    ],
+};
 
 const difficulties = ['1', '2', '3', '4', '5'];
 
+function cleanSubject(value) {
+    return value === 'math' ? 'math' : 'english';
+}
+
+function returnTo(pathname, search) {
+    return encodeURIComponent(`${pathname}${search}`);
+}
+
 function QuestionListPage() {
     const [questions, setQuestions] = useState([]);
-    const [selectedType, setSelectedType] = useState('any');
-    const [selectedDifficulty, setSelectedDifficulty] = useState('any');
     const [total, setTotal] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const pageSize = 15;
     const navigate = useNavigate();
+    const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const selectedSubject = cleanSubject(searchParams.get('subject'));
+    const topicOptions = questionTypesBySubject[selectedSubject];
+    const requestedType = searchParams.get('type') || 'any';
+    const selectedType = requestedType === 'any' || topicOptions.includes(requestedType) ? requestedType : 'any';
+    const requestedDifficulty = searchParams.get('difficulty') || 'any';
+    const selectedDifficulty = requestedDifficulty === 'any' || difficulties.includes(requestedDifficulty) ? requestedDifficulty : 'any';
+    const currentPage = Math.max(1, Number(searchParams.get('page')) || 1);
 
     const totalPages = useMemo(
         () => Math.max(1, Math.ceil((Number(total) || 0) / pageSize)),
@@ -64,6 +80,7 @@ function QuestionListPage() {
             page: currentPage || 1,
             page_size: pageSize,
             random: false,
+            subject: selectedSubject,
         }).toString();
 
         try {
@@ -76,22 +93,25 @@ function QuestionListPage() {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, selectedDifficulty, selectedType]);
+    }, [currentPage, selectedDifficulty, selectedSubject, selectedType]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
         fetchQuestions();
     }, [fetchQuestions]);
 
-    const handleSearch = () => {
-        setCurrentPage(1);
-        fetchQuestions();
-        window.scrollTo(0, 0);
+    const updateFilters = (updates) => {
+        const next = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => next.set(key, value));
+        setSearchParams(next);
     };
 
     const goToPage = (page) => {
-        setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+        updateFilters({page: String(Math.min(Math.max(page, 1), totalPages))});
     };
+
+    const editUrl = (questionId) => `/admin/edit_question/${questionId}?returnTo=${returnTo(location.pathname, location.search)}`;
+    const createUrl = `/admin/create_question?returnTo=${returnTo(location.pathname, location.search)}`;
 
     return (
         <PageContainer className="min-h-screen py-6 sm:py-8">
@@ -105,31 +125,38 @@ function QuestionListPage() {
                         Filter, preview, and open questions for editing.
                     </p>
                 </div>
-                <Button onClick={() => navigate('/admin/create_question')}>
+                <Button onClick={() => navigate(createUrl)}>
                     <Plus size={18}/> Create Question
                 </Button>
             </div>
 
             <Card className="mb-6 p-4">
-                <div className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-                    <Select value={selectedType} onChange={(event) => setSelectedType(event.target.value)}>
+                <div className="grid gap-3 md:grid-cols-[160px_1fr_180px]">
+                    <Select
+                        value={selectedSubject}
+                        onChange={(event) => updateFilters({subject: event.target.value, type: 'any', page: '1'})}
+                    >
+                        <option value="english">English</option>
+                        <option value="math">Math</option>
+                    </Select>
+                    <Select
+                        value={selectedType}
+                        onChange={(event) => updateFilters({type: event.target.value, page: '1'})}
+                    >
                         <option value="any">Any Type</option>
-                        {questionTypes.map((type) => (
+                        {topicOptions.map((type) => (
                             <option key={type} value={type}>{type}</option>
                         ))}
                     </Select>
                     <Select
                         value={selectedDifficulty}
-                        onChange={(event) => setSelectedDifficulty(event.target.value)}
+                        onChange={(event) => updateFilters({difficulty: event.target.value, page: '1'})}
                     >
                         <option value="any">Any Difficulty</option>
                         {difficulties.map((difficulty) => (
                             <option key={difficulty} value={difficulty}>{difficulty}</option>
                         ))}
                     </Select>
-                    <Button onClick={handleSearch}>
-                        <Search size={18}/> Search
-                    </Button>
                 </div>
             </Card>
 
@@ -143,7 +170,7 @@ function QuestionListPage() {
                         <button
                             key={question.id}
                             type="button"
-                            onClick={() => navigate(`/admin/edit_question/${question.id}`)}
+                            onClick={() => navigate(editUrl(question.id))}
                             className="text-left"
                         >
                             <Card hover className="h-full p-5">
