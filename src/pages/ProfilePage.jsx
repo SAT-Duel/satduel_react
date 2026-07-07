@@ -356,7 +356,7 @@ function ProfilePage() {
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <Metric icon={Swords} label="Duel Elo" value={profile?.elo_rating}/>
                     <Metric icon={LineChart} label="Practice Elo" value={profile?.sp_elo_rating}/>
-                    <Metric icon={Flame} label="Current streak" value={stats?.current_streak ?? 0}/>
+                    <Metric icon={Flame} label="Correct streak" value={stats?.current_streak ?? 0}/>
                     <Metric icon={Award} label="Accuracy" value={accuracy}/>
                 </div>
 
@@ -400,7 +400,7 @@ function ProfilePage() {
                                 </div>
                                 <div className="rounded-xl bg-slate-50 p-4">
                                     <p className="m-0 text-2xl font-bold text-slate-900">{stats?.current_streak ?? 0}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Current streak</p>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">Correct streak</p>
                                 </div>
                                 <div className="rounded-xl bg-slate-50 p-4">
                                     <p className="m-0 text-2xl font-bold text-slate-900">{accuracy}</p>

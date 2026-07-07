@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Award, CheckCircle2, Crown, Flame, LineChart, Lock, TrendingDown, TrendingUp} from 'lucide-react';
+import {CheckCircle2, Crown, Flame, Lock, TrendingDown, TrendingUp, XCircle} from 'lucide-react';
 import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
@@ -7,14 +7,53 @@ import api from '../../components/api';
 import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
 
-function StatTile({icon: Icon, label, value}) {
+function SessionProgress({stats, accuracy}) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
-                <Icon className="size-5"/>
+        <Card className="sat-arena-card p-5">
+            <h2 className="m-0 text-lg font-bold text-slate-900">This session</h2>
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                    <div>
+                        <p className="m-0 text-sm font-bold text-amber-800">Correct streak</p>
+                        <p className="m-0 mt-1 text-3xl font-black text-slate-950">{stats.streak}</p>
+                    </div>
+                    <Flame className="size-8 text-amber-500"/>
+                </div>
             </div>
-            <p className="m-0 text-2xl font-bold text-slate-900">{value}</p>
-            <p className="m-0 mt-1 text-sm font-medium text-slate-500">{label}</p>
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-xl bg-slate-50 px-3 py-2">
+                    <p className="m-0 font-black text-slate-900">{stats.questionsAnswered}</p>
+                    <p className="m-0 text-xs font-semibold text-slate-500">Answered</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 px-3 py-2">
+                    <p className="m-0 font-black text-slate-900">{accuracy}</p>
+                    <p className="m-0 text-xs font-semibold text-slate-500">Accuracy</p>
+                </div>
+            </div>
+        </Card>
+    );
+}
+
+function EloBadge({elo, feedback}) {
+    if (elo == null) return null;
+    const delta = feedback?.delta;
+    const positive = delta >= 0;
+
+    return (
+        <div className="flex items-center gap-2">
+            <span className="rounded-full bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
+                {elo} Elo
+            </span>
+            {delta != null && (
+                <span
+                    key={feedback.id}
+                    className={`rounded-full px-2.5 py-1 text-xs font-black ${
+                        positive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                    }`}
+                >
+                    {positive ? `+${delta}` : delta} Elo
+                </span>
+            )}
         </div>
     );
 }
@@ -84,6 +123,47 @@ function RatingPulse({feedback}) {
     );
 }
 
+function AnswerFeedback({status, ratingFeedback, onNext, loadingQuestions}) {
+    const answered = status === 'Correct' || status === 'Incorrect';
+    if (!answered) {
+        return (
+            <Card className="sat-arena-card p-5">
+                <p className="m-0 text-sm font-bold text-slate-500">Ready</p>
+                <p className="m-0 mt-1 text-lg font-black text-slate-900">Pick an answer</p>
+            </Card>
+        );
+    }
+
+    const correct = status === 'Correct';
+    const Icon = correct ? CheckCircle2 : XCircle;
+
+    return (
+        <Card className={`sat-arena-card p-5 ${correct ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}>
+            <div className="flex items-start gap-3">
+                <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${correct ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                    <Icon className="size-5"/>
+                </div>
+                <div className="min-w-0 flex-1">
+                    <p className={`m-0 text-sm font-bold ${correct ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {correct ? 'Correct' : 'Not quite'}
+                    </p>
+                    <p className="m-0 mt-1 text-lg font-black text-slate-950">
+                        {correct ? 'Nice work.' : 'Review it, then keep going.'}
+                    </p>
+                </div>
+            </div>
+            {ratingFeedback && (
+                <div className="mt-4">
+                    <RatingPulse feedback={ratingFeedback}/>
+                </div>
+            )}
+            <Button onClick={onNext} disabled={loadingQuestions} className="mt-4" block>
+                Next question
+            </Button>
+        </Card>
+    );
+}
+
 function InfiniteQuestionsPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
@@ -129,6 +209,7 @@ function InfiniteQuestionsPage() {
                 setCurrentQuestion(response.data.question || null);
                 setQuota(response.data.quota || null);
                 setQuestionStatus('Blank');
+                setRatingFeedback(null);
             } else {
                 setError(data?.error || 'Could not load a question.');
             }
@@ -189,8 +270,9 @@ function InfiniteQuestionsPage() {
                 correctAnswers: isCorrect ? previousStats.correctAnswers + 1 : previousStats.correctAnswers,
                 streak: isCorrect ? previousStats.streak + 1 : 0,
             }));
+            playRatingSound(isCorrect);
 
-            if (response.data.rated) {
+            if (response.data.sp_elo_rating_delta != null) {
                 const feedback = {
                     id: Date.now(),
                     previous: response.data.sp_elo_rating_previous,
@@ -198,7 +280,6 @@ function InfiniteQuestionsPage() {
                     delta: response.data.sp_elo_rating_delta,
                 };
                 setRatingFeedback(feedback);
-                playRatingSound(feedback.delta >= 0);
             }
         } catch (submitError) {
             const data = submitError.response?.data;
@@ -292,6 +373,15 @@ function InfiniteQuestionsPage() {
                     </span>
                 </div>
 
+                <div className="mb-5 lg:hidden">
+                    <AnswerFeedback
+                        status={questionStatus}
+                        ratingFeedback={ratingFeedback}
+                        onNext={() => fetchNextQuestion()}
+                        loadingQuestions={loadingQuestions}
+                    />
+                </div>
+
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                     <main>
                         {currentQuestion && (
@@ -302,66 +392,31 @@ function InfiniteQuestionsPage() {
                                 questionNumber={stats.questionsAnswered + 1}
                             />
                         )}
-
-                        <Card className="sat-arena-card mt-5 p-5">
-                            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                                <RatingPulse feedback={ratingFeedback}/>
-                                {questionStatus !== 'Blank' && (
-                                    <Button onClick={() => fetchNextQuestion()} disabled={loadingQuestions}>
-                                        Next question
-                                    </Button>
-                                )}
-                            </div>
-                        </Card>
                     </main>
 
                     <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-                        <Card className="sat-arena-card p-5">
-                            <div className="flex items-center justify-between">
-                                <h2 className="m-0 text-xl font-bold text-slate-900">Topic</h2>
-                                {!quota?.is_premium && (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
-                                        <Lock className="size-3"/> Premium
-                                    </span>
-                                )}
-                            </div>
-                            {quota?.is_premium ? (
-                                <div className="mt-4">
-                                    <Select
-                                        value={selectedTopic}
-                                        onChange={(e) => handleTopicChange(e.target.value)}
-                                    >
-                                        <option value="any">All topics (random)</option>
-                                        {topics.map((t) => (
-                                            <option key={t} value={t}>{t}</option>
-                                        ))}
-                                    </Select>
-                                </div>
-                            ) : (
-                                <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
-                                    <p className="m-0 text-sm text-slate-600">
-                                        Free practice serves a random mix of topics, up to
-                                        {quota?.limit ? ` ${quota.limit}` : ' 25'} questions per day.
-                                    </p>
-                                </div>
-                            )}
-                        </Card>
+                        <div className="hidden lg:block">
+                            <AnswerFeedback
+                                status={questionStatus}
+                                ratingFeedback={ratingFeedback}
+                                onNext={() => fetchNextQuestion()}
+                                loadingQuestions={loadingQuestions}
+                            />
+                        </div>
+
+                        <SessionProgress stats={stats} accuracy={accuracy}/>
 
                         <Card className="sat-arena-card p-5">
                             <div className="flex items-center justify-between">
-                                <h2 className="m-0 text-xl font-bold text-slate-900">Today</h2>
-                                {spElo != null && (
-                                    <span className="rounded-full bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
-                                        {spElo} Elo
-                                    </span>
-                                )}
+                                <h2 className="m-0 text-lg font-bold text-slate-900">Today</h2>
+                                <EloBadge elo={spElo} feedback={ratingFeedback}/>
                             </div>
                             {daily && (
                                 <div className="mt-4 flex items-center justify-between rounded-xl bg-orange-50/70 px-4 py-3">
                                     <span className="inline-flex items-center gap-2 text-sm font-bold text-slate-700">
                                         <Flame className={`size-4 ${daily.completed_today ? 'text-orange-500' : 'text-slate-300'}`}/>
                                         {daily.completed_today
-                                            ? `Streak safe — day ${daily.streak}`
+                                            ? `Daily streak safe: day ${daily.streak}`
                                             : `Daily goal: ${Math.min(daily.count, daily.goal)}/${daily.goal}`}
                                     </span>
                                     {!daily.completed_today && (
@@ -398,13 +453,34 @@ function InfiniteQuestionsPage() {
                         </Card>
 
                         <Card className="sat-arena-card p-5">
-                            <h2 className="m-0 text-xl font-bold text-slate-900">This session</h2>
-                            <div className="mt-5 grid grid-cols-2 gap-3">
-                                <StatTile icon={CheckCircle2} label="Answered" value={stats.questionsAnswered}/>
-                                <StatTile icon={Award} label="Correct" value={stats.correctAnswers}/>
-                                <StatTile icon={Flame} label="Streak" value={stats.streak}/>
-                                <StatTile icon={LineChart} label="Accuracy" value={accuracy}/>
+                            <div className="flex items-center justify-between">
+                                <h2 className="m-0 text-lg font-bold text-slate-900">Topic</h2>
+                                {!quota?.is_premium && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                                        <Lock className="size-3"/> Premium
+                                    </span>
+                                )}
                             </div>
+                            {quota?.is_premium ? (
+                                <div className="mt-4">
+                                    <Select
+                                        value={selectedTopic}
+                                        onChange={(e) => handleTopicChange(e.target.value)}
+                                    >
+                                        <option value="any">All topics (random)</option>
+                                        {topics.map((t) => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
+                                    </Select>
+                                </div>
+                            ) : (
+                                <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                                    <p className="m-0 text-sm text-slate-600">
+                                        Free practice serves a random mix of topics, up to
+                                        {quota?.limit ? ` ${quota.limit}` : ' 25'} questions per day.
+                                    </p>
+                                </div>
+                            )}
                         </Card>
                     </aside>
                 </div>
