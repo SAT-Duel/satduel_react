@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
-import {ArrowUpRight, Crown, Flame, LineChart, Medal, RefreshCw, Swords, Trophy, Users} from 'lucide-react';
+import {ArrowUpRight, Crown, Flame, LineChart, Medal, RefreshCw, Swords} from 'lucide-react';
 import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
 import UserAvatar from '../components/UserAvatar';
 import api from '../components/api';
@@ -24,9 +24,9 @@ const METRICS = [
     },
     {
         id: 'streak',
-        label: 'Streak',
-        title: 'Best streak',
-        shortLabel: 'Streak',
+        label: 'Correct streak',
+        title: 'Best run of correct answers',
+        shortLabel: 'Correct streak',
         icon: Flame,
         accent: 'text-amber-700 bg-amber-50 border-amber-200',
     },
@@ -40,6 +40,10 @@ function metricValue(entry, metric) {
     if (!entry) return '—';
     if (metric === 'streak') return `${entry.max_streak ?? entry.metric_value ?? 0}`;
     return entry.metric_value ?? (metric === 'practice' ? entry.sp_elo_rating : entry.elo_rating) ?? '—';
+}
+
+function metricUnit(metric) {
+    return metric === 'streak' ? 'questions' : 'Elo';
 }
 
 function secondaryLine(entry) {
@@ -64,50 +68,15 @@ function RankBadge({rank}) {
     );
 }
 
-function PodiumCard({entry, metric}) {
-    if (!entry) {
-        return (
-            <Card className="flex min-h-52 items-center justify-center border-dashed p-5 text-center text-slate-400">
-                <p className="m-0 text-sm font-semibold">Waiting for more students</p>
-            </Card>
-        );
-    }
-
-    const trophyColor = entry.rank === 1
-        ? 'text-amber-500'
-        : entry.rank === 2
-            ? 'text-slate-400'
-            : 'text-orange-500';
-
-    return (
-        <Link to={`/profile/${entry.user.id}`} className="block h-full no-underline">
-            <Card hover className="h-full p-5 text-center">
-                <div className="flex items-center justify-between">
-                    <RankBadge rank={entry.rank}/>
-                    <Trophy className={`size-6 ${trophyColor}`}/>
-                </div>
-                <UserAvatar profile={entry} size={entry.rank === 1 ? 'lg' : 'md'} rounded="xl" className="mx-auto mt-5 ring-0"/>
-                <p className="m-0 mt-4 truncate text-lg font-black text-slate-900">{entry.user.username}</p>
-                <p className="m-0 mt-1 text-sm font-medium text-slate-500">{secondaryLine(entry)}</p>
-                <div className="mt-5 rounded-2xl bg-slate-50 px-4 py-3">
-                    <p className="m-0 text-3xl font-black text-slate-900">{metricValue(entry, metric)}</p>
-                    <p className="m-0 text-xs font-bold text-slate-400">{metricConfig(metric).title}</p>
-                </div>
-            </Card>
-        </Link>
-    );
-}
-
 function LeaderboardRow({entry, metric, highlighted = false}) {
-    const config = metricConfig(metric);
     return (
         <Link
             to={`/profile/${entry.user.id}`}
             className={[
-                'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border p-3 no-underline transition-colors sm:grid-cols-[auto_minmax(0,1fr)_120px_120px_auto]',
+                'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-100 px-4 py-3 no-underline transition-colors last:border-b-0 sm:px-5',
                 highlighted
-                    ? 'border-primary-300 bg-primary-50/70'
-                    : 'border-slate-200 bg-white hover:border-primary-300 hover:bg-slate-50',
+                    ? 'bg-primary-50/70'
+                    : 'bg-white hover:bg-slate-50',
             ].join(' ')}
         >
             <RankBadge rank={entry.rank}/>
@@ -119,50 +88,41 @@ function LeaderboardRow({entry, metric, highlighted = false}) {
                         {entry.is_premium && <Crown className="size-4 shrink-0 text-amber-500"/>}
                     </div>
                     <p className="m-0 mt-0.5 truncate text-sm text-slate-500">{secondaryLine(entry)}</p>
+                    <p className="m-0 mt-1 hidden truncate text-xs font-medium text-slate-400 sm:block">
+                        Duel {entry.elo_rating} · Practice {entry.sp_elo_rating} · Best correct streak {entry.max_streak}
+                    </p>
                 </div>
             </div>
-            <div className="hidden sm:block">
-                <p className="m-0 text-sm font-bold text-slate-900">{entry.elo_rating}</p>
-                <p className="m-0 text-xs font-medium text-slate-400">Duel</p>
-            </div>
-            <div className="hidden sm:block">
-                <p className="m-0 text-sm font-bold text-slate-900">{entry.sp_elo_rating}</p>
-                <p className="m-0 text-xs font-medium text-slate-400">Practice</p>
-            </div>
             <div className="text-right">
-                <p className="m-0 text-xl font-black text-slate-900">{metricValue(entry, metric)}</p>
-                <p className="m-0 text-xs font-bold text-slate-400">{config.shortLabel}</p>
+                <p className="m-0 text-lg font-black text-slate-900 sm:text-xl">{metricValue(entry, metric)}</p>
+                <p className="m-0 text-xs font-bold text-slate-400">{metricUnit(metric)}</p>
             </div>
         </Link>
     );
 }
 
-function CurrentRankCard({entry, metric, totalUsers}) {
+function CurrentRankStrip({entry, metric, totalUsers}) {
     if (!entry) return null;
     const percentile = totalUsers > 0
         ? Math.max(1, Math.round(((totalUsers - entry.rank + 1) / totalUsers) * 100))
         : null;
 
     return (
-        <Card className="p-5">
-            <div className="flex items-center justify-between gap-4">
-                <div>
-                    <p className="m-0 text-sm font-bold text-primary-600">Your rank</p>
-                    <h2 className="m-0 mt-1 font-display text-3xl font-black text-slate-900">#{entry.rank}</h2>
-                </div>
-                <UserAvatar profile={entry} size="md" rounded="xl" className="ring-0"/>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                    <p className="m-0 text-2xl font-black text-slate-900">{metricValue(entry, metric)}</p>
-                    <p className="m-0 mt-0.5 text-xs font-bold text-slate-400">{metricConfig(metric).title}</p>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-4">
-                    <p className="m-0 text-2xl font-black text-slate-900">{percentile ? `Top ${percentile}%` : '—'}</p>
-                    <p className="m-0 mt-0.5 text-xs font-bold text-slate-400">Percentile</p>
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-primary-200 bg-primary-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+                <UserAvatar profile={entry} size="sm" className="ring-0"/>
+                <div className="min-w-0">
+                    <p className="m-0 text-sm font-bold text-primary-700">Your standing</p>
+                    <p className="m-0 truncate text-sm text-slate-600">
+                        #{entry.rank} of {totalUsers}{percentile ? ` · Top ${percentile}%` : ''}
+                    </p>
                 </div>
             </div>
-        </Card>
+            <div className="text-left sm:text-right">
+                <p className="m-0 text-xl font-black text-slate-900">{metricValue(entry, metric)}</p>
+                <p className="m-0 text-xs font-bold text-slate-500">{metricConfig(metric).shortLabel}</p>
+            </div>
+        </div>
     );
 }
 
@@ -190,14 +150,6 @@ function RankingPage() {
     const config = metricConfig(metric);
     const Icon = config.icon;
     const entries = leaderboard?.entries || [];
-    const topThree = entries.slice(0, 3);
-
-    const topAverage = useMemo(() => {
-        if (!entries.length) return '—';
-        const top = entries.slice(0, Math.min(entries.length, 10));
-        const total = top.reduce((sum, entry) => sum + Number(metricValue(entry, metric) || 0), 0);
-        return Math.round(total / top.length);
-    }, [entries, metric]);
 
     const fetchLeaderboard = async (nextMetric = metric) => {
         setLoading(true);
@@ -220,21 +172,25 @@ function RankingPage() {
     }, [metric]);
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-6 sm:py-8">
             <PageContainer>
-                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="m-0 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
                             Leaderboard
                         </h1>
+                        <p className="m-0 mt-1 text-sm text-slate-500">
+                            Ranked by {config.title.toLowerCase()}.
+                        </p>
                     </div>
                     <Button to="/infinite_questions" variant="secondary">
                         Practice now <ArrowUpRight className="size-4"/>
                     </Button>
                 </div>
 
-                <div className="mb-6 grid gap-3 sm:grid-cols-3">
-                    {METRICS.map(({id, label, title, icon: MetricIcon}) => {
+                <div className="mb-5 overflow-x-auto">
+                    <div className="inline-flex min-w-full rounded-2xl border border-slate-200 bg-white p-1 sm:min-w-0">
+                        {METRICS.map(({id, label, icon: MetricIcon}) => {
                         const selected = metric === id;
                         return (
                             <button
@@ -242,23 +198,16 @@ function RankingPage() {
                                 type="button"
                                 onClick={() => setMetric(id)}
                                 className={[
-                                    'flex cursor-pointer items-center gap-3 rounded-2xl border-2 bg-white p-4 text-left transition-colors',
-                                    selected ? 'border-primary-500 bg-primary-50' : 'border-slate-200 hover:border-primary-300',
+                                    'flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition-colors sm:flex-none sm:justify-start sm:px-4',
+                                    selected ? 'bg-primary-600 text-white' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
                                 ].join(' ')}
                             >
-                                <span className={[
-                                    'flex size-11 shrink-0 items-center justify-center rounded-xl',
-                                    selected ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-500',
-                                ].join(' ')}>
-                                    <MetricIcon className="size-5"/>
-                                </span>
-                                <span>
-                                    <span className="block font-black text-slate-900">{label}</span>
-                                    <span className="block text-sm font-medium text-slate-500">{title}</span>
-                                </span>
+                                <MetricIcon className="size-4"/>
+                                <span>{label}</span>
                             </button>
                         );
-                    })}
+                        })}
+                    </div>
                 </div>
 
                 {error && (
@@ -268,7 +217,7 @@ function RankingPage() {
                 )}
 
                 {loading ? (
-                    <Card className="flex min-h-80 items-center justify-center p-8">
+                    <Card className="sat-arena-card flex min-h-80 items-center justify-center p-8">
                         <div className="flex items-center gap-3 text-slate-500">
                             <Spinner/> Loading leaderboard…
                         </div>
@@ -276,66 +225,39 @@ function RankingPage() {
                 ) : entries.length === 0 ? (
                     <EmptyState onRetry={() => fetchLeaderboard(metric)}/>
                 ) : (
-                    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-                        <main className="space-y-6">
-                            <div className="grid gap-4 md:grid-cols-3">
-                                {topThree.map((entry) => (
-                                    <PodiumCard key={`podium-${metric}-${entry.user.id}`} entry={entry} metric={metric}/>
-                                ))}
-                            </div>
-
-                            <Card className="p-4 sm:p-5">
-                                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <h2 className="m-0 text-xl font-black text-slate-900">Full board</h2>
-                                    <span className="text-sm font-semibold text-slate-400">
-                                        {leaderboard.total_users} ranked students
-                                    </span>
-                                </div>
-                                <div className="space-y-2">
-                                    {entries.map((entry) => (
-                                        <LeaderboardRow
-                                            key={`${metric}-${entry.user.id}`}
-                                            entry={entry}
-                                            metric={metric}
-                                            highlighted={entry.user.id === leaderboard.current_user?.user?.id}
-                                        />
-                                    ))}
-                                </div>
-                            </Card>
-                        </main>
-
-                        <aside className="space-y-4 xl:sticky xl:top-8 xl:self-start">
-                            <CurrentRankCard
+                    <Card className="sat-arena-card overflow-hidden">
+                        <div className="border-b border-slate-100 px-4 py-4 sm:px-5">
+                            <CurrentRankStrip
                                 entry={leaderboard.current_user}
                                 metric={metric}
                                 totalUsers={leaderboard.total_users}
                             />
 
-                            <Card className="p-5">
-                                <h2 className="m-0 inline-flex items-center gap-2 text-xl font-black text-slate-900">
-                                    <Users className="size-5 text-slate-400"/> Board pulse
-                                </h2>
-                                <div className="mt-5 grid gap-3">
-                                    <div className="rounded-2xl bg-slate-50 p-4">
-                                        <p className="m-0 text-2xl font-black text-slate-900">{leaderboard.total_users}</p>
-                                        <p className="m-0 mt-0.5 text-xs font-bold text-slate-400">Ranked students</p>
-                                    </div>
-                                    <div className="rounded-2xl bg-slate-50 p-4">
-                                        <p className="m-0 text-2xl font-black text-slate-900">{topAverage}</p>
-                                        <p className="m-0 mt-0.5 text-xs font-bold text-slate-400">Top 10 average</p>
-                                    </div>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <h2 className="m-0 inline-flex items-center gap-2 text-lg font-black text-slate-900">
+                                        <Icon className="size-5 text-slate-400"/> {config.shortLabel}
+                                    </h2>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">
+                                        Updated from practice answers and duel results.
+                                    </p>
                                 </div>
-                                <div className="mt-5 flex flex-col gap-3">
-                                    <Button to="/match" block>
-                                        <Swords className="size-4"/> Start a duel
-                                    </Button>
-                                    <Button to="/profile" variant="secondary" block>
-                                        View profile
-                                    </Button>
-                                </div>
-                            </Card>
-                        </aside>
-                    </div>
+                                <span className="text-sm font-semibold text-slate-400">
+                                    {leaderboard.total_users} ranked students
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            {entries.map((entry) => (
+                                <LeaderboardRow
+                                    key={`${metric}-${entry.user.id}`}
+                                    entry={entry}
+                                    metric={metric}
+                                    highlighted={entry.user.id === leaderboard.current_user?.user?.id}
+                                />
+                            ))}
+                        </div>
+                    </Card>
                 )}
             </PageContainer>
         </div>
