@@ -37,7 +37,7 @@ export const STUDY_GUIDE_MODULES = [
         accent: 'bg-cyan-100 text-cyan-700',
         time: '45 min',
         pages: [
-            {title: 'One-Variable Equations', focus: 'Fractions, parentheses, and signs'},
+            {title: 'One-Variable Equations', slug: 'one-variable-equations', focus: 'Fractions, parentheses, and signs'},
             {title: 'Linear Inequalities', focus: 'Graph, interval, and flip rules'},
             {title: 'Equations With Parameters', focus: 'Constants that stand in for numbers'},
             {title: 'Word Problems to Equations', focus: 'Rates, totals, and constraints'},
