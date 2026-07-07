@@ -45,6 +45,7 @@ const PasswordResetConfirmPage = React.lazy(() => import("../pages/PasswordReset
 const AdminHomepage = React.lazy(() => import("../pages/admin/AdminHomepage"));
 const QuestionListPage = React.lazy(() => import("../pages/admin/QuestionListPage"));
 const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEditorPage"));
+const QuestionGeneratorPage = React.lazy(() => import("../pages/admin/QuestionGeneratorPage"));
 const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminCreateTournamentPage"));
 const SATDuelHomePage = React.lazy(() => import("../pages/satduel/SATDuelHomePage"));
 const WaitingRoomPage = React.lazy(() => import("../pages/satduel/WaitingRoomPage"));
@@ -112,6 +113,7 @@ const APP_ROUTES = [
     {path: '/admin', el: <AdminHomepage/>},
     {path: '/admin/questions', el: <QuestionListPage/>},
     {path: '/admin/create_question', el: <QuestionEditorPage/>},
+    {path: '/admin/generate_questions', el: <QuestionGeneratorPage/>},
     {path: '/admin/edit_question/:id', el: <QuestionEditorPage/>},
     {path: '/admin/create_tournament', el: <AdminCreateTournamentPage/>},
 ];

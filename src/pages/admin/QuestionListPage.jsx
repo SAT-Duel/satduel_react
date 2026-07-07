@@ -7,6 +7,7 @@ import api from '../../components/api';
 import {Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 
 const questionTypes = [
+    // Reading & Writing
     'Cross-Text Connections',
     'Text Structure and Purpose',
     'Words in Context',
@@ -17,6 +18,26 @@ const questionTypes = [
     'Inferences',
     'Boundaries',
     'Form, Structure, and Sense',
+    // Math (official College Board skill names, matching the AI generator)
+    'Linear equations in one variable',
+    'Linear functions',
+    'Linear equations in two variables',
+    'Systems of two linear equations in two variables',
+    'Linear inequalities in one or two variables',
+    'Equivalent expressions',
+    'Nonlinear equations in one variable and systems of equations in two variables',
+    'Nonlinear functions',
+    'Ratios, rates, proportional relationships, and units',
+    'Percentages',
+    'One-variable data: distributions and measures of center and spread',
+    'Two-variable data: models and scatterplots',
+    'Probability and conditional probability',
+    'Inference from sample statistics and margin of error',
+    'Evaluating statistical claims: observational studies and experiments',
+    'Area and volume',
+    'Lines, angles, and triangles',
+    'Right triangles and trigonometry',
+    'Circles',
 ];
 
 const difficulties = ['1', '2', '3', '4', '5'];
