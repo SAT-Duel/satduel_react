@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ArrowRight, BookOpenCheck, Clock3, Info, Sparkles, Trophy} from 'lucide-react';
+import {ArrowRight, Info} from 'lucide-react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useAuth} from '../../context/AuthContext';
 import api from '../../components/api';
@@ -9,7 +9,7 @@ const TESTS = [
     {
         id: 1,
         title: 'SAT Diagnostic Test',
-        description: 'Start here to get a quick baseline score and a cleaner next-step signal.',
+        description: '10 questions in 25 minutes. Get a starting score to measure against.',
         time: '25 minutes',
         questions: 10,
         difficulty: 'Adaptive',
@@ -30,24 +30,6 @@ const TESTS = [
         tag: 'Soon',
         comingSoon: true,
         time_seconds: 3 * 60 * 60,
-    },
-];
-
-const FEATURES = [
-    {
-        title: 'Realistic rhythm',
-        description: 'A focused test shell with timer, review marking, and section navigation.',
-        icon: Clock3,
-    },
-    {
-        title: 'Official-style questions',
-        description: 'Practice on SAT question formats without the extra game-mode clutter.',
-        icon: BookOpenCheck,
-    },
-    {
-        title: 'Result review',
-        description: 'Score first, then inspect missed questions and explanations.',
-        icon: Trophy,
     },
 ];
 
@@ -140,7 +122,7 @@ function PracticeTestPage() {
                 {showFirstRunBanner && (
                     <div className="mb-6">
                         <Alert type="success">
-                            Welcome to SAT practice. Start with the diagnostic if you want the fastest baseline.
+                            New here? The 25-minute diagnostic gives you a starting score.
                             <button
                                 type="button"
                                 onClick={closeFirstRunBanner}
@@ -152,28 +134,8 @@ function PracticeTestPage() {
                     </div>
                 )}
 
-                <div className="grid gap-4 md:grid-cols-3">
-                    {FEATURES.map(({title, description, icon: Icon}) => (
-                        <Card key={title} className="sat-arena-card p-5">
-                            <Icon className="size-6 text-primary-600"/>
-                            <h2 className="m-0 mt-4 text-lg font-black text-slate-950">{title}</h2>
-                            <p className="m-0 mt-2 text-sm leading-relaxed text-slate-500">{description}</p>
-                        </Card>
-                    ))}
-                </div>
-
-                <section className="mt-12">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <p className="m-0 flex items-center gap-2 text-xs font-black uppercase text-primary-600">
-                                <Sparkles className="size-4"/> Choose your checkpoint
-                            </p>
-                            <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">Available practice tests</h2>
-                            <p className="m-0 mt-1 text-sm text-slate-500">Start with the shortest useful signal, then grow into full-length tests.</p>
-                        </div>
-                    </div>
-
-                    <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <section>
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {TESTS.map((test) => (
                             <TestCard key={test.id} test={test} onStart={startTest}/>
                         ))}
@@ -189,9 +151,9 @@ function PracticeTestPage() {
                             <h2 className="m-0 font-display text-2xl font-black text-slate-950">Before you begin</h2>
                             <div className="mt-4 grid gap-3 md:grid-cols-3">
                                 {[
-                                    ['Choose your test', 'Use the diagnostic for a fast baseline or wait for full-length releases.'],
-                                    ['Clear your space', 'Practice tests work best when you can focus for the full timer.'],
-                                    ['Review afterward', 'The score matters less than the pattern behind your misses.'],
+                                    ['No pausing', 'The timer runs like the real test — set aside the full time before you start.'],
+                                    ["Guess, don't skip", "There's no penalty for wrong answers, so answer everything."],
+                                    ["Read your misses", "After scoring, open the explanations for what you got wrong — that's where the points are."],
                                 ].map(([title, copy]) => (
                                     <div key={title} className="rounded-2xl bg-slate-50 p-4">
                                         <p className="m-0 font-black text-slate-900">{title}</p>

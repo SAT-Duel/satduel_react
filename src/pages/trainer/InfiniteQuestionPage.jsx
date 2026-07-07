@@ -49,9 +49,9 @@ function RatingPulse({feedback}) {
     if (!feedback) {
         return (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="m-0 text-sm font-bold text-slate-700">Practice Elo is live</p>
+                <p className="m-0 text-sm font-bold text-slate-700">Your rating moves with each answer</p>
                 <p className="m-0 mt-1 text-sm text-slate-500">
-                    Your first attempt at each question moves your rating.
+                    First try counts — repeats are just review.
                 </p>
             </div>
         );

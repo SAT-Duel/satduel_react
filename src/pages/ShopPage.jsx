@@ -69,12 +69,9 @@ function Shop() {
     return (
         <PageContainer className="min-h-screen py-8 sm:py-10">
             <div className="mb-8 text-center">
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-primary-700">
-                    <Sparkles size={14}/> Legacy Shop
-                </div>
                 <h1 className="text-4xl font-black text-slate-950 sm:text-5xl">Coin Shop</h1>
                 <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                    Pet cosmetics and old coin perks live here while the product moves toward a cleaner progress system.
+                    Spend the coins you earn from practice.
                 </p>
             </div>
 
