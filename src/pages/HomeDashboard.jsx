@@ -45,8 +45,12 @@ const STAT_DEFS = [
         bubble: 'A',
         color: 'text-primary-700 bg-primary-100',
         get: (d) => d.profile?.sp_elo_rating ?? '—',
+        subjects: [
+            {value: 'english', label: 'English', get: (d) => d.profile?.sp_elo_rating ?? '—'},
+            {value: 'math', label: 'Math', get: (d) => d.profile?.math_elo_rating ?? '—'},
+        ],
         earn: 'Answer practice questions — only your first try at each one counts.',
-        detail: 'Your skill level on individual questions (everyone starts at 1200). Get a question right and your rating goes up; miss it and it dips. Harder questions move it more, and your rating settles down as you answer more.',
+        detail: 'Your skill level on individual questions (everyone starts at 1200). English and Math are rated separately. Get a question right and that rating goes up; miss it and it dips. Harder questions move it more, and your rating settles down as you answer more.',
     },
     {
         key: 'duel_rating',
@@ -82,6 +86,9 @@ const STAT_DEFS = [
 
 function StatCard({def, data}) {
     const Icon = def.icon;
+    const [subject, setSubject] = useState(def.subjects ? def.subjects[0].value : null);
+    const active = def.subjects?.find((s) => s.value === subject);
+    const value = active ? active.get(data) : def.get(data);
     return (
         <Card className="sat-arena-card relative overflow-hidden p-4">
             <div className="sat-score-strip absolute inset-x-0 top-0 h-1 border-0"/>
@@ -89,12 +96,30 @@ function StatCard({def, data}) {
                 <div className={`mb-3 flex size-10 items-center justify-center rounded-xl ${def.color}`}>
                     <Icon className="size-5"/>
                 </div>
-                <span className="sat-answer-bubble inline-flex size-8 items-center justify-center rounded-full bg-white text-xs font-black text-slate-500">
-                    {def.bubble}
-                </span>
+                {def.subjects ? (
+                    <div className="flex gap-0.5 rounded-lg bg-slate-100 p-0.5">
+                        {def.subjects.map((s) => (
+                            <button
+                                key={s.value}
+                                type="button"
+                                onClick={() => setSubject(s.value)}
+                                className={[
+                                    'rounded-md px-2 py-1 text-[11px] font-black transition-colors',
+                                    subject === s.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500',
+                                ].join(' ')}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <span className="sat-answer-bubble inline-flex size-8 items-center justify-center rounded-full bg-white text-xs font-black text-slate-500">
+                        {def.bubble}
+                    </span>
+                )}
             </div>
             <div className="flex items-baseline gap-2">
-                <p className="m-0 font-display text-3xl font-black text-slate-950">{def.get(data)}</p>
+                <p className="m-0 font-display text-3xl font-black text-slate-950">{value}</p>
                 {def.sub && <span className="text-sm font-semibold text-slate-400">{def.sub(data)}</span>}
             </div>
             <p className="m-0 mt-0.5 text-sm font-black text-slate-800">{def.label}</p>
