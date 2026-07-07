@@ -26,8 +26,24 @@ const BulletPoint = styled.li`
     list-style-type: disc;
 `;
 
+// Inline SVG figures ([svg]...[/svg] blocks, AI-generated then admin-reviewed).
+// Reject anything with scripting/embedding capability before injecting.
+const isSafeSvg = (svg) =>
+    /^<svg[\s>]/i.test(svg.trim()) &&
+    !/<\s*(script|foreignObject|image|use|animate|a)\b|\bon\w+\s*=|href\s*=|javascript:/i.test(svg);
+
+const SvgFigure = ({markup}) => {
+    if (!isSafeSvg(markup)) return null;
+    return (
+        <span
+            style={{display: 'block', maxWidth: '360px', margin: '12px auto'}}
+            dangerouslySetInnerHTML={{__html: markup}}
+        />
+    );
+};
+
 const FormattedTextRenderer = ({text}) => {
-    const regex = /(\$\$.*?\$\$|\$.*?\$|\\underline{.*?}|\\textit{.*?}|\\textbf{.*?}|\n|\*.*?\n)/s;
+    const regex = /(\[svg\].*?\[\/svg\]|\$\$.*?\$\$|\$.*?\$|\\underline{.*?}|\\textit{.*?}|\\textbf{.*?}|\n|\*.*?\n)/s;
     if (!text) {
         return null;
     }
@@ -39,6 +55,8 @@ const FormattedTextRenderer = ({text}) => {
             {parts.map((part, index) => {
                 if (part === '\n') {
                     return <br key={index}/>;
+                } else if (part.startsWith('[svg]') && part.endsWith('[/svg]')) {
+                    return <SvgFigure key={index} markup={part.slice(5, -6)}/>;
                 } else if (part.startsWith('$$') && part.endsWith('$$')) {
                     return <BlockMath key={index} math={part.slice(2, -2)}/>;
                 } else if (part.startsWith('$') && part.endsWith('$')) {

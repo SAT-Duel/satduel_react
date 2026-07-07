@@ -1,6 +1,6 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Database, FileText, Trophy} from 'lucide-react';
+import {Database, FileText, Sparkles, Trophy} from 'lucide-react';
 import {Card, PageContainer} from '../../components/ui';
 import withAuth from '../../hoc/withAuth';
 
@@ -10,6 +10,12 @@ const tools = [
         description: 'Manage, preview, create, and edit the question bank.',
         icon: FileText,
         action: 'questions',
+    },
+    {
+        title: 'AI Question Generator',
+        description: 'Generate SAT math questions with AI by official skill, review, and import.',
+        icon: Sparkles,
+        action: 'generate',
     },
     {
         title: 'Backend Database',
@@ -33,7 +39,12 @@ function AdminHome() {
             window.location.href = 'https://satduel-e07814415d4e.herokuapp.com/admin/';
             return;
         }
-        navigate(action === 'questions' ? '/admin/questions' : '/admin/create_tournament');
+        const paths = {
+            questions: '/admin/questions',
+            generate: '/admin/generate_questions',
+            tournament: '/admin/create_tournament',
+        };
+        navigate(paths[action]);
     };
 
     return (
