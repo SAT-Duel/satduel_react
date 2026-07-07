@@ -4,27 +4,27 @@ import {Button, Card, PageContainer} from '../components/ui';
 
 const FEATURES = [
     {
-        title: 'Find a round',
-        description: 'Public tournaments sit in one clean arena list. Private rounds stay accessible by code.',
+        title: '1. Join',
+        description: 'Pick a public tournament from the list, or enter a join code from a teacher or friend.',
         icon: Trophy,
     },
     {
-        title: 'Answer under pressure',
-        description: 'The timer gives practice a real test-day edge without hiding the learning goal.',
+        title: '2. Answer',
+        description: 'Everyone gets the same questions and the same clock. Once you start, the timer keeps running.',
         icon: Clock3,
     },
     {
-        title: 'Compare fairly',
-        description: 'Everyone plays the same question set, so leaderboard movement is easy to understand.',
+        title: '3. Score',
+        description: 'Correct answers score points; earlier correct answers break ties. Watch the leaderboard update as people finish.',
         icon: ShieldCheck,
     },
 ];
 
 const BENEFITS = [
-    ['Competitive focus', 'A tournament should make a practice session feel important enough to finish.'],
-    ['Community signal', 'Seeing other students working makes SAT prep feel less isolated.'],
-    ['Useful analytics', 'Score, timing, and question history point users back into targeted practice.'],
-    ['Low clutter', 'No coins or side systems. The core loop is questions, timing, leaderboard.'],
+    ['Same questions for everyone', 'Rankings are fair — no one gets an easier set.'],
+    ['Ties go to the faster player', 'If two people have equal scores, the one who answered correctly sooner ranks higher.'],
+    ['Review when you finish', 'Your answers and the correct ones are saved, so you can go over what you missed.'],
+    ['Private rounds', 'Anyone can create a tournament and share its code — handy for classes and study groups.'],
 ];
 
 function TournamentPage() {
@@ -33,14 +33,11 @@ function TournamentPage() {
             <section className="sat-arena-surface border-b border-slate-200">
                 <PageContainer className="py-12 sm:py-16">
                     <div className="mx-auto max-w-3xl text-center">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
-                            <Trophy className="size-4 text-amber-300"/> Tournament mode
-                        </span>
-                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
-                            Practice with stakes, without adding noise.
+                        <h1 className="m-0 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
+                            How tournaments work
                         </h1>
                         <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
-                            SAT Duel tournaments turn a timed question set into a shared arena: same questions, same clock, clear leaderboard.
+                            Everyone answers the same timed question set. Highest score wins — ties go to whoever answered correctly first.
                         </p>
                         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
                             <Button to="/tournaments" size="lg">
@@ -69,21 +66,20 @@ function TournamentPage() {
 
                 <section className="mt-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
                     <div>
-                        <p className="m-0 text-xs font-black uppercase text-primary-600">Why it exists</p>
-                        <h2 className="m-0 mt-3 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
-                            Tournaments are for motivation, not distraction.
+                        <h2 className="m-0 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                            Before you join
                         </h2>
                         <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
-                            The product should not make students track five currencies. Tournament mode should give them one clear reason to sit down and finish a serious round.
+                            The timer starts when you open the questions and doesn't pause — join when you have the full round free. You can review every question after you finish.
                         </p>
                     </div>
 
                     <Card className="sat-arena-card overflow-hidden">
                         <div className="sat-duel-lanes bg-slate-950 p-5 text-white">
                             <div className="flex items-center justify-between">
-                                <span className="font-black">Weekly Bubble Arena</span>
+                                <span className="font-black">A typical round</span>
                                 <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs font-black text-emerald-200">
-                                    Live
+                                    Example
                                 </span>
                             </div>
                             <div className="mt-5 grid grid-cols-3 gap-2 text-center">

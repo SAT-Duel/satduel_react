@@ -42,15 +42,7 @@ function MyTournamentsPage() {
                 )}
 
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3.5 py-1.5 text-sm font-black text-white">
-                            <Trophy className="size-4 text-amber-300"/> Host console
-                        </span>
-                        <h1 className="m-0 mt-4 font-display text-4xl font-black text-slate-950">My tournaments</h1>
-                        <p className="m-0 mt-2 max-w-2xl text-slate-500">
-                            Manage the private and classroom rounds you created.
-                        </p>
-                    </div>
+                    <h1 className="m-0 font-display text-2xl font-bold text-slate-900 sm:text-3xl">My tournaments</h1>
                     <Button to="/create_tournament">
                         <Plus className="size-4"/> Create tournament
                     </Button>
@@ -63,9 +55,9 @@ function MyTournamentsPage() {
                 ) : tournaments.length === 0 ? (
                     <Card className="sat-arena-card mt-8 p-8 text-center">
                         <Trophy className="mx-auto size-10 text-slate-300"/>
-                        <h2 className="m-0 mt-4 font-display text-2xl font-black text-slate-950">No tournaments created yet</h2>
+                        <h2 className="m-0 mt-4 font-display text-2xl font-black text-slate-950">Nothing here yet</h2>
                         <p className="mx-auto mt-2 max-w-md text-slate-500">
-                            Create a private round when you want a group of students to compete on one shared set.
+                            Create a tournament and share its join code with your class or friends.
                         </p>
                         <Button to="/create_tournament" className="mt-5">Create your first tournament</Button>
                     </Card>
