@@ -423,7 +423,7 @@ function HomeDashboard() {
                     <SectionHeader
                         icon={Brain}
                         title="Study guides"
-                        subtitle="Start with the Math guide: concept notes, checkpoints, Desmos labs, and practice handoffs."
+                        subtitle="Start with the Math guide: focused modules, concise lessons, and worked examples."
                         action={!isPremium && (
                             <Button to="/upgrade" variant="secondary" size="sm">
                                 <Crown className="size-4 text-amber-500"/> Premium supports more guides
@@ -445,7 +445,7 @@ function HomeDashboard() {
                                 <div className="flex-1">
                                     <p className="m-0 font-bold text-slate-900">{label} Study Guide</p>
                                     <p className="m-0 mt-0.5 text-sm text-slate-500">
-                                        {to ? 'Interactive modules + graph labs.' : 'Targeted lessons + worked examples.'}
+                                        {to ? 'Focused modules + study pages.' : 'Targeted lessons + worked examples.'}
                                     </p>
                                 </div>
                                 <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
