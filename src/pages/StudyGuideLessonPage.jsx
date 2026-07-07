@@ -157,6 +157,115 @@ function QuickCheck({check}) {
     );
 }
 
+function PracticeSet({set}) {
+    const [index, setIndex] = useState(0);
+    const [answers, setAnswers] = useState({});
+    const question = set.questions[index];
+    const picked = answers[question.id];
+    const answered = picked !== undefined;
+    const correct = picked === question.answer;
+    const letters = ['A', 'B', 'C', 'D'];
+
+    const pick = (choiceIndex) => {
+        setAnswers((current) => ({...current, [question.id]: choiceIndex}));
+    };
+
+    return (
+        <section className="space-y-3">
+            <div className="flex flex-col gap-2 border-b border-slate-200 pb-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Practice set</p>
+                    <h2 className="m-0 mt-1 text-xl font-black text-slate-950">{set.title}</h2>
+                </div>
+                <p className="m-0 text-sm font-black text-slate-500">
+                    {index + 1} / {set.questions.length}
+                </p>
+            </div>
+
+            {set.intro && <p className="m-0 text-base leading-7 text-slate-700">{set.intro}</p>}
+
+            <NoteBox tone="emerald" label={question.skill} title={question.title}>
+                <p className="m-0">{question.stem}</p>
+                {question.math && (
+                    <div className="mt-3 overflow-x-auto rounded-lg bg-white/70 py-2 text-slate-950">
+                        <BlockMath math={question.math}/>
+                    </div>
+                )}
+
+                <div className="mt-3 grid gap-2">
+                    {question.choices.map((choice, choiceIndex) => {
+                        const isPicked = picked === choiceIndex;
+                        const isCorrect = answered && choiceIndex === question.answer;
+                        const isWrong = answered && isPicked && !isCorrect;
+
+                        return (
+                            <button
+                                key={choice}
+                                type="button"
+                                onClick={() => pick(choiceIndex)}
+                                className={[
+                                    'flex cursor-pointer gap-3 rounded-lg border bg-white px-3 py-2 text-left text-sm transition-colors',
+                                    isCorrect ? 'border-emerald-500 text-emerald-900' : '',
+                                    isWrong ? 'border-rose-300 bg-rose-50 text-rose-800' : '',
+                                    !isCorrect && !isWrong ? 'border-emerald-200 text-slate-700 hover:border-emerald-400' : '',
+                                ].join(' ')}
+                            >
+                                <span className="font-black">{letters[choiceIndex]}.</span>
+                                <span className="font-semibold">{choice}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {answered && (
+                    <div className="mt-4 space-y-3 rounded-lg bg-white/75 p-3 text-slate-700">
+                        <p className={`m-0 font-black ${correct ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            {correct ? 'Correct.' : 'Not quite.'}
+                        </p>
+                        <div>
+                            <p className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Clean solution</p>
+                            <ol className="m-0 mt-1 space-y-1 pl-5">
+                                {question.explanation.steps.map((step) => (
+                                    <li key={step}>{step}</li>
+                                ))}
+                            </ol>
+                        </div>
+                        {question.explanation.trap && (
+                            <div>
+                                <p className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Common trap</p>
+                                <p className="m-0 mt-1">{question.explanation.trap}</p>
+                            </div>
+                        )}
+                        <div>
+                            <p className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Takeaway</p>
+                            <p className="m-0 mt-1">{question.explanation.takeaway}</p>
+                        </div>
+                    </div>
+                )}
+            </NoteBox>
+
+            <div className="flex items-center justify-between gap-3">
+                <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={() => setIndex((current) => Math.max(0, current - 1))}
+                    className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-600 disabled:cursor-default disabled:opacity-40"
+                >
+                    Previous
+                </button>
+                <button
+                    type="button"
+                    disabled={index === set.questions.length - 1}
+                    onClick={() => setIndex((current) => Math.min(set.questions.length - 1, current + 1))}
+                    className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-600 disabled:cursor-default disabled:opacity-40"
+                >
+                    Next
+                </button>
+            </div>
+        </section>
+    );
+}
+
 export default function StudyGuideLessonPage() {
     const {slug} = useParams();
     const lesson = STUDY_GUIDE_LESSON_BY_SLUG[slug];
@@ -231,6 +340,7 @@ export default function StudyGuideLessonPage() {
                         <MethodList cards={lesson.strategyCards}/>
                         <AdaptiveDemo demo={lesson.adaptiveDemo}/>
                         <QuickCheck check={lesson.quickCheck}/>
+                        {lesson.practiceSet && <PracticeSet set={lesson.practiceSet}/>}
 
                         <div className="border-t border-slate-200 pt-5">
                             <Button to="/infinite_questions" size="sm">

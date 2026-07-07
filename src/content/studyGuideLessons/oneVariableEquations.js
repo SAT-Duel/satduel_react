@@ -1,0 +1,241 @@
+const oneVariableEquations = {
+    slug: 'one-variable-equations',
+    moduleId: 'linear-equations',
+    title: 'One-Variable Equations',
+    eyebrow: 'Algebra',
+    minutes: '18 min',
+    summary: 'Most SAT equation questions are not hard because of the algebra. They are hard because one small move changes the equation.',
+    goals: [
+        'Solve linear equations without losing signs, fractions, or parentheses.',
+        'Choose the cleanest first move instead of expanding automatically.',
+        'Recognize the classic traps SAT answer choices are built from.',
+    ],
+    facts: [
+        {label: 'Main skill', value: 'isolate x', note: 'undo the operations around the variable'},
+        {label: 'Big trap', value: 'signs', note: 'negative coefficients and subtraction across parentheses'},
+        {label: 'Fast check', value: 'substitute', note: 'plug the answer into the original equation'},
+        {label: 'SAT pattern', value: 'messy simple', note: 'the equation is usually linear, but the setup looks cluttered'},
+    ],
+    sections: [
+        {
+            heading: 'Big idea 1: every move must hit both sides',
+            paragraphs: [
+                'An equation is a balance. You can add, subtract, multiply, or divide, but the move must preserve equality.',
+                'Most mistakes happen when a student changes one part of an equation but forgets another term. This is especially common when clearing fractions or distributing.',
+            ],
+        },
+        {
+            heading: 'Big idea 2: simplify the clutter before solving',
+            paragraphs: [
+                'Parentheses, fractions, and decimals are not separate topics. They are clutter around the same goal: isolate the variable.',
+                'Good first moves remove clutter. Distribute only when it helps. Clear denominators when fractions are slowing the equation down. Multiply decimals by 10 only when it makes the arithmetic cleaner.',
+            ],
+        },
+        {
+            heading: 'Big idea 3: check in the original equation',
+            paragraphs: [
+                'A clean solution can still be wrong if a sign was lost. The fastest safety check is to substitute your answer into the original equation, not your simplified version.',
+                'On the SAT, this check is often faster than re-solving. If the original equation balances, the answer is correct.',
+            ],
+        },
+    ],
+    formulas: [
+        {
+            label: 'Balance rule',
+            math: 'A = B \\Rightarrow A + c = B + c \\quad \\text{and} \\quad cA = cB',
+            note: 'Whatever you do to one side, do to the other side.',
+        },
+        {
+            label: 'Linear equation shape',
+            math: 'ax + b = c \\Rightarrow x = \\frac{c-b}{a},\\quad a\\ne0',
+            note: 'Do not memorize this as a shortcut. Use it to remember the order: subtract the constant, then divide by the coefficient.',
+        },
+    ],
+    strategyCards: [
+        {
+            title: 'First move checklist',
+            items: ['Combine like terms if they are already on the same side', 'Clear parentheses if a factor touches a group', 'Clear fractions if denominators make the next step messy'],
+        },
+        {
+            title: 'Common wrong-answer sources',
+            items: ['Forgetting to distribute a negative sign', 'Dividing by the coefficient too early', 'Multiplying only one term when clearing a fraction'],
+        },
+    ],
+    adaptiveDemo: {
+        title: 'Choose the cleaner first move',
+        prompt: 'For this equation, which first move creates less clutter?',
+        options: [
+            {
+                id: 'distribute',
+                label: 'Distribute first',
+                result: 'Best when a number touches parentheses.',
+                advice: 'For 3(x - 2) + 4 = 16, distributing makes the equation linear and clean: 3x - 6 + 4 = 16.',
+            },
+            {
+                id: 'divide',
+                label: 'Divide first',
+                result: 'Best when the whole side is multiplied.',
+                advice: 'If the equation is 3(x - 2) = 15, divide by 3 first to get x - 2 = 5.',
+            },
+        ],
+    },
+    quickCheck: {
+        prompt: 'What is the safest way to check a solved equation?',
+        choices: [
+            'Plug the answer into the original equation.',
+            'Plug the answer into the final line only.',
+            'See whether the answer choice looks reasonable.',
+            'Redo only the arithmetic in your head.',
+        ],
+        answer: 0,
+        explanation: 'The original equation still contains every sign, fraction, and parenthesis. If your answer balances there, it is correct.',
+    },
+    practiceSet: {
+        title: 'Classic SAT equation traps',
+        intro: 'Each question targets one move that students often rush. Answer first, then read the trap note.',
+        questions: [
+            {
+                id: 'distribute-combine',
+                skill: 'Parentheses',
+                title: 'Distribute, then combine',
+                stem: 'Solve for x.',
+                math: '3(x-2)+4=16',
+                choices: ['x = 4', 'x = 6', 'x = 8', 'x = 10'],
+                answer: 1,
+                explanation: {
+                    steps: ['Distribute: 3x - 6 + 4 = 16.', 'Combine like terms: 3x - 2 = 16.', 'Add 2, then divide by 3: x = 6.'],
+                    trap: 'A common wrong move is to subtract 4 first and forget that the -6 came from the parentheses.',
+                    takeaway: 'After distributing, combine constants before isolating x.',
+                },
+            },
+            {
+                id: 'negative-coefficient',
+                skill: 'Signs',
+                title: 'Negative coefficient',
+                stem: 'Solve for x.',
+                math: '5-2x=17',
+                choices: ['x = -11', 'x = -6', 'x = 6', 'x = 11'],
+                answer: 1,
+                explanation: {
+                    steps: ['Subtract 5: -2x = 12.', 'Divide by -2: x = -6.'],
+                    trap: 'The answer x = 6 comes from dividing 12 by 2 and dropping the negative sign.',
+                    takeaway: 'If the coefficient is negative, the final division keeps that sign.',
+                },
+            },
+            {
+                id: 'fraction-group',
+                skill: 'Fractions',
+                title: 'Undo the denominator',
+                stem: 'Solve for x.',
+                math: '\\frac{x-3}{4}=5',
+                choices: ['x = 8', 'x = 17', 'x = 20', 'x = 23'],
+                answer: 3,
+                explanation: {
+                    steps: ['Multiply both sides by 4: x - 3 = 20.', 'Add 3: x = 23.'],
+                    trap: 'The answer x = 17 comes from subtracting 3 instead of adding 3 after the denominator is removed.',
+                    takeaway: 'First remove the denominator, then undo the operation touching x.',
+                },
+            },
+            {
+                id: 'fraction-numerator',
+                skill: 'Fractions',
+                title: 'The whole numerator is divided',
+                stem: 'Solve for x.',
+                math: '\\frac{2x-1}{3}=5',
+                choices: ['x = 7', 'x = 8', 'x = 9', 'x = 16'],
+                answer: 1,
+                explanation: {
+                    steps: ['Multiply both sides by 3: 2x - 1 = 15.', 'Add 1: 2x = 16.', 'Divide by 2: x = 8.'],
+                    trap: 'The numerator 2x - 1 is one group. Do not divide only the 2x term by 3.',
+                    takeaway: 'A fraction bar acts like parentheses around the whole numerator.',
+                },
+            },
+            {
+                id: 'variables-both-sides',
+                skill: 'Both sides',
+                title: 'Variables on both sides',
+                stem: 'Solve for x.',
+                math: '2(x+3)=3x-4',
+                choices: ['x = -10', 'x = 2', 'x = 10', 'x = 14'],
+                answer: 2,
+                explanation: {
+                    steps: ['Distribute: 2x + 6 = 3x - 4.', 'Subtract 2x: 6 = x - 4.', 'Add 4: x = 10.'],
+                    trap: 'Moving variables and constants in the same step often creates sign mistakes.',
+                    takeaway: 'Move variables first, then constants. Keep the line easy to audit.',
+                },
+            },
+            {
+                id: 'subtract-parentheses',
+                skill: 'Signs',
+                title: 'Subtraction before parentheses',
+                stem: 'Solve for x.',
+                math: '7-(x-2)=14',
+                choices: ['x = -5', 'x = 5', 'x = 9', 'x = 23'],
+                answer: 0,
+                explanation: {
+                    steps: ['Distribute the negative: 7 - x + 2 = 14.', 'Combine constants: 9 - x = 14.', 'Subtract 9: -x = 5, so x = -5.'],
+                    trap: 'The expression -(x - 2) becomes -x + 2, not -x - 2.',
+                    takeaway: 'A minus sign before parentheses changes every sign inside.',
+                },
+            },
+            {
+                id: 'decimal-equation',
+                skill: 'Decimals',
+                title: 'Decimal coefficients',
+                stem: 'Solve for x.',
+                math: '0.4x+1.2=3.6',
+                choices: ['x = 4.8', 'x = 6', 'x = 9.6', 'x = 12'],
+                answer: 1,
+                explanation: {
+                    steps: ['Subtract 1.2: 0.4x = 2.4.', 'Divide by 0.4: x = 6.'],
+                    trap: 'Decimal division feels slower than it is. Since 0.4 times 6 is 2.4, x = 6.',
+                    takeaway: 'You can clear decimals by multiplying by 10, but mental checking is often faster.',
+                },
+            },
+            {
+                id: 'clear-denominators',
+                skill: 'Fractions',
+                title: 'Clear every denominator',
+                stem: 'Solve for x.',
+                math: '\\frac{x}{2}+\\frac{x}{3}=10',
+                choices: ['x = 5', 'x = 6', 'x = 12', 'x = 60'],
+                answer: 2,
+                explanation: {
+                    steps: ['Multiply every term by 6: 3x + 2x = 60.', 'Combine: 5x = 60.', 'Divide by 5: x = 12.'],
+                    trap: 'Multiplying only the fractions and not the 10 changes the equation.',
+                    takeaway: 'When clearing denominators, multiply every term on both sides.',
+                },
+            },
+            {
+                id: 'fraction-both-sides',
+                skill: 'Both sides',
+                title: 'Fraction against a variable expression',
+                stem: 'Solve for x.',
+                math: '\\frac{x+5}{2}=x-1',
+                choices: ['x = 3', 'x = 5', 'x = 7', 'x = 12'],
+                answer: 2,
+                explanation: {
+                    steps: ['Multiply both sides by 2: x + 5 = 2x - 2.', 'Subtract x: 5 = x - 2.', 'Add 2: x = 7.'],
+                    trap: 'The right side x - 1 must also be multiplied by 2.',
+                    takeaway: 'When multiplying both sides, treat each side as a full expression.',
+                },
+            },
+            {
+                id: 'parameter-nonzero',
+                skill: 'Parameters',
+                title: 'A constant that cancels',
+                stem: 'If a is a nonzero constant, solve for x.',
+                math: 'a(x-2)=3a',
+                choices: ['x = 1', 'x = 3', 'x = 5', 'x = 5a'],
+                answer: 2,
+                explanation: {
+                    steps: ['Since a is nonzero, divide both sides by a: x - 2 = 3.', 'Add 2: x = 5.'],
+                    trap: 'The answer x = 5a keeps the parameter even though a cancels from both sides.',
+                    takeaway: 'If a nonzero factor appears on both sides, divide it away before solving.',
+                },
+            },
+        ],
+    },
+};
+
+export default oneVariableEquations;
