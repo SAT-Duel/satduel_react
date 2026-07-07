@@ -12,6 +12,7 @@ const PricingPage = React.lazy(() => import("../pages/PricingPage"));
 
 const HomePage = React.lazy(() => import("../pages/HomePage"));
 const AboutPage = React.lazy(() => import("../pages/AboutPage"));
+const SEOGuidePage = React.lazy(() => import("../pages/seo/SEOGuidePage"));
 const QuestionsPage = React.lazy(() => import("../pages/QuestionPage"));
 const LoginPage = React.lazy(() => import("../pages/LoginPage"));
 const RegisterPage = React.lazy(() => import("../pages/RegisterPage"));
@@ -70,6 +71,11 @@ const MARKETING_ROUTES = [
     {path: '/diagnostic', el: <DiagnosticPage/>},
     {path: '/pricing', el: <PricingPage/>},
     {path: '/about', el: <AboutPage/>},
+    {path: '/digital-sat-practice', el: <SEOGuidePage pageKey="digitalSatPractice"/>},
+    {path: '/sat-reading-and-writing-practice', el: <SEOGuidePage pageKey="satReadingWriting"/>},
+    {path: '/sat-math-practice', el: <SEOGuidePage pageKey="satMath"/>},
+    {path: '/sat-vocabulary-words-in-context', el: <SEOGuidePage pageKey="wordsInContext"/>},
+    {path: '/digital-sat-score-guide', el: <SEOGuidePage pageKey="scoreGuide"/>},
     {path: '/confirm-email/:key', el: <ConfirmEmail/>},
     {path: '/email_verification/:email', el: <EmailVerificationPage/>},
     {path: '/password_reset', el: <PasswordResetPage/>},

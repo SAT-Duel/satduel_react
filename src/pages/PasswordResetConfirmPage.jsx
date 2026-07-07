@@ -4,6 +4,7 @@ import {useParams, useNavigate} from 'react-router-dom';
 import api from '../components/api';
 import {Button, Card, Field, Input, PageContainer} from '../components/ui';
 import {notify} from '../utils/notify';
+import SEO from '../components/SEO';
 
 function PasswordResetConfirmPage() {
     const [password, setPassword] = useState('');
@@ -42,6 +43,12 @@ function PasswordResetConfirmPage() {
 
     return (
         <div className="sat-bubble-field min-h-screen py-12 sm:py-16">
+            <SEO
+                title="Set a New SAT Duel Password"
+                description="Choose a new password for your SAT Duel account."
+                path="/api/reset"
+                noindex
+            />
             <PageContainer className="max-w-md">
                 <Card className="sat-arena-card p-6 sm:p-8">
                     <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">

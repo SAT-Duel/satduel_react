@@ -5,9 +5,11 @@ import {DiscordCTA} from './Discord';
 import logo from '../assets/logo192.png';
 
 const LINKS = [
-    {label: 'Practice', to: '/trainer'},
-    {label: 'Duels', to: '/match'},
-    {label: 'Tournaments', to: '/tournaments'},
+    {label: 'Digital SAT Practice', to: '/digital-sat-practice'},
+    {label: 'SAT Math', to: '/sat-math-practice'},
+    {label: 'Reading & Writing', to: '/sat-reading-and-writing-practice'},
+    {label: 'Score Guide', to: '/digital-sat-score-guide'},
+    {label: 'Pricing', to: '/pricing'},
     {label: 'About', to: '/about'},
 ];
 

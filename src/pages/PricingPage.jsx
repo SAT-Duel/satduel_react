@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {Helmet} from 'react-helmet';
 import {Link, useSearchParams} from 'react-router-dom';
 import {
     ArrowRight,
@@ -20,6 +19,7 @@ import api from '../components/api';
 import {Alert, Button, Card, PageContainer} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
+import SEO, {breadcrumbJsonLd, faqJsonLd, softwareAppJsonLd} from '../components/SEO';
 
 const FREE_FEATURES = [
     '25 adaptive practice questions each day',
@@ -200,13 +200,19 @@ function PricingPage() {
 
     return (
         <div className="bg-white text-slate-900">
-            <Helmet>
-                <title>Pricing - SAT Duel Premium</title>
-                <meta
-                    name="description"
-                    content="Upgrade to SAT Duel Premium for unlimited adaptive SAT practice and topic selection."
-                />
-            </Helmet>
+            <SEO
+                title="SAT Duel Pricing"
+                description="Start SAT Duel for free or upgrade to Premium for unlimited Digital SAT practice and focused topic selection."
+                path="/pricing"
+                structuredData={[
+                    softwareAppJsonLd(),
+                    faqJsonLd(FAQS),
+                    breadcrumbJsonLd([
+                        {name: 'Home', path: '/'},
+                        {name: 'Pricing', path: '/pricing'},
+                    ]),
+                ]}
+            />
 
             <section className="sat-arena-surface overflow-hidden border-b border-slate-200">
                 <PageContainer className="py-10 sm:py-12">

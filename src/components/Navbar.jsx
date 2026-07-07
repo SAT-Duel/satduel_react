@@ -7,6 +7,7 @@ import logo from '../assets/logo192.png';
 // Marketing top nav (logged-out visitors). The learning experience lives in
 // the sidebar app shell, so those links are intentionally not here.
 const NAV_LINKS = [
+    {label: 'Practice', to: '/digital-sat-practice'},
     {label: 'Pricing', to: '/pricing'},
     {label: 'About', to: '/about'},
 ];

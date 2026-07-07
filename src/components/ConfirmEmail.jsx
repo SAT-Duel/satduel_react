@@ -3,6 +3,7 @@ import {useParams, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {Spinner} from './ui';
 import {notify} from '../utils/notify';
+import SEO from './SEO';
 
 function ConfirmEmail() {
     const {key} = useParams();
@@ -28,6 +29,12 @@ function ConfirmEmail() {
 
     return (
         <div className="flex min-h-[50vh] items-center justify-center">
+            <SEO
+                title="Confirm Your SAT Duel Email"
+                description="Confirm your SAT Duel account email."
+                path="/confirm-email"
+                noindex
+            />
             {loading && (
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-600">
                     <Spinner/> Confirming email…

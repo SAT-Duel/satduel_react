@@ -2,12 +2,19 @@ import React from 'react';
 import {CheckCircle2, Mail} from 'lucide-react';
 import {useParams} from 'react-router-dom';
 import {Button, Card, PageContainer} from '../components/ui';
+import SEO from '../components/SEO';
 
 function EmailVerificationPage() {
     const {email} = useParams();
 
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-16">
+            <SEO
+                title="Verify Your SAT Duel Email"
+                description="Check your email to activate your SAT Duel account."
+                path="/email_verification"
+                noindex
+            />
             <PageContainer className="max-w-2xl">
                 <Card className="sat-arena-card p-6 text-center sm:p-8">
                     <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
