@@ -72,11 +72,23 @@ function DraftCard({draft, selected, onToggle}) {
     );
 }
 
+const mathDomains = new Set([
+    'Algebra',
+    'Advanced Math',
+    'Problem-Solving and Data Analysis',
+    'Geometry and Trigonometry',
+]);
+
+function domainSubject(domainName) {
+    return mathDomains.has(domainName) ? 'math' : 'english';
+}
+
 function QuestionGeneratorPage() {
     const [domains, setDomains] = useState([]);
     const [apiStatus, setApiStatus] = useState({anthropic: false, openai: false});
     const [loading, setLoading] = useState(true);
 
+    const [subjectName, setSubjectName] = useState('math');
     const [domainName, setDomainName] = useState('');
     const [skillName, setSkillName] = useState('');
     const [variant, setVariant] = useState('');
@@ -96,17 +108,31 @@ function QuestionGeneratorPage() {
             .then((res) => {
                 setDomains(res.data.domains);
                 setApiStatus(res.data.api_status);
-                const first = res.data.domains[0];
-                setDomainName(first.name);
-                setSkillName(first.skills[0].name);
+                const first = res.data.domains.find((d) => domainSubject(d.name) === 'math') || res.data.domains[0];
+                if (first) {
+                    setDomainName(first.name);
+                    setSkillName(first.skills[0].name);
+                }
             })
             .catch(() => notify.error('Failed to load the generation taxonomy'))
             .finally(() => setLoading(false));
     }, []);
 
-    const domain = useMemo(() => domains.find((d) => d.name === domainName), [domains, domainName]);
+    const subjectDomains = useMemo(
+        () => domains.filter((d) => domainSubject(d.name) === subjectName),
+        [domains, subjectName]
+    );
+    const domain = useMemo(() => subjectDomains.find((d) => d.name === domainName), [subjectDomains, domainName]);
     const skill = useMemo(() => domain?.skills.find((s) => s.name === skillName), [domain, skillName]);
     const apiConfigured = apiStatus.anthropic || apiStatus.openai;
+
+    const setSubject = (value) => {
+        const first = domains.find((d) => domainSubject(d.name) === value);
+        setSubjectName(value);
+        setDomainName(first?.name || '');
+        setSkillName(first?.skills?.[0]?.name || '');
+        setVariant('');
+    };
 
     const setDraftList = (questions) => {
         setDrafts(questions);
@@ -207,18 +233,26 @@ function QuestionGeneratorPage() {
             </div>
 
             <Card className="mb-6 p-5 sm:p-6">
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-[160px_1fr_1fr]">
+                    <Field label="Subject">
+                        <Select value={subjectName} onChange={(e) => setSubject(e.target.value)}>
+                            <option value="english">English</option>
+                            <option value="math">Math</option>
+                        </Select>
+                    </Field>
                     <Field label="Domain">
                         <Select
                             value={domainName}
+                            disabled={!subjectDomains.length}
                             onChange={(e) => {
                                 setDomainName(e.target.value);
-                                const d = domains.find((x) => x.name === e.target.value);
+                                const d = subjectDomains.find((x) => x.name === e.target.value);
                                 setSkillName(d.skills[0].name);
                                 setVariant('');
                             }}
                         >
-                            {domains.map((d) => (
+                            {!subjectDomains.length && <option value="">No topics yet</option>}
+                            {subjectDomains.map((d) => (
                                 <option key={d.name} value={d.name}>{d.name} ({d.share})</option>
                             ))}
                         </Select>
@@ -226,11 +260,13 @@ function QuestionGeneratorPage() {
                     <Field label="Skill (official College Board name)">
                         <Select
                             value={skillName}
+                            disabled={!domain}
                             onChange={(e) => {
                                 setSkillName(e.target.value);
                                 setVariant('');
                             }}
                         >
+                            {!domain && <option value="">No skills yet</option>}
                             {domain?.skills.map((s) => (
                                 <option key={s.name} value={s.name}>
                                     {s.name} — {s.count_in_bank} in bank
@@ -242,6 +278,11 @@ function QuestionGeneratorPage() {
                 {skill && (
                     <p className="mt-3 text-sm leading-6 text-slate-500">
                         {skill.blurb} <span className="text-slate-400">(figures: {skill.figures})</span>
+                    </p>
+                )}
+                {!subjectDomains.length && (
+                    <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+                        English generator topics are not configured yet.
                     </p>
                 )}
                 <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -265,7 +306,7 @@ function QuestionGeneratorPage() {
                     </Field>
                 </div>
                 <div className="mt-5 flex justify-end">
-                    <Button onClick={handleGenerate} loading={generating}>
+                    <Button onClick={handleGenerate} loading={generating} disabled={!skill}>
                         <Sparkles size={18}/> {apiConfigured ? 'Generate' : 'Build Prompt'}
                     </Button>
                 </div>

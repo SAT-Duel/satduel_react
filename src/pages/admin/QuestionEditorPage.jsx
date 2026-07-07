@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import {ArrowLeft, Eye, Save} from 'lucide-react';
 import api from '../../components/api';
 import Question from '../../components/Question';
@@ -22,10 +22,15 @@ const blankQuestion = {
 function QuestionEditorPage() {
     const {id} = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [values, setValues] = useState(blankQuestion);
     const [loading, setLoading] = useState(!!id);
     const [saving, setSaving] = useState(false);
     const [previewVisible, setPreviewVisible] = useState(false);
+    const returnTo = useMemo(() => {
+        const path = new URLSearchParams(location.search).get('returnTo') || '/admin/questions';
+        return path.startsWith('/admin/questions') ? path : '/admin/questions';
+    }, [location.search]);
 
     const updateValue = (field, value) => {
         setValues((current) => ({...current, [field]: value}));
@@ -87,7 +92,7 @@ function QuestionEditorPage() {
 
             if (response.data.status === 'success') {
                 notify.success(`Question ${id ? 'updated' : 'created'} successfully`);
-                navigate(id ? `/admin/edit_question/${id}` : '/admin/questions');
+                navigate(id ? `/admin/edit_question/${id}${location.search}` : returnTo);
             } else {
                 notify.error(`Failed to ${id ? 'update' : 'create'} question`);
             }
@@ -109,7 +114,7 @@ function QuestionEditorPage() {
 
     return (
         <PageContainer className="min-h-screen max-w-4xl py-6 sm:py-8">
-            <Button to="/admin/questions" variant="ghost" className="mb-4 px-0">
+            <Button to={returnTo} variant="ghost" className="mb-4 px-0">
                 <ArrowLeft size={18}/> Return to Question List
             </Button>
 
