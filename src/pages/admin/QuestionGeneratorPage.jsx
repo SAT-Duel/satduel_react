@@ -91,7 +91,6 @@ function QuestionGeneratorPage() {
     const [subjectName, setSubjectName] = useState('math');
     const [domainName, setDomainName] = useState('');
     const [skillName, setSkillName] = useState('');
-    const [variant, setVariant] = useState('');
     const [difficulty, setDifficulty] = useState('3');
     const [count, setCount] = useState('5');
 
@@ -131,7 +130,6 @@ function QuestionGeneratorPage() {
         setSubjectName(value);
         setDomainName(first?.name || '');
         setSkillName(first?.skills?.[0]?.name || '');
-        setVariant('');
     };
 
     const setDraftList = (questions) => {
@@ -147,7 +145,6 @@ function QuestionGeneratorPage() {
         try {
             const res = await api.post('/api/admin/generation/generate/', {
                 skill: skillName,
-                variant: variant || null,
                 difficulty: Number(difficulty),
                 count: Number(count),
             });
@@ -248,7 +245,6 @@ function QuestionGeneratorPage() {
                                 setDomainName(e.target.value);
                                 const d = subjectDomains.find((x) => x.name === e.target.value);
                                 setSkillName(d.skills[0].name);
-                                setVariant('');
                             }}
                         >
                             {!subjectDomains.length && <option value="">No topics yet</option>}
@@ -261,10 +257,7 @@ function QuestionGeneratorPage() {
                         <Select
                             value={skillName}
                             disabled={!domain}
-                            onChange={(e) => {
-                                setSkillName(e.target.value);
-                                setVariant('');
-                            }}
+                            onChange={(e) => setSkillName(e.target.value)}
                         >
                             {!domain && <option value="">No skills yet</option>}
                             {domain?.skills.map((s) => (
@@ -285,15 +278,7 @@ function QuestionGeneratorPage() {
                         English generator topics are not configured yet.
                     </p>
                 )}
-                <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                    <Field label="Sub-variant">
-                        <Select value={variant} onChange={(e) => setVariant(e.target.value)}>
-                            <option value="">Mix (recommended)</option>
-                            {skill?.variants.map((v) => (
-                                <option key={v} value={v}>{v}</option>
-                            ))}
-                        </Select>
-                    </Field>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <Field label="Difficulty">
                         <Select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                             {[1, 2, 3, 4, 5].map((d) => <option key={d} value={d}>{d}</option>)}
