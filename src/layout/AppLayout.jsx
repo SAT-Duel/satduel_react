@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
 import UserAvatar from '../components/UserAvatar';
+import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {Spinner} from '../components/ui';
 import logo from '../assets/logo192.png';
 
@@ -62,6 +63,21 @@ function ProfileFooter({user, onLogout, onNavigate}) {
                     <span className="text-sm font-bold text-primary-800">Premium member</span>
                 </div>
             )}
+
+            <a
+                href={DISCORD_INVITE}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-2 flex items-center gap-2.5 rounded-xl border border-[#5865F2]/20 bg-[#5865F2]/5 px-3 py-2.5 text-sm font-bold text-slate-800 no-underline transition-colors hover:bg-[#5865F2]/10"
+            >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5865F2] text-white">
+                    <DiscordIcon className="size-4"/>
+                </span>
+                <span className="min-w-0">
+                    <span className="block truncate">Join the community</span>
+                    <span className="block truncate text-xs font-semibold text-slate-500">Find help and duel partners</span>
+                </span>
+            </a>
 
             <NavLink
                 to="/profile"
