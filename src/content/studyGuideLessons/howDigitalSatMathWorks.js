@@ -66,6 +66,7 @@ const howDigitalSatMathWorks = {
         },
     ],
     adaptiveDemo: {
+        title: 'Module 2 outcomes',
         prompt: 'Choose a Module 1 result to see the likely Module 2 feel.',
         options: [
             {

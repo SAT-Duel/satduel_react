@@ -41,14 +41,36 @@ function formatDateTime(value) {
     return new Date(value).toLocaleString();
 }
 
-function Metric({icon: Icon, label, value}) {
+function Metric({icon: Icon, label, value, subjects}) {
+    const [active, setActive] = useState(subjects ? subjects[0] : null);
+    const shownValue = active ? active.value : value;
+    const shownLabel = active ? `${active.label} Elo` : label;
     return (
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
-                <Icon className="size-5"/>
+            <div className="mb-3 flex items-center justify-between">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+                    <Icon className="size-5"/>
+                </div>
+                {subjects && (
+                    <div className="flex gap-0.5 rounded-lg bg-slate-100 p-0.5">
+                        {subjects.map((s) => (
+                            <button
+                                key={s.label}
+                                type="button"
+                                onClick={() => setActive(s)}
+                                className={[
+                                    'rounded-md px-2 py-1 text-[11px] font-black transition-colors',
+                                    active?.label === s.label ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500',
+                                ].join(' ')}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
-            <p className="m-0 text-2xl font-bold text-slate-900">{value ?? '—'}</p>
-            <p className="m-0 mt-1 text-sm font-medium text-slate-500">{label}</p>
+            <p className="m-0 text-2xl font-bold text-slate-900">{shownValue ?? '—'}</p>
+            <p className="m-0 mt-1 text-sm font-medium text-slate-500">{shownLabel}</p>
         </div>
     );
 }
@@ -355,7 +377,10 @@ function ProfilePage() {
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <Metric icon={Swords} label="Duel Elo" value={profile?.elo_rating}/>
-                    <Metric icon={LineChart} label="Practice Elo" value={profile?.sp_elo_rating}/>
+                    <Metric icon={LineChart} label="Practice Elo" subjects={[
+                        {label: 'English', value: profile?.sp_elo_rating},
+                        {label: 'Math', value: profile?.math_elo_rating},
+                    ]}/>
                     <Metric icon={Flame} label="Correct streak" value={stats?.current_streak ?? 0}/>
                     <Metric icon={Award} label="Accuracy" value={accuracy}/>
                 </div>

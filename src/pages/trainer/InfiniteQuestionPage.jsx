@@ -119,7 +119,27 @@ function RatingChange({feedback}) {
     );
 }
 
-function AnswerFeedback({status, ratingFeedback, elo, quota, topics, selectedTopic, onTopicChange, onNext, loadingQuestions}) {
+function SubjectSwitch({subject, onChange}) {
+    return (
+        <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+            {[['english', 'English'], ['math', 'Math']].map(([value, label]) => (
+                <button
+                    key={value}
+                    type="button"
+                    onClick={() => onChange(value)}
+                    className={[
+                        'rounded-lg px-3 py-1.5 text-sm font-bold transition-colors',
+                        subject === value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500',
+                    ].join(' ')}
+                >
+                    {label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange, onNext, loadingQuestions}) {
     const answered = status === 'Correct' || status === 'Incorrect';
     const correct = status === 'Correct';
     const Icon = correct ? CheckCircle2 : XCircle;
@@ -131,8 +151,9 @@ function AnswerFeedback({status, ratingFeedback, elo, quota, topics, selectedTop
 
     return (
         <Card className={`sat-arena-card p-5 ${tone}`}>
+            <SubjectSwitch subject={subject} onChange={onSubjectChange}/>
             <div>
-                <p className="m-0 text-sm font-bold text-slate-500">Practice Elo</p>
+                <p className="m-0 text-sm font-bold text-slate-500">{subject === 'math' ? 'Math' : 'English'} Elo</p>
                 <p className="m-0 mt-1 font-display text-4xl font-black text-slate-950">{elo ?? '—'}</p>
             </div>
 
@@ -178,8 +199,9 @@ function InfiniteQuestionsPage() {
     const [loadingQuestions, setLoadingQuestions] = useState(true);
     const [error, setError] = useState(null);
     const [quota, setQuota] = useState(null);
-    const [spElo, setSpElo] = useState(null);
-    const [topics, setTopics] = useState([]);
+    const [subject, setSubject] = useState('english');
+    const [elos, setElos] = useState({english: null, math: null});
+    const [topicsBySubject, setTopicsBySubject] = useState({english: [], math: []});
     const [selectedTopic, setSelectedTopic] = useState('any');
     const [limitReached, setLimitReached] = useState(false);
     const [billingLoading, setBillingLoading] = useState(false);
@@ -194,11 +216,12 @@ function InfiniteQuestionsPage() {
     const {loading} = useAuth();
     const hasFetchedData = useRef(false);
 
-    const fetchNextQuestion = useCallback(async (topic) => {
+    const fetchNextQuestion = useCallback(async (topic, subj) => {
         try {
             setLoadingQuestions(true);
             setError(null);
-            const params = {};
+            const effectiveSubject = typeof subj === 'string' ? subj : subject;
+            const params = {subject: effectiveSubject};
             const effectiveTopic = typeof topic === 'string' ? topic : selectedTopic;
             if (effectiveTopic && effectiveTopic !== 'any') params.type = effectiveTopic;
             const response = await api.get('api/practice/next/', {params});
@@ -213,7 +236,7 @@ function InfiniteQuestionsPage() {
                 setLimitReached(true);
             } else if (data?.error === 'premium_required') {
                 setSelectedTopic('any');
-                const response = await api.get('api/practice/next/');
+                const response = await api.get('api/practice/next/', {params: {subject: subj || subject}});
                 setCurrentQuestion(response.data.question || null);
                 setQuota(response.data.quota || null);
                 setQuestionStatus('Blank');
@@ -224,7 +247,7 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoadingQuestions(false);
         }
-    }, [selectedTopic]);
+    }, [selectedTopic, subject]);
 
     const fetchPracticeStatus = useCallback(async () => {
         try {
@@ -233,8 +256,11 @@ function InfiniteQuestionsPage() {
                 api.get('api/trainer/infinite_question_stats/').catch(() => null),
             ]);
             setQuota(statusResponse.data.quota || null);
-            setSpElo(statusResponse.data.sp_elo_rating ?? null);
-            setTopics(statusResponse.data.topics || []);
+            setElos({
+                english: statusResponse.data.sp_elo_rating ?? null,
+                math: statusResponse.data.math_elo_rating ?? null,
+            });
+            setTopicsBySubject(statusResponse.data.topics || {english: [], math: []});
             setDaily(statusResponse.data.daily || null);
             if (statsResponse?.data) {
                 setStats({
@@ -264,6 +290,13 @@ function InfiniteQuestionsPage() {
         fetchNextQuestion(topic);
     };
 
+    const handleSubjectChange = (subj) => {
+        if (subj === subject) return;
+        setSubject(subj);
+        setSelectedTopic('any');  // topic lists differ per subject
+        fetchNextQuestion('any', subj);
+    };
+
     const handleQuestionSubmit = async (id, choice) => {
         if (questionStatus !== 'Blank') return;
         try {
@@ -273,7 +306,10 @@ function InfiniteQuestionsPage() {
                 mode: 'practice',
             });
             if (response.data.quota) setQuota(response.data.quota);
-            if (response.data.sp_elo_rating != null) setSpElo(response.data.sp_elo_rating);
+            if (response.data.sp_elo_rating != null) {
+                const answeredSubject = response.data.subject || subject;
+                setElos((prev) => ({...prev, [answeredSubject]: response.data.sp_elo_rating}));
+            }
             if (response.data.daily) {
                 setDaily(response.data.daily);
                 if (response.data.daily.streak_extended) {
@@ -395,9 +431,11 @@ function InfiniteQuestionsPage() {
                     <AnswerFeedback
                         status={questionStatus}
                         ratingFeedback={ratingFeedback}
-                        elo={spElo}
+                        elo={elos[subject]}
+                        subject={subject}
+                        onSubjectChange={handleSubjectChange}
                         quota={quota}
-                        topics={topics}
+                        topics={topicsBySubject[subject] || []}
                         selectedTopic={selectedTopic}
                         onTopicChange={handleTopicChange}
                         onNext={() => fetchNextQuestion()}
@@ -422,9 +460,11 @@ function InfiniteQuestionsPage() {
                             <AnswerFeedback
                                 status={questionStatus}
                                 ratingFeedback={ratingFeedback}
-                                elo={spElo}
+                                elo={elos[subject]}
+                                subject={subject}
+                                onSubjectChange={handleSubjectChange}
                                 quota={quota}
-                                topics={topics}
+                                topics={topicsBySubject[subject] || []}
                                 selectedTopic={selectedTopic}
                                 onTopicChange={handleTopicChange}
                                 onNext={() => fetchNextQuestion()}
