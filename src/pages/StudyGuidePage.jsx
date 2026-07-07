@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {
-    ArrowRight,
-    BookOpenCheck,
+    BookOpen,
     Calculator,
     CheckCircle2,
     CircleDot,
@@ -11,7 +10,6 @@ import {
     LineChart,
     Lock,
     Play,
-    Route,
     Sigma,
     Target,
     Triangle,
@@ -22,13 +20,27 @@ import {Button, Card, PageContainer} from '../components/ui';
 const MODULES = [
     {
         id: 'math-map',
-        status: 'ready',
+        status: 'draft',
         domain: 'Orientation',
         title: 'The Digital SAT Math Map',
-        short: 'Format, scoring signals, and how to study.',
+        summary: 'Understand the Math section format, domain weights, question types, and how to use practice data.',
         icon: Compass,
         accent: 'bg-primary-100 text-primary-700',
         time: '12 min',
+        pages: [
+            {
+                title: 'How Digital SAT Math Works',
+                summary: 'The Math section has two adaptive modules, calculator access throughout, and both multiple-choice and student-produced response questions.',
+            },
+            {
+                title: 'The Four Math Domains',
+                summary: 'Algebra and Advanced Math are the highest-frequency domains, while Data Analysis and Geometry/Trig appear in smaller but important clusters.',
+            },
+            {
+                title: 'How to Study With SAT Duel',
+                summary: 'Use each guide page as a short concept lesson, then answer a checkpoint and finish with targeted practice questions.',
+            },
+        ],
         checkpoint: {
             prompt: 'On the Digital SAT, which Math setup is current?',
             choices: [
@@ -42,24 +54,36 @@ const MODULES = [
         },
         desmos: {
             title: 'Desmos warm-up',
-            prompt: 'Open the calculator and graph y = 2x + 3. Drag the graph mentally: what changes if the 3 becomes -1?',
+            prompt: 'Graph y = 2x + 3, then change 3 to -1 and describe what moved.',
         },
-        lessons: [
-            'What the two adaptive Math modules feel like',
-            'Multiple choice vs. student-produced response questions',
-            'How to use SAT Duel: read, checkpoint, graph lab, practice set',
-            'When to use Desmos and when mental algebra is faster',
-        ],
     },
     {
         id: 'linear-equations',
-        status: 'ready',
+        status: 'draft',
         domain: 'Algebra',
         title: 'Linear Equations and Systems',
-        short: 'Solve, substitute, eliminate, and interpret.',
+        summary: 'Solve equations and systems cleanly, then connect each algebra step to a graph or word problem.',
         icon: Sigma,
         accent: 'bg-cyan-100 text-cyan-700',
         time: '35 min',
+        pages: [
+            {
+                title: 'One-Variable Equations',
+                summary: 'Move terms with discipline so simple equations, fractions, and parentheses do not create avoidable mistakes.',
+            },
+            {
+                title: 'Systems as Intersections',
+                summary: 'Treat a system as two relationships that meet at one solution, whether you solve by algebra or graphing.',
+            },
+            {
+                title: 'Substitution vs. Elimination',
+                summary: 'Choose substitution when one variable is already isolated and elimination when coefficients line up naturally.',
+            },
+            {
+                title: 'Linear Word Problems',
+                summary: 'Translate rates, totals, and constraints into equations before worrying about the arithmetic.',
+            },
+        ],
         checkpoint: {
             prompt: 'If 3x + 7 = 22, what is x?',
             choices: ['3', '5', '7', '15'],
@@ -68,24 +92,36 @@ const MODULES = [
         },
         desmos: {
             title: 'Intersection lab',
-            prompt: 'Graph y = 3x + 7 and y = 22. The x-coordinate of the intersection is the solution.',
+            prompt: 'Graph y = 3x + 7 and y = 22; the x-coordinate of the intersection is the solution.',
         },
-        lessons: [
-            'One-variable equations and expression discipline',
-            'Systems as intersections',
-            'Choosing substitution vs. elimination',
-            'Word problems that hide linear relationships',
-        ],
     },
     {
         id: 'linear-functions',
-        status: 'ready',
+        status: 'draft',
         domain: 'Algebra',
         title: 'Linear Functions and Slope',
-        short: 'Rates, intercepts, tables, and graphs.',
+        summary: 'Read slope, intercepts, and tables as real rates instead of memorized graph vocabulary.',
         icon: LineChart,
         accent: 'bg-emerald-100 text-emerald-700',
         time: '32 min',
+        pages: [
+            {
+                title: 'Slope as Rate of Change',
+                summary: 'Use change in y over change in x to connect graphs, tables, and real-world units.',
+            },
+            {
+                title: 'Intercepts as Starting Values',
+                summary: 'Interpret y-intercepts and x-intercepts as meaningful values in a model, not just points on a graph.',
+            },
+            {
+                title: 'Tables to Equations',
+                summary: 'Find constant change in a table and convert it into a linear equation.',
+            },
+            {
+                title: 'Parallel and Perpendicular Lines',
+                summary: 'Use slope relationships to recognize line geometry quickly on coordinate-plane questions.',
+            },
+        ],
         checkpoint: {
             prompt: 'A line passes through (0, 4) and (2, 10). What is its slope?',
             choices: ['2', '3', '4', '6'],
@@ -94,30 +130,39 @@ const MODULES = [
         },
         desmos: {
             title: 'Slope slider',
-            prompt: 'Graph y = ax + 4 and use a slider for a. Watch how the steepness changes.',
+            prompt: 'Graph y = ax + 4 and use a slider for a to see how steepness changes.',
         },
-        lessons: [
-            'Slope as rate of change',
-            'Intercepts as starting values',
-            'Reading linear models from tables',
-            'Parallel and perpendicular line traps',
-        ],
     },
     {
         id: 'advanced-functions',
         status: 'outline',
         domain: 'Advanced Math',
         title: 'Quadratics, Exponentials, and Nonlinear Forms',
-        short: 'Factor, expand, complete the square, and compare growth.',
+        summary: 'Move between forms of nonlinear expressions so you can choose the fastest path on test day.',
         icon: FunctionSquare,
         accent: 'bg-amber-100 text-amber-700',
         time: '55 min',
-        lessons: [
-            'Quadratic forms: standard, factored, vertex',
-            'Zeros, vertex, and graph interpretation',
-            'Exponential growth and decay',
-            'Polynomial expressions and equivalent forms',
-            'Rational and radical expression cleanup',
+        pages: [
+            {
+                title: 'Quadratic Forms',
+                summary: 'Connect standard, factored, and vertex form to the specific feature each form reveals.',
+            },
+            {
+                title: 'Zeros and Graphs',
+                summary: 'Use roots, intercepts, and vertex information to understand what a quadratic graph is saying.',
+            },
+            {
+                title: 'Exponential Growth and Decay',
+                summary: 'Recognize repeated multiplication, percent change, and growth factors in context.',
+            },
+            {
+                title: 'Equivalent Expressions',
+                summary: 'Factor, expand, and simplify expressions to expose the SAT answer choice that matches.',
+            },
+            {
+                title: 'Function Notation',
+                summary: 'Read f(x), inputs, outputs, and compositions as instructions rather than symbols to fear.',
+            },
         ],
     },
     {
@@ -125,16 +170,31 @@ const MODULES = [
         status: 'outline',
         domain: 'Problem-Solving and Data Analysis',
         title: 'Ratios, Percentages, Units, and Data',
-        short: 'Translate real-world context into clean math.',
+        summary: 'Strip real-world questions down to units, comparisons, and data relationships.',
         icon: Target,
         accent: 'bg-rose-100 text-rose-700',
         time: '45 min',
-        lessons: [
-            'Rates and unit conversion',
-            'Percent change vs. percent of',
-            'Two-way tables and conditional percentages',
-            'Mean, median, range, and standard deviation intuition',
-            'Scatterplots, trend lines, and model fit',
+        pages: [
+            {
+                title: 'Ratios and Unit Conversion',
+                summary: 'Track units through each step so conversion problems become mechanical.',
+            },
+            {
+                title: 'Percent Change',
+                summary: 'Separate percent of, percent more, and percent less before choosing an operation.',
+            },
+            {
+                title: 'Tables and Conditional Percentages',
+                summary: 'Use row, column, and total counts to avoid mixing up the denominator.',
+            },
+            {
+                title: 'Summary Statistics',
+                summary: 'Interpret mean, median, range, and spread as descriptions of a data set.',
+            },
+            {
+                title: 'Scatterplots and Models',
+                summary: 'Read trend, association, and model fit without overclaiming what the graph proves.',
+            },
         ],
     },
     {
@@ -142,16 +202,31 @@ const MODULES = [
         status: 'outline',
         domain: 'Geometry and Trigonometry',
         title: 'Geometry and Right-Triangle Trig',
-        short: 'Angles, circles, area, volume, and sine/cosine basics.',
+        summary: 'Keep diagrams organized and use formulas only after identifying the structure of the figure.',
         icon: Triangle,
         accent: 'bg-violet-100 text-violet-700',
         time: '50 min',
-        lessons: [
-            'Lines, angles, triangles, and similarity',
-            'Circle equations, arcs, sectors, and tangents',
-            'Area and volume formulas as shortcuts',
-            'Right-triangle trigonometry',
-            'Coordinate geometry and distance',
+        pages: [
+            {
+                title: 'Angles, Lines, and Triangles',
+                summary: 'Use parallel lines, triangle sums, and similarity to fill in missing measures.',
+            },
+            {
+                title: 'Circles',
+                summary: 'Connect radius, diameter, circumference, area, arcs, sectors, and circle equations.',
+            },
+            {
+                title: 'Area and Volume',
+                summary: 'Match the shape to the correct formula and watch for unit changes.',
+            },
+            {
+                title: 'Coordinate Geometry',
+                summary: 'Use distance, midpoint, slope, and equations to turn geometry into algebra.',
+            },
+            {
+                title: 'Right-Triangle Trig',
+                summary: 'Use sine, cosine, and tangent as side-ratio tools for right triangles.',
+            },
         ],
     },
     {
@@ -159,120 +234,68 @@ const MODULES = [
         status: 'outline',
         domain: 'Strategy',
         title: 'Desmos and Calculator Tactics',
-        short: 'Use graphing without becoming calculator-dependent.',
+        summary: 'Use the graphing calculator intentionally without letting it slow down questions that algebra can finish faster.',
         icon: Calculator,
         accent: 'bg-slate-100 text-slate-700',
         time: '30 min',
-        lessons: [
-            'When graphing beats algebra',
-            'Solving systems by intersection',
-            'Testing answer choices with tables',
-            'Regression and scatterplot caution',
-            'Calculator traps that waste time',
+        pages: [
+            {
+                title: 'When Graphing Beats Algebra',
+                summary: 'Use Desmos for intersections, visual comparisons, and messy equations where graphing is faster.',
+            },
+            {
+                title: 'Tables and Answer Testing',
+                summary: 'Use table values to test answer choices and confirm function behavior quickly.',
+            },
+            {
+                title: 'Regression and Data Caution',
+                summary: 'Use calculator tools for models while still checking whether the interpretation makes sense.',
+            },
+            {
+                title: 'Calculator Traps',
+                summary: 'Avoid spending thirty seconds graphing a question that one clean algebra step would finish.',
+            },
         ],
     },
     {
         id: 'mixed-rounds',
         status: 'outline',
         domain: 'Review',
-        title: 'Mixed Review and Boss Rounds',
-        short: 'SAT-style blends, timing, and final review loops.',
+        title: 'Mixed Review and Finish Rounds',
+        summary: 'Turn topic knowledge into test behavior through mixed sets, timing practice, and mistake review.',
         icon: Flame,
         accent: 'bg-orange-100 text-orange-700',
         time: '60 min',
-        lessons: [
-            'Mixed 10-question practice sets',
-            'Error log review',
-            'Timing without rushing',
-            'Module 2 hard-question survival',
-            'Full test handoff plan',
+        pages: [
+            {
+                title: 'Mixed 10-Question Sets',
+                summary: 'Practice switching topics quickly, because the real test does not label each question for you.',
+            },
+            {
+                title: 'Error Log Review',
+                summary: 'Categorize misses by cause so your next session attacks the right weakness.',
+            },
+            {
+                title: 'Timing Without Rushing',
+                summary: 'Learn when to skip, estimate, or solve fully based on question difficulty and remaining time.',
+            },
+            {
+                title: 'Hard Module 2 Survival',
+                summary: 'Use structure, answer choices, and calculator checks to stay calm on harder second-module questions.',
+            },
+            {
+                title: 'Full-Test Handoff',
+                summary: 'Move from SAT Duel practice into a Bluebook practice test when your weak domains are stable.',
+            },
         ],
-    },
-];
-
-const ROADMAP = [
-    {
-        unit: 'Unit 1',
-        title: 'Algebra Core',
-        weight: 'High frequency',
-        modules: ['Linear equations', 'Systems', 'Linear functions', 'Inequalities'],
-    },
-    {
-        unit: 'Unit 2',
-        title: 'Advanced Math',
-        weight: 'High frequency',
-        modules: ['Quadratics', 'Functions', 'Equivalent expressions', 'Exponential models'],
-    },
-    {
-        unit: 'Unit 3',
-        title: 'Data and Modeling',
-        weight: 'Medium frequency',
-        modules: ['Rates', 'Percentages', 'Tables', 'Statistics', 'Scatterplots'],
-    },
-    {
-        unit: 'Unit 4',
-        title: 'Geometry and Trig',
-        weight: 'Medium frequency',
-        modules: ['Triangles', 'Circles', 'Area and volume', 'Coordinate geometry', 'Right-triangle trig'],
-    },
-    {
-        unit: 'Unit 5',
-        title: 'SAT Duel Review Loop',
-        weight: 'Every week',
-        modules: ['Desmos tactics', 'Mistake patterns', 'Mixed rounds', 'Timed finishers'],
     },
 ];
 
 const OFFICIAL_DOMAINS = [
     {label: 'Algebra', range: '13-15', focus: 'Linear equations, systems, inequalities, and linear functions'},
     {label: 'Advanced Math', range: '13-15', focus: 'Quadratics, nonlinear functions, expressions, and models'},
-    {label: 'Problem-Solving and Data Analysis', range: '5-7', focus: 'Ratios, percentages, units, statistics, and scatterplots'},
-    {label: 'Geometry and Trigonometry', range: '5-7', focus: 'Shapes, circles, area, volume, coordinate geometry, and right triangles'},
-];
-
-const DETAILED_OUTLINE = [
-    {
-        title: '1. Orientation: How SAT Math Is Built',
-        domain: 'Setup',
-        objective: 'Students understand the two-module format, the four College Board domains, and how SAT Duel turns studying into a loop.',
-        lessons: ['Two adaptive Math modules', 'Calculator allowed throughout', 'Multiple choice vs. grid-in strategy', 'How to read score-domain feedback'],
-        interactions: ['One format checkpoint', 'Mini diagnostic handoff', 'Desmos warm-up graph'],
-    },
-    {
-        title: '2. Algebra Core',
-        domain: 'Algebra',
-        objective: 'Make linear work automatic: equations, systems, slopes, inequalities, and word-problem translation.',
-        lessons: ['One-variable equations', 'Systems by substitution/elimination', 'Slope and intercept meaning', 'Linear inequalities and constraints'],
-        interactions: ['Equation checkpoint after each lesson', 'Desmos intersection lab', '10-question Algebra practice set'],
-    },
-    {
-        title: '3. Advanced Math',
-        domain: 'Advanced Math',
-        objective: 'Build fluency with equivalent forms so students can choose the fastest representation.',
-        lessons: ['Quadratic forms and zeros', 'Completing the square', 'Exponential growth/decay', 'Rational/radical cleanup', 'Function notation'],
-        interactions: ['Form-matching checkpoints', 'Quadratic slider lab', 'Mixed nonlinear practice set'],
-    },
-    {
-        title: '4. Data, Units, and Modeling',
-        domain: 'Problem-Solving and Data Analysis',
-        objective: 'Train students to strip word problems down to units, rates, tables, and clean comparisons.',
-        lessons: ['Percent change vs. percent of', 'Ratios and unit conversion', 'Two-way tables', 'Mean/median/spread', 'Scatterplot trend lines'],
-        interactions: ['Table interpretation checkpoint', 'Regression caution lab', 'Context-heavy practice set'],
-    },
-    {
-        title: '5. Geometry and Trig',
-        domain: 'Geometry and Trigonometry',
-        objective: 'Keep formulas visual and fast, with special attention to triangles, circles, and coordinate setups.',
-        lessons: ['Similarity and angle chasing', 'Circle equations and sectors', 'Area/volume shortcuts', 'Distance/midpoint', 'Sine, cosine, tangent'],
-        interactions: ['Diagram checkpoint', 'Circle/line graph lab', 'Formula-recall quick round'],
-    },
-    {
-        title: '6. SAT Duel Finish Loop',
-        domain: 'Review',
-        objective: 'Convert knowledge into test behavior: timing, error review, and domain-targeted practice.',
-        lessons: ['When to use Desmos', 'When algebra is faster', 'Hard Module 2 tactics', 'Mistake-log patterns', 'Full test handoff'],
-        interactions: ['Mixed review boss round', 'Error-log reflection', 'Bluebook practice-test plan'],
-    },
+    {label: 'Data Analysis', range: '5-7', focus: 'Ratios, percentages, units, statistics, and scatterplots'},
+    {label: 'Geometry/Trig', range: '5-7', focus: 'Shapes, circles, area, volume, coordinate geometry, and right triangles'},
 ];
 
 function ModuleButton({module, active, onClick}) {
@@ -282,56 +305,66 @@ function ModuleButton({module, active, onClick}) {
             type="button"
             onClick={onClick}
             className={[
-                'w-full cursor-pointer rounded-2xl border p-4 text-left transition-all',
+                'w-full cursor-pointer rounded-xl border px-3 py-3 text-left transition-colors',
                 active
-                    ? 'border-primary-300 bg-primary-50 shadow-sm'
-                    : 'border-slate-200 bg-white hover:border-primary-200 hover:bg-slate-50',
+                    ? 'border-primary-300 bg-primary-50'
+                    : 'border-transparent bg-white hover:border-slate-200 hover:bg-slate-50',
             ].join(' ')}
         >
             <div className="flex items-start gap-3">
-                <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${module.accent}`}>
-                    <Icon className="size-5"/>
+                <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${module.accent}`}>
+                    <Icon className="size-4.5"/>
                 </span>
                 <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                         <span className="truncate text-sm font-black text-slate-950">{module.title}</span>
-                        {module.status !== 'ready' && <Lock className="size-3.5 shrink-0 text-slate-400"/>}
+                        {module.status !== 'draft' && <Lock className="size-3.5 shrink-0 text-slate-400"/>}
                     </span>
-                    <span className="mt-1 block text-xs font-semibold text-slate-500">{module.domain} · {module.time}</span>
+                    <span className="mt-1 block text-xs font-semibold text-slate-500">
+                        {module.domain} · {module.pages.length} pages
+                    </span>
                 </span>
             </div>
         </button>
     );
 }
 
-function DomainCoverageCard() {
+function CourseOutline({modules, activeId, onSelect}) {
     return (
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-center justify-between gap-3">
-                <div>
-                    <p className="m-0 text-sm font-black uppercase text-slate-400">Official SAT Math map</p>
-                    <p className="m-0 mt-1 text-sm font-semibold text-slate-600">Question ranges per full Math section.</p>
-                </div>
-                <span className="sat-answer-bubble inline-flex size-10 items-center justify-center rounded-full bg-white text-sm font-black text-primary-700">
-                    4
-                </span>
+        <Card className="overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+                <h2 className="m-0 font-display text-xl font-black text-slate-950">Course outline</h2>
+                <p className="m-0 mt-1 text-sm text-slate-500">Choose a module to view its lesson pages.</p>
             </div>
-            <div className="mt-5 space-y-3">
-                {OFFICIAL_DOMAINS.map((domain) => (
-                    <div key={domain.label} className="rounded-2xl bg-white p-4">
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <p className="m-0 text-sm font-black text-slate-950">{domain.label}</p>
-                                <p className="m-0 mt-1 text-xs leading-relaxed text-slate-500">{domain.focus}</p>
-                            </div>
-                            <span className="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-black text-primary-700">
-                                {domain.range} Qs
+            <div className="divide-y divide-slate-100">
+                {modules.map((module, moduleIndex) => (
+                    <button
+                        key={module.id}
+                        type="button"
+                        onClick={() => onSelect(module.id)}
+                        className={[
+                            'flex w-full cursor-pointer gap-4 px-5 py-4 text-left transition-colors',
+                            activeId === module.id ? 'bg-primary-50' : 'bg-white hover:bg-slate-50',
+                        ].join(' ')}
+                    >
+                        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-black text-slate-500">
+                            {moduleIndex + 1}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                            <span className="block font-black text-slate-950">{module.title}</span>
+                            <span className="mt-1 block text-sm leading-relaxed text-slate-600">{module.summary}</span>
+                            <span className="mt-3 flex flex-wrap gap-2">
+                                {module.pages.map((page) => (
+                                    <span key={page.title} className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
+                                        {page.title}
+                                    </span>
+                                ))}
                             </span>
-                        </div>
-                    </div>
+                        </span>
+                    </button>
                 ))}
             </div>
-        </div>
+        </Card>
     );
 }
 
@@ -341,22 +374,22 @@ function Checkpoint({checkpoint}) {
 
     if (!checkpoint) {
         return (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
-                <p className="m-0 text-sm font-black uppercase text-slate-400">Checkpoint template</p>
-                <p className="m-0 mt-2 text-[15px] leading-relaxed text-slate-600">
-                    This slot will hold a short SAT-style question after the lesson draft is written.
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4">
+                <p className="m-0 text-sm font-black text-slate-900">Checkpoint coming soon</p>
+                <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">
+                    This module will get a short SAT-style question after the lesson draft is written.
                 </p>
             </div>
         );
     }
 
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2">
-                <CircleDot className="size-5 text-primary-600"/>
-                <p className="m-0 text-sm font-black uppercase text-primary-700">Checkpoint</p>
+                <CircleDot className="size-4 text-primary-600"/>
+                <p className="m-0 text-xs font-black uppercase text-primary-700">Checkpoint</p>
             </div>
-            <h3 className="m-0 mt-3 text-lg font-black text-slate-950">{checkpoint.prompt}</h3>
+            <h3 className="m-0 mt-3 text-base font-black text-slate-950">{checkpoint.prompt}</h3>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 {checkpoint.choices.map((choice, index) => {
                     const correct = answered && index === checkpoint.answer;
@@ -367,7 +400,7 @@ function Checkpoint({checkpoint}) {
                             type="button"
                             onClick={() => setPicked(index)}
                             className={[
-                                'cursor-pointer rounded-xl border-2 px-3 py-2.5 text-left text-sm font-semibold transition-colors',
+                                'cursor-pointer rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-colors',
                                 correct ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : '',
                                 wrong ? 'border-rose-300 bg-rose-50 text-rose-800' : '',
                                 !correct && !wrong ? 'border-slate-200 bg-slate-50 text-slate-700 hover:border-primary-300' : '',
@@ -379,7 +412,7 @@ function Checkpoint({checkpoint}) {
                 })}
             </div>
             {answered && (
-                <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm font-semibold leading-relaxed text-slate-600">
+                <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm leading-relaxed text-slate-600">
                     {checkpoint.explanation}
                 </div>
             )}
@@ -388,20 +421,29 @@ function Checkpoint({checkpoint}) {
 }
 
 function DesmosLab({desmos}) {
+    const [open, setOpen] = useState(false);
+
     return (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <p className="m-0 text-xs font-black uppercase text-cyan-200">Desmos lab</p>
-                    <h3 className="m-0 mt-1 font-display text-lg font-black">{desmos?.title || 'Graph lab template'}</h3>
+                    <p className="m-0 text-xs font-black uppercase text-slate-400">Desmos lab</p>
+                    <h3 className="m-0 mt-1 text-base font-black text-slate-950">{desmos?.title || 'Graph lab coming soon'}</h3>
+                    <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">
+                        {desmos?.prompt || 'This module will include a guided graphing task where the student changes a parameter and explains what moved.'}
+                    </p>
                 </div>
-                <Calculator className="size-6 text-cyan-200"/>
+                <button
+                    type="button"
+                    onClick={() => setOpen((value) => !value)}
+                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                >
+                    <Calculator className="size-4"/>
+                    {open ? 'Hide graph' : 'Open graph'}
+                </button>
             </div>
-            <div className="p-5">
-                <p className="m-0 text-sm font-semibold leading-relaxed text-slate-600">
-                    {desmos?.prompt || 'This module will include a guided graphing task where the student changes a parameter and explains what moved.'}
-                </p>
-                <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+            {open && (
+                <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                     <iframe
                         title="Desmos graphing calculator"
                         src="https://www.desmos.com/calculator?embed"
@@ -409,66 +451,69 @@ function DesmosLab({desmos}) {
                         loading="lazy"
                     />
                 </div>
-            </div>
+            )}
         </div>
     );
 }
 
-function RoadmapCard({item}) {
+function DomainReference() {
     return (
-        <Card className="sat-arena-card p-5">
-            <div className="flex items-center justify-between gap-3">
-                <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-black uppercase text-primary-700">{item.unit}</span>
-                <span className="text-xs font-black uppercase text-slate-400">{item.weight}</span>
-            </div>
-            <h3 className="m-0 mt-4 font-display text-xl font-black text-slate-950">{item.title}</h3>
-            <div className="mt-4 flex flex-wrap gap-2">
-                {item.modules.map((module) => (
-                    <span key={module} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                        {module}
-                    </span>
+        <Card className="p-4">
+            <p className="m-0 text-xs font-black uppercase text-slate-400">SAT Math domains</p>
+            <div className="mt-3 space-y-3">
+                {OFFICIAL_DOMAINS.map((domain) => (
+                    <div key={domain.label}>
+                        <div className="flex items-center justify-between gap-2">
+                            <p className="m-0 text-sm font-black text-slate-900">{domain.label}</p>
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-500">
+                                {domain.range} Qs
+                            </span>
+                        </div>
+                        <p className="m-0 mt-1 text-xs leading-relaxed text-slate-500">{domain.focus}</p>
+                    </div>
                 ))}
             </div>
         </Card>
     );
 }
 
-function OutlineStep({step}) {
+function ActiveModule({module}) {
+    const Icon = module.icon;
     return (
-        <Card className="sat-arena-card overflow-hidden">
-            <div className="sat-score-strip flex items-center justify-between gap-3 px-5 py-3">
-                <span className="rounded-full bg-white/75 px-3 py-1 text-xs font-black uppercase text-primary-800">
-                    {step.domain}
-                </span>
-                <CheckCircle2 className="size-5 text-primary-800"/>
+        <Card className="overflow-hidden">
+            <div className="border-b border-slate-100 bg-white px-5 py-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex gap-3">
+                        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${module.accent}`}>
+                            <Icon className="size-5"/>
+                        </span>
+                        <div>
+                            <p className="m-0 text-xs font-black uppercase text-primary-700">{module.domain}</p>
+                            <h2 className="m-0 mt-1 font-display text-2xl font-black text-slate-950">{module.title}</h2>
+                            <p className="m-0 mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">{module.summary}</p>
+                        </div>
+                    </div>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black uppercase text-slate-500">
+                        {module.status === 'draft' ? <Play className="size-3.5"/> : <Lock className="size-3.5"/>}
+                        {module.status === 'draft' ? 'Drafted' : 'Outline'}
+                    </span>
+                </div>
             </div>
-            <div className="p-5">
-                <h3 className="m-0 font-display text-xl font-black text-slate-950">{step.title}</h3>
-                <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">{step.objective}</p>
 
-                <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                    <div>
-                        <p className="m-0 text-xs font-black uppercase text-slate-400">Lesson sequence</p>
-                        <div className="mt-3 space-y-2">
-                            {step.lessons.map((lesson) => (
-                                <div key={lesson} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
-                                    <CircleDot className="size-4 shrink-0 text-primary-500"/>
-                                    {lesson}
-                                </div>
-                            ))}
+            <div className="p-5">
+                <h3 className="m-0 font-display text-lg font-black text-slate-950">Pages in this module</h3>
+                <div className="mt-4 space-y-3">
+                    {module.pages.map((page, index) => (
+                        <div key={page.title} className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4">
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-black text-slate-500">
+                                {index + 1}
+                            </span>
+                            <div>
+                                <p className="m-0 font-black text-slate-950">{page.title}</p>
+                                <p className="m-0 mt-1 text-sm leading-relaxed text-slate-600">{page.summary}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <p className="m-0 text-xs font-black uppercase text-slate-400">Interactive slots</p>
-                        <div className="mt-3 space-y-2">
-                            {step.interactions.map((interaction) => (
-                                <div key={interaction} className="flex items-center gap-2 rounded-xl bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-800">
-                                    <Play className="size-4 shrink-0"/>
-                                    {interaction}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </Card>
@@ -481,10 +526,10 @@ export default function StudyGuidePage() {
         () => MODULES.find((module) => module.id === activeId) || MODULES[0],
         [activeId],
     );
-    const completedCount = MODULES.filter((module) => module.status === 'ready').length;
+    const pageCount = MODULES.reduce((total, module) => total + module.pages.length, 0);
 
     return (
-        <div className="sat-bubble-field min-h-screen py-6 sm:py-8">
+        <div className="min-h-screen bg-slate-50 py-6 sm:py-8">
             <SEO
                 title="SAT Math Study Guide"
                 description="Interactive SAT Math study guide modules with checkpoints, Desmos labs, and practice loops."
@@ -492,107 +537,30 @@ export default function StudyGuidePage() {
                 noindex
             />
             <PageContainer className="max-w-7xl">
-                <section className="sat-arena-card overflow-hidden rounded-[2rem] border border-slate-200 bg-white">
-                    <div className="grid gap-6 p-6 lg:grid-cols-[1fr_0.7fr] lg:p-8">
-                        <div>
-                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black uppercase text-white">
-                                <BookOpenCheck className="size-4 text-cyan-300"/> Math Study Guide
-                            </span>
-                            <h1 className="m-0 mt-5 max-w-3xl font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
-                                Learn the SAT Math map, then practice the exact move.
-                            </h1>
-                            <p className="m-0 mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                                A Brilliant-style path for SAT Duel: short concept pages, checkpoint questions,
-                                Desmos graph labs, and practice handoffs that turn reading into reps.
-                            </p>
-                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                                <Button to="/infinite_questions">
-                                    Practice after reading <ArrowRight className="size-4"/>
-                                </Button>
-                                <Button to="/sat-math-practice" variant="secondary">
-                                    Public Math overview
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-                            <div className="flex items-center justify-between">
-                                <p className="m-0 text-sm font-black uppercase text-slate-400">Beta map</p>
-                                <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-600">
-                                    {completedCount}/{MODULES.length} laid out
-                                </span>
-                            </div>
-                            <div className="mt-5 grid grid-cols-4 gap-2">
-                                {MODULES.map((module) => (
-                                    <button
-                                        key={module.id}
-                                        type="button"
-                                        onClick={() => setActiveId(module.id)}
-                                        aria-label={module.title}
-                                        className={[
-                                            'h-3 cursor-pointer rounded-full transition-colors',
-                                            module.id === activeId
-                                                ? 'bg-primary-600'
-                                                : module.status === 'ready'
-                                                    ? 'bg-primary-200 hover:bg-primary-300'
-                                                    : 'bg-slate-300 hover:bg-slate-400',
-                                        ].join(' ')}
-                                    />
-                                ))}
-                            </div>
-                            <div className="mt-6 space-y-3">
-                                {[
-                                    ['Official domains', 'Algebra, Advanced Math, Data, Geometry/Trig'],
-                                    ['Lesson rhythm', 'Concept → checkpoint → Desmos → practice'],
-                                    ['Design model', 'Module path + interactive workbench'],
-                                ].map(([label, value]) => (
-                                    <div key={label} className="rounded-2xl bg-white p-4">
-                                        <p className="m-0 text-xs font-black uppercase text-slate-400">{label}</p>
-                                        <p className="m-0 mt-1 text-sm font-bold text-slate-800">{value}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                    <DomainCoverageCard/>
-                    <Card className="sat-arena-card p-5">
-                        <div className="flex items-center gap-3">
-                            <span className="flex size-11 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700">
-                                <Route className="size-5"/>
-                            </span>
-                            <div>
-                                <p className="m-0 text-sm font-black uppercase text-primary-700">Study rhythm</p>
-                                <h2 className="m-0 font-display text-2xl font-black text-slate-950">Read less, do more.</h2>
-                            </div>
-                        </div>
-                        <div className="mt-5 grid gap-3 sm:grid-cols-4">
-                            {['Concept', 'Checkpoint', 'Desmos lab', 'Practice reps'].map((step, index) => (
-                                <div key={step} className="rounded-2xl border border-slate-200 bg-white p-4">
-                                    <span className="sat-answer-bubble inline-flex size-8 items-center justify-center rounded-full bg-white text-xs font-black text-slate-500">
-                                        {index + 1}
-                                    </span>
-                                    <p className="m-0 mt-3 text-sm font-black text-slate-950">{step}</p>
-                                </div>
-                            ))}
-                        </div>
-                        <p className="m-0 mt-5 text-sm leading-relaxed text-slate-600">
-                            The page borrows the useful parts of interactive learning platforms: a clear path,
-                            small lessons, immediate checks, and a workbench where the student manipulates the math.
+                <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p className="m-0 flex items-center gap-2 text-xs font-black uppercase text-primary-700">
+                            <BookOpen className="size-4"/> Study Guide
                         </p>
-                    </Card>
-                </section>
+                        <h1 className="m-0 mt-2 font-display text-3xl font-black text-slate-950 sm:text-4xl">
+                            SAT Math
+                        </h1>
+                        <p className="m-0 mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+                            {MODULES.length} modules and {pageCount} planned pages, organized around the official SAT Math domains.
+                        </p>
+                    </div>
+                    <Button to="/infinite_questions" size="sm">
+                        Practice questions
+                    </Button>
+                </header>
 
-                <div className="mt-6 grid gap-6 lg:grid-cols-[360px_1fr]">
-                    <aside className="lg:sticky lg:top-6 lg:self-start">
-                        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-3">
+                <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
+                    <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+                        <Card className="p-3">
                             <div className="px-2 py-2">
                                 <p className="m-0 text-xs font-black uppercase text-slate-400">Modules</p>
-                                <p className="m-0 mt-1 text-sm font-semibold text-slate-600">Start broad, then drill the high-frequency Math moves.</p>
                             </div>
-                            <div className="mt-2 space-y-2">
+                            <div className="space-y-1">
                                 {MODULES.map((module) => (
                                     <ModuleButton
                                         key={module.id}
@@ -602,74 +570,28 @@ export default function StudyGuidePage() {
                                     />
                                 ))}
                             </div>
-                        </div>
+                        </Card>
+                        <DomainReference/>
                     </aside>
 
-                    <main className="space-y-6">
-                        <Card className="sat-arena-card overflow-hidden">
-                            <div className="border-b border-slate-200 bg-white p-6">
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                                    <div>
-                                        <p className="m-0 text-sm font-black uppercase text-primary-700">{activeModule.domain}</p>
-                                        <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">{activeModule.title}</h2>
-                                        <p className="m-0 mt-3 max-w-2xl text-[15px] leading-relaxed text-slate-600">{activeModule.short}</p>
-                                    </div>
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black uppercase text-slate-500">
-                                        {activeModule.status === 'ready' ? <Play className="size-3.5"/> : <Route className="size-3.5"/>}
-                                        {activeModule.status === 'ready' ? 'Interactive draft' : 'Outline'}
-                                    </span>
-                                </div>
-                            </div>
+                    <main className="space-y-5">
+                        <CourseOutline modules={MODULES} activeId={activeId} onSelect={setActiveId}/>
+                        <ActiveModule module={activeModule}/>
 
-                            <div className="grid gap-6 p-6 xl:grid-cols-[1fr_0.95fr]">
-                                <div>
-                                    <h3 className="m-0 font-display text-xl font-black text-slate-950">Lesson beats</h3>
-                                    <div className="mt-4 space-y-3">
-                                        {activeModule.lessons.map((lesson, index) => (
-                                            <div key={lesson} className="flex gap-3 rounded-2xl bg-slate-50 p-4">
-                                                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-sm font-black text-primary-700">
-                                                    {index + 1}
-                                                </span>
-                                                <p className="m-0 text-sm font-semibold leading-relaxed text-slate-700">{lesson}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <Checkpoint checkpoint={activeModule.checkpoint}/>
+                        <div className="grid gap-5 xl:grid-cols-2">
+                            <Checkpoint checkpoint={activeModule.checkpoint}/>
+                            <DesmosLab desmos={activeModule.desmos}/>
+                        </div>
+
+                        <Card className="p-5">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="size-5 text-primary-600"/>
+                                <h2 className="m-0 font-display text-xl font-black text-slate-950">Next build step</h2>
                             </div>
+                            <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">
+                                Fill one module at a time with concise explanations, one checkpoint per page, and a direct practice handoff.
+                            </p>
                         </Card>
-
-                        <DesmosLab desmos={activeModule.desmos}/>
-
-                        <section>
-                            <div className="flex items-end justify-between gap-4">
-                                <div>
-                                    <p className="m-0 text-sm font-black uppercase text-primary-700">Detailed course outline</p>
-                                    <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">Math guide structure</h2>
-                                </div>
-                            </div>
-                            <div className="mt-4 grid gap-4 md:grid-cols-2">
-                                {ROADMAP.map((item) => (
-                                    <RoadmapCard key={item.unit} item={item}/>
-                                ))}
-                            </div>
-                        </section>
-
-                        <section>
-                            <div>
-                                <p className="m-0 text-sm font-black uppercase text-primary-700">Build plan</p>
-                                <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">Module-by-module outline</h2>
-                                <p className="m-0 mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-                                    This is the content skeleton we can now fill with real explanations, SAT-style examples,
-                                    checkpoint items, and graph labs.
-                                </p>
-                            </div>
-                            <div className="mt-4 space-y-4">
-                                {DETAILED_OUTLINE.map((step) => (
-                                    <OutlineStep key={step.title} step={step}/>
-                                ))}
-                            </div>
-                        </section>
                     </main>
                 </div>
             </PageContainer>
