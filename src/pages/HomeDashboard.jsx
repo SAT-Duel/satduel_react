@@ -17,8 +17,6 @@ import {
     BookText,
     Lock,
     CheckCircle2,
-    CircleDot,
-    BookOpenCheck,
 } from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
@@ -185,8 +183,8 @@ const MINI_GAMES = [
 ];
 
 const STUDY_GUIDES = [
-    {label: 'Math', icon: Calculator, color: 'bg-sky-100 text-sky-700'},
-    {label: 'Reading & Writing', icon: BookText, color: 'bg-violet-100 text-violet-700'},
+    {label: 'Math', icon: Calculator, color: 'bg-sky-100 text-sky-700', to: '/study_guides', status: 'Beta'},
+    {label: 'Reading & Writing', icon: BookText, color: 'bg-violet-100 text-violet-700', status: 'Soon'},
 ];
 
 function QuickActionCard({label, icon: Icon, to, blurb, tone, navigate}) {
@@ -420,32 +418,40 @@ function HomeDashboard() {
                     <HowItWorks/>
                 </section>
 
-                {/* Study guides — premium */}
+                {/* Study guides */}
                 <section className="mt-10">
                     <SectionHeader
                         icon={Brain}
-                        title="AI Study Guides"
-                        subtitle={`Personalized guides for every SAT skill. ${isPremium ? 'Coming soon.' : 'A premium feature.'}`}
+                        title="Study guides"
+                        subtitle="Start with the Math guide: concept notes, checkpoints, Desmos labs, and practice handoffs."
                         action={!isPremium && (
                             <Button to="/upgrade" variant="secondary" size="sm">
-                                <Crown className="size-4 text-amber-500"/> Unlock
+                                <Crown className="size-4 text-amber-500"/> Premium supports more guides
                             </Button>
                         )}
                     />
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        {STUDY_GUIDES.map(({label, icon: Icon, color}) => (
-                            <div key={label} className="sat-arena-card relative flex items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5">
+                        {STUDY_GUIDES.map(({label, icon: Icon, color, to, status}) => (
+                            <button
+                                key={label}
+                                type="button"
+                                onClick={() => to && navigate(to)}
+                                disabled={!to}
+                                className="sat-arena-card relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all enabled:hover:-translate-y-0.5 enabled:hover:border-primary-300 enabled:hover:shadow-md disabled:cursor-default"
+                            >
                                 <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${color}`}>
                                     <Icon className="size-6"/>
                                 </div>
                                 <div className="flex-1">
                                     <p className="m-0 font-bold text-slate-900">{label} Study Guide</p>
-                                    <p className="m-0 mt-0.5 text-sm text-slate-500">Targeted lessons + worked examples.</p>
+                                    <p className="m-0 mt-0.5 text-sm text-slate-500">
+                                        {to ? 'Interactive modules + graph labs.' : 'Targeted lessons + worked examples.'}
+                                    </p>
                                 </div>
                                 <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
-                                    <Lock className="size-3"/> Soon
+                                    {!to && <Lock className="size-3"/>} {status}
                                 </span>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </section>
