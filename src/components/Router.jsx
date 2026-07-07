@@ -22,6 +22,7 @@ const DuelBattle = React.lazy(() => import("../pages/DuelBattlePage"));
 const BattleResultPage = React.lazy(() => import("../pages/BattleResultPage"));
 const MatchLoadingPage = React.lazy(() => import("../pages/MatchLoadingPage"));
 const HomeDashboard = React.lazy(() => import("../pages/HomeDashboard"));
+const StudyGuidePage = React.lazy(() => import("../pages/StudyGuidePage"));
 const InfiniteQuestionPage = React.lazy(() => import("../pages/trainer/InfiniteQuestionPage"));
 const ConfirmEmail = React.lazy(() => import("./ConfirmEmail"));
 const EmailVerificationPage = React.lazy(() => import("../pages/EmailVerificationPage"));
@@ -87,6 +88,7 @@ const MARKETING_ROUTES = [
 const APP_ROUTES = [
     {path: '/trainer', el: <HomeDashboard/>},
     {path: '/infinite_questions', el: <InfiniteQuestionPage/>},
+    {path: '/study_guides', el: <StudyGuidePage/>},
     {path: '/match', el: <Match/>},
     {path: '/questions', el: <QuestionsPage/>},
     {path: '/power_sprint_home', el: <PowerSprintHome/>},

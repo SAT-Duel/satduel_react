@@ -6,6 +6,7 @@ import {
     Swords,
     Trophy,
     ClipboardList,
+    BookOpenCheck,
     Medal,
     Settings,
     LogOut,
@@ -23,6 +24,7 @@ import logo from '../assets/logo192.png';
 const NAV_ITEMS = [
     {label: 'Home', to: '/trainer', icon: Home},
     {label: 'Practice', to: '/infinite_questions', icon: Zap},
+    {label: 'Study Guide', to: '/study_guides', icon: BookOpenCheck},
     {label: 'Duel', to: '/match', icon: Swords},
     {label: 'Tournaments', to: '/tournaments', icon: Trophy},
     {label: 'Practice Test', to: '/practice_test', icon: ClipboardList},
