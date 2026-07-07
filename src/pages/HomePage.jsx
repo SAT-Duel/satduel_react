@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import {Helmet} from 'react-helmet';
 import {
     ArrowRight,
     BookOpenCheck,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import {Button, Card, PageContainer} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
+import SEO, {organizationJsonLd, softwareAppJsonLd, websiteJsonLd} from '../components/SEO';
 import prismPage from '../assets/avatars/pixel/prism-page.png';
 import novaQuill from '../assets/avatars/pixel/nova-quill.png';
 import emberAbacus from '../assets/avatars/pixel/ember-abacus.png';
@@ -218,13 +218,12 @@ function HomePage() {
 
     return (
         <div className="bg-white text-slate-900">
-            <Helmet>
-                <title>SAT Duel — Practice for the SAT, one question at a time</title>
-                <meta
-                    name="description"
-                    content="Practice real SAT questions, watch your rating climb, and duel friends. Free to start — no credit card."
-                />
-            </Helmet>
+            <SEO
+                title="SAT Duel - Digital SAT Practice, One Question at a Time"
+                description="Practice Digital SAT questions, watch your rating climb, and challenge friends to study duels. Free to start, no credit card."
+                path="/"
+                structuredData={[organizationJsonLd(), websiteJsonLd(), softwareAppJsonLd()]}
+            />
 
             {/* Hero — real interactive question */}
             <section className="sat-arena-surface overflow-hidden border-b border-slate-200">

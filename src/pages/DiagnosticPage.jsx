@@ -5,6 +5,7 @@ import {BookOpen, Calculator, ArrowRight} from 'lucide-react';
 import {Button, Card, PageContainer, Spinner} from '../components/ui';
 import PracticeQuestionCard from '../components/practice/PracticeQuestionCard';
 import {useAuth} from '../context/AuthContext';
+import SEO, {breadcrumbJsonLd, softwareAppJsonLd} from '../components/SEO';
 
 const baseUrl = import.meta.env.VITE_API_URL;
 
@@ -220,6 +221,18 @@ function DiagnosticPage() {
 
     return (
         <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
+            <SEO
+                title="Free Digital SAT Diagnostic"
+                description="Answer three SAT Duel questions and get a quick, honest estimate of your Digital SAT practice level."
+                path="/diagnostic"
+                structuredData={[
+                    softwareAppJsonLd(),
+                    breadcrumbJsonLd([
+                        {name: 'Home', path: '/'},
+                        {name: 'Free Digital SAT Diagnostic', path: '/diagnostic'},
+                    ]),
+                ]}
+            />
             <PageContainer className="max-w-3xl">
                 {phase === 'pick' && <SubjectPicker onPick={pickSubject} loading={loading}/>}
                 {phase === 'quiz' && questions[current] && (

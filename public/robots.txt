@@ -1,3 +1,19 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+Disallow: /trainer
+Disallow: /infinite_questions
+Disallow: /match
+Disallow: /questions
+Disallow: /ranking
+Disallow: /profile
+Disallow: /settings
+Disallow: /upgrade
+Disallow: /admin
+Disallow: /shop
+Disallow: /duels
+Disallow: /practice_test
+Disallow: /classes
+Disallow: /api/reset
+
+Sitemap: https://satduel.com/sitemap.xml

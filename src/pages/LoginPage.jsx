@@ -5,6 +5,7 @@ import {useAuth} from "../context/AuthContext";
 import {Button, Card, Field, Input, DividerLabel, Alert} from "../components/ui";
 import GoogleLoginButton from "../components/GoogleLogin";
 import {DiscordCTA} from "../components/Discord";
+import SEO from '../components/SEO';
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -55,6 +56,12 @@ function Login() {
 
     return (
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 px-4 py-10">
+            <SEO
+                title="Log in to SAT Duel"
+                description="Log in to continue your SAT Duel practice."
+                path="/login"
+                noindex
+            />
             <Card className="w-full max-w-md p-8">
                 <h1 className="mb-1 text-center font-display text-2xl font-bold text-slate-900">
                     Welcome back

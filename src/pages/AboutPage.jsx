@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Helmet} from 'react-helmet';
 import {useLocation} from 'react-router-dom';
 import {
     BookOpenCheck,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import emailjs from 'emailjs-com';
 import {Alert, Button, Card, Input, PageContainer} from '../components/ui';
+import SEO, {breadcrumbJsonLd, organizationJsonLd} from '../components/SEO';
 import clement from '../assets/teamphoto/clementzhou.jpg';
 import alex from '../assets/teamphoto/alexjin.jpg';
 import weiwei from '../assets/teamphoto/weiwei.jpg';
@@ -237,13 +237,18 @@ function AboutPage() {
 
     return (
         <div className="bg-white text-slate-900">
-            <Helmet>
-                <title>About - SAT Duel</title>
-                <meta
-                    name="description"
-                    content="Learn about SAT Duel, the team behind the platform, and the mission to make SAT preparation focused and motivating."
-                />
-            </Helmet>
+            <SEO
+                title="About SAT Duel"
+                description="Meet the SAT Duel team and the mission behind a focused, competitive Digital SAT practice platform."
+                path="/about"
+                structuredData={[
+                    organizationJsonLd(),
+                    breadcrumbJsonLd([
+                        {name: 'Home', path: '/'},
+                        {name: 'About SAT Duel', path: '/about'},
+                    ]),
+                ]}
+            />
 
             <section id="header" className="sat-arena-surface overflow-hidden border-b border-slate-200">
                 <PageContainer className="grid gap-10 py-10 sm:py-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-14">

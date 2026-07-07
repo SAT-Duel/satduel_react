@@ -3,6 +3,7 @@ import {Mail} from 'lucide-react';
 import api from '../components/api';
 import {Button, Card, Field, Input, PageContainer} from '../components/ui';
 import {notify} from '../utils/notify';
+import SEO from '../components/SEO';
 
 function getCSRFToken() {
     const name = 'csrftoken';
@@ -41,6 +42,12 @@ function PasswordResetPage() {
 
     return (
         <div className="sat-bubble-field min-h-screen py-12 sm:py-16">
+            <SEO
+                title="Reset Your SAT Duel Password"
+                description="Request a password reset link for your SAT Duel account."
+                path="/password_reset"
+                noindex
+            />
             <PageContainer className="max-w-md">
                 <Card className="sat-arena-card p-6 sm:p-8">
                     <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">

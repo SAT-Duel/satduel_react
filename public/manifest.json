@@ -1,6 +1,6 @@
 {
   "short_name": "SAT Duel",
-  "name": "Innovative SAT Prep: improve your score while competing with friends!",
+  "name": "SAT Duel - Digital SAT Practice",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#7c3aed",
   "background_color": "#ffffff"
 }
