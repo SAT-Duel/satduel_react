@@ -7,11 +7,11 @@ import api from '../../components/api';
 import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
 
-function TopicControl({quota, topics, selectedTopic, onChange}) {
+function TopicControl({quota, topics, selectedTopic, onChange, compact = false}) {
     const isPremium = quota?.is_premium;
 
     return (
-        <div className="flex flex-col gap-1.5 sm:min-w-72">
+        <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-3">
                 <span className="text-xs font-bold uppercase text-slate-400">Topic</span>
                 {!isPremium && (
@@ -31,7 +31,10 @@ function TopicControl({quota, topics, selectedTopic, onChange}) {
                 <button
                     type="button"
                     disabled
-                    className="w-full rounded-xl border-2 border-dashed border-slate-200 bg-white px-4 py-2.5 text-left text-[15px] font-semibold text-slate-500"
+                    className={[
+                        'w-full rounded-xl border-2 border-dashed border-slate-200 bg-white text-left font-semibold text-slate-500',
+                        compact ? 'px-3 py-2 text-sm' : 'px-4 py-2.5 text-[15px]',
+                    ].join(' ')}
                 >
                     All topics (random)
                 </button>
@@ -67,30 +70,6 @@ function PracticeProgress({stats, accuracy}) {
     );
 }
 
-function EloBadge({elo, feedback}) {
-    if (elo == null) return null;
-    const delta = feedback?.delta;
-    const positive = delta >= 0;
-
-    return (
-        <div className="flex items-center gap-2">
-            <span className="rounded-full bg-primary-50 px-3 py-1 text-sm font-bold text-primary-700">
-                {elo} Elo
-            </span>
-            {delta != null && (
-                <span
-                    key={feedback.id}
-                    className={`rounded-full px-2.5 py-1 text-xs font-black ${
-                        positive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-                    }`}
-                >
-                    {positive ? `+${delta}` : delta} Elo
-                </span>
-            )}
-        </div>
-    );
-}
-
 function playRatingSound(isPositive) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
@@ -117,54 +96,78 @@ function playRatingSound(isPositive) {
     }
 }
 
-function AnswerFeedback({status, ratingFeedback, elo, onNext, loadingQuestions}) {
-    const answered = status === 'Correct' || status === 'Incorrect';
-    if (!answered) {
-        return (
-            <Card className="sat-arena-card p-5">
-                <div className="flex items-start justify-between gap-3">
-                    <div>
-                        <p className="m-0 text-sm font-bold text-slate-500">Practice Elo</p>
-                        <p className="m-0 mt-1 text-lg font-black text-slate-900">Pick an answer</p>
-                    </div>
-                    <EloBadge elo={elo} feedback={ratingFeedback}/>
-                </div>
-            </Card>
-        );
-    }
-
-    const correct = status === 'Correct';
-    const Icon = correct ? CheckCircle2 : XCircle;
+function RatingChange({feedback}) {
+    if (!feedback) return null;
+    const positive = feedback.delta >= 0;
 
     return (
-        <Card className={`sat-arena-card p-5 ${correct ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}>
-            <div className="mb-4 flex items-start justify-between gap-3">
+        <div className={`mt-4 rounded-2xl border p-4 ${
+            positive ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-700'
+        }`}>
+            <div className="flex items-center justify-between gap-3">
                 <div>
-                    <p className="m-0 text-sm font-bold text-slate-500">Practice Elo</p>
-                    <p className="m-0 mt-1 text-lg font-black text-slate-950">
-                        {ratingFeedback?.previous != null && ratingFeedback?.next != null
-                            ? `${ratingFeedback.previous} -> ${ratingFeedback.next}`
-                            : 'Updated'}
+                    <p className="m-0 text-sm font-black">{positive ? 'Rating up' : 'Rating adjusted'}</p>
+                    <p className="m-0 mt-1 text-sm font-semibold">
+                        {feedback.previous}{' -> '}{feedback.next}
                     </p>
                 </div>
-                <EloBadge elo={elo} feedback={ratingFeedback}/>
-            </div>
-            <div className="flex items-start gap-3">
-                <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${correct ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                    <Icon className="size-5"/>
-                </div>
-                <div className="min-w-0 flex-1">
-                    <p className={`m-0 text-sm font-bold ${correct ? 'text-emerald-700' : 'text-rose-700'}`}>
-                        {correct ? 'Correct' : 'Not quite'}
-                    </p>
-                    <p className="m-0 mt-1 text-lg font-black text-slate-950">
-                        {correct ? 'Nice work.' : 'Review it, then keep going.'}
-                    </p>
+                <div className="rounded-xl bg-white/70 px-3 py-2 font-black">
+                    {feedback.delta > 0 ? `+${feedback.delta}` : feedback.delta} Elo
                 </div>
             </div>
-            <Button onClick={onNext} disabled={loadingQuestions} className="mt-4" block>
-                Next question
-            </Button>
+        </div>
+    );
+}
+
+function AnswerFeedback({status, ratingFeedback, elo, quota, topics, selectedTopic, onTopicChange, onNext, loadingQuestions}) {
+    const answered = status === 'Correct' || status === 'Incorrect';
+    const correct = status === 'Correct';
+    const Icon = correct ? CheckCircle2 : XCircle;
+    const tone = answered
+        ? correct
+            ? 'border-emerald-200 bg-emerald-50'
+            : 'border-rose-200 bg-rose-50'
+        : '';
+
+    return (
+        <Card className={`sat-arena-card p-5 ${tone}`}>
+            <div>
+                <p className="m-0 text-sm font-bold text-slate-500">Practice Elo</p>
+                <p className="m-0 mt-1 font-display text-4xl font-black text-slate-950">{elo ?? '—'}</p>
+            </div>
+
+            <RatingChange feedback={ratingFeedback}/>
+
+            <div className="my-4 h-px bg-slate-100"/>
+
+            <TopicControl
+                quota={quota}
+                topics={topics}
+                selectedTopic={selectedTopic}
+                onChange={onTopicChange}
+                compact
+            />
+
+            {answered && (
+                <>
+                    <div className="mt-4 flex items-start gap-3">
+                        <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${correct ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            <Icon className="size-5"/>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className={`m-0 text-sm font-bold ${correct ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                {correct ? 'Correct' : 'Not quite'}
+                            </p>
+                            <p className="m-0 mt-1 text-lg font-black text-slate-950">
+                                {correct ? 'Nice work.' : 'Review it, then keep going.'}
+                            </p>
+                        </div>
+                    </div>
+                    <Button onClick={onNext} disabled={loadingQuestions} className="mt-4" block>
+                        Next question
+                    </Button>
+                </>
+            )}
         </Card>
     );
 }
@@ -386,12 +389,6 @@ function InfiniteQuestionsPage() {
             <PageContainer>
                 <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <h1 className="m-0 font-display text-2xl font-bold text-slate-900">Practice</h1>
-                    <TopicControl
-                        quota={quota}
-                        topics={topics}
-                        selectedTopic={selectedTopic}
-                        onChange={handleTopicChange}
-                    />
                 </div>
 
                 <div className="mb-5 lg:hidden">
@@ -399,6 +396,10 @@ function InfiniteQuestionsPage() {
                         status={questionStatus}
                         ratingFeedback={ratingFeedback}
                         elo={spElo}
+                        quota={quota}
+                        topics={topics}
+                        selectedTopic={selectedTopic}
+                        onTopicChange={handleTopicChange}
                         onNext={() => fetchNextQuestion()}
                         loadingQuestions={loadingQuestions}
                     />
@@ -422,6 +423,10 @@ function InfiniteQuestionsPage() {
                                 status={questionStatus}
                                 ratingFeedback={ratingFeedback}
                                 elo={spElo}
+                                quota={quota}
+                                topics={topics}
+                                selectedTopic={selectedTopic}
+                                onTopicChange={handleTopicChange}
                                 onNext={() => fetchNextQuestion()}
                                 loadingQuestions={loadingQuestions}
                             />
