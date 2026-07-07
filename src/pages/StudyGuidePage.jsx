@@ -1,8 +1,7 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {
     BookOpen,
     Calculator,
-    CheckCircle2,
     CircleDot,
     Compass,
     Flame,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import {Button, Card, PageContainer} from '../components/ui';
+import {useAuth} from '../context/AuthContext';
 
 const MODULES = [
     {
@@ -291,14 +291,7 @@ const MODULES = [
     },
 ];
 
-const OFFICIAL_DOMAINS = [
-    {label: 'Algebra', range: '13-15', focus: 'Linear equations, systems, inequalities, and linear functions'},
-    {label: 'Advanced Math', range: '13-15', focus: 'Quadratics, nonlinear functions, expressions, and models'},
-    {label: 'Data Analysis', range: '5-7', focus: 'Ratios, percentages, units, statistics, and scatterplots'},
-    {label: 'Geometry/Trig', range: '5-7', focus: 'Shapes, circles, area, volume, coordinate geometry, and right triangles'},
-];
-
-function ModuleButton({module, active, onClick}) {
+function ModuleButton({module, active, locked, onClick}) {
     const Icon = module.icon;
     return (
         <button
@@ -318,7 +311,7 @@ function ModuleButton({module, active, onClick}) {
                 <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                         <span className="truncate text-sm font-black text-slate-950">{module.title}</span>
-                        {module.status !== 'draft' && <Lock className="size-3.5 shrink-0 text-slate-400"/>}
+                        {locked && <Lock className="size-3.5 shrink-0 text-slate-400"/>}
                     </span>
                     <span className="mt-1 block text-xs font-semibold text-slate-500">
                         {module.domain} · {module.pages.length} pages
@@ -326,45 +319,6 @@ function ModuleButton({module, active, onClick}) {
                 </span>
             </div>
         </button>
-    );
-}
-
-function CourseOutline({modules, activeId, onSelect}) {
-    return (
-        <Card className="overflow-hidden">
-            <div className="border-b border-slate-100 px-5 py-4">
-                <h2 className="m-0 font-display text-xl font-black text-slate-950">Course outline</h2>
-                <p className="m-0 mt-1 text-sm text-slate-500">Choose a module to view its lesson pages.</p>
-            </div>
-            <div className="divide-y divide-slate-100">
-                {modules.map((module, moduleIndex) => (
-                    <button
-                        key={module.id}
-                        type="button"
-                        onClick={() => onSelect(module.id)}
-                        className={[
-                            'flex w-full cursor-pointer gap-4 px-5 py-4 text-left transition-colors',
-                            activeId === module.id ? 'bg-primary-50' : 'bg-white hover:bg-slate-50',
-                        ].join(' ')}
-                    >
-                        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-black text-slate-500">
-                            {moduleIndex + 1}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                            <span className="block font-black text-slate-950">{module.title}</span>
-                            <span className="mt-1 block text-sm leading-relaxed text-slate-600">{module.summary}</span>
-                            <span className="mt-3 flex flex-wrap gap-2">
-                                {module.pages.map((page) => (
-                                    <span key={page.title} className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
-                                        {page.title}
-                                    </span>
-                                ))}
-                            </span>
-                        </span>
-                    </button>
-                ))}
-            </div>
-        </Card>
     );
 }
 
@@ -456,31 +410,50 @@ function DesmosLab({desmos}) {
     );
 }
 
-function DomainReference() {
-    return (
-        <Card className="p-4">
-            <p className="m-0 text-xs font-black uppercase text-slate-400">SAT Math domains</p>
-            <div className="mt-3 space-y-3">
-                {OFFICIAL_DOMAINS.map((domain) => (
-                    <div key={domain.label}>
-                        <div className="flex items-center justify-between gap-2">
-                            <p className="m-0 text-sm font-black text-slate-900">{domain.label}</p>
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-500">
-                                {domain.range} Qs
-                            </span>
-                        </div>
-                        <p className="m-0 mt-1 text-xs leading-relaxed text-slate-500">{domain.focus}</p>
-                    </div>
-                ))}
-            </div>
-        </Card>
-    );
-}
-
-function ActiveModule({module}) {
+function ModuleSection({module, index, locked}) {
     const Icon = module.icon;
+
+    if (locked) {
+        return (
+            <Card id={`module-${module.id}`} className="scroll-mt-6 overflow-hidden">
+                <div className="border-b border-slate-100 bg-white px-5 py-5">
+                    <div className="flex gap-3">
+                        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${module.accent}`}>
+                            <Icon className="size-5"/>
+                        </span>
+                        <div className="min-w-0 flex-1">
+                            <p className="m-0 text-xs font-black uppercase text-slate-400">Module {index + 1} · {module.domain}</p>
+                            <h2 className="m-0 mt-1 font-display text-2xl font-black text-slate-950">{module.title}</h2>
+                            <p className="m-0 mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">{module.summary}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-slate-50 px-5 py-6">
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-5">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex gap-3">
+                                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                                    <Lock className="size-5"/>
+                                </span>
+                                <div>
+                                    <p className="m-0 font-black text-slate-950">Only for Premium members</p>
+                                    <p className="m-0 mt-1 text-sm leading-relaxed text-slate-600">
+                                        Upgrade to unlock this module, its lesson pages, checkpoints, and graph labs.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button to="/upgrade" size="sm" variant="secondary">
+                                Upgrade
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        );
+    }
+
     return (
-        <Card className="overflow-hidden">
+        <Card id={`module-${module.id}`} className="scroll-mt-6 overflow-hidden">
             <div className="border-b border-slate-100 bg-white px-5 py-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex gap-3">
@@ -488,20 +461,20 @@ function ActiveModule({module}) {
                             <Icon className="size-5"/>
                         </span>
                         <div>
-                            <p className="m-0 text-xs font-black uppercase text-primary-700">{module.domain}</p>
+                            <p className="m-0 text-xs font-black uppercase text-primary-700">Module {index + 1} · {module.domain}</p>
                             <h2 className="m-0 mt-1 font-display text-2xl font-black text-slate-950">{module.title}</h2>
                             <p className="m-0 mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">{module.summary}</p>
                         </div>
                     </div>
                     <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black uppercase text-slate-500">
-                        {module.status === 'draft' ? <Play className="size-3.5"/> : <Lock className="size-3.5"/>}
-                        {module.status === 'draft' ? 'Drafted' : 'Outline'}
+                        {module.status === 'draft' ? <Play className="size-3.5"/> : <CircleDot className="size-3.5"/>}
+                        {module.status === 'draft' ? 'Drafted' : 'Planned'}
                     </span>
                 </div>
             </div>
 
             <div className="p-5">
-                <h3 className="m-0 font-display text-lg font-black text-slate-950">Pages in this module</h3>
+                <h3 className="m-0 font-display text-lg font-black text-slate-950">Pages</h3>
                 <div className="mt-4 space-y-3">
                     {module.pages.map((page, index) => (
                         <div key={page.title} className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -515,18 +488,30 @@ function ActiveModule({module}) {
                         </div>
                     ))}
                 </div>
+
+                <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                    <Checkpoint checkpoint={module.checkpoint}/>
+                    <DesmosLab desmos={module.desmos}/>
+                </div>
             </div>
         </Card>
     );
 }
 
 export default function StudyGuidePage() {
+    const {user} = useAuth();
     const [activeId, setActiveId] = useState(MODULES[0].id);
-    const activeModule = useMemo(
-        () => MODULES.find((module) => module.id === activeId) || MODULES[0],
-        [activeId],
-    );
+    const isPremium = Boolean(user?.is_premium);
     const pageCount = MODULES.reduce((total, module) => total + module.pages.length, 0);
+    const isLocked = (index) => !isPremium && index >= 3;
+
+    const goToModule = (moduleId) => {
+        setActiveId(moduleId);
+        document.getElementById(`module-${moduleId}`)?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+        });
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 py-6 sm:py-8">
@@ -546,7 +531,7 @@ export default function StudyGuidePage() {
                             SAT Math
                         </h1>
                         <p className="m-0 mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-                            {MODULES.length} modules and {pageCount} planned pages, organized around the official SAT Math domains.
+                            {MODULES.length} modules and {pageCount} planned pages. The first three modules are free.
                         </p>
                     </div>
                     <Button to="/infinite_questions" size="sm">
@@ -561,37 +546,28 @@ export default function StudyGuidePage() {
                                 <p className="m-0 text-xs font-black uppercase text-slate-400">Modules</p>
                             </div>
                             <div className="space-y-1">
-                                {MODULES.map((module) => (
+                                {MODULES.map((module, index) => (
                                     <ModuleButton
                                         key={module.id}
                                         module={module}
                                         active={module.id === activeId}
-                                        onClick={() => setActiveId(module.id)}
+                                        locked={isLocked(index)}
+                                        onClick={() => goToModule(module.id)}
                                     />
                                 ))}
                             </div>
                         </Card>
-                        <DomainReference/>
                     </aside>
 
                     <main className="space-y-5">
-                        <CourseOutline modules={MODULES} activeId={activeId} onSelect={setActiveId}/>
-                        <ActiveModule module={activeModule}/>
-
-                        <div className="grid gap-5 xl:grid-cols-2">
-                            <Checkpoint checkpoint={activeModule.checkpoint}/>
-                            <DesmosLab desmos={activeModule.desmos}/>
-                        </div>
-
-                        <Card className="p-5">
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="size-5 text-primary-600"/>
-                                <h2 className="m-0 font-display text-xl font-black text-slate-950">Next build step</h2>
-                            </div>
-                            <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">
-                                Fill one module at a time with concise explanations, one checkpoint per page, and a direct practice handoff.
-                            </p>
-                        </Card>
+                        {MODULES.map((module, index) => (
+                            <ModuleSection
+                                key={module.id}
+                                module={module}
+                                index={index}
+                                locked={isLocked(index)}
+                            />
+                        ))}
                     </main>
                 </div>
             </PageContainer>
