@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {ArrowLeft, BookOpen, CheckCircle2, Clock3, Target} from 'lucide-react';
+import {ArrowLeft, CheckCircle2, Clock3} from 'lucide-react';
 import {BlockMath} from 'react-katex';
 import 'katex/dist/katex.min.css';
 import {Link, Navigate, useParams} from 'react-router-dom';
@@ -8,17 +8,91 @@ import {Button, PageContainer} from '../components/ui';
 import {STUDY_GUIDE_LESSON_BY_SLUG} from '../content/studyGuideLessons';
 import {STUDY_GUIDE_MODULES} from '../content/studyGuideModules';
 
+const NOTE_TONES = {
+    blue: 'border-primary-200 bg-primary-50/60 text-primary-800',
+    amber: 'border-amber-200 bg-amber-50 text-amber-900',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+    slate: 'border-slate-200 bg-slate-50 text-slate-800',
+};
+
+function NoteBox({tone = 'blue', label, title, children}) {
+    return (
+        <section className={`rounded-xl border-l-4 px-4 py-3 ${NOTE_TONES[tone] || NOTE_TONES.blue}`}>
+            {label && <p className="m-0 text-xs font-black uppercase tracking-wide opacity-70">{label}</p>}
+            {title && <h2 className="m-0 mt-1 text-base font-black">{title}</h2>}
+            <div className="mt-2 text-sm leading-7 text-slate-700">{children}</div>
+        </section>
+    );
+}
+
+function AtAGlance({facts}) {
+    if (!facts?.length) return null;
+
+    return (
+        <NoteBox tone="slate" label="At a glance" title="Numbers to know">
+            <dl className="m-0 divide-y divide-slate-200">
+                {facts.map((fact) => (
+                    <div key={fact.label} className="grid gap-1 py-2 sm:grid-cols-[130px_1fr]">
+                        <dt className="font-black text-slate-900">{fact.label}</dt>
+                        <dd className="m-0 text-slate-600">
+                            <span className="font-black text-slate-900">{fact.value}</span>
+                            {fact.note && <span> - {fact.note}</span>}
+                        </dd>
+                    </div>
+                ))}
+            </dl>
+        </NoteBox>
+    );
+}
+
+function FormulaList({formulas}) {
+    if (!formulas?.length) return null;
+
+    return (
+        <section className="space-y-3">
+            <h2 className="m-0 border-b border-slate-200 pb-2 text-xl font-black text-slate-950">Useful formulas</h2>
+            {formulas.map((formula) => (
+                <NoteBox key={formula.label} tone="blue" label="Rule" title={formula.label}>
+                    <div className="overflow-x-auto rounded-lg bg-white/70 py-2 text-slate-950">
+                        <BlockMath math={formula.math}/>
+                    </div>
+                    <p className="m-0 mt-2">{formula.note}</p>
+                </NoteBox>
+            ))}
+        </section>
+    );
+}
+
+function MethodList({cards}) {
+    if (!cards?.length) return null;
+
+    return (
+        <section className="space-y-3">
+            <h2 className="m-0 border-b border-slate-200 pb-2 text-xl font-black text-slate-950">Decision rules</h2>
+            {cards.map((card) => (
+                <NoteBox key={card.title} tone="slate" label="Method" title={card.title}>
+                    <ul className="m-0 space-y-1.5 p-0">
+                        {card.items.map((item) => (
+                            <li key={item} className="flex gap-2">
+                                <CheckCircle2 className="mt-1 size-4 shrink-0 text-emerald-600"/>
+                                <span>{item}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </NoteBox>
+            ))}
+        </section>
+    );
+}
+
 function AdaptiveDemo({demo}) {
     const [selectedId, setSelectedId] = useState(demo.options[0].id);
     const selected = demo.options.find((option) => option.id === selectedId) || demo.options[0];
 
     return (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <p className="m-0 text-xs font-black uppercase text-primary-700">Interactive</p>
-            <h2 className="m-0 mt-2 font-display text-xl font-black text-slate-950">Adaptive module feel</h2>
-            <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">{demo.prompt}</p>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-2" role="group" aria-label="Module 1 result">
+        <NoteBox tone="amber" label="Try it" title={demo.title || 'Choose a path'}>
+            <p className="m-0">{demo.prompt}</p>
+            <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={demo.prompt}>
                 {demo.options.map((option) => {
                     const active = option.id === selectedId;
                     return (
@@ -28,10 +102,10 @@ function AdaptiveDemo({demo}) {
                             aria-pressed={active}
                             onClick={() => setSelectedId(option.id)}
                             className={[
-                                'cursor-pointer rounded-xl border px-4 py-3 text-left text-sm font-black transition-colors',
+                                'cursor-pointer rounded-lg border px-3 py-2 text-left text-sm font-black transition-colors',
                                 active
-                                    ? 'border-primary-300 bg-primary-50 text-primary-800'
-                                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
+                                    ? 'border-amber-400 bg-white text-amber-950'
+                                    : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-white',
                             ].join(' ')}
                         >
                             {option.label}
@@ -39,12 +113,11 @@ function AdaptiveDemo({demo}) {
                     );
                 })}
             </div>
-
-            <div className="mt-4 rounded-xl bg-slate-50 p-4">
+            <div className="mt-3 rounded-lg bg-white/70 p-3">
                 <p className="m-0 font-black text-slate-950">{selected.result}</p>
-                <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">{selected.advice}</p>
+                <p className="m-0 mt-1">{selected.advice}</p>
             </div>
-        </section>
+        </NoteBox>
     );
 }
 
@@ -53,10 +126,8 @@ function QuickCheck({check}) {
     const answered = picked !== null;
 
     return (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <p className="m-0 text-xs font-black uppercase text-primary-700">Self-check</p>
-            <h2 className="m-0 mt-2 text-xl font-black text-slate-950">{check.prompt}</h2>
-            <div className="mt-4 grid gap-2">
+        <NoteBox tone="emerald" label="Exercise" title={check.prompt}>
+            <div className="grid gap-2">
                 {check.choices.map((choice, index) => {
                     const correct = answered && index === check.answer;
                     const wrong = answered && picked === index && index !== check.answer;
@@ -66,10 +137,10 @@ function QuickCheck({check}) {
                             type="button"
                             onClick={() => setPicked(index)}
                             className={[
-                                'cursor-pointer rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors',
-                                correct ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : '',
+                                'cursor-pointer rounded-lg border bg-white px-3 py-2 text-left text-sm font-semibold transition-colors',
+                                correct ? 'border-emerald-400 text-emerald-900' : '',
                                 wrong ? 'border-rose-300 bg-rose-50 text-rose-800' : '',
-                                !correct && !wrong ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50' : '',
+                                !correct && !wrong ? 'border-emerald-200 text-slate-700 hover:border-emerald-400' : '',
                             ].join(' ')}
                         >
                             {choice}
@@ -78,11 +149,11 @@ function QuickCheck({check}) {
                 })}
             </div>
             {answered && (
-                <p className="m-0 mt-4 rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+                <p className="m-0 mt-3 rounded-lg bg-white/70 p-3 text-slate-700">
                     {check.explanation}
                 </p>
             )}
-        </section>
+        </NoteBox>
     );
 }
 
@@ -105,123 +176,69 @@ export default function StudyGuideLessonPage() {
                 path={`/study_guides/${lesson.slug}`}
                 noindex
             />
-            <PageContainer className="max-w-6xl">
-                <div className="mb-5">
-                    <Link
-                        to="/study_guides"
-                        className="inline-flex items-center gap-2 text-sm font-black text-slate-500 no-underline hover:text-primary-700"
-                    >
-                        <ArrowLeft className="size-4"/> Study guide
-                    </Link>
-                </div>
+            <PageContainer className="max-w-5xl">
+                <Link
+                    to="/study_guides"
+                    className="mb-4 inline-flex items-center gap-2 text-sm font-black text-slate-500 no-underline hover:text-primary-700"
+                >
+                    <ArrowLeft className="size-4"/> Study guide
+                </Link>
 
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-                    <main className="min-w-0 space-y-6">
-                        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-7">
-                            <p className="m-0 flex items-center gap-2 text-xs font-black uppercase text-primary-700">
-                                <BookOpen className="size-4"/> {lesson.eyebrow}
-                            </p>
-                            <h1 className="m-0 mt-3 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
-                                {lesson.title}
-                            </h1>
-                            <p className="m-0 mt-3 max-w-3xl text-base leading-relaxed text-slate-600">
-                                {lesson.summary}
-                            </p>
-                        </section>
+                <article className="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white px-5 py-6 text-slate-700 sm:px-10 sm:py-9">
+                    <header className="border-b border-slate-200 pb-5">
+                        <p className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-black uppercase tracking-wide text-slate-500">
+                            <span>Module {moduleNumber}: {module?.title}</span>
+                            <span className="inline-flex items-center gap-1">
+                                <Clock3 className="size-3.5"/> {lesson.minutes}
+                            </span>
+                        </p>
+                        <h1 className="m-0 mt-3 font-serif text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">
+                            {lesson.title}
+                        </h1>
+                        <p className="m-0 mt-3 text-base leading-7 text-slate-600">{lesson.summary}</p>
+                    </header>
 
-                        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                            {lesson.facts.map((fact) => (
-                                <div key={fact.label} className="rounded-2xl border border-slate-200 bg-white p-4">
-                                    <p className="m-0 text-xs font-black uppercase text-slate-400">{fact.label}</p>
-                                    <p className="m-0 mt-2 text-2xl font-black text-slate-950">{fact.value}</p>
-                                    <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">{fact.note}</p>
-                                </div>
-                            ))}
-                        </section>
-
-                        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-7">
-                            <h2 className="m-0 font-display text-2xl font-black text-slate-950">What to know</h2>
-                            <div className="mt-5 space-y-6">
-                                {lesson.sections.map((section) => (
-                                    <section key={section.heading}>
-                                        <h3 className="m-0 text-lg font-black text-slate-950">{section.heading}</h3>
-                                        <div className="mt-2 space-y-3">
-                                            {section.paragraphs.map((paragraph) => (
-                                                <p key={paragraph} className="m-0 text-base leading-7 text-slate-600">
-                                                    {paragraph}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    </section>
-                                ))}
-                            </div>
-                        </section>
-
-                        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-7">
-                            <h2 className="m-0 font-display text-2xl font-black text-slate-950">Useful formulas</h2>
-                            <div className="mt-5 space-y-4">
-                                {lesson.formulas.map((formula) => (
-                                    <div key={formula.label} className="rounded-xl bg-slate-50 p-4">
-                                        <p className="m-0 text-sm font-black text-slate-950">{formula.label}</p>
-                                        <div className="overflow-x-auto py-2 text-slate-900">
-                                            <BlockMath math={formula.math}/>
-                                        </div>
-                                        <p className="m-0 text-sm leading-relaxed text-slate-600">{formula.note}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        <section className="grid gap-3 md:grid-cols-3">
-                            {lesson.strategyCards.map((card) => (
-                                <div key={card.title} className="rounded-2xl border border-slate-200 bg-white p-5">
-                                    <h2 className="m-0 text-base font-black text-slate-950">{card.title}</h2>
-                                    <ul className="m-0 mt-3 space-y-2 p-0">
-                                        {card.items.map((item) => (
-                                            <li key={item} className="flex gap-2 text-sm leading-relaxed text-slate-600">
-                                                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600"/>
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </section>
-
-                        <AdaptiveDemo demo={lesson.adaptiveDemo}/>
-                        <QuickCheck check={lesson.quickCheck}/>
-                    </main>
-
-                    <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
-                        <section className="rounded-2xl border border-slate-200 bg-white p-5">
-                            <p className="m-0 text-xs font-black uppercase text-slate-400">Lesson</p>
-                            <div className="mt-3 space-y-3 text-sm text-slate-600">
-                                <p className="m-0 flex items-center gap-2">
-                                    <Clock3 className="size-4 text-primary-600"/> {lesson.minutes}
-                                </p>
-                                <p className="m-0 flex items-center gap-2">
-                                    <Target className="size-4 text-primary-600"/> Module {moduleNumber}: {module?.title}
-                                </p>
-                            </div>
-                        </section>
-
-                        <section className="rounded-2xl border border-slate-200 bg-white p-5">
-                            <p className="m-0 text-xs font-black uppercase text-slate-400">Goals</p>
-                            <ul className="m-0 mt-3 space-y-3 p-0">
+                    <div className="mt-6 space-y-7">
+                        <NoteBox label="Learning goals" title="By the end, you should be able to:">
+                            <ul className="m-0 space-y-1.5 p-0">
                                 {lesson.goals.map((goal) => (
-                                    <li key={goal} className="flex gap-2 text-sm leading-relaxed text-slate-600">
-                                        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600"/>
+                                    <li key={goal} className="flex gap-2">
+                                        <CheckCircle2 className="mt-1 size-4 shrink-0 text-emerald-600"/>
                                         <span>{goal}</span>
                                     </li>
                                 ))}
                             </ul>
+                        </NoteBox>
+
+                        <AtAGlance facts={lesson.facts}/>
+
+                        <section className="space-y-6">
+                            {lesson.sections.map((section) => (
+                                <section key={section.heading} className="space-y-2">
+                                    <h2 className="m-0 border-b border-slate-200 pb-2 text-xl font-black text-slate-950">
+                                        {section.heading}
+                                    </h2>
+                                    {section.paragraphs.map((paragraph) => (
+                                        <p key={paragraph} className="m-0 text-base leading-8 text-slate-700">
+                                            {paragraph}
+                                        </p>
+                                    ))}
+                                </section>
+                            ))}
                         </section>
 
-                        <Button to="/infinite_questions" block size="sm">
-                            Practice questions
-                        </Button>
-                    </aside>
-                </div>
+                        <FormulaList formulas={lesson.formulas}/>
+                        <MethodList cards={lesson.strategyCards}/>
+                        <AdaptiveDemo demo={lesson.adaptiveDemo}/>
+                        <QuickCheck check={lesson.quickCheck}/>
+
+                        <div className="border-t border-slate-200 pt-5">
+                            <Button to="/infinite_questions" size="sm">
+                                Practice questions
+                            </Button>
+                        </div>
+                    </div>
+                </article>
             </PageContainer>
         </div>
     );

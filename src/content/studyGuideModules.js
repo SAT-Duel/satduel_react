@@ -13,25 +13,25 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'math-map',
         domain: 'Orientation',
-        title: 'Digital SAT Math Map',
+        title: 'Math Map',
         summary: 'Know the section format, domain weights, and the study loop before you start grinding questions.',
         icon: Compass,
         accent: 'bg-primary-100 text-primary-700',
-        time: '25 min',
+        time: '30 min',
         pages: [
             {
                 title: 'How Digital SAT Math Works',
                 slug: 'how-digital-sat-math-works',
                 focus: 'Format, timing, and adaptive modules',
             },
-            {title: 'The Four Math Domains', focus: 'What appears most often'},
-            {title: 'How to Study With SAT Duel', focus: 'Review misses, then practice targeted reps'},
+            {title: 'The Four Math Domains', slug: 'four-math-domains', focus: 'What appears most often'},
+            {title: 'How to Study With SAT Duel', slug: 'study-with-sat-duel', focus: 'Review misses, then practice targeted reps'},
         ],
     },
     {
         id: 'linear-equations',
         domain: 'Algebra',
-        title: 'Linear Equations and Inequalities',
+        title: 'Linear Equations',
         summary: 'Build clean equation habits so easy Algebra questions become automatic points.',
         icon: Sigma,
         accent: 'bg-cyan-100 text-cyan-700',
@@ -47,7 +47,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'linear-functions-systems',
         domain: 'Algebra',
-        title: 'Linear Functions and Systems',
+        title: 'Linear Functions',
         summary: 'Connect lines, tables, systems, and word problems as the same relationship in different forms.',
         icon: LineChart,
         accent: 'bg-emerald-100 text-emerald-700',
@@ -63,7 +63,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'quadratic-foundations',
         domain: 'Advanced Math',
-        title: 'Quadratic Foundations',
+        title: 'Quadratics I',
         summary: 'Learn what each quadratic form reveals so you stop expanding when factoring would be faster.',
         icon: FunctionSquare,
         accent: 'bg-amber-100 text-amber-700',
@@ -79,7 +79,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'quadratic-graphs',
         domain: 'Advanced Math',
-        title: 'Quadratic Graphs and Features',
+        title: 'Quadratics II',
         summary: 'Read a parabola through zeros, vertex, symmetry, and context instead of memorizing graph facts.',
         icon: FunctionSquare,
         accent: 'bg-orange-100 text-orange-700',
@@ -95,7 +95,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'nonlinear-equations',
         domain: 'Advanced Math',
-        title: 'Nonlinear Equations and Functions',
+        title: 'Nonlinear Functions',
         summary: 'Handle absolute value, polynomial, rational, radical, and mixed systems without guessing.',
         icon: FunctionSquare,
         accent: 'bg-fuchsia-100 text-fuchsia-700',
@@ -111,7 +111,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'exponential-models',
         domain: 'Advanced Math',
-        title: 'Exponential and Growth Models',
+        title: 'Exponents',
         summary: 'Recognize repeated multiplication, percent change, and hidden growth factors in context.',
         icon: FunctionSquare,
         accent: 'bg-lime-100 text-lime-700',
@@ -127,7 +127,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'advanced-expression-fluency',
         domain: 'Advanced Math',
-        title: 'Expression Fluency',
+        title: 'Expressions',
         summary: 'Make equivalent expressions feel mechanical so SAT answer choices look familiar.',
         icon: Sigma,
         accent: 'bg-sky-100 text-sky-700',
@@ -143,7 +143,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'ratios-percent-units',
         domain: 'Problem-Solving and Data Analysis',
-        title: 'Ratios, Percentages, and Units',
+        title: 'Ratios & Percents',
         summary: 'Turn word problems into ratios, unit rates, and percent relationships with the right denominator.',
         icon: Target,
         accent: 'bg-rose-100 text-rose-700',
@@ -159,7 +159,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'statistics-probability',
         domain: 'Problem-Solving and Data Analysis',
-        title: 'Statistics, Probability, and Inference',
+        title: 'Statistics',
         summary: 'Read data displays carefully and know what a statistic can and cannot prove.',
         icon: Target,
         accent: 'bg-teal-100 text-teal-700',
@@ -175,7 +175,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'triangles-similarity',
         domain: 'Geometry and Trigonometry',
-        title: 'Lines, Angles, Triangles, and Similarity',
+        title: 'Triangles',
         summary: 'Use angle facts and proportional reasoning before reaching for formulas.',
         icon: Triangle,
         accent: 'bg-violet-100 text-violet-700',
@@ -191,7 +191,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'circles-coordinate-geometry',
         domain: 'Geometry and Trigonometry',
-        title: 'Circles and Coordinate Geometry',
+        title: 'Circles & Coordinates',
         summary: 'Connect circle facts to equations, distance, midpoint, and slope on the coordinate plane.',
         icon: Triangle,
         accent: 'bg-indigo-100 text-indigo-700',
@@ -207,7 +207,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'area-volume-trig',
         domain: 'Geometry and Trigonometry',
-        title: 'Area, Volume, and Right-Triangle Trig',
+        title: 'Area, Volume & Trig',
         summary: 'Organize shape formulas and use trig as side-ratio language, not a separate mystery topic.',
         icon: Triangle,
         accent: 'bg-stone-100 text-stone-700',
@@ -223,7 +223,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'calculator-mixed-review',
         domain: 'Strategy',
-        title: 'Calculator Strategy and Mixed Review',
+        title: 'Calculator Strategy',
         summary: 'Use the calculator when it saves time, then practice switching topics like the real test.',
         icon: Calculator,
         accent: 'bg-slate-100 text-slate-700',
@@ -239,7 +239,7 @@ export const STUDY_GUIDE_MODULES = [
     {
         id: 'review-system',
         domain: 'Review',
-        title: 'Mistake Review System',
+        title: 'Mistake Review',
         summary: 'Turn missed questions into a short list of fixable habits instead of vague frustration.',
         icon: Flame,
         accent: 'bg-red-100 text-red-700',
