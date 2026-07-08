@@ -8,18 +8,43 @@ import api from '../../components/api';
 import {Button, Card, Field, Input, ModalShell, PageContainer, Select, Textarea, Toggle} from '../../components/ui';
 import {notify} from '../../utils/notify';
 
-const questionTypes = [
-    'Cross-Text Connections',
-    'Text Structure and Purpose',
-    'Words in Context',
-    'Rhetorical Synthesis',
-    'Transitions',
-    'Central Ideas and Details',
-    'Command of Evidence',
-    'Inferences',
-    'Boundaries',
-    'Form, Structure, and Sense',
-];
+// Topics grouped by subject; the backend's filter_questions endpoint takes a
+// matching `subject` param so "Any Type" resolves within the chosen subject.
+const TOPICS = {
+    english: [
+        'Cross-Text Connections',
+        'Text Structure and Purpose',
+        'Words in Context',
+        'Rhetorical Synthesis',
+        'Transitions',
+        'Central Ideas and Details',
+        'Command of Evidence',
+        'Inferences',
+        'Boundaries',
+        'Form, Structure, and Sense',
+    ],
+    math: [
+        'Linear equations in one variable',
+        'Linear functions',
+        'Linear equations in two variables',
+        'Systems of two linear equations in two variables',
+        'Linear inequalities in one or two variables',
+        'Equivalent expressions',
+        'Nonlinear equations in one variable and systems of equations in two variables',
+        'Nonlinear functions',
+        'Ratios, rates, proportional relationships, and units',
+        'Percentages',
+        'One-variable data: distributions and measures of center and spread',
+        'Two-variable data: models and scatterplots',
+        'Probability and conditional probability',
+        'Inference from sample statistics and margin of error',
+        'Evaluating statistical claims: observational studies and experiments',
+        'Area and volume',
+        'Lines, angles, and triangles',
+        'Right triangles and trigonometry',
+        'Circles',
+    ],
+};
 
 const difficulties = ['1', '2', '3', '4', '5'];
 
@@ -67,6 +92,7 @@ function formatApiTime(value) {
 function AdminCreateTournamentPage() {
     const [questions, setQuestions] = useState([]);
     const [selectedQuestions, setSelectedQuestions] = useState([]);
+    const [subject, setSubject] = useState('english');
     const [selectedType, setSelectedType] = useState('any');
     const [selectedDifficulty, setSelectedDifficulty] = useState('any');
     const [total, setTotal] = useState(0);
@@ -93,6 +119,7 @@ function AdminCreateTournamentPage() {
         try {
             const response = await axios.get(`${baseUrl}/api/filter_questions/`, {
                 params: {
+                    subject,
                     type: selectedType,
                     difficulty: selectedDifficulty,
                     page: currentPage,
@@ -105,7 +132,7 @@ function AdminCreateTournamentPage() {
             console.error('Error fetching questions:', error);
             notify.error('Failed to fetch questions');
         }
-    }, [currentPage, selectedDifficulty, selectedType]);
+    }, [currentPage, selectedDifficulty, selectedType, subject]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -245,10 +272,21 @@ function AdminCreateTournamentPage() {
                             <p className="mt-1 text-sm text-slate-500">{selectedQuestions.length} selected</p>
                         </div>
                         <Card className="p-3">
-                            <div className="grid gap-3 md:grid-cols-[260px_180px_auto]">
+                            <div className="grid gap-3 md:grid-cols-[140px_260px_180px_auto]">
+                                <Select
+                                    value={subject}
+                                    onChange={(event) => {
+                                        setSubject(event.target.value);
+                                        setSelectedType('any');
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <option value="english">English</option>
+                                    <option value="math">Math</option>
+                                </Select>
                                 <Select value={selectedType} onChange={(event) => setSelectedType(event.target.value)}>
                                     <option value="any">Any Type</option>
-                                    {questionTypes.map((type) => (
+                                    {TOPICS[subject].map((type) => (
                                         <option key={type} value={type}>{type}</option>
                                     ))}
                                 </Select>
