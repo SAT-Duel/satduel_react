@@ -136,10 +136,13 @@ function TournamentListPage() {
                         <div>
                             <h2 className="m-0 font-display text-2xl font-black text-slate-950">Host your own</h2>
                             <p className="m-0 mt-1 text-sm text-slate-500">
-                                Make a private tournament and share the join code with your class or friends.
+                                Make a public or private tournament and share the invite link with your class or friends.
                             </p>
                         </div>
                         <div className="flex flex-col gap-3 sm:flex-row">
+                            <Button to="/my_tournaments" variant="secondary">
+                                My tournaments
+                            </Button>
                             <Button to="/tournaments/info" variant="secondary">
                                 How tournaments work <ArrowRight className="size-4"/>
                             </Button>

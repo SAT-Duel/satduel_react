@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
+import {Helmet} from 'react-helmet';
 import {useNavigate} from 'react-router-dom';
 import api from '../components/api';
 import {Button} from '../components/ui';
+import {consumePostLoginRedirect} from '../utils/authRedirect';
 
 const GOAL_OPTIONS = [
     {
@@ -48,9 +50,14 @@ const GoalSettingPage = () => {
         setSubmitting(true);
         try {
             await api.post('api/set_goal/', {goal: selected.key});
-            navigate('/practice_test', {
-                state: {isNewUser: true, fromGoalSetting: true},
-            });
+            const redirectTo = consumePostLoginRedirect();
+            if (redirectTo) {
+                navigate(redirectTo);
+            } else {
+                navigate('/practice_test', {
+                    state: {isNewUser: true, fromGoalSetting: true},
+                });
+            }
         } catch (e) {
             setSubmitting(false);
         }
@@ -58,6 +65,9 @@ const GoalSettingPage = () => {
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-10">
+            <Helmet>
+                <title>Set your goal | SAT Duel</title>
+            </Helmet>
             <div className="mb-10 text-center">
                 <h1 className="font-display text-3xl font-bold text-slate-900 sm:text-4xl">
                     Set your learning goal

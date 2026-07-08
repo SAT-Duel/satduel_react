@@ -1,12 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {ChevronLeft, ChevronRight, Plus, Search, Trash2} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Clipboard, ExternalLink, Plus, Search, Trash2} from 'lucide-react';
 import axios from 'axios';
 import RenderWithMath from '../../components/RenderWithMath';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
 import {Button, Card, Field, Input, ModalShell, PageContainer, Select, Textarea, Toggle} from '../../components/ui';
 import {notify} from '../../utils/notify';
+import {tournamentShareUrl} from '../../utils/tournamentLinks';
 
 // Topics grouped by subject; the backend's filter_questions endpoint takes a
 // matching `subject` param so "Any Type" resolves within the chosen subject.
@@ -100,6 +101,7 @@ function AdminCreateTournamentPage() {
     const [formValues, setFormValues] = useState(initialTournament);
     const [joinCodeModalVisible, setJoinCodeModalVisible] = useState(false);
     const [joinCode, setJoinCode] = useState('');
+    const [createdTournament, setCreatedTournament] = useState(null);
     const [creating, setCreating] = useState(false);
     const pageSize = 15;
     const navigate = useNavigate();
@@ -174,14 +176,10 @@ function AdminCreateTournamentPage() {
             setCreating(true);
             const response = await api.post('api/tournaments/admin_create/', tournamentData);
             const tournament = response.data;
-
-            if (tournament.join_code) {
-                setJoinCode(tournament.join_code);
-                setJoinCodeModalVisible(true);
-            } else {
-                notify.success('Tournament created successfully!');
-                navigate('/tournaments');
-            }
+            setCreatedTournament(tournament);
+            setJoinCode(tournament.join_code || '');
+            setJoinCodeModalVisible(true);
+            notify.success('Tournament created successfully!');
         } catch (error) {
             console.error('Error creating tournament:', error);
             notify.error('Failed to create tournament');
@@ -197,6 +195,16 @@ function AdminCreateTournamentPage() {
     const closeJoinCodeModal = () => {
         setJoinCodeModalVisible(false);
         navigate('/my_tournaments');
+    };
+
+    const copyShareLink = async () => {
+        if (!createdTournament) return;
+        try {
+            await navigator.clipboard.writeText(tournamentShareUrl(createdTournament));
+            notify.success('Tournament link copied.');
+        } catch {
+            notify.error('Could not copy tournament link.');
+        }
     };
 
     return (
@@ -375,14 +383,34 @@ function AdminCreateTournamentPage() {
                 open={joinCodeModalVisible}
                 title="Tournament Created"
                 onClose={closeJoinCodeModal}
-                footer={<Button onClick={closeJoinCodeModal}>Done</Button>}
+                footer={(
+                    <>
+                        <Button type="button" variant="secondary" onClick={copyShareLink}>
+                            <Clipboard className="size-4"/> Copy link
+                        </Button>
+                        <Button to={createdTournament ? `/tournament/${createdTournament.id}` : '/my_tournaments'}>
+                            Open tournament <ExternalLink className="size-4"/>
+                        </Button>
+                    </>
+                )}
             >
                 <p className="text-sm leading-6 text-slate-500">
-                    Share this join code with participants to let them enter the tournament.
+                    Share this link with participants to let them enter the tournament.
                 </p>
-                <div className="mt-5 rounded-2xl border-2 border-dashed border-primary-300 bg-primary-50 px-5 py-6 text-center text-3xl font-black tracking-[0.18em] text-primary-700">
-                    {joinCode}
-                </div>
+                {createdTournament && (
+                    <button
+                        type="button"
+                        onClick={copyShareLink}
+                        className="mt-4 w-full cursor-pointer rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-left font-mono text-sm font-bold text-primary-700 hover:bg-primary-100"
+                    >
+                        {tournamentShareUrl(createdTournament)}
+                    </button>
+                )}
+                {joinCode && (
+                    <div className="mt-5 rounded-2xl border-2 border-dashed border-primary-300 bg-primary-50 px-5 py-6 text-center text-3xl font-black tracking-[0.18em] text-primary-700">
+                        {joinCode}
+                    </div>
+                )}
             </ModalShell>
         </PageContainer>
     );

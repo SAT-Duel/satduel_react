@@ -358,9 +358,14 @@ function ProfilePage() {
 
                         <div className="flex flex-col gap-3 sm:flex-row">
                             {isOwnProfile ? (
-                                <Button onClick={openEdit}>
-                                    <Edit3 className="size-4"/> Edit profile
-                                </Button>
+                                <>
+                                    <Button to="/my_tournaments" variant="secondary">
+                                        <Trophy className="size-4"/> My tournaments
+                                    </Button>
+                                    <Button onClick={openEdit}>
+                                        <Edit3 className="size-4"/> Edit profile
+                                    </Button>
+                                </>
                             ) : (
                                 <Button onClick={sendFriendRequest}>
                                     <UserPlus className="size-4"/> Add friend

@@ -4,6 +4,7 @@ import axios from 'axios';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import {notify} from '../utils/notify';
+import {rememberPostLoginRedirect, safeRedirectPath} from '../utils/authRedirect';
 
 const CLIENT_ID =
     import.meta.env.VITE_GOOGLE_CLIENT_ID ||
@@ -16,9 +17,10 @@ const CLIENT_ID =
  * (id_token), which we post to the backend. The backend verifies it, links or
  * creates the account by verified email, and returns our own JWTs.
  */
-const GoogleLoginButton = () => {
+const GoogleLoginButton = ({redirectTo}) => {
     const navigate = useNavigate();
     const {login} = useAuth();
+    const nextPath = safeRedirectPath(redirectTo, '/trainer');
 
     const handleSuccess = async (credentialResponse) => {
         try {
@@ -32,11 +34,13 @@ const GoogleLoginButton = () => {
             await login(data.user, data.access, data.refresh);
 
             if (data.user.is_new_user) {
+                if (redirectTo) rememberPostLoginRedirect(nextPath);
                 navigate('/complete_profile');
             } else if (data.user.is_first_login) {
+                if (redirectTo) rememberPostLoginRedirect(nextPath);
                 navigate('/goal_setting');
             } else {
-                navigate('/');
+                navigate(nextPath);
             }
         } catch (error) {
             const msg = error.response?.data?.error || 'Google sign-in failed. Please try again.';

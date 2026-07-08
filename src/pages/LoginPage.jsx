@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
 import {useAuth} from "../context/AuthContext";
 import {Button, Card, Field, Input, DividerLabel, Alert} from "../components/ui";
 import GoogleLoginButton from "../components/GoogleLogin";
 import {DiscordCTA} from "../components/Discord";
 import SEO from '../components/SEO';
+import {rememberPostLoginRedirect, safeRedirectPath} from '../utils/authRedirect';
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -13,13 +14,17 @@ function Login() {
     const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const {login, loading, user} = useAuth();
+    const rawNext = new URLSearchParams(location.search).get('next');
+    const redirectTo = safeRedirectPath(rawNext, '/trainer');
+    const isTournamentInvite = redirectTo.startsWith('/tournament');
 
     useEffect(() => {
         if (!loading && user) {
-            navigate('/');
+            navigate(redirectTo);
         }
-    }, [user, navigate, loading]);
+    }, [user, navigate, loading, redirectTo]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -40,10 +45,13 @@ function Login() {
             });
             const {access, refresh, user: userData} = response.data;
             await login(userData, access, refresh);
+            if (rawNext && userData.is_first_login) {
+                rememberPostLoginRedirect(redirectTo);
+            }
             if (userData.is_first_login) {
                 navigate('/goal_setting');
             } else {
-                navigate('/');
+                navigate(redirectTo);
             }
         } catch (err) {
             const msg = err.response?.data?.error;
@@ -58,7 +66,7 @@ function Login() {
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 px-4 py-10">
             <SEO
                 title="Log in to SAT Duel"
-                description="Log in to continue your SAT Duel practice."
+                description={isTournamentInvite ? 'Log in to open your SAT Duel tournament invite.' : 'Log in to continue your SAT Duel practice.'}
                 path="/login"
                 noindex
             />
@@ -67,7 +75,7 @@ function Login() {
                     Welcome back
                 </h1>
                 <p className="mb-6 text-center text-[15px] text-slate-500">
-                    Log in to continue your prep.
+                    {isTournamentInvite ? 'Log in and we will take you straight to the tournament.' : 'Log in to continue your prep.'}
                 </p>
 
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -97,7 +105,7 @@ function Login() {
                 </form>
 
                 <DividerLabel>or</DividerLabel>
-                <GoogleLoginButton/>
+                <GoogleLoginButton redirectTo={rawNext ? redirectTo : undefined}/>
 
                 <div className="mt-6 flex flex-col gap-1 text-center text-sm text-slate-500">
                     <span>
@@ -108,7 +116,10 @@ function Login() {
                     </span>
                     <span>
                         New here?{' '}
-                        <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-700">
+                        <Link
+                            to={rawNext ? `/register?next=${encodeURIComponent(redirectTo)}` : '/register'}
+                            className="font-semibold text-primary-600 hover:text-primary-700"
+                        >
                             Create an account
                         </Link>
                     </span>

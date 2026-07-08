@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {Navigate, NavLink, Outlet, useNavigate} from 'react-router-dom';
+import {Helmet} from 'react-helmet';
+import {Navigate, NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom';
 import {
     Home,
     Zap,
@@ -19,6 +20,7 @@ import UserAvatar from '../components/UserAvatar';
 import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {Spinner} from '../components/ui';
 import logo from '../assets/logo192.png';
+import {loginPathFor} from '../utils/authRedirect';
 
 // The learning experience lives behind these. Order = importance.
 const NAV_ITEMS = [
@@ -121,6 +123,7 @@ function ProfileFooter({user, onLogout, onNavigate}) {
 const AppLayout = () => {
     const {user, loading, logout, refreshUser} = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
@@ -159,7 +162,7 @@ const AppLayout = () => {
         );
     }
     if (!user) {
-        return <Navigate to="/login" replace/>;
+        return <Navigate to={loginPathFor(`${location.pathname}${location.search}${location.hash}`)} replace/>;
     }
 
     const handleLogout = async () => {
@@ -202,6 +205,9 @@ const AppLayout = () => {
 
     return (
         <div className="min-h-screen bg-slate-50">
+            <Helmet>
+                <title>SAT Duel</title>
+            </Helmet>
             {/* Desktop sidebar */}
             <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 border-r border-slate-200 bg-white lg:block">
                 {SidebarContent}
