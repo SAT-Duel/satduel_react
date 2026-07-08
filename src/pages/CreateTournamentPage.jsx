@@ -1,11 +1,13 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Eye, Plus, Trash2} from 'lucide-react';
+import {Clipboard, Eye, ExternalLink, Plus, Trash2} from 'lucide-react';
 import {v4 as uuidv4} from 'uuid';
 import {useAuth} from '../context/AuthContext';
+import api from '../components/api';
 import Question from '../components/Question';
 import withAuth from '../hoc/withAuth';
-import {Alert, Button, Card, Field, Input, ModalShell, PageContainer, Select, Spinner, Textarea, Toggle} from '../components/ui';
+import {Button, Card, Field, Input, ModalShell, PageContainer, Select, Spinner, Textarea, Toggle} from '../components/ui';
 import {notify} from '../utils/notify';
+import {tournamentShareUrl} from '../utils/tournamentLinks';
 
 const blankTournament = {
     name: '',
@@ -40,7 +42,9 @@ function CreateTournamentPage() {
     const [questions, setQuestions] = useState([]);
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewQuestion, setPreviewQuestion] = useState(null);
-    const {user, loading} = useAuth();
+    const [createdTournament, setCreatedTournament] = useState(null);
+    const [creating, setCreating] = useState(false);
+    const {loading} = useAuth();
 
     useEffect(() => {
         const handleBeforeUnload = (event) => {
@@ -53,12 +57,6 @@ function CreateTournamentPage() {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, []);
-
-    useEffect(() => {
-        if (user) {
-            setFormValues((current) => ({...current, private: !user.is_admin}));
-        }
-    }, [user]);
 
     const previewData = useMemo(() => {
         if (!previewQuestion) return null;
@@ -99,11 +97,37 @@ function CreateTournamentPage() {
         setPreviewVisible(true);
     };
 
-    const handleSubmit = (event) => {
+    const hasIncompleteQuestion = questions.some((question) => (
+        !question.question.trim() ||
+        !question.choice_a.trim() ||
+        !question.choice_b.trim() ||
+        !question.choice_c.trim() ||
+        !question.choice_d.trim()
+    ));
+
+    const copyShareLink = async () => {
+        if (!createdTournament) return;
+        try {
+            await navigator.clipboard.writeText(tournamentShareUrl(createdTournament));
+            notify.success('Tournament link copied.');
+        } catch {
+            notify.error('Could not copy tournament link.');
+        }
+    };
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
         if (!formValues.name.trim() || !formValues.description.trim() || !formValues.start_time || !formValues.end_time || !formValues.duration) {
             notify.warning('Fill in the tournament details first.');
+            return;
+        }
+        if (questions.length === 0) {
+            notify.warning('Add at least one question.');
+            return;
+        }
+        if (hasIncompleteQuestion) {
+            notify.warning('Finish every question and answer choice before creating the tournament.');
             return;
         }
 
@@ -113,14 +137,22 @@ function CreateTournamentPage() {
             start_time: formatApiTime(formValues.start_time),
             end_time: formatApiTime(formValues.end_time),
             duration: new Date(durationInSeconds * 1000).toISOString().substring(11, 19),
-            questions,
+            questions: questions.map(({id, ...question}) => question),
             private: formValues.private,
         };
 
-        console.log('Tournament data:', tournamentData);
-        notify.success('Tournament created successfully!');
-        setFormValues({...blankTournament, private: !user?.is_admin});
-        setQuestions([]);
+        try {
+            setCreating(true);
+            const response = await api.post('api/tournaments/create/', tournamentData);
+            setCreatedTournament(response.data);
+            notify.success('Tournament created successfully.');
+            setFormValues({...blankTournament, private: true});
+            setQuestions([]);
+        } catch (error) {
+            notify.error(error.response?.data?.error || 'Failed to create tournament.');
+        } finally {
+            setCreating(false);
+        }
     };
 
     if (loading) {
@@ -142,10 +174,6 @@ function CreateTournamentPage() {
                     Draft a tournament and preview custom questions.
                 </p>
             </div>
-
-            <Alert type="error">
-                This feature does not submit to production yet. It will be opened to all users soon.
-            </Alert>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-6">
                 <Card className="p-5 sm:p-6">
@@ -185,9 +213,8 @@ function CreateTournamentPage() {
                         <Toggle
                             checked={formValues.private}
                             onChange={(checked) => updateTournament('private', checked)}
-                            disabled={!user?.is_admin}
                             label="Private Tournament"
-                            description={user?.is_admin ? 'Admins can publish public or private drafts.' : 'Non-admin drafts stay private.'}
+                            description="Private tournaments use an invite link. Public tournaments appear on the tournament list."
                         />
                     </div>
                 </Card>
@@ -263,7 +290,7 @@ function CreateTournamentPage() {
                 </section>
 
                 <div className="flex justify-end">
-                    <Button type="submit" size="lg">Create Tournament</Button>
+                    <Button type="submit" size="lg" loading={creating}>Create Tournament</Button>
                 </div>
             </form>
 
@@ -282,6 +309,42 @@ function CreateTournamentPage() {
                         questionNumber={1}
                         disabled
                     />
+                )}
+            </ModalShell>
+
+            <ModalShell
+                open={Boolean(createdTournament)}
+                title="Tournament created"
+                onClose={() => setCreatedTournament(null)}
+                footer={(
+                    <>
+                        <Button type="button" variant="secondary" onClick={copyShareLink}>
+                            <Clipboard className="size-4"/> Copy link
+                        </Button>
+                        <Button to={createdTournament ? `/tournament/${createdTournament.id}` : '/my_tournaments'}>
+                            Open tournament <ExternalLink className="size-4"/>
+                        </Button>
+                    </>
+                )}
+            >
+                {createdTournament && (
+                    <div>
+                        <p className="m-0 text-sm leading-6 text-slate-500">
+                            Share this link with anyone you want to invite.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={copyShareLink}
+                            className="mt-4 w-full cursor-pointer rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 text-left font-mono text-sm font-bold text-primary-700 hover:bg-primary-100"
+                        >
+                            {tournamentShareUrl(createdTournament)}
+                        </button>
+                        {createdTournament.private && createdTournament.join_code && (
+                            <p className="m-0 mt-3 text-sm font-semibold text-slate-500">
+                                Join code: <span className="font-mono text-slate-800">{createdTournament.join_code}</span>
+                            </p>
+                        )}
+                    </div>
                 )}
             </ModalShell>
         </PageContainer>

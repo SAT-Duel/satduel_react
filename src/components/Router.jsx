@@ -36,6 +36,7 @@ const TournamentPage = React.lazy(() => import("../pages/TournamentPage"));
 const RankingPage = React.lazy(() => import("../pages/RankingPage"));
 const TournamentListPage = React.lazy(() => import("../pages/TournamentListPage"));
 const TournamentDetailPage = React.lazy(() => import("../pages/TournamentDetailPage"));
+const JoinTournamentLinkPage = React.lazy(() => import("../pages/JoinTournamentLinkPage"));
 const TournamentQuestionPage = React.lazy(() => import("../pages/TournamentQuestionPage"));
 const CreateTournamentPage = React.lazy(() => import("../pages/CreateTournamentPage"));
 const BotTrainingPage = React.lazy(() => import("../pages/BotTrainingPage"));
@@ -103,6 +104,7 @@ const APP_ROUTES = [
     {path: '/profile/:userId', el: <ProfilePage/>},
     {path: '/tournaments', el: <TournamentListPage/>},
     {path: '/tournaments/info', el: <TournamentPage/>},
+    {path: '/tournaments/join/:joinCode', el: <JoinTournamentLinkPage/>},
     {path: '/tournament/:tournamentId', el: <TournamentDetailPage/>},
     {path: '/create_tournament', el: <CreateTournamentPage/>},
     {path: '/my_tournaments', el: <MyTournamentsPage/>},

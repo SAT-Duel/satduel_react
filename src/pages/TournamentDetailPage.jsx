@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ArrowRight, CalendarClock, Clock3, FileQuestion, Trophy, Users, X} from 'lucide-react';
+import {ArrowRight, CalendarClock, Clock3, Clipboard, FileQuestion, Trophy, Users, X} from 'lucide-react';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -8,6 +8,7 @@ import {useAuth} from '../context/AuthContext';
 import TournamentLeaderboard from '../components/Tournament/TournamentLeaderboard';
 import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
 import api from '../components/api';
+import {tournamentShareUrl} from '../utils/tournamentLinks';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -112,6 +113,15 @@ function TournamentDetailPage() {
         }
     };
 
+    const copyShareLink = async () => {
+        try {
+            await navigator.clipboard.writeText(tournamentShareUrl(tournament));
+            setNotice({type: 'success', text: 'Tournament link copied.'});
+        } catch {
+            setNotice({type: 'error', text: 'Could not copy tournament link.'});
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
@@ -170,9 +180,14 @@ function TournamentDetailPage() {
                                 <DetailItem icon={Users} label="Participants" value={tournament.participantNumber}/>
                             </div>
                             <div className="sat-score-strip px-5 py-5">
-                                <Button onClick={handleStartTournament} size="lg">
-                                    Join tournament <ArrowRight className="size-5"/>
-                                </Button>
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <Button onClick={handleStartTournament} size="lg">
+                                        Join tournament <ArrowRight className="size-5"/>
+                                    </Button>
+                                    <Button type="button" onClick={copyShareLink} variant="secondary" size="lg">
+                                        <Clipboard className="size-5"/> Share link
+                                    </Button>
+                                </div>
                             </div>
                         </Card>
 

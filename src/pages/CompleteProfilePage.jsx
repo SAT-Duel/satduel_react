@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {Helmet} from 'react-helmet';
 import {useNavigate} from 'react-router-dom';
 import api from '../components/api';
 import {Button, Card, Select, Alert} from '../components/ui';
@@ -33,6 +34,9 @@ const CompleteProfilePage = () => {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+            <Helmet>
+                <title>Complete profile | SAT Duel</title>
+            </Helmet>
             <Card className="w-full max-w-md p-8 text-center">
                 <h1 className="mb-1 font-display text-2xl font-bold text-slate-900">
                     Welcome to SAT Duel!

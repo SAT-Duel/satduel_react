@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
 import {Button, Card, Field, Input, Select, DividerLabel, Alert} from '../components/ui';
 import GoogleLoginButton from '../components/GoogleLogin';
 import {DiscordCTA} from '../components/Discord';
 import SEO from '../components/SEO';
+import {safeRedirectPath} from '../utils/authRedirect';
 
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
@@ -21,13 +22,16 @@ function Register() {
     const [errors, setErrors] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const {loading, user} = useAuth();
+    const rawNext = new URLSearchParams(location.search).get('next');
+    const redirectTo = safeRedirectPath(rawNext, '/trainer');
 
     useEffect(() => {
         if (!loading && user) {
-            navigate('/');
+            navigate(redirectTo);
         }
-    }, [user, navigate, loading]);
+    }, [user, navigate, loading, redirectTo]);
 
     const set = (key) => (e) => setForm((f) => ({...f, [key]: e.target.value}));
 
@@ -102,7 +106,7 @@ function Register() {
                     Free forever. Start practicing in a minute.
                 </p>
 
-                <GoogleLoginButton/>
+                <GoogleLoginButton redirectTo={rawNext ? redirectTo : undefined}/>
                 <DividerLabel>or sign up with email</DividerLabel>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -151,7 +155,10 @@ function Register() {
 
                 <p className="mt-6 text-center text-sm text-slate-500">
                     Already have an account?{' '}
-                    <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700">
+                    <Link
+                        to={rawNext ? `/login?next=${encodeURIComponent(redirectTo)}` : '/login'}
+                        className="font-semibold text-primary-600 hover:text-primary-700"
+                    >
                         Log in
                     </Link>
                 </p>

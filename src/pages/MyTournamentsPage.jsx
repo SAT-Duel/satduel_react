@@ -3,6 +3,7 @@ import {Clipboard, Plus, Trophy} from 'lucide-react';
 import {Link} from 'react-router-dom';
 import api from '../components/api';
 import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
+import {tournamentShareUrl} from '../utils/tournamentLinks';
 
 function MyTournamentsPage() {
     const [tournaments, setTournaments] = useState([]);
@@ -23,12 +24,12 @@ function MyTournamentsPage() {
         fetchMyTournaments();
     }, []);
 
-    const copyCode = async (code) => {
+    const copyText = async (text, label) => {
         try {
-            await navigator.clipboard.writeText(code);
-            setNotice({type: 'success', text: 'Join code copied.'});
+            await navigator.clipboard.writeText(text);
+            setNotice({type: 'success', text: `${label} copied.`});
         } catch {
-            setNotice({type: 'error', text: 'Could not copy join code.'});
+            setNotice({type: 'error', text: `Could not copy ${label.toLowerCase()}.`});
         }
     };
 
@@ -57,7 +58,7 @@ function MyTournamentsPage() {
                         <Trophy className="mx-auto size-10 text-slate-300"/>
                         <h2 className="m-0 mt-4 font-display text-2xl font-black text-slate-950">Nothing here yet</h2>
                         <p className="mx-auto mt-2 max-w-md text-slate-500">
-                            Create a tournament and share its join code with your class or friends.
+                            Create a tournament and share its invite link with your class or friends.
                         </p>
                         <Button to="/create_tournament" className="mt-5">Create your first tournament</Button>
                     </Card>
@@ -89,11 +90,19 @@ function MyTournamentsPage() {
                                         </div>
                                     </div>
 
+                                    <button
+                                        type="button"
+                                        onClick={() => copyText(tournamentShareUrl(tournament), 'Tournament link')}
+                                        className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 font-semibold text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
+                                    >
+                                        <Clipboard className="size-5"/> Copy invite link
+                                    </button>
+
                                     {tournament.private && tournament.join_code && (
                                         <button
                                             type="button"
-                                            onClick={() => copyCode(tournament.join_code)}
-                                            className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3 font-mono text-lg font-black text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
+                                            onClick={() => copyText(tournament.join_code, 'Join code')}
+                                            className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 font-mono text-lg font-black text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                                         >
                                             <Clipboard className="size-5"/> {tournament.join_code}
                                         </button>
