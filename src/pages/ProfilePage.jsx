@@ -116,8 +116,9 @@ function ProfilePage() {
     });
 
     const viewerUser = isOwnProfile ? currentUser : profile?.user;
-    const totalAnswered = (stats?.correct_number || 0) + (stats?.incorrect_number || 0);
-    const accuracy = totalAnswered ? `${Math.round((stats.correct_number / totalAnswered) * 100)}%` : '—';
+    const totalAnswered = stats?.practice_answered ?? ((stats?.correct_number || 0) + (stats?.incorrect_number || 0));
+    const practiceCorrect = stats?.practice_correct ?? stats?.correct_number ?? 0;
+    const accuracy = totalAnswered ? `${Math.round((practiceCorrect / totalAnswered) * 100)}%` : '—';
 
     const loadFriends = useCallback(async () => {
         if (!isOwnProfile || !token) return;
@@ -422,15 +423,15 @@ function ProfilePage() {
                             <div className="mt-5 grid grid-cols-2 gap-3">
                                 <div className="rounded-xl bg-slate-50 p-4">
                                     <p className="m-0 text-2xl font-bold text-slate-900">{totalAnswered}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Answered</p>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">Practice answered</p>
                                 </div>
                                 <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{stats?.correct_number ?? 0}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Correct</p>
+                                    <p className="m-0 text-2xl font-bold text-slate-900">{stats?.english_answered ?? 0}</p>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">English answered</p>
                                 </div>
                                 <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{stats?.current_streak ?? 0}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Correct streak</p>
+                                    <p className="m-0 text-2xl font-bold text-slate-900">{stats?.math_answered ?? 0}</p>
+                                    <p className="m-0 mt-1 text-sm text-slate-500">Math answered</p>
                                 </div>
                                 <div className="rounded-xl bg-slate-50 p-4">
                                     <p className="m-0 text-2xl font-bold text-slate-900">{accuracy}</p>
