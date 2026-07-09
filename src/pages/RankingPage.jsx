@@ -46,10 +46,15 @@ function metricUnit(metric) {
     return metric === 'streak' ? 'questions' : 'Elo';
 }
 
-function secondaryLine(entry) {
-    const answered = entry?.questions_answered ?? 0;
+function secondaryLine(entry, metric, practiceSubject) {
+    const answered = metric === 'practice'
+        ? (practiceSubject === 'math' ? entry?.math_answered : entry?.english_answered) ?? 0
+        : entry?.questions_answered ?? 0;
     const grade = entry?.grade ? `Grade ${entry.grade}` : 'Student';
-    return `${grade} · ${answered} answered`;
+    const answeredLabel = metric === 'practice'
+        ? `${practiceSubject === 'math' ? 'Math' : 'English'} answered`
+        : 'practice answered';
+    return `${grade} · ${answered} ${answeredLabel}`;
 }
 
 // Top-three get the honors: gold / silver / bronze medallions, a tinted row,
@@ -102,7 +107,7 @@ function RankBadge({rank}) {
     );
 }
 
-function LeaderboardRow({entry, metric, highlighted = false}) {
+function LeaderboardRow({entry, metric, practiceSubject, highlighted = false}) {
     const podium = PODIUM[entry.rank];
     const rowTone = highlighted
         ? 'bg-primary-50/70'
@@ -134,7 +139,7 @@ function LeaderboardRow({entry, metric, highlighted = false}) {
                         )}
                         {entry.is_premium && <Crown className="size-4 shrink-0 text-amber-500"/>}
                     </div>
-                    <p className="m-0 mt-0.5 truncate text-sm text-slate-500">{secondaryLine(entry)}</p>
+                    <p className="m-0 mt-0.5 truncate text-sm text-slate-500">{secondaryLine(entry, metric, practiceSubject)}</p>
                     <p className="m-0 mt-1 hidden truncate text-xs font-medium text-slate-400 sm:block">
                         Duel {entry.elo_rating} · English {entry.sp_elo_rating} · Math {entry.math_elo_rating} · Best streak {entry.max_streak}
                     </p>
@@ -151,7 +156,7 @@ function LeaderboardRow({entry, metric, highlighted = false}) {
     );
 }
 
-function CurrentRankStrip({entry, metric, totalUsers}) {
+function CurrentRankStrip({entry, metric, totalUsers, label}) {
     if (!entry) return null;
     const percentile = totalUsers > 0
         ? Math.max(1, Math.round(((totalUsers - entry.rank + 1) / totalUsers) * 100))
@@ -170,7 +175,7 @@ function CurrentRankStrip({entry, metric, totalUsers}) {
             </div>
             <div className="text-left sm:text-right">
                 <p className="m-0 text-xl font-black text-slate-900">{metricValue(entry, metric)}</p>
-                <p className="m-0 text-xs font-bold text-slate-500">{metricConfig(metric).shortLabel}</p>
+                <p className="m-0 text-xs font-bold text-slate-500">{label || metricConfig(metric).shortLabel}</p>
             </div>
         </div>
     );
@@ -208,6 +213,7 @@ function RankingPage() {
     const Icon = config.icon;
     const entries = leaderboard?.entries || [];
     const isPractice = metric === 'practice';
+    const practiceLabel = practiceSubject === 'math' ? 'Math' : 'English';
 
     const fetchLeaderboard = async (nextMetric = metric, nextSubject = practiceSubject) => {
         setLoading(true);
@@ -266,6 +272,25 @@ function RankingPage() {
                         );
                         })}
                     </div>
+                    {isPractice && (
+                        <div className="mt-3 inline-flex rounded-xl border border-slate-200 bg-white p-1">
+                            {[['english', 'English'], ['math', 'Math']].map(([value, label]) => (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    onClick={() => setPracticeSubject(value)}
+                                    className={[
+                                        'cursor-pointer rounded-lg px-4 py-1.5 text-sm font-bold transition-colors',
+                                        practiceSubject === value
+                                            ? 'bg-sky-600 text-white'
+                                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
+                                    ].join(' ')}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {error && (
@@ -289,6 +314,7 @@ function RankingPage() {
                                 entry={leaderboard.current_user}
                                 metric={metric}
                                 totalUsers={leaderboard.total_users}
+                                label={isPractice ? `${practiceLabel} Practice` : config.shortLabel}
                             />
 
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -297,7 +323,7 @@ function RankingPage() {
                                         <Icon className="size-5 text-slate-400"/> {config.shortLabel}
                                         {isPractice && (
                                             <span className="rounded-full bg-sky-50 px-2 py-0.5 text-xs font-bold text-sky-700">
-                                                {practiceSubject === 'math' ? 'Math' : 'English'}
+                                                {practiceLabel}
                                             </span>
                                         )}
                                     </h2>
@@ -316,33 +342,11 @@ function RankingPage() {
                                     key={`${metric}-${practiceSubject}-${entry.user.id}`}
                                     entry={entry}
                                     metric={metric}
+                                    practiceSubject={practiceSubject}
                                     highlighted={entry.user.id === leaderboard.current_user?.user?.id}
                                 />
                             ))}
                         </div>
-
-                        {isPractice && (
-                            <div className="flex items-center justify-center gap-3 border-t border-slate-100 px-4 py-4">
-                                <span className="text-xs font-bold uppercase tracking-wide text-slate-400">Subject</span>
-                                <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1">
-                                    {[['english', 'English'], ['math', 'Math']].map(([value, label]) => (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            onClick={() => setPracticeSubject(value)}
-                                            className={[
-                                                'cursor-pointer rounded-lg px-4 py-1.5 text-sm font-bold transition-colors',
-                                                practiceSubject === value
-                                                    ? 'bg-sky-600 text-white'
-                                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
-                                            ].join(' ')}
-                                        >
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </Card>
                 )}
             </PageContainer>

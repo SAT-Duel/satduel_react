@@ -78,7 +78,11 @@ const STAT_DEFS = [
         icon: CheckCircle2,
         bubble: 'D',
         color: 'text-emerald-700 bg-emerald-100',
-        get: (d) => (d.stats?.correct_number ?? 0) + (d.stats?.incorrect_number ?? 0),
+        get: (d) => d.stats?.practice_answered ?? ((d.stats?.correct_number ?? 0) + (d.stats?.incorrect_number ?? 0)),
+        subjects: [
+            {value: 'english', label: 'English', get: (d) => d.stats?.english_answered ?? 0},
+            {value: 'math', label: 'Math', get: (d) => d.stats?.math_answered ?? 0},
+        ],
         earn: 'Every practice answer you submit counts here.',
         detail: 'A direct count from your practice history. This replaces the old inflated solved counter and keeps the homepage honest.',
     },
@@ -89,6 +93,7 @@ function StatCard({def, data}) {
     const [subject, setSubject] = useState(def.subjects ? def.subjects[0].value : null);
     const active = def.subjects?.find((s) => s.value === subject);
     const value = active ? active.get(data) : def.get(data);
+    const label = active ? `${active.label} ${def.label}` : def.label;
     return (
         <Card className="sat-arena-card relative overflow-hidden p-4">
             <div className="sat-score-strip absolute inset-x-0 top-0 h-1 border-0"/>
@@ -122,7 +127,7 @@ function StatCard({def, data}) {
                 <p className="m-0 font-display text-3xl font-black text-slate-950">{value}</p>
                 {def.sub && <span className="text-sm font-semibold text-slate-400">{def.sub(data)}</span>}
             </div>
-            <p className="m-0 mt-0.5 text-sm font-black text-slate-800">{def.label}</p>
+            <p className="m-0 mt-0.5 text-sm font-black text-slate-800">{label}</p>
             <p className="m-0 mt-2 text-xs leading-relaxed text-slate-500">{def.earn}</p>
         </Card>
     );

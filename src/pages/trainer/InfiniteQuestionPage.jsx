@@ -139,6 +139,18 @@ function SubjectSwitch({subject, onChange}) {
     );
 }
 
+function readPracticeStats(data = {}) {
+    return {
+        correct_number: data.correct_number || 0,
+        incorrect_number: data.incorrect_number || 0,
+        current_streak: data.current_streak || 0,
+        practice_answered: data.practice_answered,
+        practice_correct: data.practice_correct,
+        english_answered: data.english_answered,
+        math_answered: data.math_answered,
+    };
+}
+
 function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange, onNext, loadingQuestions}) {
     const answered = status === 'Correct' || status === 'Incorrect';
     const correct = status === 'Correct';
@@ -263,11 +275,7 @@ function InfiniteQuestionsPage() {
             setTopicsBySubject(statusResponse.data.topics || {english: [], math: []});
             setDaily(statusResponse.data.daily || null);
             if (statsResponse?.data) {
-                setStats({
-                    correct_number: statsResponse.data.correct_number || 0,
-                    incorrect_number: statsResponse.data.incorrect_number || 0,
-                    current_streak: statsResponse.data.current_streak || 0,
-                });
+                setStats(readPracticeStats(statsResponse.data));
             }
             if (statusResponse.data.quota?.remaining === 0) {
                 setLimitReached(true);
@@ -320,11 +328,7 @@ function InfiniteQuestionsPage() {
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
             if (response.data.practice_stats) {
-                setStats({
-                    correct_number: response.data.practice_stats.correct_number || 0,
-                    incorrect_number: response.data.practice_stats.incorrect_number || 0,
-                    current_streak: response.data.practice_stats.current_streak || 0,
-                });
+                setStats(readPracticeStats(response.data.practice_stats));
             }
             playRatingSound(isCorrect);
 
@@ -358,9 +362,10 @@ function InfiniteQuestionsPage() {
         }
     };
 
-    const totalAnswered = (stats.correct_number || 0) + (stats.incorrect_number || 0);
+    const totalAnswered = stats.practice_answered ?? ((stats.correct_number || 0) + (stats.incorrect_number || 0));
+    const practiceCorrect = stats.practice_correct ?? stats.correct_number ?? 0;
     const accuracy = totalAnswered > 0
-        ? `${Math.round(((stats.correct_number || 0) / totalAnswered) * 100)}%`
+        ? `${Math.round((practiceCorrect / totalAnswered) * 100)}%`
         : '—';
 
     if (loadingQuestions && !currentQuestion) {
