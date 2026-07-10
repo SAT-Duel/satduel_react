@@ -3,6 +3,8 @@ import {Helmet} from 'react-helmet';
 import {useNavigate} from 'react-router-dom';
 import api from '../components/api';
 import {Button, Card, Select, Alert} from '../components/ui';
+import useSdTheme from '../hooks/useSdTheme';
+import '../styles/landing.css';
 
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
@@ -11,6 +13,7 @@ const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12
  * (grade), then continues into the normal first-login goal-setting flow.
  */
 const CompleteProfilePage = () => {
+    const [theme] = useSdTheme();
     const [grade, setGrade] = useState('');
     const [error, setError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
@@ -25,7 +28,7 @@ const CompleteProfilePage = () => {
         setError(null);
         try {
             await api.post('api/auth/complete_profile/', {grade});
-            navigate('/goal_setting');
+            navigate('/welcome');
         } catch (e) {
             setError(e.response?.data?.error || 'Could not save your grade. Please try again.');
             setSubmitting(false);
@@ -33,7 +36,7 @@ const CompleteProfilePage = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="sd-landing flex min-h-screen items-center justify-center px-4" data-theme={theme}>
             <Helmet>
                 <title>Complete profile | SAT Duel</title>
             </Helmet>

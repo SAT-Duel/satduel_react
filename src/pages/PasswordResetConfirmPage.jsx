@@ -42,7 +42,7 @@ function PasswordResetConfirmPage() {
     };
 
     return (
-        <div className="sat-bubble-field min-h-screen py-12 sm:py-16">
+        <div className="min-h-screen py-12 sm:py-16">
             <SEO
                 title="Set a New SAT Duel Password"
                 description="Choose a new password for your SAT Duel account."

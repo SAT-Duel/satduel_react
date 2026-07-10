@@ -8,7 +8,7 @@ function EmailVerificationPage() {
     const {email} = useParams();
 
     return (
-        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-16">
+        <div className="min-h-[calc(100vh-4rem)] py-12 sm:py-16">
             <SEO
                 title="Verify Your SAT Duel Email"
                 description="Check your email to activate your SAT Duel account."

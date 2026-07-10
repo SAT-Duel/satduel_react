@@ -2,7 +2,7 @@ import React, {Suspense} from 'react';
 import {Navigate, Route, Routes} from "react-router-dom";
 import SecondaryLayout from "../layout/SecondaryLayout";
 import AppLayout from "../layout/AppLayout";
-import GoalSettingPage from "../pages/GoalSettingPage";
+import WelcomePage from "../pages/WelcomePage";
 import CompleteProfilePage from "../pages/CompleteProfilePage";
 import {useAuth} from "../context/AuthContext";
 
@@ -138,18 +138,16 @@ const FULLSCREEN_ROUTES = [
     {path: '/tournament/:tournamentId/questions', el: <TournamentQuestionPage/>},
     {path: '/full_length_test', el: <TestPage/>},
     {path: '/test_result', el: <TestResultPage/>},
-    {path: '/goal_setting', el: <GoalSettingPage/>},
+    {path: '/welcome', el: <WelcomePage/>},
     {path: '/complete_profile', el: <CompleteProfilePage/>},
 ];
 
 function Router() {
     return (
         <Routes>
-            {/* Landing page renders its own nav + footer (dark arena design) */}
-            <Route path="/" element={<HomeRoute/>}/>
-
             {/* Marketing / onboarding */}
             <Route element={<SecondaryLayout/>}>
+                <Route path="/" element={<HomeRoute/>}/>
                 {MARKETING_ROUTES.map((r) => (
                     <Route key={r.path} path={r.path} element={S(r.el)}/>
                 ))}

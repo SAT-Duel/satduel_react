@@ -102,19 +102,17 @@ the topic-targeting backend may already exist for Premium topic selection; reuse
 add the "Drill 5 more like this →" link to the post-answer explanation panel, passing the
 missed question's topic. Free users: allow it but count against the daily 25-question cap.
 
-## 8. Highlighting + drawing grid (scratch pad) on questions
+## 8. Text highlighting on questions
 
-**Landing claim:** HIGHLIGHT / GRID toggle chips, amber text highlights, a gridded scratch-work panel.
+**Landing claim:** HIGHLIGHT toggle chip, amber text highlights on the prompt.
+(The Desmos calculator shown next to it already exists — `DesmosCalculator` is mounted
+globally in `App.jsx` — so only highlighting is missing.)
 
 **Task:** Frontend-only. In the question components used by practice/duels
 (`src/pages/QuestionPage.jsx` / trainer components — find the shared question renderer
-first):
-- Highlight: a toggle that, when active, wraps the user's text selection in a `<mark>` with
-  the amber style (`rgba(233,188,79,0.45)`), stored in component state only (per question,
-  cleared on next question).
-- Drawing grid: a collapsible side panel with an 18px grid background and a `<canvas>` for
-  freehand scratch work (pointer events; clear button; no persistence).
-No backend. Match the paper-card styling from the landing's `RaceClockCard`.
+first): a toggle that, when active, wraps the user's text selection in a `<mark>` with
+the amber style (`rgba(233,188,79,0.45)`), stored in component state only (per question,
+cleared on next question). No backend.
 
 ## 9. Accuracy vs pacing analytics
 

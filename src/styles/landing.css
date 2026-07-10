@@ -70,14 +70,6 @@
         repeating-linear-gradient(90deg, var(--sd-grid) 0 1px, transparent 1px 56px);
 }
 
-/* scratch-work drawing grid inside the paper card */
-.sd-scratch-grid {
-    background-color: #FDFCF9;
-    background-image:
-        repeating-linear-gradient(0deg, rgba(124, 92, 240, 0.12) 0 1px, transparent 1px 18px),
-        repeating-linear-gradient(90deg, rgba(124, 92, 240, 0.12) 0 1px, transparent 1px 18px);
-}
-
 @keyframes sdup {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }

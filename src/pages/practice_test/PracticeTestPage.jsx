@@ -85,7 +85,6 @@ function PracticeTestPage() {
     useEffect(() => {
         setShowFirstRunBanner(
             !user ||
-            location.state?.fromGoalSetting ||
             location.state?.isNewUser ||
             user?.is_first_login
         );

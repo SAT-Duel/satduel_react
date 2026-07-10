@@ -199,7 +199,7 @@ function PricingPage() {
     };
 
     return (
-        <div className="bg-white text-slate-900">
+        <div>
             <SEO
                 title="SAT Duel Pricing"
                 description="Start SAT Duel for free or upgrade to Premium for unlimited Digital SAT practice and focused topic selection."
@@ -214,21 +214,21 @@ function PricingPage() {
                 ]}
             />
 
-            <section className="sat-arena-surface overflow-hidden border-b border-slate-200">
+            <section className="sd-hero-bg overflow-hidden border-b border-[var(--sd-line)]">
                 <PageContainer className="py-10 sm:py-12">
                     <div className="mx-auto max-w-3xl text-center">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white/80 px-4 py-2 text-sm font-black text-primary-700 shadow-sm">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,92,240,0.45)] bg-[rgba(124,92,240,0.12)] px-4 py-2 text-sm font-black text-[var(--sd-violet-lbl)]">
                             <Sparkles className="size-4"/> SAT Duel Premium
                         </span>
-                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
-                            Choose your practice lane.
+                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-[var(--sd-text)] sm:text-5xl">
+                            Free forever. $9.99/month to go unlimited.
                         </h1>
-                        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                            Free is for building the habit. Premium is for students who want unlimited reps and exact-topic drills inside the arena.
+                        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-[var(--sd-mut)]">
+                            Free gives you 25 adaptive questions a day plus duels, tournaments, and practice tests. Premium removes the daily cap and lets you pick the exact topics you drill.
                         </p>
                         <div className="mt-6 flex flex-wrap justify-center gap-2">
-                            {['Unlimited reps', 'Topic selection', 'Stripe invoices'].map((label) => (
-                                <span key={label} className="rounded-full border border-slate-200 bg-white/85 px-3 py-1.5 text-sm font-black text-slate-700 shadow-sm">
+                            {['Unlimited practice', 'Topic selection', 'Cancel anytime'].map((label) => (
+                                <span key={label} className="rounded-full border border-[var(--sd-line2)] bg-[var(--sd-panel)] px-3 py-1.5 text-sm font-black text-[var(--sd-mut2)]">
                                     {label}
                                 </span>
                             ))}
@@ -337,12 +337,12 @@ function PricingPage() {
             <PageContainer className="py-12 sm:py-16">
                 <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
                     <div>
-                        <p className="m-0 text-xs font-black uppercase text-primary-600">Why upgrade</p>
-                        <h2 className="m-0 mt-3 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
-                            Premium removes friction after the habit is working.
+                        <p className="m-0 text-xs font-black uppercase text-[var(--sd-violet-lbl)]">Why upgrade</p>
+                        <h2 className="m-0 mt-3 font-display text-3xl font-black leading-tight text-[var(--sd-text)] sm:text-4xl">
+                            Premium changes exactly two things.
                         </h2>
-                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
-                            This is the calmer part of the page: no sales maze, just the exact reasons the paid plan exists.
+                        <p className="m-0 mt-4 text-lg leading-relaxed text-[var(--sd-mut)]">
+                            The 25-question daily cap goes away, and you choose which topics you drill instead of getting a random mix. Everything else — duels, tournaments, practice tests, the diagnostic — stays free.
                         </p>
                     </div>
 
@@ -377,12 +377,12 @@ function PricingPage() {
 
                 <section className="mx-auto mt-12 max-w-5xl">
                     <div className="mb-5 flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                        <div className="flex size-10 items-center justify-center rounded-2xl border border-[var(--sd-line2)] bg-[var(--sd-panel)] text-[var(--sd-text)]">
                             <FileText className="size-5"/>
                         </div>
                         <div>
-                            <p className="m-0 text-xs font-black uppercase text-primary-600">Billing notes</p>
-                            <h2 className="m-0 font-display text-2xl font-black text-slate-950">Simple answers before checkout</h2>
+                            <p className="m-0 text-xs font-black uppercase text-[var(--sd-violet-lbl)]">Billing notes</p>
+                            <h2 className="m-0 font-display text-2xl font-black text-[var(--sd-text)]">Simple answers before checkout</h2>
                         </div>
                     </div>
 
@@ -396,9 +396,9 @@ function PricingPage() {
                     </div>
                 </section>
 
-                <p className="mx-auto mt-7 max-w-3xl text-center text-sm text-slate-500">
+                <p className="mx-auto mt-7 max-w-3xl text-center text-sm text-[var(--sd-dim)]">
                     Already paid but not seeing Premium yet? Stripe can take a moment to confirm the subscription.
-                    You can also check your plan in <Link to="/settings" className="font-black text-primary-600">settings</Link>.
+                    You can also check your plan in <Link to="/settings" className="font-black text-[var(--sd-violet-lbl)]">settings</Link>.
                 </p>
             </PageContainer>
 
@@ -407,10 +407,10 @@ function PricingPage() {
                 <PageContainer className="relative py-12 text-center sm:py-16">
                     <Trophy className="mx-auto mb-5 size-10 text-amber-300"/>
                     <h2 className="m-0 font-display text-3xl font-black leading-tight sm:text-4xl">
-                        Start free. Upgrade when the arena is working.
+                        Start free. Upgrade if you hit the cap.
                     </h2>
                     <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-slate-300">
-                        The paid plan should feel like a natural next round, not a wall.
+                        Free stays free forever. Premium is for the days you want to practice past 25 questions.
                     </p>
                 </PageContainer>
             </section>
