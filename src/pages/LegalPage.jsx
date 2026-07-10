@@ -244,7 +244,7 @@ function LegalPage({kind}) {
     if (!doc) return <Navigate to="/terms" replace/>;
 
     return (
-        <div className="bg-slate-50 py-10 sm:py-14">
+        <div className="py-10 sm:py-14">
             <SEO
                 title={doc.title}
                 description={doc.description}
@@ -262,11 +262,11 @@ function LegalPage({kind}) {
                     <div className="mb-4 flex size-11 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
                         {slug === 'privacy' ? <ShieldCheck className="size-5"/> : <FileText className="size-5"/>}
                     </div>
-                    <p className="m-0 text-xs font-black uppercase text-slate-400">Legal</p>
-                    <h1 className="m-0 mt-2 font-display text-3xl font-black text-slate-950 sm:text-4xl">
+                    <p className="m-0 text-xs font-black uppercase text-[var(--sd-dim)]">Legal</p>
+                    <h1 className="m-0 mt-2 font-display text-3xl font-black text-[var(--sd-text)] sm:text-4xl">
                         {doc.title}
                     </h1>
-                    <p className="m-0 mt-2 text-sm font-semibold text-slate-500">Last updated: {UPDATED}</p>
+                    <p className="m-0 mt-2 text-sm font-semibold text-[var(--sd-dim)]">Last updated: {UPDATED}</p>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-[180px_minmax(0,1fr)]">

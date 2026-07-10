@@ -236,7 +236,7 @@ function AboutPage() {
     };
 
     return (
-        <div className="bg-white text-slate-900">
+        <div>
             <SEO
                 title="About SAT Duel"
                 description="Meet the SAT Duel team and the mission behind a focused, competitive Digital SAT practice platform."
@@ -250,16 +250,16 @@ function AboutPage() {
                 ]}
             />
 
-            <section id="header" className="sat-arena-surface overflow-hidden border-b border-slate-200">
+            <section id="header" className="sd-hero-bg overflow-hidden border-b border-[var(--sd-line)]">
                 <PageContainer className="grid gap-10 py-10 sm:py-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-14">
                     <div className="text-center lg:text-left">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white/80 px-4 py-2 text-sm font-black text-primary-700 shadow-sm">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,92,240,0.45)] bg-[rgba(124,92,240,0.12)] px-4 py-2 text-sm font-black text-[var(--sd-violet-lbl)]">
                             <Sparkles className="size-4"/> Built for focused SAT momentum
                         </span>
-                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                        <h1 className="m-0 mt-5 font-display text-4xl font-black leading-tight text-[var(--sd-text)] sm:text-5xl lg:text-6xl">
                             The SAT should feel less like a pile of worksheets.
                         </h1>
-                        <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-slate-600 lg:mx-0">
+                        <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-[var(--sd-mut)] lg:mx-0">
                             SAT Duel is a practice arena for students who want clear questions, visible progress, and just enough competition to come back tomorrow.
                         </p>
                     </div>
@@ -291,13 +291,13 @@ function AboutPage() {
                 </PageContainer>
             </section>
 
-            <section className="bg-white">
+            <section>
                 <PageContainer className="py-12 sm:py-16">
                     <div className="mx-auto max-w-2xl text-center">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
-                            <Flame className="size-4 text-amber-300"/> What guides the product
+                        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--sd-line2)] bg-[var(--sd-panel)] px-4 py-2 text-sm font-black text-[var(--sd-text)]">
+                            <Flame className="size-4 text-amber-400"/> What guides the product
                         </span>
-                        <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                        <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-[var(--sd-text)] sm:text-4xl">
                             Calm study. Clear score. One more round.
                         </h2>
                     </div>
@@ -310,14 +310,14 @@ function AboutPage() {
                 </PageContainer>
             </section>
 
-            <section className="sat-bubble-field border-y border-slate-200">
+            <section className="border-y border-[var(--sd-line)] bg-[var(--sd-bg2)]">
                 <PageContainer className="py-12 sm:py-16">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <p className="m-0 text-xs font-black uppercase text-primary-600">Team</p>
-                            <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">Meet the builders</h2>
+                            <p className="m-0 text-xs font-black uppercase text-[var(--sd-violet-lbl)]">Team</p>
+                            <h2 className="m-0 mt-2 font-display text-3xl font-black text-[var(--sd-text)]">Meet the builders</h2>
                         </div>
-                        <p className="m-0 max-w-xl text-sm leading-relaxed text-slate-600">
+                        <p className="m-0 max-w-xl text-sm leading-relaxed text-[var(--sd-mut)]">
                             A small team means every detail matters: question flow, payment trust, mobile layout, and the feeling after a student submits an answer.
                         </p>
                     </div>
@@ -330,17 +330,17 @@ function AboutPage() {
                 </PageContainer>
             </section>
 
-            <section className="bg-white">
+            <section>
                 <PageContainer className="py-12 sm:py-16">
                     <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
                         <div>
                             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700">
                                 <CheckCircle2 className="size-4"/> Values
                             </span>
-                            <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                            <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-[var(--sd-text)] sm:text-4xl">
                                 The small design decisions are the product.
                             </h2>
-                            <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                            <p className="m-0 mt-4 text-lg leading-relaxed text-[var(--sd-mut)]">
                                 We want SAT Duel to feel memorable without becoming loud. The answer bubbles, score slips, and duel lanes are there to make learning feel concrete.
                             </p>
                         </div>
@@ -354,16 +354,16 @@ function AboutPage() {
                 </PageContainer>
             </section>
 
-            <section id="contact-us" className="sat-bubble-field border-y border-slate-200">
+            <section id="contact-us" className="border-y border-[var(--sd-line)] bg-[var(--sd-bg2)]">
                 <PageContainer className="grid gap-10 py-12 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
                     <div>
-                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">
-                            <Mail className="size-4 text-cyan-300"/> Contact
+                        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--sd-line2)] bg-[var(--sd-panel)] px-4 py-2 text-sm font-black text-[var(--sd-text)]">
+                            <Mail className="size-4 text-cyan-500"/> Contact
                         </span>
-                        <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
+                        <h2 className="m-0 mt-5 font-display text-3xl font-black leading-tight text-[var(--sd-text)] sm:text-4xl">
                             Send us a note.
                         </h2>
-                        <p className="m-0 mt-4 text-lg leading-relaxed text-slate-600">
+                        <p className="m-0 mt-4 text-lg leading-relaxed text-[var(--sd-mut)]">
                             Product feedback, billing questions, school partnerships, or bug reports all go to the same place.
                         </p>
                         <p className="m-0 mt-5 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700">
@@ -405,13 +405,13 @@ function AboutPage() {
                 </PageContainer>
             </section>
 
-            <section id="faq" className="bg-white">
+            <section id="faq">
                 <PageContainer className="py-12 sm:py-16">
                     <div className="mb-8 text-center">
                         <span className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-black text-primary-700">
                             <Users className="size-4"/> FAQ
                         </span>
-                        <h2 className="m-0 mt-5 font-display text-3xl font-black text-slate-950">Quick answers</h2>
+                        <h2 className="m-0 mt-5 font-display text-3xl font-black text-[var(--sd-text)]">Quick answers</h2>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">

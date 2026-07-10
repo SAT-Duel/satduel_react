@@ -91,7 +91,7 @@ function Register() {
     };
 
     return (
-        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 px-4 py-10">
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
             <SEO
                 title="Create a SAT Duel Account"
                 description="Create a free SAT Duel account to start Digital SAT practice."

@@ -292,7 +292,7 @@ export default function SEOGuidePage({pageKey}) {
     ];
 
     return (
-        <div className="bg-white text-slate-900">
+        <div>
             <SEO
                 title={page.title}
                 description={page.description}
@@ -301,16 +301,16 @@ export default function SEOGuidePage({pageKey}) {
                 structuredData={structuredData}
             />
 
-            <section className="sat-arena-surface overflow-hidden border-b border-slate-200">
+            <section className="sd-hero-bg overflow-hidden border-b border-[var(--sd-line)]">
                 <PageContainer className="grid gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_0.8fr] lg:items-center">
                     <div>
                         <span className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black ${page.accent}`}>
                             <Icon className="size-4"/> {page.eyebrow}
                         </span>
-                        <h1 className="m-0 mt-5 max-w-3xl font-display text-4xl font-black leading-tight text-slate-950 sm:text-5xl">
+                        <h1 className="m-0 mt-5 max-w-3xl font-display text-4xl font-black leading-tight text-[var(--sd-text)] sm:text-5xl">
                             {page.heading}
                         </h1>
-                        <p className="m-0 mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+                        <p className="m-0 mt-5 max-w-2xl text-lg leading-relaxed text-[var(--sd-mut)]">
                             {page.intro}
                         </p>
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -342,7 +342,7 @@ export default function SEOGuidePage({pageKey}) {
                 </PageContainer>
             </section>
 
-            <section className="sat-bubble-field py-12 sm:py-16">
+            <section className="py-12 sm:py-16">
                 <PageContainer>
                     <PracticeLoop/>
 
@@ -354,11 +354,11 @@ export default function SEOGuidePage({pageKey}) {
                 </PageContainer>
             </section>
 
-            <section className="border-y border-slate-200 bg-white py-12">
+            <section className="border-y border-[var(--sd-line)] bg-[var(--sd-bg2)] py-12">
                 <PageContainer className="grid gap-8 lg:grid-cols-[0.8fr_1fr] lg:items-start">
                     <div>
-                        <p className="m-0 text-sm font-black uppercase text-primary-700">Quick answers</p>
-                        <h2 className="m-0 mt-2 font-display text-3xl font-black text-slate-950">
+                        <p className="m-0 text-sm font-black uppercase text-[var(--sd-violet-lbl)]">Quick answers</p>
+                        <h2 className="m-0 mt-2 font-display text-3xl font-black text-[var(--sd-text)]">
                             Common questions before you start.
                         </h2>
                     </div>

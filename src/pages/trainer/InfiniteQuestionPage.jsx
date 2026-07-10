@@ -217,7 +217,8 @@ function InfiniteQuestionsPage() {
     const [loadingQuestions, setLoadingQuestions] = useState(true);
     const [error, setError] = useState(null);
     const [quota, setQuota] = useState(null);
-    const [subject, setSubject] = useState('english');
+    const [subject, setSubject] = useState(() =>
+        new URLSearchParams(window.location.search).get('subject') === 'math' ? 'math' : 'english');
     const [elos, setElos] = useState({english: null, math: null});
     const [topicsBySubject, setTopicsBySubject] = useState({english: [], math: []});
     const [selectedTopic, setSelectedTopic] = useState('any');

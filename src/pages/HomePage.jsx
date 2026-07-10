@@ -1,9 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
-import {Menu, Moon, Sun, X} from 'lucide-react';
 import SEO, {organizationJsonLd, softwareAppJsonLd, websiteJsonLd} from '../components/SEO';
 import '../styles/landing.css';
-import logo from '../assets/logo192.png';
 import novaQuill from '../assets/avatars/pixel/nova-quill.png';
 import emberAbacus from '../assets/avatars/pixel/ember-abacus.png';
 import echoFencer from '../assets/avatars/pixel/echo-fencer.png';
@@ -84,114 +82,6 @@ function TimerChip({children, className = ''}) {
         <span className={`${MONO} rounded-lg border border-[rgba(233,188,79,0.4)] px-2.5 py-1 text-sm text-[#E9BC4F] ${className}`}>
             {children}
         </span>
-    );
-}
-
-/* ------------------------------------------------------------------ */
-/* nav + footer                                                        */
-/* ------------------------------------------------------------------ */
-
-const NAV_LINKS = [
-    {label: 'Practice', href: '#journey'},
-    {label: 'Duel Mode', href: '#multiplayer'},
-    {label: 'Tournaments', href: '#tournaments'},
-    {label: 'Study Guides', href: '#guides'},
-    {label: 'Leaderboard', href: '#progress'},
-];
-
-function LandingNav({theme, onToggleTheme}) {
-    const [open, setOpen] = useState(false);
-    return (
-        <nav className="sticky top-0 z-50 border-b border-[var(--sd-line)] bg-[var(--sd-nav)] backdrop-blur-xl">
-            <div className="mx-auto flex h-16 max-w-[1260px] items-center justify-between gap-6 px-5 sm:px-10">
-                <Link to="/" className="flex items-center gap-2.5 no-underline">
-                    <img src={logo} alt="SAT Duel" className="size-9"/>
-                    <span className="sd-display text-[19px] font-bold tracking-[-0.02em] text-[var(--sd-text)]">SAT Duel</span>
-                </Link>
-                <div className="hidden items-center gap-7 lg:flex">
-                    {NAV_LINKS.map((l) => (
-                        <a key={l.href} href={l.href} className="text-[14.5px] font-semibold text-[var(--sd-mut2)] no-underline transition-colors hover:text-[var(--sd-text)]">
-                            {l.label}
-                        </a>
-                    ))}
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={onToggleTheme}
-                        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                        className="flex size-9 cursor-pointer items-center justify-center rounded-xl border border-[var(--sd-line2)] bg-transparent text-[var(--sd-mut2)] transition-colors hover:text-[var(--sd-text)]"
-                    >
-                        {theme === 'dark' ? <Sun className="size-4"/> : <Moon className="size-4"/>}
-                    </button>
-                    <Link to="/login" className="hidden px-3.5 py-2 text-[14.5px] font-semibold text-[var(--sd-body)] no-underline sm:block">
-                        Sign In
-                    </Link>
-                    <Link
-                        to="/register"
-                        className="hidden rounded-[10px] bg-[#7C5CF0] px-5 py-2.5 text-[14.5px] font-bold text-white no-underline shadow-[0_4px_14px_rgba(124,92,240,0.35)] transition-colors hover:bg-[#9678FF] sm:block"
-                    >
-                        Start Free
-                    </Link>
-                    <button
-                        className="flex cursor-pointer items-center justify-center rounded-xl border border-[var(--sd-line2)] bg-transparent p-2 text-[var(--sd-mut2)] lg:hidden"
-                        onClick={() => setOpen((o) => !o)}
-                        aria-label="Toggle menu"
-                    >
-                        {open ? <X className="size-5"/> : <Menu className="size-5"/>}
-                    </button>
-                </div>
-            </div>
-            {open && (
-                <div className="border-t border-[var(--sd-line)] px-5 pb-4 pt-2 lg:hidden">
-                    <div className="flex flex-col gap-1">
-                        {NAV_LINKS.map((l) => (
-                            <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-2 py-2 text-[15px] font-semibold text-[var(--sd-mut2)] no-underline">
-                                {l.label}
-                            </a>
-                        ))}
-                    </div>
-                    <div className="mt-3 flex gap-2 border-t border-[var(--sd-line)] pt-3">
-                        <Link to="/login" className="flex-1 rounded-xl border border-[var(--sd-line2)] px-4 py-2.5 text-center text-[15px] font-semibold text-[var(--sd-body)] no-underline">Sign In</Link>
-                        <Link to="/register" className="flex-1 rounded-xl bg-[#7C5CF0] px-4 py-2.5 text-center text-[15px] font-bold text-white no-underline">Start Free</Link>
-                    </div>
-                </div>
-            )}
-        </nav>
-    );
-}
-
-const FOOTER_LINKS = [
-    {label: 'Practice', href: '#journey'},
-    {label: 'Duel Mode', href: '#multiplayer'},
-    {label: 'Tournaments', href: '#tournaments'},
-    {label: 'Study Guides', href: '#guides'},
-];
-const FOOTER_PAGES = [
-    {label: 'Pricing', to: '/pricing'},
-    {label: 'About', to: '/about'},
-    {label: 'Terms', to: '/terms'},
-    {label: 'Privacy', to: '/privacy'},
-];
-
-function LandingFooter() {
-    return (
-        <footer className="border-t border-[var(--sd-line)] bg-[var(--sd-bg)]">
-            <div className="mx-auto flex max-w-[1260px] flex-col items-center justify-between gap-5 px-5 py-7 sm:px-10 md:flex-row">
-                <div className="flex items-center gap-2">
-                    <img src={logo} alt="" className="size-6"/>
-                    <span className="sd-display text-[14.5px] font-bold text-[var(--sd-mut2)]">SAT Duel</span>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px]">
-                    {FOOTER_LINKS.map((l) => (
-                        <a key={l.href} href={l.href} className="text-[var(--sd-dim)] no-underline hover:text-[#A78BFA]">{l.label}</a>
-                    ))}
-                    {FOOTER_PAGES.map((l) => (
-                        <Link key={l.to} to={l.to} className="text-[var(--sd-dim)] no-underline hover:text-[#A78BFA]">{l.label}</Link>
-                    ))}
-                </div>
-                <span className={`${MONO} text-[11.5px] font-medium text-[var(--sd-dim)]`}>© {new Date().getFullYear()} SAT Duel</span>
-            </div>
-        </footer>
     );
 }
 
@@ -553,7 +443,7 @@ function RaceClockCard() {
                 <span className={`${MONO} text-[11px] tracking-[0.08em] text-[#C0B0FA]`}>MATH · LINEAR EQUATIONS</span>
                 <div className="flex items-center gap-2">
                     <span className={`${MONO} rounded-md border border-[rgba(233,188,79,0.5)] bg-[rgba(233,188,79,0.15)] px-2 py-[3px] text-[10.5px] text-[#E9BC4F]`}>HIGHLIGHT</span>
-                    <span className={`${MONO} rounded-md border border-[rgba(148,163,184,0.35)] px-2 py-[3px] text-[10.5px] text-[#B9C2D8]`}>GRID</span>
+                    <span className={`${MONO} rounded-md border border-[rgba(148,163,184,0.35)] px-2 py-[3px] text-[10.5px] text-[#B9C2D8]`}>DESMOS</span>
                     <span className={`${MONO} rounded-md border border-[rgba(233,188,79,0.4)] px-[9px] py-[3px] text-[13px] text-[#E9BC4F]`}>1:07</span>
                 </div>
             </div>
@@ -574,11 +464,27 @@ function RaceClockCard() {
                         ))}
                     </div>
                 </div>
-                <div className="sd-scratch-grid relative min-h-[220px] rounded-[10px] border border-dashed border-[#C9CDD8]">
-                    <span className={`${MONO} absolute left-2.5 top-2 text-[9.5px] tracking-[0.08em] text-[#8A93A8]`}>DRAWING GRID</span>
-                    <span className={`${MONO} absolute inset-x-3.5 bottom-11 -rotate-2 text-xs font-medium text-[#7C5CF0]`}>
-                        268.50 − 40 = 228.50<br/>228.5 ÷ 65 = 3.5 ✓
-                    </span>
+                {/* mini Desmos graphing-calculator mock */}
+                <div className="min-h-[220px] overflow-hidden rounded-[10px] border border-[#C9CDD8] bg-white">
+                    <div className="border-b border-[#E4E1D6] px-2.5 py-1.5">
+                        <span className={`${MONO} text-[9.5px] tracking-[0.08em] text-[#8A93A8]`}>DESMOS · GRAPHING</span>
+                    </div>
+                    <div className={`${MONO} flex flex-col gap-1 border-b border-[#E4E1D6] px-2.5 py-1.5 text-[11px] font-medium`}>
+                        <span className="text-[#2D70B3]">y = 40 + 65x</span>
+                        <span className="text-[#388C46]">y = 268.50</span>
+                    </div>
+                    <svg viewBox="0 0 170 120" className="block w-full" aria-hidden="true">
+                        <g stroke="#E8EAF0" strokeWidth="1">
+                            {[20, 40, 60, 80, 100, 120, 140, 160].map((x) => <line key={x} x1={x} y1="0" x2={x} y2="120"/>)}
+                            {[20, 40, 60, 80, 100].map((y) => <line key={y} x1="0" y1={y} x2="170" y2={y}/>)}
+                        </g>
+                        <line x1="10" y1="0" x2="10" y2="120" stroke="#B9BFCB" strokeWidth="1.5"/>
+                        <line x1="0" y1="110" x2="170" y2="110" stroke="#B9BFCB" strokeWidth="1.5"/>
+                        <line x1="10" y1="100" x2="160" y2="15" stroke="#2D70B3" strokeWidth="2"/>
+                        <line x1="0" y1="43" x2="170" y2="43" stroke="#388C46" strokeWidth="2"/>
+                        <circle cx="111" cy="43" r="3.5" fill="#7C5CF0"/>
+                        <text x="98" y="34" fontSize="9" fontFamily="JetBrains Mono, monospace" fill="#7C5CF0" fontWeight="700">(3.5, 268.5)</text>
+                    </svg>
                 </div>
             </div>
         </div>
@@ -695,7 +601,7 @@ function Journey() {
                     <div className={visL}><RaceClockCard/></div>
                     <div className={copyR}>
                         <StepCopy num="02" title="Race the clock.">
-                            <p className="m-0">Every question is timed. Use highlights and the drawing grid just like you would during real digital practice — fast, messy scratch work included.</p>
+                            <p className="m-0">Every question is timed. Pull up the built-in Desmos graphing calculator — the same tool you get on the real Digital SAT — whenever a problem is faster to graph than to grind.</p>
                             <p className="m-0">Answer quickly and cleanly to earn speed bonuses on top of your rating.</p>
                         </StepCopy>
                     </div>
@@ -1163,27 +1069,14 @@ function FinalCta() {
 /* ------------------------------------------------------------------ */
 
 function HomePage() {
-    // manual toggle, auto-initialized from the OS preference
-    const [theme, setTheme] = useState(() => {
-        const saved = localStorage.getItem('sd-theme');
-        if (saved === 'light' || saved === 'dark') return saved;
-        return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    });
-    const toggleTheme = () => setTheme((t) => {
-        const next = t === 'dark' ? 'light' : 'dark';
-        localStorage.setItem('sd-theme', next);
-        return next;
-    });
-
     return (
-        <div className="sd-landing" data-theme={theme}>
+        <div>
             <SEO
                 title="SAT Duel - Turn Digital SAT Practice Into a Duel"
                 description="Train with 1,800+ Digital SAT questions, challenge friends in timed rounds, review AI explanations, and track every mistake across Math and Reading & Writing."
                 path="/"
                 structuredData={[organizationJsonLd(), websiteJsonLd(), softwareAppJsonLd()]}
             />
-            <LandingNav theme={theme} onToggleTheme={toggleTheme}/>
             <Hero/>
             <MiniDemo/>
             <Journey/>
@@ -1195,7 +1088,6 @@ function HomePage() {
             <MoreWaysToTrain/>
             <Pricing/>
             <FinalCta/>
-            <LandingFooter/>
         </div>
     );
 }

@@ -49,7 +49,7 @@ function Login() {
                 rememberPostLoginRedirect(redirectTo);
             }
             if (userData.is_first_login) {
-                navigate('/goal_setting');
+                navigate('/welcome');
             } else {
                 navigate(redirectTo);
             }
@@ -63,7 +63,7 @@ function Login() {
     };
 
     return (
-        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 px-4 py-10">
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
             <SEO
                 title="Log in to SAT Duel"
                 description={isTournamentInvite ? 'Log in to open your SAT Duel tournament invite.' : 'Log in to continue your SAT Duel practice.'}

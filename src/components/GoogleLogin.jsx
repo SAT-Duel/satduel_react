@@ -38,7 +38,7 @@ const GoogleLoginButton = ({redirectTo}) => {
                 navigate('/complete_profile');
             } else if (data.user.is_first_login) {
                 if (redirectTo) rememberPostLoginRedirect(nextPath);
-                navigate('/goal_setting');
+                navigate('/welcome');
             } else {
                 navigate(nextPath);
             }

@@ -52,10 +52,10 @@ function estimateRange(answers) {
 function SubjectPicker({onPick, loading}) {
     return (
         <div className="text-center">
-            <h1 className="font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+            <h1 className="font-display text-3xl font-bold text-[var(--sd-text)] sm:text-4xl">
                 Quick diagnostic
             </h1>
-            <p className="mx-auto mt-3 max-w-md text-lg text-slate-600">
+            <p className="mx-auto mt-3 max-w-md text-lg text-[var(--sd-mut)]">
                 Three questions, about two minutes. Pick a section:
             </p>
 
@@ -74,7 +74,7 @@ function SubjectPicker({onPick, loading}) {
             </div>
 
             {loading && (
-                <div className="mt-8 flex items-center justify-center gap-2 text-slate-500">
+                <div className="mt-8 flex items-center justify-center gap-2 text-[var(--sd-dim)]">
                     <Spinner/> Loading questions…
                 </div>
             )}
@@ -134,10 +134,10 @@ function ResultStep({answers, subjectKey, user}) {
 
     return (
         <div className="text-center">
-            <p className="text-sm font-bold uppercase tracking-wide text-primary-600">
+            <p className="text-sm font-bold uppercase tracking-wide text-[var(--sd-violet-lbl)]">
                 Diagnostic complete
             </p>
-            <h1 className="mt-2 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+            <h1 className="mt-2 font-display text-3xl font-bold text-[var(--sd-text)] sm:text-4xl">
                 You got {correct} of {answers.length} right
             </h1>
 
@@ -168,9 +168,9 @@ function ResultStep({answers, subjectKey, user}) {
                         <Button to="/register" size="lg" block>
                             Create a free account to keep improving <ArrowRight className="size-5"/>
                         </Button>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-[var(--sd-dim)]">
                             Save your progress, unlock daily practice and tournaments.{' '}
-                            <Link to="/login" className="font-semibold text-primary-600">
+                            <Link to="/login" className="font-semibold text-[var(--sd-violet-lbl)]">
                                 Already have an account?
                             </Link>
                         </p>
@@ -220,7 +220,7 @@ function DiagnosticPage() {
     };
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-12 sm:py-16">
+        <div className="min-h-[calc(100vh-4rem)] py-12 sm:py-16">
             <SEO
                 title="Free Digital SAT Diagnostic"
                 description="Answer three SAT Duel questions and get a quick, honest estimate of your Digital SAT practice level."

@@ -41,7 +41,7 @@ function PasswordResetPage() {
     };
 
     return (
-        <div className="sat-bubble-field min-h-screen py-12 sm:py-16">
+        <div className="min-h-screen py-12 sm:py-16">
             <SEO
                 title="Reset Your SAT Duel Password"
                 description="Request a password reset link for your SAT Duel account."
