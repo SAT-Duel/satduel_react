@@ -145,9 +145,11 @@ const FULLSCREEN_ROUTES = [
 function Router() {
     return (
         <Routes>
+            {/* Landing page renders its own nav + footer (dark arena design) */}
+            <Route path="/" element={<HomeRoute/>}/>
+
             {/* Marketing / onboarding */}
             <Route element={<SecondaryLayout/>}>
-                <Route path="/" element={<HomeRoute/>}/>
                 {MARKETING_ROUTES.map((r) => (
                     <Route key={r.path} path={r.path} element={S(r.el)}/>
                 ))}
