@@ -151,6 +151,12 @@ function Register() {
                     <Button type="submit" block loading={isSubmitting}>
                         Create account
                     </Button>
+                    <p className="m-0 mt-3 text-center text-xs leading-5 text-slate-500">
+                        By creating an account, you agree to the{' '}
+                        <Link to="/terms" className="font-semibold text-primary-600 hover:text-primary-700">Terms</Link>
+                        {' '}and acknowledge the{' '}
+                        <Link to="/privacy" className="font-semibold text-primary-600 hover:text-primary-700">Privacy Policy</Link>.
+                    </p>
                 </form>
 
                 <p className="mt-6 text-center text-sm text-slate-500">

@@ -322,6 +322,12 @@ function PricingPage() {
                                 <p className="m-0 mt-4 flex items-center gap-2 text-sm text-slate-400">
                                     <Lock className="size-4"/> Secure checkout and invoices are handled by Stripe.
                                 </p>
+                                <p className="m-0 mt-2 text-xs leading-5 text-slate-400">
+                                    By upgrading, you agree to the{' '}
+                                    <Link to="/terms" className="font-semibold text-slate-500 hover:text-primary-600">Terms</Link>
+                                    {' '}and{' '}
+                                    <Link to="/refund-policy" className="font-semibold text-slate-500 hover:text-primary-600">Refund Policy</Link>.
+                                </p>
                             </div>
                         </Card>
                     </div>

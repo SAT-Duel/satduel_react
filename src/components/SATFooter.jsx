@@ -11,6 +11,9 @@ const LINKS = [
     {label: 'Score Guide', to: '/digital-sat-score-guide'},
     {label: 'Pricing', to: '/pricing'},
     {label: 'About', to: '/about'},
+    {label: 'Terms', to: '/terms'},
+    {label: 'Privacy', to: '/privacy'},
+    {label: 'Refunds', to: '/refund-policy'},
 ];
 
 const SATFooter = () => (
