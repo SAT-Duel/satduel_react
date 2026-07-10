@@ -7,7 +7,7 @@ function isAnswered(status) {
     return value === 'correct' || value === 'incorrect';
 }
 
-function Question({questionData, onSubmit, status, questionNumber, disabled = false, showQuestionNumber = true}) {
+function Question({questionData, onSubmit, status, questionNumber, disabled = false, showQuestionNumber = true, timerSeconds = null}) {
     const [selectedChoice, setSelectedChoice] = useState('');
     const [answerDetails, setAnswerDetails] = useState(null);
     const [checking, setChecking] = useState(false);
@@ -60,7 +60,7 @@ function Question({questionData, onSubmit, status, questionNumber, disabled = fa
             status={status}
             disabled={disabled}
             checking={checking}
-            showQuestionNumber={showQuestionNumber}
+            timerSeconds={timerSeconds}
             correctAnswer={answerDetails?.answer}
             correctChoiceLabel={answerDetails?.answer_choice}
             explanation={answerDetails?.explanation}

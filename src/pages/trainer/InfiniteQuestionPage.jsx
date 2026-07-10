@@ -118,6 +118,11 @@ function RatingChange({feedback}) {
                     {feedback.delta > 0 ? `+${feedback.delta}` : feedback.delta} Elo
                 </div>
             </div>
+            {feedback.speedBonus > 0 && (
+                <span className="sd-mono mt-3 inline-block rounded-md border border-[#EDDCAE] bg-[#FBF3DF] px-2 py-1 text-[11px] font-bold text-[#B4771E]">
+                    +{feedback.speedBonus} SPEED BONUS
+                </span>
+            )}
         </div>
     );
 }
@@ -228,8 +233,22 @@ function InfiniteQuestionsPage() {
     const [daily, setDaily] = useState(null);
     const [streakCelebration, setStreakCelebration] = useState(null);
     const [stats, setStats] = useState(readPracticeStats());
+    const [timerSeconds, setTimerSeconds] = useState(0);
     const {loading} = useAuth();
     const hasFetchedData = useRef(false);
+    // Epoch ms the current question's clock started; the server reports elapsed
+    // time on re-serves, so reloading the page resumes rather than resets.
+    const timerStartRef = useRef(Date.now());
+
+    const timerRunning = questionStatus === 'Blank' && !!currentQuestion;
+    useEffect(() => {
+        if (!timerRunning) return undefined;
+        const id = setInterval(
+            () => setTimerSeconds(Math.max(0, Math.floor((Date.now() - timerStartRef.current) / 1000))),
+            1000,
+        );
+        return () => clearInterval(id);
+    }, [timerRunning, currentQuestion?.id]);
 
     const fetchNextQuestion = useCallback(async (topic, subj) => {
         try {
@@ -244,6 +263,9 @@ function InfiniteQuestionsPage() {
             setQuota(response.data.quota || null);
             setQuestionStatus('Blank');
             setRatingFeedback(null);
+            const elapsed = response.data.elapsed_seconds || 0;
+            timerStartRef.current = Date.now() - elapsed * 1000;
+            setTimerSeconds(elapsed);
         } catch (fetchError) {
             const data = fetchError.response?.data;
             if (data?.error === 'daily_limit') {
@@ -327,6 +349,8 @@ function InfiniteQuestionsPage() {
 
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
+            // Freeze the display on the server's authoritative measurement.
+            if (response.data.time_taken != null) setTimerSeconds(response.data.time_taken);
             if (response.data.practice_stats) {
                 setStats(readPracticeStats(response.data.practice_stats));
             }
@@ -338,6 +362,7 @@ function InfiniteQuestionsPage() {
                     previous: response.data.sp_elo_rating_previous,
                     next: response.data.sp_elo_rating,
                     delta: response.data.sp_elo_rating_delta,
+                    speedBonus: response.data.speed_bonus || 0,
                 };
                 setRatingFeedback(feedback);
             }
@@ -450,6 +475,7 @@ function InfiniteQuestionsPage() {
                                 onSubmit={handleQuestionSubmit}
                                 status={questionStatus}
                                 showQuestionNumber={false}
+                                timerSeconds={timerSeconds}
                             />
                         )}
                     </main>
