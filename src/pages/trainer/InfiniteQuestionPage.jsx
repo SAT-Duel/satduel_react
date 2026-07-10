@@ -43,27 +43,30 @@ function TopicControl({quota, topics, selectedTopic, onChange, compact = false})
     );
 }
 
-function PracticeProgress({stats, accuracy}) {
+function PracticeProgress({subject, stats}) {
+    const label = subject === 'math' ? 'Math' : 'English';
+    const answered = stats[`${subject}_answered`] || 0;
+    const accuracy = stats[`${subject}_accuracy`];
     return (
         <Card className="sat-arena-card p-5">
-            <h2 className="m-0 text-lg font-bold text-slate-900">Practice progress</h2>
+            <h2 className="m-0 text-lg font-bold text-slate-900">{label} progress</h2>
             <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
                 <div className="flex items-center justify-between gap-3">
                     <div>
                         <p className="m-0 text-sm font-bold text-amber-800">Correct streak</p>
-                        <p className="m-0 mt-1 text-3xl font-black text-slate-950">{stats.streak}</p>
+                        <p className="m-0 mt-1 text-3xl font-black text-slate-950">{stats.current_streak || 0}</p>
                     </div>
                     <Flame className="size-8 text-amber-500"/>
                 </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-xl bg-slate-50 px-3 py-2">
-                    <p className="m-0 font-black text-slate-900">{stats.questionsAnswered}</p>
-                    <p className="m-0 text-xs font-semibold text-slate-500">Answered</p>
+                    <p className="m-0 font-black text-slate-900">{answered}</p>
+                    <p className="m-0 text-xs font-semibold text-slate-500">{label} answered</p>
                 </div>
                 <div className="rounded-xl bg-slate-50 px-3 py-2">
-                    <p className="m-0 font-black text-slate-900">{accuracy}</p>
-                    <p className="m-0 text-xs font-semibold text-slate-500">Accuracy</p>
+                    <p className="m-0 font-black text-slate-900">{accuracy != null ? `${accuracy}%` : '—'}</p>
+                    <p className="m-0 text-xs font-semibold text-slate-500">{label} accuracy</p>
                 </div>
             </div>
         </Card>
@@ -141,13 +144,16 @@ function SubjectSwitch({subject, onChange}) {
 
 function readPracticeStats(data = {}) {
     return {
-        correct_number: data.correct_number || 0,
-        incorrect_number: data.incorrect_number || 0,
         current_streak: data.current_streak || 0,
-        practice_answered: data.practice_answered,
-        practice_correct: data.practice_correct,
-        english_answered: data.english_answered,
-        math_answered: data.math_answered,
+        practice_answered: data.practice_answered || 0,
+        practice_correct: data.practice_correct || 0,
+        practice_accuracy: data.practice_accuracy ?? null,
+        english_answered: data.english_answered || 0,
+        english_correct: data.english_correct || 0,
+        english_accuracy: data.english_accuracy ?? null,
+        math_answered: data.math_answered || 0,
+        math_correct: data.math_correct || 0,
+        math_accuracy: data.math_accuracy ?? null,
     };
 }
 
@@ -220,11 +226,7 @@ function InfiniteQuestionsPage() {
     const [ratingFeedback, setRatingFeedback] = useState(null);
     const [daily, setDaily] = useState(null);
     const [streakCelebration, setStreakCelebration] = useState(null);
-    const [stats, setStats] = useState({
-        correct_number: 0,
-        incorrect_number: 0,
-        current_streak: 0,
-    });
+    const [stats, setStats] = useState(readPracticeStats());
     const {loading} = useAuth();
     const hasFetchedData = useRef(false);
 
@@ -263,10 +265,7 @@ function InfiniteQuestionsPage() {
 
     const fetchPracticeStatus = useCallback(async () => {
         try {
-            const [statusResponse, statsResponse] = await Promise.all([
-                api.get('api/practice/status/'),
-                api.get('api/trainer/infinite_question_stats/').catch(() => null),
-            ]);
+            const statusResponse = await api.get('api/practice/status/');
             setQuota(statusResponse.data.quota || null);
             setElos({
                 english: statusResponse.data.sp_elo_rating ?? null,
@@ -274,8 +273,8 @@ function InfiniteQuestionsPage() {
             });
             setTopicsBySubject(statusResponse.data.topics || {english: [], math: []});
             setDaily(statusResponse.data.daily || null);
-            if (statsResponse?.data) {
-                setStats(readPracticeStats(statsResponse.data));
+            if (statusResponse.data.stats) {
+                setStats(readPracticeStats(statusResponse.data.stats));
             }
             if (statusResponse.data.quota?.remaining === 0) {
                 setLimitReached(true);
@@ -361,12 +360,6 @@ function InfiniteQuestionsPage() {
             setBillingLoading(false);
         }
     };
-
-    const totalAnswered = stats.practice_answered ?? ((stats.correct_number || 0) + (stats.incorrect_number || 0));
-    const practiceCorrect = stats.practice_correct ?? stats.correct_number ?? 0;
-    const accuracy = totalAnswered > 0
-        ? `${Math.round((practiceCorrect / totalAnswered) * 100)}%`
-        : '—';
 
     if (loadingQuestions && !currentQuestion) {
         return (
@@ -477,10 +470,7 @@ function InfiniteQuestionsPage() {
                             />
                         </div>
 
-                        <PracticeProgress stats={{
-                            streak: stats.current_streak || 0,
-                            questionsAnswered: totalAnswered,
-                        }} accuracy={accuracy}/>
+                        <PracticeProgress subject={subject} stats={stats}/>
 
                         <Card className="sat-arena-card p-5">
                             <div className="flex items-center justify-between">

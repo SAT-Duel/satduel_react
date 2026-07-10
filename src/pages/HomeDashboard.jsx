@@ -78,13 +78,21 @@ const STAT_DEFS = [
         icon: CheckCircle2,
         bubble: 'D',
         color: 'text-emerald-700 bg-emerald-100',
-        get: (d) => d.stats?.practice_answered ?? ((d.stats?.correct_number ?? 0) + (d.stats?.incorrect_number ?? 0)),
+        get: (d) => d.stats?.practice_answered ?? 0,
         subjects: [
-            {value: 'english', label: 'English', get: (d) => d.stats?.english_answered ?? 0},
-            {value: 'math', label: 'Math', get: (d) => d.stats?.math_answered ?? 0},
+            {
+                value: 'english', label: 'English',
+                get: (d) => d.stats?.english_answered ?? 0,
+                sub: (d) => (d.stats?.english_accuracy != null ? `${d.stats.english_accuracy}% accuracy` : null),
+            },
+            {
+                value: 'math', label: 'Math',
+                get: (d) => d.stats?.math_answered ?? 0,
+                sub: (d) => (d.stats?.math_accuracy != null ? `${d.stats.math_accuracy}% accuracy` : null),
+            },
         ],
         earn: 'Every practice answer you submit counts here.',
-        detail: 'A direct count from your practice history. This replaces the old inflated solved counter and keeps the homepage honest.',
+        detail: 'A direct count of your English and Math practice history, each with its own accuracy.',
     },
 ];
 
@@ -94,6 +102,7 @@ function StatCard({def, data}) {
     const active = def.subjects?.find((s) => s.value === subject);
     const value = active ? active.get(data) : def.get(data);
     const label = active ? `${active.label} ${def.label}` : def.label;
+    const sub = active?.sub ?? def.sub;
     return (
         <Card className="sat-arena-card relative overflow-hidden p-4">
             <div className="sat-score-strip absolute inset-x-0 top-0 h-1 border-0"/>
@@ -125,7 +134,7 @@ function StatCard({def, data}) {
             </div>
             <div className="flex items-baseline gap-2">
                 <p className="m-0 font-display text-3xl font-black text-slate-950">{value}</p>
-                {def.sub && <span className="text-sm font-semibold text-slate-400">{def.sub(data)}</span>}
+                {sub && <span className="text-sm font-semibold text-slate-400">{sub(data)}</span>}
             </div>
             <p className="m-0 mt-0.5 text-sm font-black text-slate-800">{label}</p>
             <p className="m-0 mt-2 text-xs leading-relaxed text-slate-500">{def.earn}</p>
