@@ -9,6 +9,7 @@ import {useAuth} from "../context/AuthContext";
 const DiagnosticPage = React.lazy(() => import("../pages/DiagnosticPage"));
 const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
 const PricingPage = React.lazy(() => import("../pages/PricingPage"));
+const LegalPage = React.lazy(() => import("../pages/LegalPage"));
 
 const HomePage = React.lazy(() => import("../pages/HomePage"));
 const AboutPage = React.lazy(() => import("../pages/AboutPage"));
@@ -75,6 +76,9 @@ const MARKETING_ROUTES = [
     {path: '/diagnostic', el: <DiagnosticPage/>},
     {path: '/pricing', el: <PricingPage/>},
     {path: '/about', el: <AboutPage/>},
+    {path: '/terms', el: <LegalPage kind="terms"/>},
+    {path: '/privacy', el: <LegalPage kind="privacy"/>},
+    {path: '/refund-policy', el: <LegalPage kind="refunds"/>},
     {path: '/digital-sat-practice', el: <SEOGuidePage pageKey="digitalSatPractice"/>},
     {path: '/sat-reading-and-writing-practice', el: <SEOGuidePage pageKey="satReadingWriting"/>},
     {path: '/sat-math-practice', el: <SEOGuidePage pageKey="satMath"/>},
