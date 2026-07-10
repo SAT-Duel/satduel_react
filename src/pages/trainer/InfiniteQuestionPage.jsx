@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {CheckCircle2, Crown, Flame, Lock, XCircle} from 'lucide-react';
+import {CheckCircle2, Crown, Flame, Lock, LogOut, Timer, XCircle, Zap} from 'lucide-react';
+import '../../styles/landing.css';
 import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
@@ -162,7 +163,7 @@ function readPracticeStats(data = {}) {
     };
 }
 
-function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange, onNext, loadingQuestions}) {
+function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange, onNext, onQuit, loadingQuestions}) {
     const answered = status === 'Correct' || status === 'Incorrect';
     const correct = status === 'Correct';
     const Icon = correct ? CheckCircle2 : XCircle;
@@ -210,6 +211,9 @@ function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, 
                     <Button onClick={onNext} disabled={loadingQuestions} className="mt-4" block>
                         Next question
                     </Button>
+                    <Button onClick={onQuit} variant="secondary" className="mt-2" block>
+                        <LogOut className="size-4"/> Quit session
+                    </Button>
                 </>
             )}
         </Card>
@@ -217,9 +221,12 @@ function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, 
 }
 
 function InfiniteQuestionsPage() {
+    // 'start' gates the first fetch behind an explicit button, and Quit returns
+    // here — so no question clock runs while the user is done for the day.
+    const [phase, setPhase] = useState('start');
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
-    const [loadingQuestions, setLoadingQuestions] = useState(true);
+    const [loadingQuestions, setLoadingQuestions] = useState(false);
     const [error, setError] = useState(null);
     const [quota, setQuota] = useState(null);
     const [subject, setSubject] = useState(() =>
@@ -309,11 +316,22 @@ function InfiniteQuestionsPage() {
 
     useEffect(() => {
         if (!loading && !hasFetchedData.current) {
-            fetchNextQuestion();
             fetchPracticeStatus();
             hasFetchedData.current = true;
         }
-    }, [fetchNextQuestion, fetchPracticeStatus, loading]);
+    }, [fetchPracticeStatus, loading]);
+
+    const handleStart = () => {
+        setPhase('playing');
+        fetchNextQuestion();
+    };
+
+    const handleQuit = () => {
+        setPhase('start');
+        setCurrentQuestion(null);
+        setQuestionStatus('Blank');
+        setRatingFeedback(null);
+    };
 
     const handleTopicChange = (topic) => {
         setSelectedTopic(topic);
@@ -444,6 +462,48 @@ function InfiniteQuestionsPage() {
         );
     }
 
+    if (phase === 'start') {
+        return (
+            <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-20">
+                <PageContainer className="max-w-xl">
+                    <Card className="sat-arena-card p-8 text-center sm:p-10">
+                        <h1 className="m-0 font-display text-3xl font-bold text-slate-900">Ready to practice?</h1>
+                        <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 text-left">
+                            <div className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3">
+                                <Timer className="mt-0.5 size-5 shrink-0 text-primary-600"/>
+                                <p className="m-0 text-sm leading-relaxed text-slate-700">
+                                    Every question is timed. Aim for real Digital SAT pace — under 2 minutes each.
+                                </p>
+                            </div>
+                            <div className="flex items-start gap-3 rounded-xl bg-amber-50 px-4 py-3">
+                                <Zap className="mt-0.5 size-5 shrink-0 text-amber-500"/>
+                                <p className="m-0 text-sm leading-relaxed text-slate-700">
+                                    <strong>Speed bonus:</strong> answer correctly within 25s (English) or 45s (Math) and earn +3 extra rating.
+                                </p>
+                            </div>
+                            <div className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3">
+                                <LogOut className="mt-0.5 size-5 shrink-0 text-slate-500"/>
+                                <p className="m-0 text-sm leading-relaxed text-slate-700">
+                                    Done for now? Hit <strong>Quit</strong> after a question so idle time never counts against your average.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleStart}
+                            className="sd-start-btn mx-auto mt-8 block w-full max-w-sm cursor-pointer rounded-2xl border-0 bg-primary-600 px-12 py-5 font-display text-xl font-bold text-white transition-colors hover:bg-primary-500"
+                        >
+                            Start practicing
+                        </button>
+                        <p className="m-0 mt-4 text-xs text-slate-400">
+                            {quota?.limit != null ? `${quota.remaining ?? quota.limit} free questions left today` : 'Unlimited practice'}
+                        </p>
+                    </Card>
+                </PageContainer>
+            </div>
+        );
+    }
+
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
             <PageContainer>
@@ -463,6 +523,7 @@ function InfiniteQuestionsPage() {
                         selectedTopic={selectedTopic}
                         onTopicChange={handleTopicChange}
                         onNext={() => fetchNextQuestion()}
+                                onQuit={handleQuit}
                         loadingQuestions={loadingQuestions}
                     />
                 </div>
@@ -493,6 +554,7 @@ function InfiniteQuestionsPage() {
                                 selectedTopic={selectedTopic}
                                 onTopicChange={handleTopicChange}
                                 onNext={() => fetchNextQuestion()}
+                                onQuit={handleQuit}
                                 loadingQuestions={loadingQuestions}
                             />
                         </div>
