@@ -1,0 +1,98 @@
+/*
+ * Landing page ("game arena") theme — scoped to .sd-landing so it never leaks
+ * into the app shell. Tokens come from the design handoff; the light theme is
+ * a derived variant (paper cards and accent colors stay identical in both).
+ */
+.sd-landing {
+    /* dark (default) */
+    --sd-bg: #0A1120;
+    --sd-bg2: #0E1729;
+    --sd-panel: #101A2E;
+    --sd-head: #131B2C;
+    --sd-text: #FFFFFF;
+    --sd-body: #EDF0F7;
+    --sd-mut: #AEB7CC;
+    --sd-mut2: #B9C2D8;
+    --sd-dim: #7C8AA5;
+    --sd-line: rgba(148, 163, 184, 0.14);
+    --sd-line2: rgba(148, 163, 184, 0.22);
+    --sd-line3: rgba(148, 163, 184, 0.4);
+    --sd-nav: rgba(10, 17, 32, 0.88);
+    --sd-grid: rgba(148, 163, 184, 0.05);
+    --sd-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    --sd-shadow-sm: 0 18px 44px rgba(0, 0, 0, 0.5);
+    --sd-tile-idle: #101A2E;
+    --sd-track: rgba(148, 163, 184, 0.18);
+    /* accent text tuned per theme for contrast on panels */
+    --sd-violet-lbl: #C0B0FA;
+    --sd-gold-lbl: #E9BC4F;
+    --sd-green-lbl: #2FBF71;
+    --sd-orange-lbl: #F08A3E;
+
+    font-family: 'Archivo', sans-serif;
+    background: var(--sd-bg);
+    color: var(--sd-body);
+}
+
+.sd-landing[data-theme='light'] {
+    --sd-bg: #F5F6FB;
+    --sd-bg2: #ECEFF7;
+    --sd-panel: #FFFFFF;
+    --sd-head: #131B2C; /* card header bars stay dark in both themes */
+    --sd-text: #0F172A;
+    --sd-body: #1E293B;
+    --sd-mut: #475569;
+    --sd-mut2: #3F4A61;
+    --sd-dim: #64748B;
+    --sd-line: rgba(15, 23, 42, 0.08);
+    --sd-line2: rgba(15, 23, 42, 0.14);
+    --sd-line3: rgba(15, 23, 42, 0.28);
+    --sd-nav: rgba(245, 246, 251, 0.88);
+    --sd-grid: rgba(15, 23, 42, 0.04);
+    --sd-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+    --sd-shadow-sm: 0 18px 44px rgba(15, 23, 42, 0.16);
+    --sd-tile-idle: #FFFFFF;
+    --sd-track: rgba(15, 23, 42, 0.12);
+    --sd-violet-lbl: #6B28D9;
+    --sd-gold-lbl: #A16E14;
+    --sd-green-lbl: #1E9A5A;
+    --sd-orange-lbl: #C2611D;
+}
+
+.sd-display { font-family: 'Space Grotesk', sans-serif; }
+.sd-mono { font-family: 'JetBrains Mono', monospace; }
+
+/* hero background: violet fade + graph-paper grid */
+.sd-hero-bg {
+    background-image:
+        linear-gradient(180deg, rgba(124, 92, 240, 0.06), transparent 420px),
+        repeating-linear-gradient(0deg, var(--sd-grid) 0 1px, transparent 1px 56px),
+        repeating-linear-gradient(90deg, var(--sd-grid) 0 1px, transparent 1px 56px);
+}
+
+/* scratch-work drawing grid inside the paper card */
+.sd-scratch-grid {
+    background-color: #FDFCF9;
+    background-image:
+        repeating-linear-gradient(0deg, rgba(124, 92, 240, 0.12) 0 1px, transparent 1px 18px),
+        repeating-linear-gradient(90deg, rgba(124, 92, 240, 0.12) 0 1px, transparent 1px 18px);
+}
+
+@keyframes sdup {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sdpulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+@keyframes sdglow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(124, 92, 240, 0); }
+    50% { box-shadow: 0 0 0 6px rgba(124, 92, 240, 0.12); }
+}
+
+.sd-up { animation: sdup 0.4s ease; }
+.sd-pulse { animation: sdpulse 1.4s infinite; }
+.sd-glow { animation: sdglow 2.4s infinite; }
