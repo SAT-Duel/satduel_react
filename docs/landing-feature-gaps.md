@@ -1,7 +1,7 @@
 # Landing Page Feature Gaps
 
 The redesigned landing page (`src/pages/HomePage.jsx`, from the July 2026 design handoff)
-advertises several features that do not exist in the product yet. Each section below is a
+advertises several features that do not exist in the product yet (items marked DONE have since shipped). Each section below is a
 self-contained task brief written as instructions for an AI coding session. Backend work
 happens in the `satduel` Django repo (`api/` app); frontend in `satduel_react`.
 
@@ -9,20 +9,12 @@ Ordered roughly by how prominently the landing page promises the feature.
 
 ---
 
-## 1. Speed bonus on practice answers
+## 1. Speed bonus on practice answers — ✅ DONE (July 2026)
 
-**Landing claim:** "+3 SPEED BONUS" chips; "Answer quickly and cleanly to earn speed bonuses on top of your rating."
-
-**Task:** In the Django `api` app, extend the answer-submission endpoint used by the
-infinite-practice flow to record `time_taken_seconds` (the frontend already tracks a timer
-on the question page — wire it into the submit payload). If the answer is correct AND
-`time_taken <= threshold` (suggest: 25s for R&W, 45s for Math, constants in one place),
-add a small flat bonus (+3) to the Practice Elo delta and return `speed_bonus: true` in
-the response. Frontend: in `src/pages/trainer/InfiniteQuestionPage.jsx`, show a
-"+3 SPEED BONUS" chip (gold, JetBrains-Mono style like the landing page) next to the Elo
-delta box when the response flags it. Keep the Elo before/after box unchanged otherwise.
-Update `PracticeStats` math only through the shared elo-update helper so duels are
-unaffected.
+Shipped in `satduel` branch `feat/practice-timer` + this repo: the server times each
+practice answer (serve → submit, so reloads can't reset the clock), grants +3 rating for
+correct rated answers within 25s (English) / 45s (Math), and the practice page shows the
+timer chip and "+3 SPEED BONUS" chip. Average answer time per subject shows on the profile.
 
 ## 2. Weekly leaderboard with rank deltas
 
@@ -102,17 +94,12 @@ the topic-targeting backend may already exist for Premium topic selection; reuse
 add the "Drill 5 more like this →" link to the post-answer explanation panel, passing the
 missed question's topic. Free users: allow it but count against the daily 25-question cap.
 
-## 8. Text highlighting on questions
+## 8. Text highlighting on questions — ✅ DONE (July 2026)
 
-**Landing claim:** HIGHLIGHT toggle chip, amber text highlights on the prompt.
-(The Desmos calculator shown next to it already exists — `DesmosCalculator` is mounted
-globally in `App.jsx` — so only highlighting is missing.)
-
-**Task:** Frontend-only. In the question components used by practice/duels
-(`src/pages/QuestionPage.jsx` / trainer components — find the shared question renderer
-first): a toggle that, when active, wraps the user's text selection in a `<mark>` with
-the amber style (`rgba(233,188,79,0.45)`), stored in component state only (per question,
-cleared on next question). No backend.
+Shipped in `PracticeQuestionCard`: a HIGHLIGHT toggle in the card header wraps text
+selections in amber `<mark>`s (skips selections crossing KaTeX boundaries; marks clear on
+the next question). Available everywhere the shared card renders — practice, diagnostic,
+duels, tournaments. The Desmos calculator was already global (`App.jsx`).
 
 ## 9. Accuracy vs pacing analytics
 
