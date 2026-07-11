@@ -328,7 +328,7 @@ function RankingPage() {
                                         )}
                                     </h2>
                                     <p className="m-0 mt-1 text-sm text-slate-500">
-                                        Updated from practice answers and duel results.
+                                        {metric === 'duel' ? 'Updated after completed duels.' : 'Updated from practice answers.'}
                                     </p>
                                 </div>
                                 <span className="text-sm font-semibold text-slate-400">

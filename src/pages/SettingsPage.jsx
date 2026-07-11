@@ -1,13 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
-import {Check, CreditCard, Crown, KeyRound, Palette, Sparkles} from 'lucide-react';
+import {Check, CreditCard, Crown, KeyRound, Palette, SmilePlus, Sparkles} from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
 import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from '../components/ui';
 import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
 import UserAvatar from '../components/UserAvatar';
-import {AVATAR_BACKGROUNDS, AVATAR_STORY, PIXEL_AVATARS} from '../components/avatarCatalog';
+import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 import {useAuth} from '../context/AuthContext';
+import {DEFAULT_DUEL_EMOTES, DUEL_EMOJIS} from '../utils/duelEmotes';
 
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
@@ -31,6 +32,7 @@ function SettingsPage() {
                     grade: r.data.grade || '11',
                     avatar: r.data.avatar || 'violet',
                     avatar_icon: r.data.avatar_icon || 'initial',
+                    duel_emotes: r.data.duel_emotes || DEFAULT_DUEL_EMOTES,
                 });
             })
             .catch(() => setNotice({type: 'error', text: 'Could not load your profile.'}));
@@ -50,7 +52,22 @@ function SettingsPage() {
 
     const set = (key) => (e) => setForm((f) => ({...f, [key]: e.target.value}));
 
+    const toggleEmote = (emoji) => {
+        setForm((current) => {
+            const selected = current.duel_emotes;
+            if (selected.includes(emoji)) {
+                return {...current, duel_emotes: selected.filter((item) => item !== emoji)};
+            }
+            if (selected.length === 4) return current;
+            return {...current, duel_emotes: [...selected, emoji]};
+        });
+    };
+
     const handleSave = async () => {
+        if (form.duel_emotes.length !== 4) {
+            setNotice({type: 'error', text: 'Choose exactly four duel emotes.'});
+            return;
+        }
         setSaving(true);
         setNotice(null);
         try {
@@ -60,6 +77,7 @@ function SettingsPage() {
                 grade: form.grade,
                 avatar: form.avatar,
                 avatar_icon: form.avatar_icon,
+                duel_emotes: form.duel_emotes,
             });
             setProfile(resp.data);
             updateUser({
@@ -131,7 +149,7 @@ function SettingsPage() {
                                 <Sparkles className="size-5 text-primary-500"/> Avatar
                             </h2>
                             <p className="mt-1 text-sm text-slate-500">
-                                Choose a Prism Archive character, or keep the classic initial mark.
+                                Choose an illustrated avatar, or keep the classic initial mark.
                             </p>
                         </div>
                         <UserAvatar
@@ -141,11 +159,6 @@ function SettingsPage() {
                             size="lg"
                             className="mx-auto ring-primary-100 sm:mx-0"
                         />
-                    </div>
-
-                    <div className="mt-6 rounded-2xl border border-primary-100 bg-primary-50/60 p-4">
-                        <p className="m-0 text-sm font-bold text-primary-800">{AVATAR_STORY.title}</p>
-                        <p className="m-0 mt-1 text-sm leading-relaxed text-primary-700">{AVATAR_STORY.text}</p>
                     </div>
 
                     <div className="mt-6">
@@ -209,6 +222,62 @@ function SettingsPage() {
                             })}
                         </div>
                     </div>
+                </Card>
+
+                <Card className="mt-4 p-6">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <h2 className="m-0 inline-flex items-center gap-2 text-lg font-bold text-slate-900">
+                                <SmilePlus className="size-5 text-primary-500"/> Duel emotes
+                            </h2>
+                            <p className="m-0 mt-1 text-sm text-slate-500">Choose four reactions to bring into every duel.</p>
+                        </div>
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-black ${
+                            form.duel_emotes.length === 4
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-amber-50 text-amber-700'
+                        }`}>
+                            {form.duel_emotes.length}/4 selected
+                        </span>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-6 gap-2 sm:grid-cols-10">
+                        {DUEL_EMOJIS.map((emoji) => {
+                            const slot = form.duel_emotes.indexOf(emoji);
+                            const selected = slot !== -1;
+                            return (
+                                <button
+                                    key={emoji}
+                                    type="button"
+                                    onClick={() => toggleEmote(emoji)}
+                                    aria-label={`${selected ? 'Remove' : 'Choose'} ${emoji}`}
+                                    aria-pressed={selected}
+                                    className={[
+                                        'relative flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 text-2xl transition-all',
+                                        selected
+                                            ? 'border-primary-500 bg-primary-50 shadow-sm'
+                                            : 'border-slate-200 bg-white hover:border-primary-300 hover:bg-slate-50',
+                                    ].join(' ')}
+                                >
+                                    {emoji}
+                                    {selected && (
+                                        <span className="absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-primary-600 text-[9px] font-black text-white">
+                                            {slot + 1}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p className="m-0 mt-3 text-xs text-slate-400">Remove one selected emote before choosing a replacement.</p>
+                    <Button
+                        onClick={handleSave}
+                        loading={saving}
+                        disabled={form.duel_emotes.length !== 4}
+                        className="mt-4"
+                    >
+                        Save duel emotes
+                    </Button>
                 </Card>
 
                 {/* Details */}

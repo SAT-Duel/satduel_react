@@ -1,8 +1,7 @@
-# Prism Archive Avatars
+# SAT Duel Pixel Avatars
 
-SAT Duel's first original avatar set is built around **The Prism Archive**:
-twelve challengers enter a shifting library-arena to recover lost score fragments
-from the Margin Warden.
+SAT Duel includes twelve optional illustrated profile avatars alongside the
+classic initial avatar.
 
 The profile image is a two-layer system:
 

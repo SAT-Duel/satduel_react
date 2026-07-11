@@ -11,11 +11,6 @@ import miraMnemonic from '../assets/avatars/pixel/mira-mnemonic.png';
 import pixelPathfinder from '../assets/avatars/pixel/pixel-pathfinder.png';
 import marginWarden from '../assets/avatars/pixel/margin-warden.png';
 
-export const AVATAR_STORY = {
-    title: 'The Prism Archive',
-    text: 'Twelve challengers enter a shifting library-arena to recover lost score fragments from the Margin Warden.',
-};
-
 export const AVATAR_BACKGROUNDS = [
     {id: 'violet', label: 'Violet', classes: 'bg-primary-600 text-white'},
     {id: 'sky', label: 'Sky', classes: 'bg-sky-500 text-white'},
