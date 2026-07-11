@@ -7,9 +7,8 @@ import Question from '../components/Question';
 import UserAvatar from '../components/UserAvatar';
 import useOpponentProgress from '../hooks/useOpponentProgress';
 import api from '../components/api';
+import {DEFAULT_DUEL_EMOTES} from '../utils/duelEmotes';
 import '../styles/landing.css';
-
-const EMOJIS = ['👍', '🔥', '😂', '😮'];
 
 function formatTime(seconds) {
     if (seconds === null) return '--:--';
@@ -187,6 +186,9 @@ function DuelBattlePage() {
     const myScore = questions.filter((entry) => entry.status === 'Correct').length;
     const opponentScore = opponentProgress.filter((entry) => entry.status === 'Correct').length;
     const activeQuestion = questions[activeIndex];
+    const duelEmotes = players.currentUser?.duel_emotes?.length === 4
+        ? players.currentUser.duel_emotes
+        : DEFAULT_DUEL_EMOTES;
 
     if (loadingQuestions || !endTime) {
         return (
@@ -276,7 +278,7 @@ function DuelBattlePage() {
                             <div className="mt-5 border-t border-slate-100 pt-4">
                                 <p className="m-0 text-center text-xs font-bold uppercase tracking-wide text-slate-400">Send a reaction</p>
                                 <div className="mt-3 grid grid-cols-4 gap-2">
-                                    {EMOJIS.map((emoji) => (
+                                    {duelEmotes.map((emoji) => (
                                         <button
                                             key={emoji}
                                             type="button"

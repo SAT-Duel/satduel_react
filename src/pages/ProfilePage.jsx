@@ -581,10 +581,12 @@ function ProfilePage() {
                                             to={`/profile/${result.id}`}
                                             className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 no-underline transition-colors hover:border-primary-300 hover:bg-primary-50/40"
                                         >
-                                            <UserAvatar profile={{user: result, avatar: 'violet', avatar_icon: 'initial'}} size="sm"/>
+                                            <UserAvatar profile={result} size="sm"/>
                                             <div>
                                                 <p className="m-0 font-semibold text-slate-900">{result.username}</p>
-                                                <p className="m-0 text-sm text-slate-500">{result.email}</p>
+                                                <p className="m-0 text-sm text-slate-500">
+                                                    {result.elo_rating} Duel Elo{result.is_premium ? ' · Premium' : ''}
+                                                </p>
                                             </div>
                                         </Link>
                                     ))}
@@ -716,7 +718,7 @@ function ProfilePage() {
                                 <div>
                                     <p className="m-0 font-bold text-slate-800">Preview</p>
                                     <p className="m-0 mt-1 text-sm text-slate-500">
-                                        Pick a background color and an optional Prism Archive character.
+                                        Pick a background color and an optional illustrated character.
                                     </p>
                                 </div>
                                 <UserAvatar
