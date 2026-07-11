@@ -88,3 +88,32 @@
 .sd-up { animation: sdup 0.4s ease; }
 .sd-pulse { animation: sdpulse 1.4s infinite; }
 .sd-glow { animation: sdglow 2.4s infinite; }
+
+/* big tempting CTA: soft breathing glow + periodic shine sweep */
+@keyframes sdbreathe {
+    0%, 100% { transform: scale(1); box-shadow: 0 6px 22px rgba(124, 92, 240, 0.45); }
+    50% { transform: scale(1.03); box-shadow: 0 10px 32px rgba(124, 92, 240, 0.65); }
+}
+
+@keyframes sdshine {
+    0%, 55% { transform: translateX(-160%) skewX(-18deg); }
+    100% { transform: translateX(420%) skewX(-18deg); }
+}
+
+.sd-start-btn {
+    position: relative;
+    overflow: hidden;
+    animation: sdbreathe 2.2s ease-in-out infinite;
+}
+
+.sd-start-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    animation: sdshine 2.6s infinite;
+    pointer-events: none;
+}
