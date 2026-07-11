@@ -437,6 +437,9 @@ function ProfilePage() {
                         <div className="flex flex-col gap-3 sm:flex-row">
                             {isOwnProfile ? (
                                 <>
+                                    <Button to="/practice-history" variant="secondary">
+                                        <History className="size-4"/> Practice history
+                                    </Button>
                                     <Button to="/my_tournaments" variant="secondary">
                                         <Trophy className="size-4"/> My tournaments
                                     </Button>
