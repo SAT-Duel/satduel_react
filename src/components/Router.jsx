@@ -26,6 +26,7 @@ const HomeDashboard = React.lazy(() => import("../pages/HomeDashboard"));
 const StudyGuidePage = React.lazy(() => import("../pages/StudyGuidePage"));
 const StudyGuideLessonPage = React.lazy(() => import("../pages/StudyGuideLessonPage"));
 const InfiniteQuestionPage = React.lazy(() => import("../pages/trainer/InfiniteQuestionPage"));
+const PracticeHistoryPage = React.lazy(() => import("../pages/trainer/PracticeHistoryPage"));
 const ConfirmEmail = React.lazy(() => import("./ConfirmEmail"));
 const EmailVerificationPage = React.lazy(() => import("../pages/EmailVerificationPage"));
 const PowerSprintHome = React.lazy(() => import("../pages/trainer/PowerSprintHome"));
@@ -95,6 +96,7 @@ const MARKETING_ROUTES = [
 const APP_ROUTES = [
     {path: '/trainer', el: <HomeDashboard/>},
     {path: '/infinite_questions', el: <InfiniteQuestionPage/>},
+    {path: '/practice-history', el: <PracticeHistoryPage/>},
     {path: '/study_guides', el: <StudyGuidePage/>},
     {path: '/study_guides/:slug', el: <StudyGuideLessonPage/>},
     {path: '/match', el: <Match/>},

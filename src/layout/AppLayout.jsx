@@ -4,6 +4,7 @@ import {Navigate, NavLink, Outlet, useLocation, useNavigate} from 'react-router-
 import {
     Home,
     Zap,
+    History,
     Swords,
     Trophy,
     ClipboardList,
@@ -26,6 +27,7 @@ import {loginPathFor} from '../utils/authRedirect';
 const NAV_ITEMS = [
     {label: 'Home', to: '/trainer', icon: Home},
     {label: 'Practice', to: '/infinite_questions', icon: Zap},
+    {label: 'Practice history', to: '/practice-history', icon: History},
     {label: 'Study Guide', to: '/study_guides', icon: BookOpenCheck},
     {label: 'Duel', to: '/match', icon: Swords},
     {label: 'Tournaments', to: '/tournaments', icon: Trophy},

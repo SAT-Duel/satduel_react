@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {CheckCircle2, Crown, Flame, Lock, LogOut, Timer, XCircle, Zap} from 'lucide-react';
+import {CheckCircle2, Crown, Flame, History, Lock, LogOut, Timer, XCircle, Zap} from 'lucide-react';
 import '../../styles/landing.css';
 import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
@@ -213,6 +213,46 @@ function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, 
     );
 }
 
+function PracticeEmptyState({emptyState, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange}) {
+    const completed = emptyState?.error === 'completed_topic';
+    const subjectLabel = subject === 'math' ? 'Math' : 'English';
+    const topicLabel = selectedTopic === 'any' ? `${subjectLabel} practice` : selectedTopic;
+
+    return (
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-16">
+            <PageContainer className="max-w-2xl">
+                <Card className="sat-arena-card p-6 sm:p-8">
+                    <SubjectSwitch subject={subject} onChange={onSubjectChange}/>
+                    <TopicControl
+                        quota={quota}
+                        topics={topics}
+                        selectedTopic={selectedTopic}
+                        onChange={onTopicChange}
+                    />
+                    <div className="mt-8 border-t border-slate-100 pt-7 text-center">
+                        <div className={`mx-auto flex size-14 items-center justify-center rounded-2xl ${completed ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                            {completed
+                                ? <CheckCircle2 className="size-7 text-emerald-600"/>
+                                : <Zap className="size-7 text-amber-600"/>}
+                        </div>
+                        <h1 className="m-0 mt-4 font-display text-2xl font-bold text-slate-900">
+                            {completed ? `You finished ${topicLabel}` : `No ${topicLabel} questions yet`}
+                        </h1>
+                        <p className="mx-auto mt-3 max-w-md text-slate-600">
+                            {completed
+                                ? "You've answered every problem here. We'll add more soon."
+                                : "We're still building this question set. Check back soon or choose another topic."}
+                        </p>
+                        <Button to="/practice-history" variant="secondary" className="mt-6">
+                            <History className="size-4"/> View practice history
+                        </Button>
+                    </div>
+                </Card>
+            </PageContainer>
+        </div>
+    );
+}
+
 // Preserved for a possible future return to an explicit practice start step.
 export function ReadyToPractice({quota, onStart}) {
     return (
@@ -285,6 +325,7 @@ function InfiniteQuestionsPage() {
     const [limitReached, setLimitReached] = useState(false);
     const [billingLoading, setBillingLoading] = useState(false);
     const [ratingFeedback, setRatingFeedback] = useState(null);
+    const [emptyState, setEmptyState] = useState(null);
     const [daily, setDaily] = useState(null);
     const [streakCelebration, setStreakCelebration] = useState(null);
     const [stats, setStats] = useState(readPracticeStats());
@@ -324,6 +365,7 @@ function InfiniteQuestionsPage() {
             setQuota(response.data.quota || null);
             setQuestionStatus('Blank');
             setRatingFeedback(null);
+            setEmptyState(null);
         } catch (fetchError) {
             const data = fetchError.response?.data;
             if (data?.error === 'daily_limit') {
@@ -336,6 +378,11 @@ function InfiniteQuestionsPage() {
                 setQuota(response.data.quota || null);
                 setQuestionStatus('Blank');
                 setRatingFeedback(null);
+                setEmptyState(null);
+            } else if (data?.error === 'completed_topic' || data?.error === 'no_questions') {
+                setCurrentQuestion(null);
+                setQuota(data.quota || null);
+                setEmptyState(data);
             } else {
                 setError(data?.error || 'Could not load a question.');
             }
@@ -512,11 +559,28 @@ function InfiniteQuestionsPage() {
         );
     }
 
+    if (emptyState) {
+        return (
+            <PracticeEmptyState
+                emptyState={emptyState}
+                subject={subject}
+                onSubjectChange={handleSubjectChange}
+                quota={quota}
+                topics={topicsBySubject[subject] || []}
+                selectedTopic={selectedTopic}
+                onTopicChange={handleTopicChange}
+            />
+        );
+    }
+
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
             <PageContainer>
                 <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <h1 className="m-0 font-display text-2xl font-bold text-slate-900">Practice</h1>
+                    <Button to="/practice-history" variant="ghost" size="sm" className="self-start sm:self-auto">
+                        <History className="size-4"/> History
+                    </Button>
                 </div>
 
                 <div className="mb-5 lg:hidden">
