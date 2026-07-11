@@ -9,12 +9,10 @@ Ordered roughly by how prominently the landing page promises the feature.
 
 ---
 
-## 1. Speed bonus on practice answers — ✅ DONE (July 2026)
+## 1. Optional manual practice timer — ✅ DONE (July 2026)
 
-Shipped in `satduel` branch `feat/practice-timer` + this repo: the server times each
-practice answer (serve → submit, so reloads can't reset the clock), grants +3 rating for
-correct rated answers within 25s (English) / 45s (Math), and the practice page shows the
-timer chip and "+3 SPEED BONUS" chip. Average answer time per subject shows on the profile.
+Practice now opens directly on a question. Timing is an optional, locally persisted
+start/pause/reset tool and no longer affects Elo or profile statistics.
 
 ## 2. Weekly leaderboard with rank deltas
 

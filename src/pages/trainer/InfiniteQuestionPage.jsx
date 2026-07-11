@@ -119,11 +119,6 @@ function RatingChange({feedback}) {
                     {feedback.delta > 0 ? `+${feedback.delta}` : feedback.delta} Elo
                 </div>
             </div>
-            {feedback.speedBonus > 0 && (
-                <span className="sd-mono mt-3 inline-block rounded-md border border-[#EDDCAE] bg-[#FBF3DF] px-2 py-1 text-[11px] font-bold text-[#B4771E]">
-                    +{feedback.speedBonus} SPEED BONUS
-                </span>
-            )}
         </div>
     );
 }
@@ -163,7 +158,7 @@ function readPracticeStats(data = {}) {
     };
 }
 
-function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange, onNext, onQuit, loadingQuestions}) {
+function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange, onNext, loadingQuestions}) {
     const answered = status === 'Correct' || status === 'Incorrect';
     const correct = status === 'Correct';
     const Icon = correct ? CheckCircle2 : XCircle;
@@ -211,19 +206,71 @@ function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, 
                     <Button onClick={onNext} disabled={loadingQuestions} className="mt-4" block>
                         Next question
                     </Button>
-                    <Button onClick={onQuit} variant="secondary" className="mt-2" block>
-                        <LogOut className="size-4"/> Quit session
-                    </Button>
                 </>
             )}
         </Card>
     );
 }
 
+// Preserved for a possible future return to an explicit practice start step.
+export function ReadyToPractice({quota, onStart}) {
+    return (
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-20">
+            <PageContainer className="max-w-xl">
+                <Card className="sat-arena-card p-8 text-center sm:p-10">
+                    <h1 className="m-0 font-display text-3xl font-bold text-slate-900">Ready to practice?</h1>
+                    <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 text-left">
+                        <div className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3">
+                            <Timer className="mt-0.5 size-5 shrink-0 text-primary-600"/>
+                            <p className="m-0 text-sm leading-relaxed text-slate-700">
+                                Use the optional manual timer whenever you want to practice at Digital SAT pace.
+                            </p>
+                        </div>
+                        <div className="flex items-start gap-3 rounded-xl bg-amber-50 px-4 py-3">
+                            <Zap className="mt-0.5 size-5 shrink-0 text-amber-500"/>
+                            <p className="m-0 text-sm leading-relaxed text-slate-700">
+                                Your rating depends on accuracy, not how quickly you answer.
+                            </p>
+                        </div>
+                        <div className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3">
+                            <LogOut className="mt-0.5 size-5 shrink-0 text-slate-500"/>
+                            <p className="m-0 text-sm leading-relaxed text-slate-700">
+                                Unanswered questions stay waiting when you switch subjects or topics.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onStart}
+                        className="sd-start-btn mx-auto mt-8 block w-full max-w-sm cursor-pointer rounded-2xl border-0 bg-primary-600 px-12 py-5 font-display text-xl font-bold text-white transition-colors hover:bg-primary-500"
+                    >
+                        Start practicing
+                    </button>
+                    <p className="m-0 mt-4 text-xs text-slate-400">
+                        {quota?.limit != null ? `${quota.remaining ?? quota.limit} free questions left today` : 'Unlimited practice'}
+                    </p>
+                </Card>
+            </PageContainer>
+        </div>
+    );
+}
+
+const TIMER_STORAGE_KEY = 'satduel:practice-timer';
+
+function readManualTimer() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(TIMER_STORAGE_KEY));
+        if (!saved) return {seconds: 0, running: false, startedAt: null};
+        if (saved.running && saved.startedAt) {
+            return {...saved, seconds: Math.max(0, Math.floor((Date.now() - saved.startedAt) / 1000))};
+        }
+        return {seconds: saved.seconds || 0, running: false, startedAt: null};
+    } catch {
+        return {seconds: 0, running: false, startedAt: null};
+    }
+}
+
 function InfiniteQuestionsPage() {
-    // 'start' gates the first fetch behind an explicit button, and Quit returns
-    // here — so no question clock runs while the user is done for the day.
-    const [phase, setPhase] = useState('start');
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
     const [loadingQuestions, setLoadingQuestions] = useState(false);
@@ -240,22 +287,28 @@ function InfiniteQuestionsPage() {
     const [daily, setDaily] = useState(null);
     const [streakCelebration, setStreakCelebration] = useState(null);
     const [stats, setStats] = useState(readPracticeStats());
-    const [timerSeconds, setTimerSeconds] = useState(0);
+    const [manualTimer, setManualTimer] = useState(readManualTimer);
     const {loading} = useAuth();
     const hasFetchedData = useRef(false);
-    // Epoch ms the current question's clock started; the server reports elapsed
-    // time on re-serves, so reloading the page resumes rather than resets.
-    const timerStartRef = useRef(Date.now());
-
-    const timerRunning = questionStatus === 'Blank' && !!currentQuestion;
     useEffect(() => {
-        if (!timerRunning) return undefined;
+        try {
+            localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(manualTimer));
+        } catch {
+            // The timer still works when browser storage is unavailable.
+        }
+    }, [manualTimer]);
+
+    useEffect(() => {
+        if (!manualTimer.running) return undefined;
         const id = setInterval(
-            () => setTimerSeconds(Math.max(0, Math.floor((Date.now() - timerStartRef.current) / 1000))),
+            () => setManualTimer((timer) => ({
+                ...timer,
+                seconds: Math.max(0, Math.floor((Date.now() - timer.startedAt) / 1000)),
+            })),
             1000,
         );
         return () => clearInterval(id);
-    }, [timerRunning, currentQuestion?.id]);
+    }, [manualTimer.running]);
 
     const fetchNextQuestion = useCallback(async (topic, subj) => {
         try {
@@ -270,9 +323,6 @@ function InfiniteQuestionsPage() {
             setQuota(response.data.quota || null);
             setQuestionStatus('Blank');
             setRatingFeedback(null);
-            const elapsed = response.data.elapsed_seconds || 0;
-            timerStartRef.current = Date.now() - elapsed * 1000;
-            setTimerSeconds(elapsed);
         } catch (fetchError) {
             const data = fetchError.response?.data;
             if (data?.error === 'daily_limit') {
@@ -317,20 +367,19 @@ function InfiniteQuestionsPage() {
     useEffect(() => {
         if (!loading && !hasFetchedData.current) {
             fetchPracticeStatus();
+            fetchNextQuestion();
             hasFetchedData.current = true;
         }
-    }, [fetchPracticeStatus, loading]);
+    }, [fetchNextQuestion, fetchPracticeStatus, loading]);
 
-    const handleStart = () => {
-        setPhase('playing');
-        fetchNextQuestion();
+    const handleTimerToggle = () => {
+        setManualTimer((timer) => timer.running
+            ? {...timer, seconds: Math.floor((Date.now() - timer.startedAt) / 1000), running: false, startedAt: null}
+            : {...timer, running: true, startedAt: Date.now() - timer.seconds * 1000});
     };
 
-    const handleQuit = () => {
-        setPhase('start');
-        setCurrentQuestion(null);
-        setQuestionStatus('Blank');
-        setRatingFeedback(null);
+    const handleTimerReset = () => {
+        setManualTimer({seconds: 0, running: false, startedAt: null});
     };
 
     const handleTopicChange = (topic) => {
@@ -367,8 +416,6 @@ function InfiniteQuestionsPage() {
 
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
-            // Freeze the display on the server's authoritative measurement.
-            if (response.data.time_taken != null) setTimerSeconds(response.data.time_taken);
             if (response.data.practice_stats) {
                 setStats(readPracticeStats(response.data.practice_stats));
             }
@@ -380,7 +427,6 @@ function InfiniteQuestionsPage() {
                     previous: response.data.sp_elo_rating_previous,
                     next: response.data.sp_elo_rating,
                     delta: response.data.sp_elo_rating_delta,
-                    speedBonus: response.data.speed_bonus || 0,
                 };
                 setRatingFeedback(feedback);
             }
@@ -462,48 +508,6 @@ function InfiniteQuestionsPage() {
         );
     }
 
-    if (phase === 'start') {
-        return (
-            <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-20">
-                <PageContainer className="max-w-xl">
-                    <Card className="sat-arena-card p-8 text-center sm:p-10">
-                        <h1 className="m-0 font-display text-3xl font-bold text-slate-900">Ready to practice?</h1>
-                        <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 text-left">
-                            <div className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3">
-                                <Timer className="mt-0.5 size-5 shrink-0 text-primary-600"/>
-                                <p className="m-0 text-sm leading-relaxed text-slate-700">
-                                    Every question is timed. Aim for real Digital SAT pace — under 2 minutes each.
-                                </p>
-                            </div>
-                            <div className="flex items-start gap-3 rounded-xl bg-amber-50 px-4 py-3">
-                                <Zap className="mt-0.5 size-5 shrink-0 text-amber-500"/>
-                                <p className="m-0 text-sm leading-relaxed text-slate-700">
-                                    <strong>Speed bonus:</strong> answer correctly within 25s (English) or 45s (Math) and earn +3 extra rating.
-                                </p>
-                            </div>
-                            <div className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3">
-                                <LogOut className="mt-0.5 size-5 shrink-0 text-slate-500"/>
-                                <p className="m-0 text-sm leading-relaxed text-slate-700">
-                                    Done for now? Hit <strong>Quit</strong> after a question so idle time never counts against your average.
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={handleStart}
-                            className="sd-start-btn mx-auto mt-8 block w-full max-w-sm cursor-pointer rounded-2xl border-0 bg-primary-600 px-12 py-5 font-display text-xl font-bold text-white transition-colors hover:bg-primary-500"
-                        >
-                            Start practicing
-                        </button>
-                        <p className="m-0 mt-4 text-xs text-slate-400">
-                            {quota?.limit != null ? `${quota.remaining ?? quota.limit} free questions left today` : 'Unlimited practice'}
-                        </p>
-                    </Card>
-                </PageContainer>
-            </div>
-        );
-    }
-
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
             <PageContainer>
@@ -523,7 +527,6 @@ function InfiniteQuestionsPage() {
                         selectedTopic={selectedTopic}
                         onTopicChange={handleTopicChange}
                         onNext={() => fetchNextQuestion()}
-                                onQuit={handleQuit}
                         loadingQuestions={loadingQuestions}
                     />
                 </div>
@@ -536,7 +539,10 @@ function InfiniteQuestionsPage() {
                                 onSubmit={handleQuestionSubmit}
                                 status={questionStatus}
                                 showQuestionNumber={false}
-                                timerSeconds={timerSeconds}
+                                timerSeconds={manualTimer.seconds}
+                                timerRunning={manualTimer.running}
+                                onTimerToggle={handleTimerToggle}
+                                onTimerReset={handleTimerReset}
                             />
                         )}
                     </main>
@@ -554,7 +560,6 @@ function InfiniteQuestionsPage() {
                                 selectedTopic={selectedTopic}
                                 onTopicChange={handleTopicChange}
                                 onNext={() => fetchNextQuestion()}
-                                onQuit={handleQuit}
                                 loadingQuestions={loadingQuestions}
                             />
                         </div>

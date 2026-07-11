@@ -75,12 +75,6 @@ function Metric({icon: Icon, label, value, subjects}) {
     );
 }
 
-function formatAvgTime(seconds) {
-    if (seconds == null) return '—';
-    if (seconds < 60) return `${seconds}s`;
-    return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-}
-
 function EmptyState({title, text}) {
     return (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
@@ -449,14 +443,6 @@ function ProfilePage() {
                                 <div className="rounded-xl bg-slate-50 p-4">
                                     <p className="m-0 text-2xl font-bold text-slate-900">{accuracy}</p>
                                     <p className="m-0 mt-1 text-sm text-slate-500">Overall accuracy</p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{formatAvgTime(stats?.english_avg_time)}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Avg time · English</p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{formatAvgTime(stats?.math_avg_time)}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Avg time · Math</p>
                                 </div>
                             </div>
                         </Card>

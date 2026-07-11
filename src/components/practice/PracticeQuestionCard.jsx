@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {CheckCircle2, XCircle} from 'lucide-react';
+import {CheckCircle2, Pause, Play, RotateCcw, Timer, XCircle} from 'lucide-react';
 import {Button, Spinner} from '../ui';
 import RenderWithMath from '../RenderWithMath';
 import '../../styles/landing.css';
@@ -45,6 +45,9 @@ function PracticeQuestionCard({
     primaryAction,
     primaryActionLabel,
     timerSeconds = null,
+    timerRunning = false,
+    onTimerToggle,
+    onTimerReset,
     className = '',
 }) {
     const normalizedStatus = normalizeStatus(status);
@@ -115,9 +118,31 @@ function PracticeQuestionCard({
                             HIGHLIGHT
                         </button>
                         {timerSeconds != null && (
-                            <span className={`${MONO} rounded-md border border-[rgba(233,188,79,0.4)] px-[9px] py-[3px] text-[13px] text-[#E9BC4F]`}>
-                                {fmtTime(timerSeconds)}
-                            </span>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={onTimerToggle}
+                                    title={timerRunning ? 'Pause timer' : timerSeconds ? 'Resume timer' : 'Start timer'}
+                                    className={`${MONO} inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-[rgba(233,188,79,0.4)] px-[9px] py-[3px] text-[11px] text-[#E9BC4F] transition-colors hover:bg-[rgba(233,188,79,0.12)]`}
+                                >
+                                    {timerSeconds === 0 && !timerRunning ? (
+                                        <><Timer className="size-3.5"/> TIMER</>
+                                    ) : (
+                                        <>{timerRunning ? <Pause className="size-3.5"/> : <Play className="size-3.5"/>} {fmtTime(timerSeconds)}</>
+                                    )}
+                                </button>
+                                {timerSeconds > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={onTimerReset}
+                                        title="Reset timer"
+                                        aria-label="Reset timer"
+                                        className="grid size-7 cursor-pointer place-items-center rounded-md border border-[rgba(148,163,184,0.35)] text-[#B9C2D8] transition-colors hover:bg-white/10 hover:text-white"
+                                    >
+                                        <RotateCcw className="size-3.5"/>
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>
