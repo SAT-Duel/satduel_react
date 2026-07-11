@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {CheckCircle2, Crown, Flame, History, Lock, LogOut, Timer, XCircle, Zap} from 'lucide-react';
+import {CheckCircle2, Crown, Flame, History, Lock, LogOut, Swords, Timer, Trophy, XCircle, Zap} from 'lucide-react';
 import '../../styles/landing.css';
 import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
@@ -8,6 +8,7 @@ import api from '../../components/api';
 import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
 import ResetCountdown from '../../components/ResetCountdown';
+import DiscordCTA from '../../components/Discord';
 
 function TopicControl({quota, topics, selectedTopic, onChange, compact = false}) {
     const isPremium = quota?.is_premium;
@@ -205,7 +206,7 @@ function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, 
                         </div>
                     </div>
                     <Button onClick={onNext} disabled={loadingQuestions} className="mt-4" block>
-                        Next question
+                        {quota?.remaining === 0 ? 'See what’s next' : 'Next question'}
                     </Button>
                 </>
             )}
@@ -536,23 +537,37 @@ function InfiniteQuestionsPage() {
                             That's your free practice for today
                         </h1>
                         <p className="mx-auto mt-3 max-w-md text-slate-600">
-                            You answered {quota?.used ?? quota?.limit ?? ''} questions today. Your next {quota?.limit ?? 25}
-                            free questions unlock at your local midnight, or go premium for unlimited practice and topic selection.
+                            You answered {quota?.used ?? quota?.limit ?? ''} practice questions today. Your next {quota?.limit ?? 25}
+                            free practice questions unlock at your local midnight.
                         </p>
                         <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-amber-700">
                             <Timer className="size-4"/> <ResetCountdown target={quota?.reset_at} label="Free questions renew"/>
                         </p>
-                        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                            <Button size="lg" onClick={handleGetPremium} loading={billingLoading}>
-                                <Crown className="size-5"/> Get premium
+                        <p className="mx-auto mt-5 max-w-lg text-sm font-semibold text-slate-600">
+                            Duels and tournaments are still open — they never use your practice-question limit.
+                        </p>
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                            <Button to="/match" size="lg" block>
+                                <Swords className="size-5"/> Find a duel
+                            </Button>
+                            <Button to="/tournaments" variant="secondary" size="lg" block>
+                                <Trophy className="size-5"/> Play a 3-question tournament
+                            </Button>
+                        </div>
+                        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-slate-100 pt-5 text-left sm:flex-row">
+                            <p className="m-0 text-sm text-slate-600">
+                                Free community questions and study help are waiting in Discord.
+                            </p>
+                            <DiscordCTA className="shrink-0"/>
+                        </div>
+                        <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                            <Button size="sm" onClick={handleGetPremium} loading={billingLoading}>
+                                <Crown className="size-4"/> Unlimited practice
                             </Button>
                             <Button to="/trainer" variant="secondary" size="lg">
                                 Back to home
                             </Button>
                         </div>
-                        <p className="mt-4 text-sm text-slate-400">
-                            Secure checkout is handled by Stripe.
-                        </p>
                     </Card>
                 </PageContainer>
             </div>
@@ -594,7 +609,7 @@ function InfiniteQuestionsPage() {
                         topics={topicsBySubject[subject] || []}
                         selectedTopic={selectedTopic}
                         onTopicChange={handleTopicChange}
-                        onNext={() => fetchNextQuestion()}
+                        onNext={() => quota?.remaining === 0 ? setLimitReached(true) : fetchNextQuestion()}
                         loadingQuestions={loadingQuestions}
                     />
                 </div>
@@ -627,7 +642,7 @@ function InfiniteQuestionsPage() {
                                 topics={topicsBySubject[subject] || []}
                                 selectedTopic={selectedTopic}
                                 onTopicChange={handleTopicChange}
-                                onNext={() => fetchNextQuestion()}
+                                onNext={() => quota?.remaining === 0 ? setLimitReached(true) : fetchNextQuestion()}
                                 loadingQuestions={loadingQuestions}
                             />
                         </div>
