@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {Bot, ChevronRight, Clock, Swords} from 'lucide-react';
+import {ChevronRight, Clock, Swords} from 'lucide-react';
 import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import Question from '../components/Question';
@@ -28,13 +28,11 @@ function Duelist({player, label, score, answered, total, emote}) {
                 )}
             </div>
             <p className="m-0 mt-2 truncate font-bold text-slate-900">{player?.username || label}</p>
+            <p className="m-0 mt-0.5 text-xs font-bold text-primary-600">
+                {player?.elo_rating != null ? `${player.elo_rating} Elo` : '— Elo'}
+            </p>
             <p className="m-0 mt-0.5 text-2xl font-black text-slate-950">{score}</p>
             <p className="m-0 text-xs font-semibold text-slate-400">{answered}/{total} answered</p>
-            {player?.is_bot && (
-                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase text-slate-500">
-                    <Bot className="size-3"/> Practice rival
-                </span>
-            )}
         </div>
     );
 }

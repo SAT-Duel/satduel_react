@@ -1,235 +1,188 @@
 import React, {useEffect, useState} from 'react';
-import {useParams, useNavigate} from 'react-router-dom';
+import {Check, Home, Minus, RotateCcw, Swords, Trophy, X} from 'lucide-react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
-import Progress from '../components/Progress';
-import styled, {keyframes} from 'styled-components';
+import UserAvatar from '../components/UserAvatar';
 import api from '../components/api';
 
-const fadeIn = keyframes`
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-`;
+const OUTCOMES = {
+    win: {
+        eyebrow: 'Victory',
+        title: 'You won the duel',
+        text: 'Strong finish. Your Duel Elo is moving up.',
+        classes: 'bg-emerald-600',
+    },
+    loss: {
+        eyebrow: 'Defeat',
+        title: 'Your opponent takes it',
+        text: 'Review the misses, then run it back.',
+        classes: 'bg-rose-600',
+    },
+    draw: {
+        eyebrow: 'Draw',
+        title: 'Dead even',
+        text: 'Same score. One more duel settles it.',
+        classes: 'bg-slate-800',
+    },
+};
 
-const slideIn = keyframes`
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-`;
+function RatingLine({player}) {
+    const hasSnapshot = player?.elo_before != null && player?.elo_after != null;
+    const change = player?.elo_change;
+    const changeClass = change == null
+        ? 'text-slate-400'
+        : change >= 0 ? 'text-emerald-600' : 'text-rose-600';
 
-const PageBackground = styled.div`
-    min-height: 100vh;
-    background: #f5f7fa;
-    padding: 40px 20px;
-`;
+    return (
+        <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2.5">
+            <p className="m-0 text-[11px] font-black uppercase tracking-wide text-slate-400">Duel Elo</p>
+            {hasSnapshot ? (
+                <div className="mt-1 flex items-baseline justify-center gap-2">
+                    <span className="font-bold text-slate-500">{player.elo_before}</span>
+                    <span className="text-slate-300">→</span>
+                    <span className="text-xl font-black text-slate-950">{player.elo_after}</span>
+                    <span className={`font-black ${changeClass}`}>
+                        {change >= 0 ? '+' : ''}{change}
+                    </span>
+                </div>
+            ) : (
+                <p className="m-0 mt-1 font-bold text-slate-700">{player?.elo_rating ?? '—'}</p>
+            )}
+        </div>
+    );
+}
 
-const ResultPageContainer = styled.div`
-    max-width: 1200px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    animation: ${fadeIn} 0.5s ease-out;
-`;
+function PlayerResult({player, label}) {
+    const total = player?.results?.length || 10;
+    return (
+        <section className="min-w-0 text-center">
+            <UserAvatar profile={player} size="md" rounded="xl" className="mx-auto sm:size-20"/>
+            <p className="m-0 mt-3 truncate font-bold text-slate-900">{player?.username || label}</p>
+            <p className="m-0 mt-1 font-display text-4xl font-black text-slate-950">
+                {player?.score ?? 0}<span className="text-lg text-slate-300">/{total}</span>
+            </p>
+            <RatingLine player={player}/>
+        </section>
+    );
+}
 
-const Header = styled.h1`
-    font-size: 2.5rem;
-    text-align: center;
-    color: #2c3e50;
-    margin: 0;
-    padding: 24px;
-    background: #ecf0f1;
-`;
+function QuestionTrack({player, label}) {
+    return (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="w-32 shrink-0">
+                <p className="m-0 truncate text-sm font-bold text-slate-800">{label}</p>
+                <p className="m-0 text-xs text-slate-400">{player?.score ?? 0} correct</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+                {(player?.results || []).map((result, index) => {
+                    const correct = result.status === 'Correct';
+                    const blank = result.status === 'Blank';
+                    return (
+                        <span
+                            key={result.id}
+                            title={`Question ${index + 1}: ${result.status}`}
+                            className={[
+                                'flex size-8 items-center justify-center rounded-full text-white',
+                                correct ? 'bg-emerald-500' : blank ? 'bg-slate-300' : 'bg-rose-500',
+                            ].join(' ')}
+                        >
+                            {correct ? <Check className="size-4"/> : blank ? <Minus className="size-4"/> : <X className="size-4"/>}
+                        </span>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
-const WinnerSection = styled.div`
-    background: #3498db;
-    padding: 16px;
-    text-align: center;
-`;
-
-const WinnerText = styled.h2`
-    font-size: 2rem;
-    color: white;
-    margin: 0;
-`;
-
-const ResultsContainer = styled.div`
-    display: flex;
-    padding: 24px;
-    gap: 24px;
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-    }
-`;
-
-const PlayerResultSection = styled.div`
-    flex: 1;
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 24px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    animation: ${slideIn} 0.5s ease-out;
-`;
-
-const PlayerName = styled.h2`
-    font-size: 1.5rem;
-    color: #2c3e50;
-    margin-bottom: 16px;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 8px;
-`;
-
-const ScoreSection = styled.div`
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    font-size: 1.2rem;
-    background: #ecf0f1;
-    padding: 12px;
-    border-radius: 6px;
-`;
-
-const ProgressContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-
-const ProgressRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 12px;
-`;
-
-const QuestionText = styled.span`
-    flex: 1;
-    font-size: 0.9rem;
-    color: #34495e;
-`;
-
-const ButtonContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 24px;
-    padding-bottom: 24px;
-`;
-
-const Button = styled.button`
-    padding: 12px 24px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-`;
-
-const HomeButton = styled(Button)`
-    background-color: #2ecc71;
-    color: white;
-
-    &:hover {
-        background-color: #27ae60;
-    }
-`;
-
-const PlayAgainButton = styled(Button)`
-    background-color: #3498db;
-    color: white;
-
-    &:hover {
-        background-color: #2980b9;
-    }
-`;
-//TODO: Put the functions/function calls and calculations into a useEffect hook
 function BattleResultPage() {
     const {roomId} = useParams();
     const {loading} = useAuth();
     const [results, setResults] = useState(null);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchResults = async () => {
             try {
-                const response = await api.post('api/match/get_results/', {
-                    room_id: roomId,
-                });
+                const response = await api.post('api/match/get_results/', {room_id: roomId});
                 setResults(response.data);
             } catch (err) {
-                console.error('Error fetching results:', err);
+                setError(err.response?.data?.error || 'Could not load this duel result.');
             }
         };
+        if (!loading) fetchResults();
+    }, [loading, roomId]);
 
-        if (!loading) {
-            fetchResults();
-        }
-    }, [roomId, loading]);
-
-    if (!results) {
-        return <PageBackground><ResultPageContainer>Loading...</ResultPageContainer></PageBackground>;
+    if (error) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="max-w-xl"><Alert>{error}</Alert></PageContainer>
+            </div>
+        );
     }
 
-    const calculateScore = (userResults) => {
-        return userResults.filter(result => result.status === 'Correct').length;
-    };
+    if (!results) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+                <PageContainer className="flex justify-center">
+                    <div className="flex items-center gap-3 text-slate-600"><Spinner/> Loading result…</div>
+                </PageContainer>
+            </div>
+        );
+    }
 
-    const user1Score = calculateScore(results.user1_results);
-    const user2Score = calculateScore(results.user2_results);
-    const winner = user1Score > user2Score ? results.user1_results[0].user.username :
-        user2Score > user1Score ? results.user2_results[0].user.username : 'Tie';
+    const outcome = OUTCOMES[results.outcome] || OUTCOMES.draw;
+    const me = results.current_user;
+    const opponent = results.opponent;
 
     return (
-        <PageBackground>
-            <ResultPageContainer>
-                <Header>Battle Results</Header>
-                <WinnerSection>
-                    <WinnerText>
-                        {winner === 'Tie' ? "It's a Tie!" : `The winner is: ${winner}`}
-                    </WinnerText>
-                </WinnerSection>
-                <ResultsContainer>
-                    {[results.user1_results, results.user2_results].map((userResults, index) => (
-                        <PlayerResultSection key={index}>
-                            <PlayerName>{userResults[0].user.username}</PlayerName>
-                            <ScoreSection>
-                                <span>Correct Answers:</span>
-                                <span>{calculateScore(userResults)} / {userResults.length}</span>
-                            </ScoreSection>
-                            <ProgressContainer>
-                                {userResults.map((result, i) => (
-                                    <ProgressRow key={result.id}>
-                                        <Progress
-                                            status={result.status}
-                                            questionNumber={i + 1}
-                                        />
-                                        <QuestionText>{result.question_text}</QuestionText>
-                                    </ProgressRow>
-                                ))}
-                            </ProgressContainer>
-                        </PlayerResultSection>
-                    ))}
-                </ResultsContainer>
-                <ButtonContainer>
-                    <HomeButton onClick={() => navigate('/')}>Return to Homepage</HomeButton>
-                    <PlayAgainButton onClick={() => navigate('/match')}>Play Again</PlayAgainButton>
-                </ButtonContainer>
-            </ResultPageContainer>
-        </PageBackground>
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
+            <PageContainer className="max-w-4xl">
+                <Card className="sat-arena-card overflow-hidden">
+                    <header className={`${outcome.classes} px-6 py-7 text-center text-white sm:px-10 sm:py-9`}>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-black uppercase tracking-wider">
+                            {results.outcome === 'win' ? <Trophy className="size-4"/> : <Swords className="size-4"/>}
+                            {outcome.eyebrow}
+                        </span>
+                        <h1 className="m-0 mt-3 font-display text-3xl font-black sm:text-4xl">{outcome.title}</h1>
+                        <p className="mx-auto mb-0 mt-2 max-w-md text-sm font-medium text-white/80 sm:text-base">{outcome.text}</p>
+                    </header>
+
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-4 px-5 py-7 sm:gap-10 sm:px-10 sm:py-9">
+                        <PlayerResult player={me} label="You"/>
+                        <div className="pt-8 text-center sm:pt-10">
+                            <p className="m-0 font-display text-2xl font-black text-slate-300">VS</p>
+                            <p className="m-0 mt-2 whitespace-nowrap font-display text-2xl font-black text-slate-950 sm:text-3xl">
+                                {me?.score ?? 0}–{opponent?.score ?? 0}
+                            </p>
+                        </div>
+                        <PlayerResult player={opponent} label="Opponent"/>
+                    </div>
+                </Card>
+
+                <Card className="mt-5 p-5 sm:p-6">
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 className="m-0 text-lg font-bold text-slate-900">Question breakdown</h2>
+                        <span className="text-xs font-bold uppercase tracking-wide text-slate-400">10 questions</span>
+                    </div>
+                    <div className="mt-5 space-y-5">
+                        <QuestionTrack player={me} label="You"/>
+                        <QuestionTrack player={opponent} label={opponent?.username || 'Opponent'}/>
+                    </div>
+                </Card>
+
+                <div className="mt-6 flex flex-col-reverse justify-center gap-3 sm:flex-row">
+                    <Button onClick={() => navigate('/')} variant="secondary">
+                        <Home className="size-4"/> Home
+                    </Button>
+                    <Button onClick={() => navigate('/match')}>
+                        <RotateCcw className="size-4"/> Duel again
+                    </Button>
+                </div>
+            </PageContainer>
+        </div>
     );
 }
 
