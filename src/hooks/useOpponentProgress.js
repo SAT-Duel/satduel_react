@@ -28,13 +28,14 @@ const useOpponentProgress = (roomId, setOpponentProgress) => {
     }, [roomId, token, setOpponentProgress]);
 
     useEffect(() => {
-        if (!loading) {
+        if (!loading && token) {
+            fetchProgress();
             const interval = setInterval(() => {
                 fetchProgress(); // Call the function inside the interval
             }, 2000);
             return () => clearInterval(interval); // Clear the interval on component unmount
         }
-    }, [fetchProgress, loading]);
+    }, [fetchProgress, loading, token]);
 };
 
 export default useOpponentProgress;

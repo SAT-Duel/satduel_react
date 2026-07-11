@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
-import axios from 'axios';
 import {useAuth} from '../context/AuthContext';
 import Progress from '../components/Progress';
 import styled, {keyframes} from 'styled-components';
+import api from '../components/api';
 
 const fadeIn = keyframes`
     from {
@@ -166,8 +166,7 @@ function BattleResultPage() {
     useEffect(() => {
         const fetchResults = async () => {
             try {
-                const baseUrl = import.meta.env.VITE_API_URL;
-                const response = await axios.post(`${baseUrl}/api/match/get_results/`, {
+                const response = await api.post('api/match/get_results/', {
                     room_id: roomId,
                 });
                 setResults(response.data);
@@ -193,34 +192,6 @@ function BattleResultPage() {
     const user2Score = calculateScore(results.user2_results);
     const winner = user1Score > user2Score ? results.user1_results[0].user.username :
         user2Score > user1Score ? results.user2_results[0].user.username : 'Tie';
-
-    const setWinner = async (winner) => {
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL;
-            await axios.post(`${baseUrl}/api/match/set_winner/`, {
-                room_id: roomId,
-                winner: winner
-            });
-        } catch (err) {
-            console.error('Error setting winner:', err);
-        }
-    };
-
-    const setScore = async () => {
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL;
-            await axios.post(`${baseUrl}/api/match/set_score/`, {
-                room_id: roomId,
-                user1_score: user1Score,
-                user2_score: user2Score,
-            });
-        } catch (err) {
-            console.error('Error setting score:', err);
-        }
-    };
-
-    setScore();
-    setWinner(winner);
 
     return (
         <PageBackground>

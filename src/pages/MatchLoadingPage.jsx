@@ -4,15 +4,15 @@ import {Swords} from 'lucide-react';
 import {Card, PageContainer, Spinner} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
+import UserAvatar from '../components/UserAvatar';
 
 function PlayerBadge({user, fallback}) {
     const username = user?.username || fallback;
     return (
         <div className="flex flex-col items-center">
-            <div className="flex size-20 items-center justify-center rounded-full bg-primary-100 font-display text-2xl font-bold text-primary-700 ring-4 ring-white">
-                {username?.[0]?.toUpperCase() || '?'}
-            </div>
+            <UserAvatar profile={user || {username}} size="md" rounded="xl" className="sm:size-20"/>
             <p className="m-0 mt-3 font-bold text-slate-900">{username}</p>
+            {user?.is_bot && <p className="m-0 mt-0.5 text-xs font-semibold text-slate-400">Practice rival</p>}
         </div>
     );
 }
