@@ -12,6 +12,7 @@ function Question({
     onSubmit,
     status,
     questionNumber,
+    totalQuestions,
     disabled = false,
     showQuestionNumber = true,
     timerSeconds = null,
@@ -65,6 +66,7 @@ function Question({
         <PracticeQuestionCard
             question={questionData}
             questionNumber={questionNumber}
+            totalQuestions={totalQuestions}
             selectedChoice={selectedChoice}
             onSelectChoice={setSelectedChoice}
             onSubmit={handleSubmit}

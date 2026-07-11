@@ -28,21 +28,12 @@ start/pause/reset tool and no longer affects Elo or profile statistics.
   switcher, with green ▲ / red ▼ delta column and the viewer's own row highlighted.
 - No Elo changes; this is a separate points ladder (e.g. 1 pt/correct, duel win bonus).
 
-## 3. Duel streak multiplier + live opponent status
+## 3. Live practice-rival duels — ✅ DONE (July 2026)
 
-**Landing claim:** "STREAK ×3" badges in duels, "streaks stack bonus points", opponent "answering…" / "ANSWERED · 14s" states, per-question green/red progress segments, avg response time.
-
-**Task:** In the duel flow (`src/pages/DuelBattlePage.jsx` + duel consumers/endpoints in the
-Django repo):
-- Track consecutive-correct streak per player within a duel; award bonus points
-  (e.g. +1 per answer while streak ≥ 3) and show a "STREAK ×N" chip.
-- Broadcast opponent answer events over the existing duel channel so each client can show
-  "answering…" (pulsing) vs "answered in Ns" per question.
-- Render a 10-segment progress bar per player (green = correct, red = miss, violet pulse =
-  current question) exactly like the landing hero's duel card.
-- Show avg response time per player in the result screen.
-Check what the duel websocket already sends before adding events — some of this state may
-already exist server-side.
+The queue now falls back to one of 24 rotating bot profiles when no real player is waiting.
+Duels show one question at a time, player avatars and live 10-question progress, plus four
+animated reactions. Practice rivals answer and react through the existing polling loop.
+Scores are graded and finalized server-side before Duel Elo changes.
 
 ## 4. Rematch after a duel
 

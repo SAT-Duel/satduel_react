@@ -120,10 +120,11 @@ function MatchingPage() {
             }
         };
 
+        if (!token) return undefined;
         fetchOnlineUsers();
         const interval = setInterval(fetchOnlineUsers, 8000);
         return () => clearInterval(interval);
-    }, []);
+    }, [token]);
 
     useEffect(() => {
         const sendHeartbeat = async () => {
@@ -309,10 +310,14 @@ function MatchingPage() {
                             <div className="mt-4 max-h-96 space-y-2 overflow-y-auto">
                                 {onlineUsers.length ? onlineUsers.map((onlineUser) => (
                                     <div key={onlineUser.id || onlineUser.username} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
-                                        <span className="flex size-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
-                                            {onlineUser.username?.[0]?.toUpperCase() || '?'}
-                                        </span>
-                                        <span className="truncate font-semibold text-slate-800">{onlineUser.username}</span>
+                                        <UserAvatar profile={onlineUser} size="xs" className="ring-0"/>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="m-0 truncate font-semibold text-slate-800">{onlineUser.username}</p>
+                                            <p className="m-0 text-xs text-slate-400">
+                                                {onlineUser.is_bot ? 'Practice rival' : `${onlineUser.elo_rating} rating`}
+                                            </p>
+                                        </div>
+                                        <span className="size-2 rounded-full bg-emerald-500"/>
                                     </div>
                                 )) : (
                                     <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">

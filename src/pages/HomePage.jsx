@@ -642,7 +642,7 @@ function Multiplayer() {
                     <Eyebrow color="#F08A3E">DUEL MODE</Eyebrow>
                     <H2 className="sm:text-[42px]">Same 10 questions. One winner.</H2>
                     <p className="m-0 mt-4 text-[16.5px] leading-relaxed text-[var(--sd-mut)]">
-                        Challenge a friend to 10 Digital SAT questions — or get matched with a student at your rating. Same set, same clock. Accuracy scores, speed breaks ties, streaks stack bonus points.
+                        Race through 10 Digital SAT questions against a live student, or get an instant practice rival when the queue is quiet. Same set, same clock. Accuracy wins, and every completed round moves your duel rating.
                     </p>
                     <PrimaryCta className="mt-7 px-7 py-3.5 text-[15.5px]">Challenge a friend</PrimaryCta>
                 </div>
@@ -653,28 +653,24 @@ function Multiplayer() {
                         <span className={`${MONO} text-base text-[var(--sd-gold-lbl)]`}>{fmt(duelTimer)}</span>
                     </div>
                     <div className="mt-[18px] grid grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
-                        <div className="rounded-[14px] border-[1.5px] border-[rgba(124,92,240,0.45)] bg-[rgba(124,92,240,0.1)] p-4 text-center">
+                        <div className="relative rounded-[14px] border-[1.5px] border-[rgba(124,92,240,0.45)] bg-[rgba(124,92,240,0.1)] p-4 text-center">
+                            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl">🔥</span>
                             <img src={novaQuill} alt="" className="image-render-pixel mx-auto size-[52px] rounded-xl"/>
                             <div className="mt-2 text-sm font-bold text-[var(--sd-text)]">ilovemath2026</div>
                             <div className="sd-display mt-1 text-[34px] font-bold text-[var(--sd-text)]">7</div>
-                            <div className="mt-1.5 flex flex-wrap justify-center gap-1.5">
-                                <span className={`${MONO} rounded-[5px] border border-[rgba(240,138,62,0.4)] bg-[rgba(240,138,62,0.15)] px-[7px] py-0.5 text-[10px] text-[var(--sd-orange-lbl)]`}>STREAK ×3</span>
-                                <span className={`${MONO} rounded-[5px] border border-[rgba(47,191,113,0.35)] bg-[rgba(47,191,113,0.12)] px-[7px] py-0.5 text-[10px] text-[var(--sd-green-lbl)]`}>ANSWERED · 14s</span>
-                            </div>
+                            <span className={`${MONO} mt-1.5 inline-block rounded-[5px] border border-[rgba(47,191,113,0.35)] bg-[rgba(47,191,113,0.12)] px-[7px] py-0.5 text-[10px] text-[var(--sd-green-lbl)]`}>7/10 ANSWERED</span>
                         </div>
                         <div className="sd-display text-center text-xl font-bold text-[var(--sd-dim)]">VS</div>
                         <div className="rounded-[14px] border-[1.5px] border-[var(--sd-line2)] bg-[var(--sd-track)] p-4 text-center">
                             <img src={emberAbacus} alt="" className="image-render-pixel mx-auto size-[52px] rounded-xl"/>
                             <div className="mt-2 text-sm font-bold text-[var(--sd-text)]">satslayer</div>
                             <div className="sd-display mt-1 text-[34px] font-bold text-[var(--sd-mut2)]">6</div>
-                            <div className="mt-1.5 flex justify-center">
-                                <span className={`${MONO} sd-pulse rounded-[5px] border border-[var(--sd-line2)] px-[7px] py-0.5 text-[10px] font-medium text-[var(--sd-mut2)]`}>ANSWERING…</span>
-                            </div>
+                            <span className={`${MONO} mt-1.5 inline-block rounded-[5px] border border-[var(--sd-line2)] px-[7px] py-0.5 text-[10px] font-medium text-[var(--sd-mut2)]`}>6/10 ANSWERED</span>
                         </div>
                     </div>
                     <div className="mt-[18px] flex flex-wrap items-center justify-between gap-2 border-t border-[var(--sd-line)] pt-3.5">
-                        <span className={`${MONO} text-[11.5px] font-medium text-[var(--sd-dim)]`}>winner takes +25 duel rating</span>
-                        <span className={`${MONO} text-[11.5px] text-[var(--sd-orange-lbl)]`}>rematch unlocks after Q10</span>
+                        <span className={`${MONO} text-[11.5px] font-medium text-[var(--sd-dim)]`}>winner moves up the duel ladder</span>
+                        <span className={`${MONO} text-[11.5px] text-[var(--sd-orange-lbl)]`}>results unlock after Q10</span>
                     </div>
                 </div>
             </div>
@@ -963,7 +959,7 @@ function Progress() {
 const TRAIN_TILES = [
     {title: 'Power Sprint', sub: 'PICK A CLOCK · RACK UP ANSWERS', text: 'Set a timer and answer as many questions as you can before it hits zero.'},
     {title: 'SAT Survival', sub: 'HOW LONG CAN YOU LAST?', text: 'Keep answering until you miss. Every run is a new high score to beat.'},
-    {title: 'Bot Duels', sub: 'EASY · MEDIUM · HARD', text: 'No friends online? Duel a practice bot tuned to three difficulty levels.'},
+    {title: 'Practice Rivals', sub: 'READY WHEN THE QUEUE IS QUIET', text: 'No one waiting? Match instantly with a rotating SAT Duel rival that answers and reacts in real time.'},
     {title: 'Full Practice Tests', sub: 'FULL TIMED MODULES', text: 'Sit a complete timed module and get a score report you can reopen anytime.'},
     {title: '2-Minute Diagnostic', sub: 'NO SIGNUP NEEDED', text: 'Answer a few questions and get an instant estimate of where you stand.'},
     {title: 'Coin Shop', sub: 'EARN COINS FROM PRACTICE', text: 'Every session earns coins. Spend them on pixel avatars and cosmetics.'},

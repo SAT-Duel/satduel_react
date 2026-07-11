@@ -1,46 +1,55 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {CheckCircle2, Clock, MinusCircle, Swords, XCircle} from 'lucide-react';
-import {Alert, Card, PageContainer, Spinner} from '../components/ui';
+import {Bot, ChevronRight, Clock, Swords} from 'lucide-react';
+import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import Question from '../components/Question';
+import UserAvatar from '../components/UserAvatar';
 import useOpponentProgress from '../hooks/useOpponentProgress';
 import api from '../components/api';
+import '../styles/landing.css';
+
+const EMOJIS = ['👍', '🔥', '😂', '😮'];
 
 function formatTime(seconds) {
     if (seconds === null) return '--:--';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
-function statusMeta(status) {
-    if (status === 'Correct') {
-        return {
-            icon: CheckCircle2,
-            classes: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        };
-    }
-    if (status === 'Incorrect') {
-        return {
-            icon: XCircle,
-            classes: 'bg-rose-50 text-rose-700 border-rose-200',
-        };
-    }
-    return {
-        icon: MinusCircle,
-        classes: 'bg-slate-50 text-slate-500 border-slate-200',
-    };
-}
-
-function ProgressRow({status, questionNumber}) {
-    const meta = statusMeta(status);
-    const Icon = meta.icon;
+function Duelist({player, label, score, answered, total, emote}) {
     return (
-        <div className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold ${meta.classes}`}>
-            <Icon className="size-4"/>
-            <span>Question {questionNumber}</span>
-            <span className="ml-auto">{status}</span>
+        <div className="relative min-w-0 flex-1 text-center">
+            <div className="relative mx-auto w-fit">
+                <UserAvatar profile={player || {username: label}} size="md" rounded="xl"/>
+                {emote && (
+                    <span key={emote.id} className="sd-duel-emote absolute -top-10 left-1/2 z-10 text-4xl drop-shadow-lg">
+                        {emote.emoji}
+                    </span>
+                )}
+            </div>
+            <p className="m-0 mt-2 truncate font-bold text-slate-900">{player?.username || label}</p>
+            <p className="m-0 mt-0.5 text-2xl font-black text-slate-950">{score}</p>
+            <p className="m-0 text-xs font-semibold text-slate-400">{answered}/{total} answered</p>
+            {player?.is_bot && (
+                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase text-slate-500">
+                    <Bot className="size-3"/> Practice rival
+                </span>
+            )}
+        </div>
+    );
+}
+
+function ProgressDots({questions, activeIndex}) {
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            {questions.map((entry, index) => {
+                const color = entry.status === 'Correct'
+                    ? 'bg-emerald-500'
+                    : entry.status === 'Incorrect'
+                        ? 'bg-rose-500'
+                        : index === activeIndex ? 'bg-primary-500 ring-4 ring-primary-100' : 'bg-slate-200';
+                return <span key={entry.id} className={`size-2.5 rounded-full ${color}`} title={`Question ${index + 1}: ${entry.status}`}/>;
+            })}
         </div>
     );
 }
@@ -49,63 +58,66 @@ function DuelBattlePage() {
     const {loading} = useAuth();
     const {roomId} = useParams();
     const [questions, setQuestions] = useState([]);
+    const [activeIndex, setActiveIndex] = useState(0);
     const [loadingQuestions, setLoadingQuestions] = useState(true);
     const [trackedQuestionMap, setTrackedQuestionMap] = useState({});
     const [opponentProgress, setOpponentProgress] = useState([]);
+    const [players, setPlayers] = useState({currentUser: null, opponent: null});
+    const [emotes, setEmotes] = useState([]);
     const [endTime, setEndTime] = useState(null);
     const [timeLeft, setTimeLeft] = useState(null);
     const [notice, setNotice] = useState(null);
+    const finishing = useRef(false);
     const navigate = useNavigate();
 
-    const endMatch = useCallback(async () => {
+    const finishMatch = useCallback(async () => {
+        if (finishing.current) return;
+        finishing.current = true;
         try {
             await api.post('api/match/end_match/', {room_id: roomId});
+            navigate(`/battle_result/${roomId}`);
         } catch (err) {
+            finishing.current = false;
             setNotice({type: 'error', text: err.response?.data?.error || 'Could not end the match.'});
         }
-    }, [roomId]);
+    }, [navigate, roomId]);
 
     useEffect(() => {
         if (loading || loadingQuestions) return;
-        if (
-            questions.length > 0 &&
-            opponentProgress.length > 0 &&
-            questions.every((entry) => entry.status !== 'Blank') &&
-            opponentProgress.every((entry) => entry.status !== 'Blank')
-        ) {
-            endMatch();
-            navigate(`/battle_result/${roomId}`);
+        if (questions.length && opponentProgress.length
+            && questions.every((entry) => entry.status !== 'Blank')
+            && opponentProgress.every((entry) => entry.status !== 'Blank')) {
+            finishMatch();
         }
-    }, [endMatch, loading, loadingQuestions, navigate, opponentProgress, questions, roomId]);
+    }, [finishMatch, loading, loadingQuestions, opponentProgress, questions]);
 
     useEffect(() => {
-        const fetchEndTime = async () => {
+        const loadBattle = async () => {
             try {
-                const response = await api.post('api/match/get_end_time/', {room_id: roomId});
-                setEndTime(new Date(response.data.end_time));
+                const [timeResponse, infoResponse] = await Promise.all([
+                    api.post('api/match/get_end_time/', {room_id: roomId}),
+                    api.post('api/match/info/', {room_id: roomId}),
+                ]);
+                setEndTime(new Date(timeResponse.data.end_time));
+                setPlayers(infoResponse.data);
             } catch (err) {
-                setNotice({type: 'error', text: err.response?.data?.error || 'Could not load battle timer.'});
+                setNotice({type: 'error', text: err.response?.data?.error || 'Could not load battle information.'});
             }
         };
-        fetchEndTime();
-    }, [roomId]);
+        if (!loading) loadBattle();
+    }, [loading, roomId]);
 
     useEffect(() => {
         if (!endTime) return undefined;
-        const timer = setInterval(() => {
-            const difference = endTime - new Date();
-            if (difference > 0) {
-                setTimeLeft(Math.round(difference / 1000));
-            } else {
-                clearInterval(timer);
-                setTimeLeft(0);
-                endMatch();
-                navigate(`/battle_result/${roomId}`);
-            }
-        }, 500);
-
+        const tick = () => {
+            const remaining = Math.max(0, Math.round((endTime - new Date()) / 1000));
+            setTimeLeft(remaining);
+            if (remaining === 0) finishMatch();
+        };
+        tick();
+        const timer = setInterval(tick, 500);
         return () => clearInterval(timer);
-    }, [endMatch, endTime, navigate, roomId]);
+    }, [endTime, finishMatch]);
 
     useOpponentProgress(roomId, setOpponentProgress);
 
@@ -114,57 +126,73 @@ function DuelBattlePage() {
             try {
                 const response = await api.post('api/match/questions/', {room_id: roomId});
                 setQuestions(response.data);
-                const questionMap = {};
-                response.data.forEach((trackedQuestion) => {
-                    questionMap[trackedQuestion.question.id] = trackedQuestion.id;
-                });
-                setTrackedQuestionMap(questionMap);
+                const firstBlank = response.data.findIndex((entry) => entry.status === 'Blank');
+                setActiveIndex(firstBlank === -1 ? response.data.length : firstBlank);
+                setTrackedQuestionMap(Object.fromEntries(
+                    response.data.map((entry) => [entry.question.id, entry.id]),
+                ));
             } catch (err) {
                 setNotice({type: 'error', text: err.response?.data?.error || 'Could not load duel questions.'});
             } finally {
                 setLoadingQuestions(false);
             }
         };
+        if (!loading) fetchQuestions();
+    }, [loading, roomId]);
 
-        if (!loading) {
-            fetchQuestions();
-        }
+    useEffect(() => {
+        const fetchEmotes = async () => {
+            try {
+                const response = await api.get('api/match/emotes/', {params: {room_id: roomId}});
+                setEmotes(response.data.emotes || []);
+            } catch {
+                // Reactions are optional; the duel continues if polling misses.
+            }
+        };
+        if (loading) return undefined;
+        fetchEmotes();
+        const interval = setInterval(fetchEmotes, 1200);
+        return () => clearInterval(interval);
     }, [loading, roomId]);
 
     const handleQuestionSubmit = async (id, choice) => {
         try {
-            const trackedQuestionId = trackedQuestionMap[id];
-            const answerResponse = await api.post('api/check_answer/', {
-                question_id: id,
+            const response = await api.post('api/match/update/', {
+                tracked_question_id: trackedQuestionMap[id],
                 selected_choice: choice,
             });
-            const result = answerResponse.data.result;
-            const updateResponse = await api.post('api/match/update/', {
-                tracked_question_id: trackedQuestionId,
-                result,
-            });
-
-            if (updateResponse.data.status === 'success') {
-                setQuestions((previousQuestions) =>
-                    previousQuestions.map((question) =>
-                        question.id === trackedQuestionId
-                            ? {...question, status: result === 'correct' ? 'Correct' : 'Incorrect'}
-                            : question
-                    )
-                );
-            }
+            const result = response.data.result;
+            setQuestions((previous) => previous.map((entry) =>
+                entry.id === trackedQuestionMap[id]
+                    ? {...entry, status: result === 'correct' ? 'Correct' : 'Incorrect'}
+                    : entry));
         } catch (err) {
             setNotice({type: 'error', text: err.response?.data?.error || 'Could not save your answer.'});
         }
     };
 
-    const answeredCount = questions.filter((question) => question.status !== 'Blank').length;
-    const opponentAnsweredCount = opponentProgress.filter((question) => question.status !== 'Blank').length;
-    const userDone = questions.length > 0 && answeredCount === questions.length;
+    const sendEmote = async (emoji) => {
+        try {
+            const response = await api.post('api/match/emotes/', {room_id: roomId, emoji});
+            setEmotes(response.data.emotes || []);
+        } catch (err) {
+            if (err.response?.status !== 429) {
+                setNotice({type: 'error', text: 'Could not send that reaction.'});
+            }
+        }
+    };
 
-    if (loadingQuestions) {
+    const recentEmote = (userId) => [...emotes].reverse().find((emote) =>
+        emote.sender_id === userId && Date.now() - new Date(emote.visible_at).getTime() < 3000);
+    const answeredCount = questions.filter((entry) => entry.status !== 'Blank').length;
+    const opponentAnsweredCount = opponentProgress.filter((entry) => entry.status !== 'Blank').length;
+    const myScore = questions.filter((entry) => entry.status === 'Correct').length;
+    const opponentScore = opponentProgress.filter((entry) => entry.status === 'Correct').length;
+    const activeQuestion = questions[activeIndex];
+
+    if (loadingQuestions || !endTime) {
         return (
-            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
+            <div className="min-h-screen bg-slate-50 py-16">
                 <PageContainer className="flex justify-center">
                     <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-600">
                         <Spinner/> Loading duel…
@@ -174,109 +202,104 @@ function DuelBattlePage() {
         );
     }
 
-    if (!endTime) {
-        return (
-            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
-                <PageContainer className="flex justify-center">
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-600">
-                        <Spinner/> Loading battle information…
-                    </div>
-                </PageContainer>
-            </div>
-        );
-    }
-
     return (
-        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
+        <div className="sat-bubble-field min-h-screen py-6 sm:py-8">
             <PageContainer>
-                {notice && (
-                    <div className="mb-6">
-                        <Alert type={notice.type === 'success' ? 'success' : 'error'}>{notice.text}</Alert>
-                    </div>
-                )}
+                {notice && <div className="mb-4"><Alert>{notice.text}</Alert></div>}
 
-                <div className="sat-arena-card mb-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3.5 py-1.5 text-sm font-black text-white">
-                                <Swords className="size-4"/> Live duel
-                            </span>
-                            <h1 className="m-0 mt-3 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
-                                Answer quickly. Stay accurate.
-                            </h1>
-                            <p className="m-0 mt-2 text-slate-600">
-                                Your answers save instantly. Results unlock when both players finish or the timer ends.
-                            </p>
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
-                            <div className="rounded-xl bg-slate-50 p-4">
-                                <p className="m-0 text-sm font-semibold text-slate-500">Time left</p>
-                                <p className="m-0 mt-1 flex items-center gap-2 text-2xl font-bold text-slate-900">
-                                    <Clock className="size-5 text-primary-600"/> {formatTime(timeLeft)}
-                                </p>
-                            </div>
-                            <div className="rounded-xl bg-slate-50 p-4">
-                                <p className="m-0 text-sm font-semibold text-slate-500">You</p>
-                                <p className="m-0 mt-1 text-2xl font-bold text-slate-900">
-                                    {answeredCount}/{questions.length}
-                                </p>
-                            </div>
-                            <div className="rounded-xl bg-slate-50 p-4">
-                                <p className="m-0 text-sm font-semibold text-slate-500">Opponent</p>
-                                <p className="m-0 mt-1 text-2xl font-bold text-slate-900">
-                                    {opponentAnsweredCount}/{opponentProgress.length || questions.length}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#131B2C] px-5 py-4 text-white shadow-lg">
+                    <span className="inline-flex items-center gap-2 font-display text-lg font-bold">
+                        <Swords className="size-5 text-primary-300"/> Live duel
+                    </span>
+                    <span className="text-sm font-semibold text-slate-300">
+                        Question {Math.min(activeIndex + 1, questions.length)} of {questions.length}
+                    </span>
+                    <span className="inline-flex items-center gap-2 font-display text-xl font-bold text-amber-300">
+                        <Clock className="size-5"/> {formatTime(timeLeft)}
+                    </span>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-                    <main className="space-y-5">
-                        {questions.map((trackedQuestion, index) => (
-                            <Question
-                                questionData={trackedQuestion.question}
-                                key={trackedQuestion.id}
-                                onSubmit={handleQuestionSubmit}
-                                status={trackedQuestion.status}
-                                questionNumber={index + 1}
-                            />
-                        ))}
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+                    <main className="space-y-4">
+                        <Card className="flex items-center justify-between gap-4 p-4">
+                            <ProgressDots questions={questions} activeIndex={activeIndex}/>
+                            <span className="shrink-0 text-sm font-bold text-slate-500">{answeredCount}/{questions.length}</span>
+                        </Card>
 
-                        {userDone && (
-                            <Card className="p-5 text-center">
-                                <h2 className="m-0 text-xl font-bold text-slate-900">Answers saved</h2>
-                                <p className="mx-auto mt-2 max-w-md text-slate-600">
-                                    Waiting for your opponent. You can leave safely and find the result later in your profile history.
-                                </p>
+                        {activeQuestion ? (
+                            <>
+                                <Question
+                                    questionData={activeQuestion.question}
+                                    key={activeQuestion.id}
+                                    onSubmit={handleQuestionSubmit}
+                                    status={activeQuestion.status}
+                                    questionNumber={activeIndex + 1}
+                                    totalQuestions={questions.length}
+                                />
+                                {activeQuestion.status !== 'Blank' && (
+                                    <div className="flex justify-end">
+                                        <Button onClick={() => setActiveIndex((index) => index + 1)}>
+                                            {activeIndex + 1 === questions.length ? 'Finish' : 'Next question'}
+                                            <ChevronRight className="size-4"/>
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <Card className="p-8 text-center">
+                                <h2 className="m-0 text-xl font-bold text-slate-900">All answers saved</h2>
+                                <p className="m-0 mt-2 text-slate-500">Your rival is finishing up. The result opens automatically.</p>
                             </Card>
                         )}
                     </main>
 
-                    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-                        <Card className="p-5">
-                            <h2 className="m-0 text-xl font-bold text-slate-900">Opponent progress</h2>
-                            <div className="mt-4 space-y-2">
-                                {opponentProgress.length ? opponentProgress.map((trackedQuestion, index) => (
-                                    <ProgressRow
-                                        key={trackedQuestion.id}
-                                        status={trackedQuestion.status}
-                                        questionNumber={index + 1}
-                                    />
-                                )) : (
-                                    <p className="m-0 text-sm text-slate-500">Waiting for progress updates…</p>
-                                )}
+                    <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+                        <Card className="sat-arena-card p-5">
+                            <div className="flex items-start gap-3">
+                                <Duelist
+                                    player={players.currentUser}
+                                    label="You"
+                                    score={myScore}
+                                    answered={answeredCount}
+                                    total={questions.length}
+                                    emote={recentEmote(players.currentUser?.id)}
+                                />
+                                <span className="pt-8 font-display text-xl font-black text-slate-300">VS</span>
+                                <Duelist
+                                    player={players.opponent}
+                                    label="Opponent"
+                                    score={opponentScore}
+                                    answered={opponentAnsweredCount}
+                                    total={opponentProgress.length || questions.length}
+                                    emote={recentEmote(players.opponent?.id)}
+                                />
+                            </div>
+
+                            <div className="mt-5 border-t border-slate-100 pt-4">
+                                <p className="m-0 text-center text-xs font-bold uppercase tracking-wide text-slate-400">Send a reaction</p>
+                                <div className="mt-3 grid grid-cols-4 gap-2">
+                                    {EMOJIS.map((emoji) => (
+                                        <button
+                                            key={emoji}
+                                            type="button"
+                                            onClick={() => sendEmote(emoji)}
+                                            aria-label={`Send ${emoji}`}
+                                            className="cursor-pointer rounded-xl border border-slate-200 bg-white py-2 text-2xl transition-transform hover:-translate-y-0.5 hover:bg-slate-50"
+                                        >
+                                            {emoji}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </Card>
 
                         <Card className="p-5">
-                            <h2 className="m-0 text-xl font-bold text-slate-900">Match timer</h2>
-                            <div className="mt-4 rounded-2xl bg-primary-50 px-5 py-6 text-center">
-                                <p className="m-0 font-display text-4xl font-bold text-primary-700">
-                                    {formatTime(timeLeft)}
-                                </p>
-                                <p className="m-0 mt-1 text-sm font-semibold text-primary-700">remaining</p>
+                            <div className="flex items-center justify-between">
+                                <h2 className="m-0 text-base font-bold text-slate-900">Rival progress</h2>
+                                <span className="text-sm font-bold text-primary-600">{opponentAnsweredCount}/{opponentProgress.length || questions.length}</span>
+                            </div>
+                            <div className="mt-4">
+                                <ProgressDots questions={opponentProgress} activeIndex={opponentAnsweredCount}/>
                             </div>
                         </Card>
                     </aside>

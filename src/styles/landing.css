@@ -117,3 +117,14 @@
     animation: sdshine 2.6s infinite;
     pointer-events: none;
 }
+@keyframes sd-duel-emote-pop {
+    0% { opacity: 0; transform: translate(-50%, 8px) scale(.45) rotate(-10deg); }
+    20% { opacity: 1; transform: translate(-50%, -8px) scale(1.2) rotate(8deg); }
+    40% { transform: translate(-50%, -5px) scale(1) rotate(-7deg); }
+    65% { transform: translate(-50%, -8px) scale(1.08) rotate(5deg); }
+    100% { opacity: 0; transform: translate(-50%, -18px) scale(.9) rotate(-4deg); }
+}
+
+.sd-duel-emote {
+    animation: sd-duel-emote-pop 2.8s ease-out both;
+}
