@@ -22,6 +22,7 @@ import withAuth from '../hoc/withAuth';
 import api from '../components/api';
 import {useAuth} from '../context/AuthContext';
 import {Button, Card, PageContainer, Spinner} from '../components/ui';
+import ResetCountdown from '../components/ResetCountdown';
 
 const DAILY_GOAL = 10;
 
@@ -392,6 +393,22 @@ function HomeDashboard() {
                                         {dailyComplete ? 'Keep practicing' : 'Start today’s practice'} <ArrowRight className="size-4"/>
                                     </Button>
                                 </div>
+                                {daily?.day_ends_at && (
+                                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs font-bold text-slate-500">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <Timer className="size-3.5"/>
+                                            <ResetCountdown
+                                                target={daily.day_ends_at}
+                                                label={dailyComplete ? 'Next practice day starts' : 'Finish today’s goal'}
+                                            />
+                                        </span>
+                                        {data.quota?.limit != null && (
+                                            <span>
+                                                {data.quota.remaining} free questions left · <ResetCountdown target={data.quota.reset_at} label="Renews"/>
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

@@ -26,6 +26,12 @@ function useLoopTimer(start, resetAt) {
 }
 
 const MONO = 'sd-mono font-bold';
+const LANDING_DUEL_EMOTES = [
+    {side: 'left', emoji: '🔥'},
+    {side: 'right', emoji: '😂'},
+    {side: 'left', emoji: '🎉'},
+    {side: 'right', emoji: '🧠'},
+];
 
 function Eyebrow({color = '#7C5CF0', children}) {
     return (
@@ -635,6 +641,13 @@ function Journey() {
 
 function Multiplayer() {
     const duelTimer = useLoopTimer(43, 5);
+    const [emoteIndex, setEmoteIndex] = useState(0);
+    useEffect(() => {
+        const id = setInterval(() => setEmoteIndex((index) => (index + 1) % LANDING_DUEL_EMOTES.length), 4200);
+        return () => clearInterval(id);
+    }, []);
+    const activeEmote = LANDING_DUEL_EMOTES[emoteIndex];
+
     return (
         <section id="multiplayer" className="border-y border-[var(--sd-line)] bg-[var(--sd-bg2)] px-5 py-24 sm:px-10">
             <div className="mx-auto grid max-w-[1160px] items-center gap-12 lg:grid-cols-12 lg:gap-16">
@@ -654,14 +667,23 @@ function Multiplayer() {
                     </div>
                     <div className="mt-[18px] grid grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
                         <div className="relative rounded-[14px] border-[1.5px] border-[rgba(124,92,240,0.45)] bg-[rgba(124,92,240,0.1)] p-4 text-center">
-                            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl">🔥</span>
+                            {activeEmote.side === 'left' && (
+                                <span key={emoteIndex} className="sd-duel-emote absolute -top-7 left-1/2 z-10 text-4xl drop-shadow-lg" aria-hidden="true">
+                                    {activeEmote.emoji}
+                                </span>
+                            )}
                             <img src={novaQuill} alt="" className="image-render-pixel mx-auto size-[52px] rounded-xl"/>
                             <div className="mt-2 text-sm font-bold text-[var(--sd-text)]">ilovemath2026</div>
                             <div className="sd-display mt-1 text-[34px] font-bold text-[var(--sd-text)]">7</div>
                             <span className={`${MONO} mt-1.5 inline-block rounded-[5px] border border-[rgba(47,191,113,0.35)] bg-[rgba(47,191,113,0.12)] px-[7px] py-0.5 text-[10px] text-[var(--sd-green-lbl)]`}>7/10 ANSWERED</span>
                         </div>
                         <div className="sd-display text-center text-xl font-bold text-[var(--sd-dim)]">VS</div>
-                        <div className="rounded-[14px] border-[1.5px] border-[var(--sd-line2)] bg-[var(--sd-track)] p-4 text-center">
+                        <div className="relative rounded-[14px] border-[1.5px] border-[var(--sd-line2)] bg-[var(--sd-track)] p-4 text-center">
+                            {activeEmote.side === 'right' && (
+                                <span key={emoteIndex} className="sd-duel-emote absolute -top-7 left-1/2 z-10 text-4xl drop-shadow-lg" aria-hidden="true">
+                                    {activeEmote.emoji}
+                                </span>
+                            )}
                             <img src={emberAbacus} alt="" className="image-render-pixel mx-auto size-[52px] rounded-xl"/>
                             <div className="mt-2 text-sm font-bold text-[var(--sd-text)]">satslayer</div>
                             <div className="sd-display mt-1 text-[34px] font-bold text-[var(--sd-mut2)]">6</div>

@@ -2,13 +2,16 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import {
     Award,
+    CalendarDays,
     Check,
+    Clock3,
     Edit3,
     Flame,
     History,
     LineChart,
     Search,
     Swords,
+    Target,
     Trophy,
     UserPlus,
     Users,
@@ -18,6 +21,7 @@ import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from 
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
 import UserAvatar from '../components/UserAvatar';
+import ResetCountdown from '../components/ResetCountdown';
 import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 
 const GRADE_OPTIONS = [
@@ -41,37 +45,99 @@ function formatDateTime(value) {
     return new Date(value).toLocaleString();
 }
 
-function Metric({icon: Icon, label, value, subjects}) {
-    const [active, setActive] = useState(subjects ? subjects[0] : null);
-    const shownValue = active ? active.value : value;
-    const shownLabel = active ? `${active.label} Elo` : label;
+function ProfileStat({icon: Icon, label, value, tone = 'text-primary-700 bg-primary-50'}) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
-                    <Icon className="size-5"/>
-                </div>
-                {subjects && (
-                    <div className="flex gap-0.5 rounded-lg bg-slate-100 p-0.5">
-                        {subjects.map((s) => (
-                            <button
-                                key={s.label}
-                                type="button"
-                                onClick={() => setActive(s)}
-                                className={[
-                                    'rounded-md px-2 py-1 text-[11px] font-black transition-colors',
-                                    active?.label === s.label ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500',
-                                ].join(' ')}
-                            >
-                                {s.label}
-                            </button>
-                        ))}
-                    </div>
-                )}
+        <div className="flex items-center gap-3 px-4 py-4 sm:px-5">
+            <div className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+                <Icon className="size-4"/>
             </div>
-            <p className="m-0 text-2xl font-bold text-slate-900">{shownValue ?? '—'}</p>
-            <p className="m-0 mt-1 text-sm font-medium text-slate-500">{shownLabel}</p>
+            <div>
+                <p className="m-0 font-display text-2xl font-black text-slate-950">{value ?? '—'}</p>
+                <p className="m-0 text-xs font-bold text-slate-500">{label}</p>
+            </div>
         </div>
+    );
+}
+
+function SubjectAnalysis({label, elo, answered, accuracy, tone}) {
+    return (
+        <div className="border-t border-slate-100 py-5 first:border-0 first:pt-0 last:pb-0">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <span className={`sat-answer-bubble grid size-9 place-items-center rounded-full text-sm font-black ${tone}`}>
+                        {label === 'English' ? 'A' : 'B'}
+                    </span>
+                    <div>
+                        <p className="m-0 font-black text-slate-900">{label}</p>
+                        <p className="m-0 text-xs font-semibold text-slate-400">Practice performance</p>
+                    </div>
+                </div>
+                <p className="m-0 font-display text-2xl font-black text-slate-950">{elo ?? '—'} <span className="text-xs text-slate-400">Elo</span></p>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                    <p className="m-0 text-lg font-black text-slate-900">{answered}</p>
+                    <p className="m-0 text-xs font-semibold text-slate-500">Questions answered</p>
+                </div>
+                <div>
+                    <p className="m-0 text-lg font-black text-slate-900">{accuracy}</p>
+                    <p className="m-0 text-xs font-semibold text-slate-500">{label} accuracy</p>
+                </div>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-primary-500" style={{width: accuracy === '—' ? 0 : accuracy}}/>
+            </div>
+        </div>
+    );
+}
+
+function ActivityGrid({activity = []}) {
+    if (!activity.length) return <EmptyState title="No practice activity yet" text="Answered practice questions will appear here."/>;
+    const firstDay = new Date(`${activity[0].date}T00:00:00`).getDay();
+    const total = activity.reduce((sum, day) => sum + day.count, 0);
+    const intensity = (count) => {
+        if (!count) return 'bg-slate-100';
+        if (count <= 2) return 'bg-primary-200';
+        if (count <= 5) return 'bg-primary-400';
+        if (count <= 10) return 'bg-primary-600';
+        return 'bg-primary-800';
+    };
+
+    return (
+        <>
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+                <div>
+                    <h2 className="m-0 flex items-center gap-2 text-lg font-black text-slate-900">
+                        <CalendarDays className="size-5 text-primary-600"/> Practice activity
+                    </h2>
+                    <p className="m-0 mt-1 text-sm text-slate-500">{total} questions answered in the last 365 days</p>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400">
+                    Less
+                    {['bg-slate-100', 'bg-primary-200', 'bg-primary-400', 'bg-primary-600', 'bg-primary-800'].map((color) => (
+                        <span key={color} className={`size-3 rounded-[3px] ${color}`}/>
+                    ))}
+                    More
+                </div>
+            </div>
+            <div className="overflow-x-auto pb-2">
+                <div
+                    className="grid min-w-[780px] gap-[3px]"
+                    style={{gridTemplateRows: 'repeat(7, 0.75rem)', gridAutoColumns: '0.75rem', gridAutoFlow: 'column'}}
+                    aria-label="Practice questions answered each day for the last year"
+                >
+                    {Array.from({length: firstDay}).map((_, index) => <span key={`blank-${index}`}/>) }
+                    {activity.map((day) => (
+                        <span
+                            key={day.date}
+                            className={`rounded-[3px] ${intensity(day.count)}`}
+                            title={`${day.date}: ${day.count} answered (${day.english} English, ${day.math} Math)`}
+                            aria-hidden="true"
+                        />
+                    ))}
+                </div>
+            </div>
+        </>
     );
 }
 
@@ -93,6 +159,7 @@ function ProfilePage() {
     const [activeTab, setActiveTab] = useState('overview');
     const [profile, setProfile] = useState(null);
     const [stats, setStats] = useState(null);
+    const [practiceStatus, setPracticeStatus] = useState(null);
     const [battleHistory, setBattleHistory] = useState([]);
     const [tournamentHistory, setTournamentHistory] = useState([]);
     const [friends, setFriends] = useState([]);
@@ -120,6 +187,8 @@ function ProfilePage() {
     const accuracy = stats?.practice_accuracy != null ? `${stats.practice_accuracy}%` : '—';
     const englishAccuracy = stats?.english_accuracy != null ? `${stats.english_accuracy}%` : '—';
     const mathAccuracy = stats?.math_accuracy != null ? `${stats.math_accuracy}%` : '—';
+    const daily = practiceStatus?.daily;
+    const quota = practiceStatus?.quota;
 
     const loadFriends = useCallback(async () => {
         if (!isOwnProfile || !token) return;
@@ -149,16 +218,19 @@ function ProfilePage() {
 
             try {
                 if (isOwnProfile) {
-                    const [profileResponse, statsResponse] = await Promise.all([
+                    const [profileResponse, statsResponse, statusResponse] = await Promise.all([
                         api.get('api/profile/'),
                         api.get('api/infinite_questions_profile/').catch(() => ({data: null})),
+                        api.get('api/practice/status/').catch(() => ({data: null})),
                     ]);
                     setProfile(profileResponse.data);
                     setStats(statsResponse.data);
+                    setPracticeStatus(statusResponse.data);
                 } else {
                     const response = await api.get(`api/profile/view_profile/${userId}/`);
                     setProfile(response.data.profile);
                     setStats(response.data.statistics);
+                    setPracticeStatus(null);
                 }
             } catch (err) {
                 setError(err.response?.data?.error || 'Failed to load this profile.');
@@ -328,7 +400,7 @@ function ProfilePage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
+        <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-6 sm:py-8">
             <PageContainer>
                 {notice && (
                     <div className="mb-5">
@@ -336,25 +408,26 @@ function ProfilePage() {
                     </div>
                 )}
 
-                <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <section className="sat-arena-card overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <div className="sat-score-strip h-1 border-0"/>
+                    <div className="flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                            <UserAvatar profile={profile}/>
+                            <UserAvatar profile={profile} size="xl" rounded="xl" className="ring-slate-100"/>
                             <div>
-                                <p className="m-0 text-sm font-bold uppercase tracking-wide text-primary-600">
+                                <p className="m-0 text-xs font-black uppercase tracking-[0.12em] text-primary-600">
                                     {isOwnProfile ? 'My profile' : 'Student profile'}
                                 </p>
-                                <h1 className="m-0 mt-1 font-display text-3xl font-bold text-slate-900 sm:text-4xl">
+                                <h1 className="m-0 mt-1 font-display text-3xl font-black text-slate-950 sm:text-4xl">
                                     {profile?.user?.username}
                                 </h1>
                                 <p className="m-0 mt-2 text-slate-500">
                                     {[profile?.user?.first_name, profile?.user?.last_name].filter(Boolean).join(' ') || 'Name not set'}
                                 </p>
-                                <div className="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
-                                    <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">
+                                <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+                                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-600">
                                         {gradeLabel(profile?.grade)}
                                     </span>
-                                    <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">
+                                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-600">
                                         {profile?.country || 'US'}
                                     </span>
                                 </div>
@@ -383,19 +456,15 @@ function ProfilePage() {
                             )}
                         </div>
                     </div>
+                    <div className="grid divide-y divide-slate-100 border-t border-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+                        <ProfileStat icon={Swords} label="Duel Elo" value={profile?.elo_rating} tone="bg-rose-50 text-rose-700"/>
+                        <ProfileStat icon={LineChart} label="English Practice Elo" value={profile?.sp_elo_rating}/>
+                        <ProfileStat icon={LineChart} label="Math Practice Elo" value={profile?.math_elo_rating} tone="bg-sky-50 text-sky-700"/>
+                        <ProfileStat icon={Award} label="Overall practice accuracy" value={accuracy} tone="bg-emerald-50 text-emerald-700"/>
+                    </div>
                 </section>
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <Metric icon={Swords} label="Duel Elo" value={profile?.elo_rating}/>
-                    <Metric icon={LineChart} label="Practice Elo" subjects={[
-                        {label: 'English', value: profile?.sp_elo_rating},
-                        {label: 'Math', value: profile?.math_elo_rating},
-                    ]}/>
-                    <Metric icon={Flame} label="Correct streak" value={stats?.current_streak ?? 0}/>
-                    <Metric icon={Award} label="Accuracy" value={accuracy}/>
-                </div>
-
-                <div className="mt-8 overflow-x-auto">
+                <div className="mt-5 overflow-x-auto">
                     <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1">
                         {TABS.map(({id, label, icon: Icon}) => (
                             <button
@@ -415,39 +484,82 @@ function ProfilePage() {
                 </div>
 
                 {activeTab === 'overview' && (
-                    <div className="mt-6 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
+                    <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.75fr)]">
                         <Card className="p-6">
-                            <h2 className="m-0 text-xl font-bold text-slate-900">About</h2>
-                            <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-slate-600">
-                                {profile?.biography || 'This user has not written a bio yet.'}
-                            </p>
-                        </Card>
-                        <Card className="p-6">
-                            <h2 className="m-0 text-xl font-bold text-slate-900">Practice stats</h2>
-                            <div className="mt-5 grid grid-cols-2 gap-3">
-                                <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">
-                                        {stats?.english_answered ?? 0}
-                                        <span className="ml-2 text-sm font-semibold text-slate-400">{englishAccuracy}</span>
-                                    </p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">English answered · accuracy</p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">
-                                        {stats?.math_answered ?? 0}
-                                        <span className="ml-2 text-sm font-semibold text-slate-400">{mathAccuracy}</span>
-                                    </p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Math answered · accuracy</p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{totalAnswered}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Practice answered</p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-4">
-                                    <p className="m-0 text-2xl font-bold text-slate-900">{accuracy}</p>
-                                    <p className="m-0 mt-1 text-sm text-slate-500">Overall accuracy</p>
-                                </div>
+                            <h2 className="m-0 flex items-center gap-2 text-lg font-black text-slate-900">
+                                <Target className="size-5 text-primary-600"/> Practice analysis
+                            </h2>
+                            <p className="m-0 mt-1 text-sm text-slate-500">Ratings, volume, and accuracy are separated by SAT section.</p>
+                            <div className="mt-5">
+                                <SubjectAnalysis
+                                    label="English"
+                                    elo={profile?.sp_elo_rating}
+                                    answered={stats?.english_answered ?? 0}
+                                    accuracy={englishAccuracy}
+                                    tone="bg-primary-100 text-primary-700"
+                                />
+                                <SubjectAnalysis
+                                    label="Math"
+                                    elo={profile?.math_elo_rating}
+                                    answered={stats?.math_answered ?? 0}
+                                    accuracy={mathAccuracy}
+                                    tone="bg-sky-100 text-sky-700"
+                                />
                             </div>
+                        </Card>
+
+                        <div className="space-y-5">
+                            <Card className="p-6">
+                                <h2 className="m-0 flex items-center gap-2 text-lg font-black text-slate-900">
+                                    <Flame className="size-5 text-amber-500"/> Consistency
+                                </h2>
+                                <div className="mt-5 flex items-end justify-between border-b border-slate-100 pb-5">
+                                    <div>
+                                        <p className="m-0 font-display text-4xl font-black text-slate-950">{profile?.max_streak ?? 0}</p>
+                                        <p className="m-0 mt-1 text-sm font-bold text-slate-500">Best correct-answer streak</p>
+                                    </div>
+                                    <Award className="size-8 text-amber-400"/>
+                                </div>
+                                {isOwnProfile && daily && (
+                                    <div className="mt-5">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="m-0 text-sm font-black text-slate-900">{daily.streak} day practice streak</p>
+                                                <p className="m-0 mt-0.5 text-xs font-semibold text-slate-500">
+                                                    {daily.completed_today
+                                                        ? 'Today’s goal is complete.'
+                                                        : `${Math.max(0, daily.goal - daily.count)} more to protect it today.`}
+                                                </p>
+                                            </div>
+                                            <span className="font-display text-xl font-black text-orange-600">{Math.min(daily.count, daily.goal)}/{daily.goal}</span>
+                                        </div>
+                                        <p className="m-0 mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                                            <Clock3 className="size-3.5"/>
+                                            <ResetCountdown target={daily.day_ends_at} label={daily.completed_today ? 'Next day starts' : 'Streak deadline'}/>
+                                        </p>
+                                        {quota?.limit != null && (
+                                            <p className="m-0 mt-2 text-xs font-semibold text-slate-400">
+                                                {quota.remaining} free questions left · <ResetCountdown target={quota.reset_at} label="Renews"/>
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </Card>
+                            <Card className="p-6">
+                                <h2 className="m-0 text-lg font-black text-slate-900">About</h2>
+                                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                                    {profile?.biography || 'This user has not written a bio yet.'}
+                                </p>
+                            </Card>
+                        </div>
+
+                        <Card className="p-6 lg:col-span-2">
+                            <ActivityGrid activity={stats?.activity}/>
+                            {!totalAnswered && (
+                                <div className="mt-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                                    Answer a practice question to start building this activity history.
+                                </div>
+                            )}
                         </Card>
                     </div>
                 )}

@@ -7,6 +7,7 @@ import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
 import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
+import ResetCountdown from '../../components/ResetCountdown';
 
 function TopicControl({quota, topics, selectedTopic, onChange, compact = false}) {
     const isPremium = quota?.is_premium;
@@ -488,8 +489,11 @@ function InfiniteQuestionsPage() {
                             That's your free practice for today
                         </h1>
                         <p className="mx-auto mt-3 max-w-md text-slate-600">
-                            You answered {quota?.used ?? quota?.limit ?? ''} questions today. Come back tomorrow
-                            for {quota?.limit ?? 25} more, or go premium for unlimited practice and topic selection.
+                            You answered {quota?.used ?? quota?.limit ?? ''} questions today. Your next {quota?.limit ?? 25}
+                            free questions unlock at your local midnight, or go premium for unlimited practice and topic selection.
+                        </p>
+                        <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-amber-700">
+                            <Timer className="size-4"/> <ResetCountdown target={quota?.reset_at} label="Free questions renew"/>
                         </p>
                         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                             <Button size="lg" onClick={handleGetPremium} loading={billingLoading}>
@@ -606,6 +610,22 @@ function InfiniteQuestionsPage() {
                                                 />
                                             </div>
                                         </>
+                                    )}
+                                </div>
+                            )}
+                            {(daily?.day_ends_at || quota?.reset_at) && (
+                                <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 text-xs font-bold text-slate-500">
+                                    {daily?.day_ends_at && (
+                                        <p className="m-0 inline-flex items-center gap-1.5">
+                                            <Timer className="size-3.5"/>
+                                            <ResetCountdown
+                                                target={daily.day_ends_at}
+                                                label={daily.completed_today ? 'Next practice day starts' : 'Streak deadline'}
+                                            />
+                                        </p>
+                                    )}
+                                    {quota?.limit != null && (
+                                        <p className="m-0"><ResetCountdown target={quota.reset_at} label="Free questions renew"/></p>
                                     )}
                                 </div>
                             )}
