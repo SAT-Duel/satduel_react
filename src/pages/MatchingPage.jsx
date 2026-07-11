@@ -314,7 +314,9 @@ function MatchingPage() {
                                         <div className="min-w-0 flex-1">
                                             <p className="m-0 truncate font-semibold text-slate-800">{onlineUser.username}</p>
                                             <p className="m-0 text-xs text-slate-400">
-                                                {onlineUser.is_bot ? 'Practice rival' : `${onlineUser.elo_rating} rating`}
+                                                {onlineUser.is_bot
+                                                    ? 'Practice rival'
+                                                    : onlineUser.elo_rating != null ? `${onlineUser.elo_rating} rating` : '—'}
                                             </p>
                                         </div>
                                         <span className="size-2 rounded-full bg-emerald-500"/>
