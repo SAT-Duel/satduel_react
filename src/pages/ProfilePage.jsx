@@ -225,12 +225,15 @@ function ProfilePage() {
             const opponent = isUser1 ? match.user2 : match.user1;
             const ownScore = isUser1 ? match.user1_score : match.user2_score;
             const opponentScore = isUser1 ? match.user2_score : match.user1_score;
+            const eloBefore = isUser1 ? match.user1_elo_before : match.user2_elo_before;
+            const eloAfter = isUser1 ? match.user1_elo_after : match.user2_elo_after;
+            const eloChange = eloBefore == null || eloAfter == null ? null : eloAfter - eloBefore;
             const result = match.winner === null
                 ? 'Draw'
                 : match.winner?.toString() === (isUser1 ? match.user1?.id : match.user2?.id)?.toString()
                     ? 'Win'
                     : 'Loss';
-            return {...match, opponent, ownScore, opponentScore, result};
+            return {...match, opponent, ownScore, opponentScore, result, eloAfter, eloChange};
         });
     }, [battleHistory, viewerUser]);
 
@@ -458,13 +461,14 @@ function ProfilePage() {
                             </div>
                             {matchRows.length ? (
                                 <div className="overflow-x-auto">
-                                    <table className="w-full min-w-[520px] text-left text-sm">
+                                    <table className="w-full min-w-[640px] text-left text-sm">
                                         <thead className="text-xs uppercase text-slate-400">
                                             <tr>
                                                 <th className="pb-3">Date</th>
                                                 <th className="pb-3">Opponent</th>
                                                 <th className="pb-3">Result</th>
                                                 <th className="pb-3">Score</th>
+                                                <th className="pb-3">Elo change</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
@@ -475,7 +479,17 @@ function ProfilePage() {
                                                             {formatDateTime(match.created_at)}
                                                         </Link>
                                                     </td>
-                                                    <td className="py-3 text-slate-700">{match.opponent?.username || 'Opponent'}</td>
+                                                    <td className="py-3 text-slate-700">
+                                                        <span className="flex items-center gap-2">
+                                                            <UserAvatar profile={match.opponent} size="xs" className="ring-0"/>
+                                                            <span>
+                                                                <span className="block">{match.opponent?.username || 'Opponent'}</span>
+                                                                <span className="block text-xs text-slate-400">
+                                                                    {match.opponent?.elo_rating != null ? `${match.opponent.elo_rating} Elo` : '— Elo'}
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                    </td>
                                                     <td className="py-3">
                                                         <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${
                                                             match.result === 'Win'
@@ -489,6 +503,13 @@ function ProfilePage() {
                                                     </td>
                                                     <td className="py-3 font-semibold text-slate-700">
                                                         {match.ownScore} - {match.opponentScore}
+                                                    </td>
+                                                    <td className={`py-3 font-black ${
+                                                        match.eloChange == null ? 'text-slate-400' : match.eloChange >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                                                    }`}>
+                                                        {match.eloChange == null
+                                                            ? '—'
+                                                            : `${match.eloChange >= 0 ? '+' : ''}${match.eloChange} → ${match.eloAfter}`}
                                                     </td>
                                                 </tr>
                                             ))}

@@ -642,7 +642,7 @@ function Multiplayer() {
                     <Eyebrow color="#F08A3E">DUEL MODE</Eyebrow>
                     <H2 className="sm:text-[42px]">Same 10 questions. One winner.</H2>
                     <p className="m-0 mt-4 text-[16.5px] leading-relaxed text-[var(--sd-mut)]">
-                        Race through 10 Digital SAT questions against a live student, or get an instant practice rival when the queue is quiet. Same set, same clock. Accuracy wins, and every completed round moves your duel rating.
+                        Race through 10 Digital SAT questions against another student. Match quickly, answer the same set on the same clock, and move your duel rating with every completed round.
                     </p>
                     <PrimaryCta className="mt-7 px-7 py-3.5 text-[15.5px]">Challenge a friend</PrimaryCta>
                 </div>
@@ -959,7 +959,7 @@ function Progress() {
 const TRAIN_TILES = [
     {title: 'Power Sprint', sub: 'PICK A CLOCK · RACK UP ANSWERS', text: 'Set a timer and answer as many questions as you can before it hits zero.'},
     {title: 'SAT Survival', sub: 'HOW LONG CAN YOU LAST?', text: 'Keep answering until you miss. Every run is a new high score to beat.'},
-    {title: 'Practice Rivals', sub: 'READY WHEN THE QUEUE IS QUIET', text: 'No one waiting? Match instantly with a rotating SAT Duel rival that answers and reacts in real time.'},
+    {title: 'Live Duels', sub: 'FIND A MATCH FAST', text: 'Race another SAT Duel player through the same 10-question set, with live progress and reactions.'},
     {title: 'Full Practice Tests', sub: 'FULL TIMED MODULES', text: 'Sit a complete timed module and get a score report you can reopen anytime.'},
     {title: '2-Minute Diagnostic', sub: 'NO SIGNUP NEEDED', text: 'Answer a few questions and get an instant estimate of where you stand.'},
     {title: 'Coin Shop', sub: 'EARN COINS FROM PRACTICE', text: 'Every session earns coins. Spend them on pixel avatars and cosmetics.'},

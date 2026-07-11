@@ -12,7 +12,9 @@ function PlayerBadge({user, fallback}) {
         <div className="flex flex-col items-center">
             <UserAvatar profile={user || {username}} size="md" rounded="xl" className="sm:size-20"/>
             <p className="m-0 mt-3 font-bold text-slate-900">{username}</p>
-            {user?.is_bot && <p className="m-0 mt-0.5 text-xs font-semibold text-slate-400">Practice rival</p>}
+            <p className="m-0 mt-0.5 text-sm font-bold text-primary-600">
+                {user?.elo_rating != null ? `${user.elo_rating} Elo` : '— Elo'}
+            </p>
         </div>
     );
 }

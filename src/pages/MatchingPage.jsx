@@ -164,6 +164,12 @@ function MatchingPage() {
     const opponentOf = (m) => (m.user1?.id === user?.id ? m.user2 : m.user1);
     const myScore = (m) => (m.user1?.id === user?.id ? m.user1_score : m.user2_score);
     const theirScore = (m) => (m.user1?.id === user?.id ? m.user2_score : m.user1_score);
+    const myEloAfter = (m) => (m.user1?.id === user?.id ? m.user1_elo_after : m.user2_elo_after);
+    const myEloChange = (m) => {
+        const before = m.user1?.id === user?.id ? m.user1_elo_before : m.user2_elo_before;
+        const after = myEloAfter(m);
+        return before == null || after == null ? null : after - before;
+    };
     const resultOf = (m) => {
         if (m.winner == null) return 'Draw';
         return m.winner === user?.id ? 'Win' : 'Loss';
@@ -198,7 +204,7 @@ function MatchingPage() {
                                         />
                                         <p className="m-0 mt-3 truncate font-bold text-slate-900">{user?.username || 'You'}</p>
                                         <p className="m-0 mt-0.5 text-sm font-semibold text-primary-600">
-                                            {myElo != null ? `${myElo} rating` : '—'}
+                                            {myElo != null ? `${myElo} Elo` : '— Elo'}
                                         </p>
                                     </div>
 
@@ -257,24 +263,28 @@ function MatchingPage() {
                                         : result === 'Loss'
                                             ? 'bg-rose-50 text-rose-600'
                                             : 'bg-slate-100 text-slate-600';
+                                    const eloChange = myEloChange(m);
                                     return (
-                                        <div key={m.id} className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
+                                        <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
                                             <div className="flex min-w-0 items-center gap-3">
-                                                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">
-                                                    {opp?.username?.[0]?.toUpperCase() || '?'}
-                                                </span>
+                                                <UserAvatar profile={opp} size="sm" className="ring-0"/>
                                                 <div className="min-w-0">
                                                     <p className="m-0 truncate font-semibold text-slate-800">
                                                         vs {opp?.username || 'unknown'}
                                                     </p>
                                                     <p className="m-0 text-xs text-slate-400">
-                                                        {new Date(m.created_at).toLocaleDateString()}
+                                                        {opp?.elo_rating != null ? `${opp.elo_rating} Elo · ` : ''}{new Date(m.created_at).toLocaleDateString()}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <span className="font-bold text-slate-700">
                                                     {myScore(m)}–{theirScore(m)}
+                                                </span>
+                                                <span className={`text-sm font-black ${
+                                                    eloChange == null ? 'text-slate-400' : eloChange >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                                                }`}>
+                                                    {eloChange == null ? '— Elo' : `${eloChange >= 0 ? '+' : ''}${eloChange} Elo`}
                                                 </span>
                                                 <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${resultStyle}`}>
                                                     {result}
@@ -312,9 +322,11 @@ function MatchingPage() {
                                     <div key={onlineUser.id || onlineUser.username} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
                                         <UserAvatar profile={onlineUser} size="xs" className="ring-0"/>
                                         <div className="min-w-0 flex-1">
-                                            <p className="m-0 truncate font-semibold text-slate-800">{onlineUser.username}</p>
+                                            <p className="m-0 truncate font-semibold text-slate-800">
+                                                {onlineUser.username}{onlineUser.is_current_user ? ' (You)' : ''}
+                                            </p>
                                             <p className="m-0 text-xs text-slate-400">
-                                                {onlineUser.is_bot ? 'Practice rival' : `${onlineUser.elo_rating} rating`}
+                                                {onlineUser.elo_rating != null ? `${onlineUser.elo_rating} Elo` : '— Elo'}
                                             </p>
                                         </div>
                                         <span className="size-2 rounded-full bg-emerald-500"/>
