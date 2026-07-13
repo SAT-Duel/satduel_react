@@ -132,14 +132,14 @@ function TournamentListPage() {
                 </section>
 
                 <section className="mt-10 rounded-[1.5rem] border border-slate-200 bg-white p-5 sm:p-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="min-w-0">
                             <h2 className="m-0 font-display text-2xl font-black text-slate-950">Host your own</h2>
                             <p className="m-0 mt-1 text-sm text-slate-500">
                                 Make a public or private tournament and share the invite link with your class or friends.
                             </p>
                         </div>
-                        <div className="flex flex-col gap-3 sm:flex-row">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap xl:shrink-0 xl:flex-nowrap">
                             <Button to="/my_tournaments" variant="secondary">
                                 My tournaments
                             </Button>
