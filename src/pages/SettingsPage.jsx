@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
-import {Check, CreditCard, Crown, KeyRound, Palette, SmilePlus, Sparkles} from 'lucide-react';
+import {AtSign, Check, CreditCard, Crown, KeyRound, Palette, SmilePlus, Sparkles} from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
 import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from '../components/ui';
@@ -11,6 +11,14 @@ import {useAuth} from '../context/AuthContext';
 import {DEFAULT_DUEL_EMOTES, DUEL_EMOJIS} from '../utils/duelEmotes';
 
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
+const USERNAME_RULE = /^[a-zA-Z0-9_]{1,15}$/;
+
+function apiErrorMessage(error, fallback) {
+    const data = error.response?.data;
+    if (data?.error) return data.error;
+    const messages = data && Object.values(data).flat().filter((value) => typeof value === 'string');
+    return messages?.join(' ') || fallback;
+}
 
 function SettingsPage() {
     const [searchParams] = useSearchParams();
@@ -18,6 +26,9 @@ function SettingsPage() {
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [updatingUsername, setUpdatingUsername] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({new_password1: '', new_password2: ''});
+    const [settingPassword, setSettingPassword] = useState(false);
     const [billingAction, setBillingAction] = useState(null);
     const [notice, setNotice] = useState(null);
 
@@ -26,6 +37,7 @@ function SettingsPage() {
             .then((r) => {
                 setProfile(r.data);
                 setForm({
+                    username: r.data.user?.username || '',
                     first_name: r.data.user?.first_name || '',
                     last_name: r.data.user?.last_name || '',
                     biography: r.data.biography || '',
@@ -106,6 +118,58 @@ function SettingsPage() {
         }
     };
 
+    const handleUsernameChange = async () => {
+        const username = form.username.trim();
+        if (!USERNAME_RULE.test(username)) {
+            setNotice({type: 'error', text: 'Username must use 1–15 letters, numbers, or underscores.'});
+            return;
+        }
+
+        setUpdatingUsername(true);
+        setNotice(null);
+        try {
+            const {data} = await api.patch('api/account/username/', {username});
+            setProfile((current) => ({
+                ...current,
+                user: {...current.user, username: data.username},
+                account: {
+                    ...current.account,
+                    username_change_available_at: data.username_change_available_at,
+                },
+            }));
+            setForm((current) => ({...current, username: data.username}));
+            updateUser({username: data.username});
+            setNotice({type: 'success', text: 'Username changed.'});
+        } catch (error) {
+            setNotice({type: 'error', text: apiErrorMessage(error, 'Could not change your username.')});
+        } finally {
+            setUpdatingUsername(false);
+        }
+    };
+
+    const handleSetPassword = async () => {
+        if (!passwordForm.new_password1 || passwordForm.new_password1 !== passwordForm.new_password2) {
+            setNotice({type: 'error', text: 'Enter the same new password twice.'});
+            return;
+        }
+
+        setSettingPassword(true);
+        setNotice(null);
+        try {
+            await api.post('api/auth/set_password/', passwordForm);
+            setProfile((current) => ({
+                ...current,
+                account: {...current.account, has_usable_password: true},
+            }));
+            setPasswordForm({new_password1: '', new_password2: ''});
+            setNotice({type: 'success', text: 'Password set. You can now sign in with Google or your password.'});
+        } catch (error) {
+            setNotice({type: 'error', text: apiErrorMessage(error, 'Could not set your password.')});
+        } finally {
+            setSettingPassword(false);
+        }
+    };
+
     const handleManageBilling = async () => {
         setBillingAction('portal');
         setNotice(null);
@@ -128,6 +192,12 @@ function SettingsPage() {
             </div>
         );
     }
+
+    const usernameAvailableAt = profile?.account?.username_change_available_at;
+    const usernameLocked = Boolean(usernameAvailableAt && new Date(usernameAvailableAt) > new Date());
+    const usernameAvailableLabel = usernameLocked
+        ? new Date(usernameAvailableAt).toLocaleDateString(undefined, {month: 'long', day: 'numeric', year: 'numeric'})
+        : null;
 
     return (
         <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-10 sm:py-14">
@@ -318,20 +388,89 @@ function SettingsPage() {
                 <Card className="mt-4 p-6">
                     <h2 className="m-0 text-lg font-bold text-slate-900">Account</h2>
                     <div className="mt-4 space-y-3">
+                        <div className="rounded-xl bg-slate-50 px-4 py-3">
+                            <p className="m-0 inline-flex items-center gap-1.5 font-semibold text-slate-800">
+                                <AtSign className="size-4 text-slate-400"/> Username
+                            </p>
+                            <p className="m-0 mt-0.5 text-sm text-slate-500">
+                                {usernameLocked
+                                    ? `You can change it again on ${usernameAvailableLabel}.`
+                                    : 'You can change your username once every 30 days.'}
+                            </p>
+                            <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                                <Input
+                                    value={form.username}
+                                    onChange={set('username')}
+                                    maxLength={15}
+                                    disabled={usernameLocked}
+                                    autoComplete="username"
+                                    aria-label="Username"
+                                />
+                                <Button
+                                    onClick={handleUsernameChange}
+                                    loading={updatingUsername}
+                                    disabled={usernameLocked || form.username.trim() === profile?.user?.username}
+                                    variant="secondary"
+                                    size="sm"
+                                    className="shrink-0"
+                                >
+                                    Change username
+                                </Button>
+                            </div>
+                        </div>
                         <div className="flex flex-col gap-2 rounded-xl bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <p className="m-0 font-semibold text-slate-800">Email</p>
                                 <p className="m-0 text-sm text-slate-500">{profile?.user?.email}</p>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-2 rounded-xl bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <p className="m-0 inline-flex items-center gap-1.5 font-semibold text-slate-800">
-                                    <KeyRound className="size-4 text-slate-400"/> Password
-                                </p>
-                                <p className="m-0 text-sm text-slate-500">Reset it via an email link.</p>
+                        <div className="rounded-xl bg-slate-50 px-4 py-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="m-0 inline-flex items-center gap-1.5 font-semibold text-slate-800">
+                                        <KeyRound className="size-4 text-slate-400"/> Password
+                                    </p>
+                                    <p className="m-0 text-sm text-slate-500">
+                                        {profile?.account?.has_usable_password === false
+                                            ? 'Add a password to sign in with your email or username too.'
+                                            : 'Reset it via an email link.'}
+                                    </p>
+                                </div>
+                                {profile?.account?.has_usable_password !== false && (
+                                    <Button to="/password_reset" variant="secondary" size="sm">Change password</Button>
+                                )}
                             </div>
-                            <Button to="/password_reset" variant="secondary" size="sm">Change password</Button>
+                            {profile?.account?.has_usable_password === false && (
+                                <div className="mt-3">
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <Field label="New password">
+                                            <Input
+                                                type="password"
+                                                value={passwordForm.new_password1}
+                                                onChange={(event) => setPasswordForm((current) => ({
+                                                    ...current,
+                                                    new_password1: event.target.value,
+                                                }))}
+                                                autoComplete="new-password"
+                                            />
+                                        </Field>
+                                        <Field label="Confirm new password">
+                                            <Input
+                                                type="password"
+                                                value={passwordForm.new_password2}
+                                                onChange={(event) => setPasswordForm((current) => ({
+                                                    ...current,
+                                                    new_password2: event.target.value,
+                                                }))}
+                                                autoComplete="new-password"
+                                            />
+                                        </Field>
+                                    </div>
+                                    <Button onClick={handleSetPassword} loading={settingPassword} size="sm" className="mt-3">
+                                        Set password
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                         <div className="flex flex-col gap-2 rounded-xl bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
