@@ -47,6 +47,7 @@ const ShopPage = React.lazy(() => import("../pages/ShopPage"));
 const PasswordResetPage = React.lazy(() => import("../pages/PasswordResetPage"));
 const PasswordResetConfirmPage = React.lazy(() => import("../pages/PasswordResetConfirmPage"));
 const AdminHomepage = React.lazy(() => import("../pages/admin/AdminHomepage"));
+const QuestionReportsPage = React.lazy(() => import("../pages/admin/QuestionReportsPage"));
 const QuestionListPage = React.lazy(() => import("../pages/admin/QuestionListPage"));
 const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEditorPage"));
 const QuestionGeneratorPage = React.lazy(() => import("../pages/admin/QuestionGeneratorPage"));
@@ -121,6 +122,7 @@ const APP_ROUTES = [
     {path: '/settings', el: <SettingsPage/>},
     {path: '/upgrade', el: <PricingPage/>},  // in-app pricing (keeps the shell)
     {path: '/admin', el: <AdminHomepage/>},
+    {path: '/admin/question_reports', el: <QuestionReportsPage/>},
     {path: '/admin/questions', el: <QuestionListPage/>},
     {path: '/admin/create_question', el: <QuestionEditorPage/>},
     {path: '/admin/generate_questions', el: <QuestionGeneratorPage/>},

@@ -1,6 +1,6 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Database, FileText, Sparkles, Trophy} from 'lucide-react';
+import {Database, FileText, Flag, Sparkles, Trophy} from 'lucide-react';
 import {Card, PageContainer} from '../../components/ui';
 import withAuth from '../../hoc/withAuth';
 
@@ -10,6 +10,12 @@ const tools = [
         description: 'Manage, preview, create, and edit the question bank.',
         icon: FileText,
         action: 'questions',
+    },
+    {
+        title: 'Question Reports',
+        description: 'Review reported questions and clear reports after resolving them.',
+        icon: Flag,
+        action: 'reports',
     },
     {
         title: 'AI Question Generator',
@@ -41,6 +47,7 @@ function AdminHome() {
         }
         const paths = {
             questions: '/admin/questions',
+            reports: '/admin/question_reports',
             generate: '/admin/generate_questions',
             tournament: '/admin/create_tournament',
         };
