@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {CheckCircle2, Crown, Flame, History, Lock, LogOut, Swords, Timer, Trophy, XCircle, Zap} from 'lucide-react';
+import {CheckCircle2, ChevronDown, Crown, Flame, History, Lock, LogOut, Swords, Timer, Trophy, XCircle, Zap} from 'lucide-react';
 import '../../styles/landing.css';
 import {useAuth} from '../../context/AuthContext';
 import Question from '../../components/Question';
@@ -72,6 +72,75 @@ function PracticeProgress({subject, stats}) {
                     <p className="m-0 text-xs font-semibold text-slate-500">{label} accuracy</p>
                 </div>
             </div>
+        </Card>
+    );
+}
+
+function TypeProgressRow({entry}) {
+    const {type, solved, total} = entry;
+    const complete = total > 0 && solved >= total;
+    const percent = total > 0 ? Math.min(100, (solved / total) * 100) : 0;
+    return (
+        <div>
+            <div className="flex items-baseline justify-between gap-3">
+                <p className="m-0 min-w-0 truncate text-sm font-semibold text-slate-700" title={type}>{type}</p>
+                <p className="m-0 shrink-0 text-xs font-bold text-slate-500">
+                    {complete
+                        ? <span className="inline-flex items-center gap-1 text-emerald-600"><CheckCircle2 className="size-3.5"/> {solved}/{total}</span>
+                        : `${solved}/${total}`}
+                </p>
+            </div>
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                    className={`h-full rounded-full transition-all ${complete ? 'bg-emerald-500' : 'bg-primary-600'}`}
+                    style={{width: `${percent}%`}}
+                />
+            </div>
+        </div>
+    );
+}
+
+function QuestionBankProgress({subject, progress}) {
+    const [expanded, setExpanded] = useState(false);
+    const entries = progress?.[subject] || [];
+    if (!entries.length) return null;
+
+    const label = subject === 'math' ? 'Math' : 'English';
+    const solved = entries.reduce((sum, entry) => sum + entry.solved, 0);
+    const total = entries.reduce((sum, entry) => sum + entry.total, 0);
+    const percent = total > 0 ? Math.min(100, (solved / total) * 100) : 0;
+
+    return (
+        <Card className="sat-arena-card mt-6 p-5">
+            <button
+                type="button"
+                onClick={() => setExpanded((value) => !value)}
+                aria-expanded={expanded}
+                className="flex w-full cursor-pointer items-center justify-between gap-3 border-0 bg-transparent p-0 text-left"
+            >
+                <div className="min-w-0">
+                    <h2 className="m-0 text-lg font-bold text-slate-900">{label} question bank</h2>
+                    <p className="m-0 mt-0.5 text-sm font-semibold text-slate-500">
+                        {solved} of {total} questions answered
+                    </p>
+                </div>
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-500">
+                    <ChevronDown className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`}/>
+                </span>
+            </button>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                    className="h-full rounded-full bg-primary-600 transition-all"
+                    style={{width: `${percent}%`}}
+                />
+            </div>
+            {expanded && (
+                <div className="mt-5 grid gap-x-8 gap-y-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
+                    {entries.map((entry) => (
+                        <TypeProgressRow key={entry.type} entry={entry}/>
+                    ))}
+                </div>
+            )}
         </Card>
     );
 }
@@ -330,6 +399,7 @@ function InfiniteQuestionsPage() {
     const [daily, setDaily] = useState(null);
     const [streakCelebration, setStreakCelebration] = useState(null);
     const [stats, setStats] = useState(readPracticeStats());
+    const [typeProgress, setTypeProgress] = useState({english: [], math: []});
     const [manualTimer, setManualTimer] = useState(readManualTimer);
     const {loading} = useAuth();
     const hasFetchedData = useRef(false);
@@ -401,6 +471,9 @@ function InfiniteQuestionsPage() {
                 math: statusResponse.data.math_elo_rating ?? null,
             });
             setTopicsBySubject(statusResponse.data.topics || {english: [], math: []});
+            if (statusResponse.data.type_progress) {
+                setTypeProgress(statusResponse.data.type_progress);
+            }
             setDaily(statusResponse.data.daily || null);
             if (statusResponse.data.stats) {
                 setStats(readPracticeStats(statusResponse.data.stats));
@@ -467,6 +540,9 @@ function InfiniteQuestionsPage() {
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
             if (response.data.practice_stats) {
                 setStats(readPracticeStats(response.data.practice_stats));
+            }
+            if (response.data.type_progress) {
+                setTypeProgress((prev) => ({...prev, ...response.data.type_progress}));
             }
             playRatingSound(isCorrect);
 
@@ -712,6 +788,8 @@ function InfiniteQuestionsPage() {
 
                     </aside>
                 </div>
+
+                <QuestionBankProgress subject={subject} progress={typeProgress}/>
             </PageContainer>
 
             {/* Streak-extended celebration (the 10th answer of the day) */}
