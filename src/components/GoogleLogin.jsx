@@ -54,12 +54,17 @@ const GoogleLoginButton = ({redirectTo}) => {
 
     return (
         <GoogleOAuthProvider clientId={CLIENT_ID}>
-            <div style={{display: 'flex', justifyContent: 'center'}}>
+            <div style={{display: 'flex', justifyContent: 'center', width: '100%'}}>
                 <GoogleLogin
                     onSuccess={handleSuccess}
                     onError={handleError}
                     useOneTap={false}
-                    width="300"
+                    theme="outline"
+                    size="large"
+                    shape="pill"
+                    text="continue_with"
+                    logo_alignment="center"
+                    width="400"
                 />
             </div>
         </GoogleOAuthProvider>
