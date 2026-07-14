@@ -78,6 +78,10 @@ function Login() {
                     {isTournamentInvite ? 'Log in and we will take you straight to the tournament.' : 'Log in to continue your prep.'}
                 </p>
 
+                <GoogleLoginButton redirectTo={rawNext ? redirectTo : undefined}/>
+
+                <DividerLabel>or continue with email</DividerLabel>
+
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
                     <Field label="Username or email">
                         <Input
@@ -103,9 +107,6 @@ function Login() {
                         Log in
                     </Button>
                 </form>
-
-                <DividerLabel>or</DividerLabel>
-                <GoogleLoginButton redirectTo={rawNext ? redirectTo : undefined}/>
 
                 <div className="mt-6 flex flex-col gap-1 text-center text-sm text-slate-500">
                     <span>
