@@ -216,9 +216,11 @@ export function Spinner({className = ''}) {
     );
 }
 
-export function PageContainer({className = '', children}) {
+// `maxWidth` replaces the default cap rather than adding to it: a max-w-* in
+// `className` would collide with the default and lose on CSS order.
+export function PageContainer({className = '', maxWidth = 'max-w-6xl', children}) {
     return (
-        <div className={['mx-auto w-full max-w-6xl px-4 sm:px-6', className].join(' ')}>
+        <div className={['mx-auto w-full px-4 sm:px-6', maxWidth, className].join(' ')}>
             {children}
         </div>
     );

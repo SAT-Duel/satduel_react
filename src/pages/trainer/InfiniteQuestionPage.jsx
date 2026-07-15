@@ -1,7 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {CheckCircle2, ChevronDown, Crown, Flame, History, Lock, LogOut, Swords, Timer, Trophy, XCircle, Zap} from 'lucide-react';
+import {CheckCircle2, ChevronDown, Crown, Flame, History, Lock, LogOut, PanelLeftClose, PanelLeftOpen, Swords, Timer, Trophy, XCircle, Zap} from 'lucide-react';
 import '../../styles/landing.css';
 import {useAuth} from '../../context/AuthContext';
+import {useNavCollapse} from '../../layout/AppLayout';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
@@ -382,6 +383,7 @@ function readManualTimer() {
 }
 
 function InfiniteQuestionsPage() {
+    const {hidden: navHidden, toggle: toggleNav} = useNavCollapse();
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [questionStatus, setQuestionStatus] = useState('Blank');
     const [loadingQuestions, setLoadingQuestions] = useState(false);
@@ -666,12 +668,32 @@ function InfiniteQuestionsPage() {
 
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-8 sm:py-12">
-            <PageContainer>
+            {/* Reclaims exactly the sidebar's width (72rem + 15rem) so the card
+                grows into the space the nav left behind. */}
+            <PageContainer maxWidth={navHidden ? 'max-w-[87rem]' : 'max-w-6xl'}>
                 <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <h1 className="m-0 font-display text-2xl font-bold text-slate-900">Practice</h1>
-                    <Button to="/practice-history" variant="ghost" size="sm" className="self-start sm:self-auto">
-                        <History className="size-4"/> History
-                    </Button>
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                        {/* Wrapper owns the breakpoint: `hidden` on the Button itself
+                            would lose to its own base `inline-flex`. The sidebar only
+                            exists at lg, so the toggle shouldn't either. */}
+                        <div className="hidden lg:block">
+                            <Button
+                                onClick={toggleNav}
+                                variant="ghost"
+                                size="sm"
+                                title={navHidden ? 'Show the navigation sidebar' : 'Hide the sidebar for a wider question'}
+                                aria-pressed={navHidden}
+                            >
+                                {navHidden
+                                    ? <><PanelLeftOpen className="size-4"/> Show nav</>
+                                    : <><PanelLeftClose className="size-4"/> Hide nav</>}
+                            </Button>
+                        </div>
+                        <Button to="/practice-history" variant="ghost" size="sm">
+                            <History className="size-4"/> History
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="mb-5 lg:hidden">

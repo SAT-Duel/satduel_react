@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {Helmet} from 'react-helmet';
 import {Navigate, NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom';
 import {
@@ -21,6 +21,34 @@ import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {Spinner} from '../components/ui';
 import logo from '../assets/logo192.png';
 import {loginPathFor} from '../utils/authRedirect';
+
+// Routes where the sidebar may be collapsed for a wider question. Scoped on
+// purpose: with the sidebar hidden the toggle is the only way back to the nav,
+// so pages that opt in must render <NavCollapseButton/>.
+const NAV_COLLAPSIBLE_ROUTES = ['/infinite_questions'];
+
+const NAV_HIDDEN_KEY = 'sd:nav-hidden';
+
+const NavCollapseContext = createContext(null);
+
+function readNavHidden() {
+    if (typeof window === 'undefined') return false;
+    try {
+        return window.localStorage.getItem(NAV_HIDDEN_KEY) === 'true';
+    } catch {
+        // Private-mode Safari and friends: fall back to the nav being shown.
+        return false;
+    }
+}
+
+/**
+ * Sidebar collapse state, shared between AppLayout and the page that owns the
+ * toggle. `canCollapse` is false off a collapsible route, so `hidden` there is
+ * remembered but not applied.
+ */
+export function useNavCollapse() {
+    return useContext(NavCollapseContext) ?? {hidden: false, canCollapse: false, toggle: () => {}};
+}
 
 // The learning experience lives behind these. Order = importance.
 const NAV_ITEMS = [
@@ -125,6 +153,27 @@ const AppLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [navHidden, setNavHidden] = useState(readNavHidden);
+
+    const canCollapse = NAV_COLLAPSIBLE_ROUTES.includes(location.pathname);
+    const navCollapsed = navHidden && canCollapse;
+
+    const toggleNav = useCallback(() => {
+        setNavHidden((hidden) => {
+            const next = !hidden;
+            try {
+                window.localStorage.setItem(NAV_HIDDEN_KEY, String(next));
+            } catch {
+                // Preference just won't survive the session; not worth failing the click.
+            }
+            return next;
+        });
+    }, []);
+
+    const navCollapse = useMemo(
+        () => ({hidden: navCollapsed, canCollapse, toggle: toggleNav}),
+        [navCollapsed, canCollapse, toggleNav]
+    );
 
     useEffect(() => {
         if (!user) return undefined;
@@ -204,12 +253,17 @@ const AppLayout = () => {
     );
 
     return (
+        <NavCollapseContext.Provider value={navCollapse}>
         <div className="min-h-screen bg-slate-50">
             <Helmet>
                 <title>SAT Duel</title>
             </Helmet>
             {/* Desktop sidebar */}
-            <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 border-r border-slate-200 bg-white lg:block">
+            <aside
+                className={`fixed inset-y-0 left-0 z-40 hidden w-60 border-r border-slate-200 bg-white ${
+                    navCollapsed ? '' : 'lg:block'
+                }`}
+            >
                 {SidebarContent}
             </aside>
 
@@ -241,7 +295,7 @@ const AppLayout = () => {
             )}
 
             {/* Content */}
-            <div className="lg:pl-60">
+            <div className={navCollapsed ? '' : 'lg:pl-60'}>
                 <main className="pb-20 lg:pb-0">
                     <Outlet/>
                 </main>
@@ -284,6 +338,7 @@ const AppLayout = () => {
                 </NavLink>
             </nav>
         </div>
+        </NavCollapseContext.Provider>
     );
 };
 
