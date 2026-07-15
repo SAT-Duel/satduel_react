@@ -27,6 +27,7 @@ const StudyGuidePage = React.lazy(() => import("../pages/StudyGuidePage"));
 const StudyGuideLessonPage = React.lazy(() => import("../pages/StudyGuideLessonPage"));
 const InfiniteQuestionPage = React.lazy(() => import("../pages/trainer/InfiniteQuestionPage"));
 const PracticeHistoryPage = React.lazy(() => import("../pages/trainer/PracticeHistoryPage"));
+const MistakeReviewPage = React.lazy(() => import("../pages/trainer/MistakeReviewPage"));
 const ConfirmEmail = React.lazy(() => import("./ConfirmEmail"));
 const EmailVerificationPage = React.lazy(() => import("../pages/EmailVerificationPage"));
 const PowerSprintHome = React.lazy(() => import("../pages/trainer/PowerSprintHome"));
@@ -142,6 +143,7 @@ const FULLSCREEN_ROUTES = [
     {path: '/tournament/:tournamentId/questions', el: <TournamentQuestionPage/>},
     {path: '/full_length_test', el: <TestPage/>},
     {path: '/test_result', el: <TestResultPage/>},
+    {path: '/mistake-review', el: <MistakeReviewPage/>},
     {path: '/welcome', el: <WelcomePage/>},
     {path: '/complete_profile', el: <CompleteProfilePage/>},
 ];

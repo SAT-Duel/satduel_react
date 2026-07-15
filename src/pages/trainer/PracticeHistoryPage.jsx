@@ -1,9 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {CheckCircle2, ChevronDown, ChevronUp, History, XCircle} from 'lucide-react';
+import {CheckCircle2, ChevronDown, ChevronUp, History, Play, RotateCcw, XCircle} from 'lucide-react';
+import {useNavigate} from 'react-router-dom';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
 import RenderWithMath from '../../components/RenderWithMath';
-import {Alert, Button, Card, PageContainer, Spinner} from '../../components/ui';
+import MistakePracticeModal from '../../components/practice/MistakePracticeModal';
+import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
 
 const SUBJECT_OPTIONS = [
     ['all', 'All subjects'],
@@ -15,7 +17,7 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
     month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
 });
 
-function AnswerHistoryItem({attempt}) {
+function AnswerHistoryItem({attempt, onPractice}) {
     const [open, setOpen] = useState(false);
     const question = attempt.question;
     const Icon = attempt.correct ? CheckCircle2 : XCircle;
@@ -25,7 +27,7 @@ function AnswerHistoryItem({attempt}) {
 
     return (
         <Card className="overflow-hidden">
-            <div className="flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
+            <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                         <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold ${tone}`}>
@@ -40,15 +42,22 @@ function AnswerHistoryItem({attempt}) {
                         {dateFormatter.format(new Date(attempt.created_at))}
                     </p>
                 </div>
-                <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setOpen((value) => !value)}
-                    aria-expanded={open}
-                >
-                    {open ? <>Hide <ChevronUp className="size-4"/></> : <>Review <ChevronDown className="size-4"/></>}
-                </Button>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                    {!attempt.correct && (
+                        <Button type="button" size="sm" variant="secondary" onClick={() => onPractice(attempt)}>
+                            <RotateCcw className="size-4"/> Practice again
+                        </Button>
+                    )}
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setOpen((value) => !value)}
+                        aria-expanded={open}
+                    >
+                        {open ? <>Hide <ChevronUp className="size-4"/></> : <>Review <ChevronDown className="size-4"/></>}
+                    </Button>
+                </div>
             </div>
 
             {open && (
@@ -99,11 +108,18 @@ function AnswerHistoryItem({attempt}) {
 }
 
 function PracticeHistoryPage() {
+    const navigate = useNavigate();
     const [subject, setSubject] = useState('all');
+    const [questionType, setQuestionType] = useState('all');
+    const [incorrectOnly, setIncorrectOnly] = useState(false);
+    const [questionTypes, setQuestionTypes] = useState([]);
+    const [mistakeCount, setMistakeCount] = useState(0);
     const [attempts, setAttempts] = useState([]);
     const [nextOffset, setNextOffset] = useState(null);
+    const [practiceAttempt, setPracticeAttempt] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [startingReview, setStartingReview] = useState(false);
     const [error, setError] = useState(null);
 
     const loadHistory = useCallback(async (offset = 0) => {
@@ -112,35 +128,98 @@ function PracticeHistoryPage() {
         setError(null);
         try {
             const response = await api.get('api/practice/history/', {
-                params: {subject, offset, limit: 20},
+                params: {
+                    subject,
+                    question_type: questionType,
+                    incorrect_only: incorrectOnly,
+                    offset,
+                    limit: 20,
+                },
             });
             setAttempts((current) => loadingInitial
                 ? response.data.attempts
                 : [...current, ...response.data.attempts]);
+            setQuestionTypes(response.data.question_types || []);
+            setMistakeCount(response.data.mistake_count || 0);
             setNextOffset(response.data.next_offset);
         } catch {
             setError('Could not load your practice history.');
         } finally {
             loadingInitial ? setLoading(false) : setLoadingMore(false);
         }
-    }, [subject]);
+    }, [incorrectOnly, questionType, subject]);
 
     useEffect(() => {
         loadHistory();
     }, [loadHistory]);
 
+    const changeSubject = (value) => {
+        setSubject(value);
+        setQuestionType('all');
+    };
+
+    const selectionLabel = questionType !== 'all'
+        ? questionType
+        : subject === 'math'
+            ? 'Math mistakes'
+            : subject === 'english'
+                ? 'English mistakes'
+                : 'All mistakes';
+
+    const startMistakeReview = async () => {
+        setStartingReview(true);
+        setError(null);
+        try {
+            const questionsById = new Map();
+            let offset = 0;
+            let hasMore = true;
+
+            while (hasMore) {
+                const response = await api.get('api/practice/history/', {
+                    params: {
+                        subject,
+                        question_type: questionType,
+                        incorrect_only: true,
+                        offset,
+                        limit: 50,
+                    },
+                });
+                response.data.attempts.forEach((attempt) => {
+                    if (!questionsById.has(attempt.question.id)) {
+                        questionsById.set(attempt.question.id, {
+                            ...attempt.question,
+                            subject: attempt.subject,
+                        });
+                    }
+                });
+                hasMore = response.data.has_more;
+                offset = response.data.next_offset;
+            }
+
+            const questions = Array.from(questionsById.values());
+            if (!questions.length) {
+                setError('There are no mistakes to review with these filters.');
+                return;
+            }
+            navigate('/mistake-review', {state: {questions, label: selectionLabel}});
+        } catch {
+            setError('Could not start your mistake review. Please try again.');
+        } finally {
+            setStartingReview(false);
+        }
+    };
+
+    const hasFilters = questionType !== 'all' || incorrectOnly;
+
     return (
         <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 sm:py-12">
-            <PageContainer className="max-w-4xl">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <p className="m-0 inline-flex items-center gap-2 text-sm font-bold text-primary-600">
-                            <History className="size-4"/> Review your work
-                        </p>
-                        <h1 className="m-0 mt-1 font-display text-3xl font-bold text-slate-900">Practice history</h1>
-                        <p className="m-0 mt-2 text-slate-600">See what you chose, the correct answer, and the explanation.</p>
-                    </div>
-                    <Button to="/infinite_questions" size="sm">Practice now</Button>
+            <PageContainer maxWidth="max-w-4xl">
+                <div>
+                    <p className="m-0 inline-flex items-center gap-2 text-sm font-bold text-primary-600">
+                        <History className="size-4"/> Review your work
+                    </p>
+                    <h1 className="m-0 mt-1 font-display text-3xl font-bold text-slate-900">Practice history</h1>
+                    <p className="m-0 mt-2 text-slate-600">Filter past answers, inspect explanations, and retry your mistakes.</p>
                 </div>
 
                 <div className="mt-6 flex gap-2 border-b border-slate-200">
@@ -148,7 +227,7 @@ function PracticeHistoryPage() {
                         <button
                             key={value}
                             type="button"
-                            onClick={() => setSubject(value)}
+                            onClick={() => changeSubject(value)}
                             className={`border-b-2 px-3 py-2 text-sm font-bold transition-colors ${
                                 subject === value
                                     ? 'border-primary-600 text-primary-700'
@@ -159,6 +238,42 @@ function PracticeHistoryPage() {
                         </button>
                     ))}
                 </div>
+
+                <Card className="mt-5 border-primary-100 !bg-primary-50/40 p-4 sm:p-5">
+                    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                        <div className="grid gap-4 sm:grid-cols-2 sm:items-end">
+                            <label>
+                                <span className="mb-1.5 block text-sm font-bold text-slate-700">Question type</span>
+                                <Select value={questionType} onChange={(event) => setQuestionType(event.target.value)}>
+                                    <option value="all">All question types</option>
+                                    {questionTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+                                </Select>
+                            </label>
+                            <label className="flex min-h-[46px] cursor-pointer items-center gap-3 rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700">
+                                <input
+                                    type="checkbox"
+                                    checked={incorrectOnly}
+                                    onChange={(event) => setIncorrectOnly(event.target.checked)}
+                                    className="size-4 accent-primary-600"
+                                />
+                                Only show incorrect answers
+                            </label>
+                        </div>
+                        <Button
+                            type="button"
+                            onClick={startMistakeReview}
+                            loading={startingReview}
+                            disabled={mistakeCount === 0}
+                            className="md:min-h-[46px]"
+                        >
+                            <Play className="size-4"/>
+                            Review {mistakeCount} {mistakeCount === 1 ? 'mistake' : 'mistakes'}
+                        </Button>
+                    </div>
+                    <p className="m-0 mt-3 text-xs font-semibold text-primary-700">
+                        Mistake review is private practice. It won&apos;t change your rating, streak, or history.
+                    </p>
+                </Card>
 
                 {loading ? (
                     <div className="flex justify-center py-16"><Spinner/></div>
@@ -171,7 +286,9 @@ function PracticeHistoryPage() {
                     </div>
                 ) : attempts.length ? (
                     <div className="mt-5 space-y-3">
-                        {attempts.map((attempt) => <AnswerHistoryItem key={attempt.id} attempt={attempt}/>) }
+                        {attempts.map((attempt) => (
+                            <AnswerHistoryItem key={attempt.id} attempt={attempt} onPractice={setPracticeAttempt}/>
+                        ))}
                         {nextOffset != null && (
                             <div className="pt-3 text-center">
                                 <Button variant="secondary" onClick={() => loadHistory(nextOffset)} loading={loadingMore}>
@@ -183,18 +300,37 @@ function PracticeHistoryPage() {
                 ) : (
                     <Card className="mt-5 px-6 py-12 text-center">
                         <History className="mx-auto size-8 text-slate-300"/>
-                        <h2 className="m-0 mt-4 text-xl font-bold text-slate-900">No practice answers yet</h2>
+                        <h2 className="m-0 mt-4 text-xl font-bold text-slate-900">
+                            {hasFilters ? 'No answers match these filters' : 'No practice answers yet'}
+                        </h2>
                         <p className="m-0 mt-2 text-slate-600">
-                            {subject === 'all'
-                                ? 'Answer a practice question to start your review history.'
-                                : `No ${subject === 'math' ? 'Math' : 'English'} answers yet.`}
+                            {hasFilters
+                                ? 'Try another question type or include correct answers.'
+                                : subject === 'all'
+                                    ? 'Answer a practice question to start your review history.'
+                                    : `No ${subject === 'math' ? 'Math' : 'English'} answers yet.`}
                         </p>
-                        <Button to={`/infinite_questions${subject === 'math' ? '?subject=math' : ''}`} className="mt-6">
-                            Start practicing
-                        </Button>
+                        {hasFilters ? (
+                            <Button
+                                variant="secondary"
+                                className="mt-6"
+                                onClick={() => {
+                                    setQuestionType('all');
+                                    setIncorrectOnly(false);
+                                }}
+                            >
+                                Clear filters
+                            </Button>
+                        ) : (
+                            <Button to={`/infinite_questions${subject === 'math' ? '?subject=math' : ''}`} className="mt-6">
+                                Start practicing
+                            </Button>
+                        )}
                     </Card>
                 )}
             </PageContainer>
+
+            <MistakePracticeModal attempt={practiceAttempt} onClose={() => setPracticeAttempt(null)}/>
         </div>
     );
 }

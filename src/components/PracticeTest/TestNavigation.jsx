@@ -10,7 +10,9 @@ function TestNavigation({
     setCurrentQuestion,
     reviewQuestions,
     answeredQuestions,
-    handelSubmit,
+    onSubmit,
+    sessionLabel,
+    navigationTitle,
 }) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {user} = useAuth();
@@ -27,6 +29,7 @@ function TestNavigation({
                             setCurrentQuestion={setCurrentQuestion}
                             reviewQuestions={reviewQuestions}
                             answeredQuestions={answeredQuestions}
+                            title={navigationTitle}
                         />
                     </div>
                 </div>
@@ -35,7 +38,7 @@ function TestNavigation({
             <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
                 <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
                     <p className="m-0 truncate text-sm font-black text-slate-700">
-                        {user ? user.username : 'Anonymous User'}
+                        {sessionLabel || (user ? user.username : 'Anonymous User')}
                     </p>
 
                     {currentQuestion <= totalQuestions ? (
@@ -57,7 +60,7 @@ function TestNavigation({
                                 Next <ChevronRight className="size-4"/>
                             </Button>
                         ) : (
-                            <Button size="sm" onClick={() => handelSubmit()}>
+                            <Button size="sm" onClick={onSubmit}>
                                 Submit <Check className="size-4"/>
                             </Button>
                         )}

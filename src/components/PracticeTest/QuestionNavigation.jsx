@@ -22,6 +22,7 @@ function QuestionNavigation({
     answeredQuestions,
     reviewQuestions,
     setCurrentQuestion,
+    title = 'Section 1 questions',
 }) {
     const questions = Array.from({length: totalQuestions}, (_, i) => i + 1);
 
@@ -33,7 +34,7 @@ function QuestionNavigation({
     return (
         <div>
             <div className="mb-5 flex items-center justify-between gap-3">
-                <h2 className="m-0 font-display text-xl font-black text-slate-950">Section 1 questions</h2>
+                <h2 className="m-0 font-display text-xl font-black text-slate-950">{title}</h2>
                 {setIsOpen && (
                     <button
                         type="button"
