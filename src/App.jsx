@@ -5,14 +5,15 @@ import {ThemeProvider} from "styled-components";
 import theme from "./styles/theme";
 import GlobalStyles from "./styles/globalStyles";
 import ToastHost from './components/ToastHost';
-import DesmosCalculator from './components/DesmosCalculator';
+import {DesmosProvider} from './components/DesmosCalculator';
 
 function App() {
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyles/>
-            <Router/>
-            <DesmosCalculator/>
+            <DesmosProvider>
+                <Router/>
+            </DesmosProvider>
             <ToastHost/>
         </ThemeProvider>
     );

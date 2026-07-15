@@ -3,6 +3,7 @@ import {CheckCircle2, Flag, Pause, Play, RotateCcw, Timer, XCircle} from 'lucide
 import {Button, ModalShell, Spinner, Textarea} from '../ui';
 import RenderWithMath from '../RenderWithMath';
 import api from '../api';
+import {useDesmos} from '../DesmosCalculator';
 import {useAuth} from '../../context/AuthContext';
 import {notify} from '../../utils/notify';
 import '../../styles/landing.css';
@@ -72,6 +73,8 @@ function PracticeQuestionCard({
     const [reportError, setReportError] = useState('');
     const [reporting, setReporting] = useState(false);
     const promptRef = useRef(null);
+    const desmos = useDesmos();
+    const isMath = question?.subject === 'math';
 
     useEffect(() => {
         setHighlightOn(false);
@@ -177,6 +180,20 @@ function PracticeQuestionCard({
                         >
                             HIGHLIGHT
                         </button>
+                        {isMath && (
+                            <button
+                                type="button"
+                                onClick={desmos.open}
+                                title="Open the Desmos graphing calculator"
+                                className={`${MONO} cursor-pointer rounded-md border px-2 py-[3px] text-[10.5px] transition-colors ${
+                                    desmos.isOpen
+                                        ? 'border-[rgba(124,92,240,0.5)] bg-[rgba(124,92,240,0.18)] text-[#C0B0FA]'
+                                        : 'border-[rgba(148,163,184,0.35)] bg-transparent text-[#B9C2D8] hover:bg-white/10 hover:text-white'
+                                }`}
+                            >
+                                DESMOS
+                            </button>
+                        )}
                         {timerSeconds != null && (
                             <div className="flex items-center gap-1">
                                 <button
