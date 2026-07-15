@@ -682,6 +682,7 @@ function InfiniteQuestionsPage() {
                                 onClick={toggleNav}
                                 variant="ghost"
                                 size="sm"
+                                className="!bg-primary-50 !text-primary-700 hover:!bg-primary-100"
                                 title={navHidden ? 'Show the navigation sidebar' : 'Hide the sidebar for a wider question'}
                                 aria-pressed={navHidden}
                             >
@@ -690,7 +691,7 @@ function InfiniteQuestionsPage() {
                                     : <><PanelLeftClose className="size-4"/> Hide nav</>}
                             </Button>
                         </div>
-                        <Button to="/practice-history" variant="ghost" size="sm">
+                        <Button to="/practice-history" variant="ghost" size="sm" className="!bg-primary-50 !text-primary-700 hover:!bg-primary-100">
                             <History className="size-4"/> History
                         </Button>
                     </div>
