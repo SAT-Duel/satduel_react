@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {Calculator, ExternalLink, X} from 'lucide-react';
 import {useLocation} from 'react-router-dom';
 
@@ -21,46 +21,56 @@ function panelPosition(x, y) {
     };
 }
 
+// Resolved on first open rather than at mount: the window can still be
+// zero-width while the app boots, which would pin the panel to the left edge
+// on top of the question.
 function defaultPosition() {
     if (typeof window === 'undefined') return {x: 24, y: 80};
     return panelPosition(window.innerWidth - PANEL_WIDTH - 24, 80);
 }
 
-function shouldShowCalculator(pathname) {
-    return (
-        pathname === '/infinite_questions' ||
-        pathname === '/questions' ||
-        pathname === '/full_length_test' ||
-        pathname === '/power_sprint' ||
-        pathname === '/sat_survival' ||
-        pathname === '/timed_challenges' ||
-        pathname.startsWith('/study_guides') ||
-        (pathname.startsWith('/tournament/') && pathname.endsWith('/questions'))
-    );
+// Routes that want the calculator but don't render PracticeQuestionCard, so
+// they have nowhere to put an in-card button and keep the floating one.
+function shouldShowFloatingButton(pathname) {
+    return pathname === '/full_length_test' || pathname.startsWith('/study_guides');
 }
 
-function DesmosCalculator() {
+const DesmosContext = createContext(null);
+
+/** Opens/closes the shared Desmos panel. Safe to call outside the provider. */
+export function useDesmos() {
+    return useContext(DesmosContext) ?? {open: () => {}, close: () => {}, isOpen: false};
+}
+
+/**
+ * Hosts the draggable Desmos panel and the route-scoped floating button.
+ * The panel is shared: PracticeQuestionCard opens it via `useDesmos()`, so a
+ * question's calculator and the floating one are the same window.
+ */
+export function DesmosProvider({children}) {
     const {pathname} = useLocation();
     const [open, setOpen] = useState(false);
-    const [position, setPosition] = useState(defaultPosition);
+    const [position, setPosition] = useState(null);
     const [dragging, setDragging] = useState(false);
     const dragOffset = useRef({x: 0, y: 0});
-    const visible = useMemo(() => shouldShowCalculator(pathname), [pathname]);
+    const showFloatingButton = useMemo(() => shouldShowFloatingButton(pathname), [pathname]);
 
-    const openCalculator = () => {
-        setPosition((current) => panelPosition(current.x, current.y));
+    const openCalculator = useCallback(() => {
+        setPosition((current) => (current ? panelPosition(current.x, current.y) : defaultPosition()));
         setOpen(true);
-    };
+    }, []);
+
+    const closeCalculator = useCallback(() => setOpen(false), []);
 
     const startDrag = useCallback((event) => {
-        if (event.button !== 0) return;
+        if (event.button !== 0 || !position) return;
         dragOffset.current = {
             x: event.clientX - position.x,
             y: event.clientY - position.y,
         };
         setDragging(true);
         event.preventDefault();
-    }, [position.x, position.y]);
+    }, [position]);
 
     useEffect(() => {
         if (!dragging) return;
@@ -83,11 +93,16 @@ function DesmosCalculator() {
         };
     }, [dragging]);
 
-    if (!visible) return null;
+    const value = useMemo(
+        () => ({open: openCalculator, close: closeCalculator, isOpen: open}),
+        [openCalculator, closeCalculator, open]
+    );
 
     return (
-        <>
-            {!open && (
+        <DesmosContext.Provider value={value}>
+            {children}
+
+            {showFloatingButton && !open && (
                 <button
                     type="button"
                     onClick={openCalculator}
@@ -99,7 +114,7 @@ function DesmosCalculator() {
                 </button>
             )}
 
-            {open && (
+            {open && position && (
                 <section
                     className="fixed z-[90] flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
                     style={{
@@ -130,7 +145,7 @@ function DesmosCalculator() {
                             </a>
                             <button
                                 type="button"
-                                onClick={() => setOpen(false)}
+                                onClick={closeCalculator}
                                 className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
                                 aria-label="Close Desmos calculator"
                                 title="Close"
@@ -147,8 +162,8 @@ function DesmosCalculator() {
                     />
                 </section>
             )}
-        </>
+        </DesmosContext.Provider>
     );
 }
 
-export default DesmosCalculator;
+export default DesmosProvider;

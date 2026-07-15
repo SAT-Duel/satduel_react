@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--no-open"],
       "port": 3000
+    },
+    {
+      "name": "satduel-backend",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "--directory", "../satduel", "python", "manage.py", "runserver", "8000"],
+      "port": 8000
     }
   ]
 }
