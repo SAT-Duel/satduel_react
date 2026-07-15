@@ -67,6 +67,7 @@ function PracticeQuestionCard({
     const answered = normalizedStatus !== 'blank';
     const choices = getChoices(question);
     const [highlightOn, setHighlightOn] = useState(false);
+    const [eliminated, setEliminated] = useState(() => new Set());
     const [reportOpen, setReportOpen] = useState(false);
     const [reportReason, setReportReason] = useState('');
     const [reportDetails, setReportDetails] = useState('');
@@ -78,6 +79,7 @@ function PracticeQuestionCard({
 
     useEffect(() => {
         setHighlightOn(false);
+        setEliminated(new Set());
         setReportOpen(false);
         setReportReason('');
         setReportDetails('');
@@ -107,11 +109,27 @@ function PracticeQuestionCard({
         question?.difficulty ? `LEVEL ${question.difficulty}` : null,
     ].filter(Boolean).join(' · ') || 'QUESTION';
 
-    const choose = (choice) => {
-        if (answered || disabled || checking) return;
+    const choose = (choice, index) => {
+        if (answered || disabled || checking || eliminated.has(index)) return;
         onSelectChoice?.(choice);
         if (submitOnSelect) {
             onSubmit?.(choice);
+        }
+    };
+
+    // Crossing out the selected choice also clears it: ruling an answer out
+    // shouldn't leave it submittable.
+    const toggleEliminated = (choice, index) => {
+        if (answered || disabled || checking) return;
+        const crossingOut = !eliminated.has(index);
+        setEliminated((current) => {
+            const next = new Set(current);
+            if (crossingOut) next.add(index);
+            else next.delete(index);
+            return next;
+        });
+        if (crossingOut && selectedChoice === choice) {
+            onSelectChoice?.(null);
         }
     };
 
@@ -238,9 +256,15 @@ function PracticeQuestionCard({
                         {choices.map((choice, index) => {
                             const isSelected = selectedChoice === choice;
                             const isCorrectChoice = correctAnswer && choice === correctAnswer;
+                            const isEliminated = eliminated.has(index);
+                            const label = CHOICE_LABELS[index] || index + 1;
                             let row = 'border-[#E4E1D6] bg-white hover:border-[#7C5CF0]';
                             let bubble = 'border-2 border-[#B9BFCB] text-[#5A6376]';
-                            let bubbleContent = CHOICE_LABELS[index] || index + 1;
+                            let bubbleContent = label;
+
+                            if (isEliminated && !answered) {
+                                row = 'border-[#E4E1D6] bg-white';
+                            }
 
                             if (answered) {
                                 if (isCorrectChoice) {
@@ -260,20 +284,46 @@ function PracticeQuestionCard({
                             }
 
                             return (
-                                <button
-                                    key={`${question?.id || 'question'}-${index}`}
-                                    type="button"
-                                    onClick={() => choose(choice)}
-                                    disabled={answered || disabled || checking}
-                                    className={`flex min-h-[3.5rem] w-full cursor-pointer items-start gap-3 rounded-xl border-2 px-[15px] py-3 text-left transition-colors disabled:cursor-default ${row}`}
-                                >
-                                    <span className={`grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-bold ${bubble}`}>
-                                        {bubbleContent}
-                                    </span>
-                                    <span className="min-w-0 flex-1 text-[15px] leading-relaxed text-[#131B2C]">
-                                        <RenderWithMath text={choice}/>
-                                    </span>
-                                </button>
+                                <div key={`${question?.id || 'question'}-${index}`} className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => choose(choice, index)}
+                                        disabled={answered || disabled || checking || isEliminated}
+                                        aria-label={isEliminated ? `Choice ${label}, crossed out` : undefined}
+                                        className={`relative flex min-h-[3.5rem] flex-1 cursor-pointer items-start gap-3 rounded-xl border-2 px-[15px] py-3 text-left transition-colors disabled:cursor-default ${row}`}
+                                    >
+                                        <span className={`grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-bold ${bubble}`}>
+                                            {bubbleContent}
+                                        </span>
+                                        <span className="min-w-0 flex-1 text-[15px] leading-relaxed text-[#131B2C]">
+                                            <RenderWithMath text={choice}/>
+                                        </span>
+                                        {isEliminated && !answered && (
+                                            <span className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[#5A6376]"/>
+                                        )}
+                                    </button>
+
+                                    {!answered && !disabled && (
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleEliminated(choice, index)}
+                                            disabled={checking}
+                                            title={isEliminated ? `Undo cross out for choice ${label}` : `Cross out choice ${label}`}
+                                            aria-label={isEliminated ? `Undo cross out for choice ${label}` : `Cross out choice ${label}`}
+                                            aria-pressed={isEliminated}
+                                            className="hidden w-14 shrink-0 cursor-pointer place-items-center text-[#5A6376] transition-colors hover:text-[#131B2C] disabled:cursor-default sm:grid"
+                                        >
+                                            {isEliminated ? (
+                                                <span className="text-[13px] font-bold underline underline-offset-2">Undo</span>
+                                            ) : (
+                                                <span className="relative grid size-6 place-items-center rounded-full border border-current text-[11px] font-bold">
+                                                    {label}
+                                                    <span className="absolute inset-x-[-4px] top-1/2 h-px -translate-y-1/2 bg-current"/>
+                                                </span>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
                             );
                         })}
                     </div>
