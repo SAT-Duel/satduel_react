@@ -17,6 +17,7 @@ import {
     BookText,
     Lock,
     CheckCircle2,
+    CalendarDays,
 } from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
@@ -262,6 +263,58 @@ function SecondaryTile({label, icon: Icon, to, blurb, navigate}) {
     );
 }
 
+function SatExamCountdown({date}) {
+    const [now, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        const timer = setInterval(() => setNow(Date.now()), 30000);
+        return () => clearInterval(timer);
+    }, []);
+
+    if (!date) return null;
+    const target = new Date(`${date}T07:45:00`);
+    const distance = Math.max(0, target.getTime() - now);
+    const days = Math.floor(distance / 86400000);
+    const hours = Math.floor((distance % 86400000) / 3600000);
+    const minutes = Math.floor((distance % 3600000) / 60000);
+    const dateLabel = target.toLocaleDateString(undefined, {
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    });
+
+    return (
+        <Card className="sat-arena-card relative mb-4 overflow-hidden">
+            <div className="sat-score-strip absolute inset-y-0 left-0 w-1.5 border-0"/>
+            <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <div className="flex items-center gap-3">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700">
+                        <CalendarDays className="size-5"/>
+                    </span>
+                    <div>
+                        <p className="m-0 text-xs font-black uppercase tracking-wide text-primary-600">Your next SAT</p>
+                        <p className="m-0 mt-0.5 font-bold text-slate-900">{dateLabel}</p>
+                    </div>
+                </div>
+                {distance > 0 ? (
+                    <div className="flex gap-2" aria-live="polite" aria-label={`${days} days, ${hours} hours, and ${minutes} minutes until your SAT`}>
+                        {[
+                            ['Days', days],
+                            ['Hours', hours],
+                            ['Min', minutes],
+                        ].map(([label, value]) => (
+                            <div key={label} className="min-w-16 rounded-xl bg-slate-50 px-3 py-2 text-center">
+                                <p className="m-0 font-display text-xl font-black tabular-nums text-slate-950">{value}</p>
+                                <p className="m-0 text-[10px] font-black uppercase tracking-wide text-slate-400">{label}</p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="m-0 rounded-xl bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800">SAT day is here—you’ve got this.</p>
+                )}
+            </div>
+        </Card>
+    );
+}
+
 function HomeDashboard() {
     const {user, updateUser} = useAuth();
     const navigate = useNavigate();
@@ -287,6 +340,7 @@ function HomeDashboard() {
                     is_premium: profile.is_premium,
                     avatar: profile.avatar,
                     avatar_icon: profile.avatar_icon,
+                    onboarding_required: profile.onboarding?.required,
                 });
             }
             setData({
@@ -356,6 +410,8 @@ function HomeDashboard() {
                         )}
                     </div>
                 </div>
+
+                <SatExamCountdown date={data.profile?.onboarding?.sat_exam_date}/>
 
                 {/* Daily focused practice + quick actions */}
                 <div className="grid gap-4 lg:grid-cols-3">

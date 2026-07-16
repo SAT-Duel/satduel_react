@@ -6,6 +6,7 @@ import theme from "./styles/theme";
 import GlobalStyles from "./styles/globalStyles";
 import ToastHost from './components/ToastHost';
 import {DesmosProvider} from './components/DesmosCalculator';
+import AccountCompletionModal from './components/AccountCompletionModal';
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
             <GlobalStyles/>
             <DesmosProvider>
                 <Router/>
+                <AccountCompletionModal/>
             </DesmosProvider>
             <ToastHost/>
         </ThemeProvider>
