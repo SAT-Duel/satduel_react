@@ -15,6 +15,7 @@ function profileToUserUpdates(profile) {
         is_premium: profile.is_premium,
         avatar: profile.avatar,
         avatar_icon: profile.avatar_icon,
+        onboarding_required: profile.onboarding?.required,
     };
 }
 
