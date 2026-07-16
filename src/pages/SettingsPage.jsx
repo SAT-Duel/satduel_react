@@ -1,14 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import {Link, useSearchParams} from 'react-router-dom';
-import {AtSign, Check, CreditCard, Crown, KeyRound, Palette, SmilePlus, Sparkles} from 'lucide-react';
+import {Link, useNavigate, useSearchParams} from 'react-router-dom';
+import {AtSign, Check, CreditCard, Crown, KeyRound, Palette, SmilePlus, Sparkles, Trash2} from 'lucide-react';
 import withAuth from '../hoc/withAuth';
 import api from '../components/api';
-import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from '../components/ui';
+import {Alert, Button, Card, Field, Input, ModalShell, PageContainer, Select, Spinner} from '../components/ui';
 import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
 import UserAvatar from '../components/UserAvatar';
 import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 import {useAuth} from '../context/AuthContext';
 import {DEFAULT_DUEL_EMOTES, DUEL_EMOJIS} from '../utils/duelEmotes';
+import {notify} from '../utils/notify';
 
 const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 const USERNAME_RULE = /^[a-zA-Z0-9_]{1,15}$/;
@@ -22,7 +23,8 @@ function apiErrorMessage(error, fallback) {
 
 function SettingsPage() {
     const [searchParams] = useSearchParams();
-    const {updateUser} = useAuth();
+    const navigate = useNavigate();
+    const {clearAuth, updateUser} = useAuth();
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -31,6 +33,10 @@ function SettingsPage() {
     const [settingPassword, setSettingPassword] = useState(false);
     const [billingAction, setBillingAction] = useState(null);
     const [notice, setNotice] = useState(null);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteConfirmation, setDeleteConfirmation] = useState('');
+    const [deleteError, setDeleteError] = useState('');
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         api.get('api/profile/')
@@ -181,6 +187,29 @@ function SettingsPage() {
         }
     };
 
+    const closeDeleteModal = () => {
+        setDeleteOpen(false);
+        setDeleteConfirmation('');
+        setDeleteError('');
+    };
+
+    const handleDeleteAccount = async () => {
+        setDeleting(true);
+        setDeleteError('');
+        try {
+            await api.delete('api/account/delete/', {
+                data: {confirmation: deleteConfirmation},
+            });
+            clearAuth();
+            navigate('/login', {replace: true});
+            notify.success('Your account was permanently deleted.');
+        } catch (error) {
+            setDeleteError(apiErrorMessage(error, 'Could not delete your account. Please try again.'));
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     if (!form) {
         return (
             <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-16">
@@ -201,7 +230,7 @@ function SettingsPage() {
 
     return (
         <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-10 sm:py-14">
-            <PageContainer className="max-w-3xl">
+            <PageContainer maxWidth="max-w-3xl">
                 <h1 className="font-display text-3xl font-bold text-slate-900">Account settings</h1>
                 <p className="mt-1 text-slate-500">Manage how you appear on SAT Duel.</p>
 
@@ -504,7 +533,74 @@ function SettingsPage() {
                         <Link to="/profile" className="font-semibold text-primary-600">profile page</Link>.
                     </p>
                 </Card>
+
+                <Card className="mt-4 border-rose-200 p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="m-0 inline-flex items-center gap-2 text-lg font-bold text-slate-900">
+                                <Trash2 className="size-5 text-rose-500"/> Delete account
+                            </h2>
+                            <p className="m-0 mt-1 max-w-xl text-sm leading-6 text-slate-500">
+                                Permanently delete your profile and all related SAT Duel data. This cannot be undone.
+                            </p>
+                        </div>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={() => setDeleteOpen(true)}
+                        >
+                            Delete account
+                        </Button>
+                    </div>
+                </Card>
             </PageContainer>
+
+            <ModalShell
+                open={deleteOpen}
+                title="Permanently delete account?"
+                onClose={deleting ? () => {} : closeDeleteModal}
+                footer={(
+                    <>
+                        <Button variant="secondary" onClick={closeDeleteModal} disabled={deleting}>Cancel</Button>
+                        <Button
+                            variant="danger"
+                            loading={deleting}
+                            disabled={deleteConfirmation !== 'DELETE'}
+                            onClick={handleDeleteAccount}
+                        >
+                            Delete forever
+                        </Button>
+                    </>
+                )}
+            >
+                <p className="m-0 text-sm leading-6 text-slate-600">
+                    Your answers, practice history, duel and tournament data, classes, reports, profile, and social links will be deleted. Any Premium subscription will be canceled first.
+                </p>
+                <p className="m-0 mt-3 text-xs leading-5 text-slate-400">
+                    Payment processors may retain transaction records when legally required.
+                </p>
+                <div className="mt-5">
+                    <Field label="Type DELETE to confirm">
+                        <Input
+                            value={deleteConfirmation}
+                            onChange={(event) => {
+                                setDeleteConfirmation(event.target.value);
+                                setDeleteError('');
+                            }}
+                            autoComplete="off"
+                            placeholder="DELETE"
+                            disabled={deleting}
+                        />
+                    </Field>
+                </div>
+                {deleteError && (
+                    <p className="m-0 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm font-semibold text-rose-700">
+                        {deleteError}
+                    </p>
+                )}
+            </ModalShell>
         </div>
     );
 }
