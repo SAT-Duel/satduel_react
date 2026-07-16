@@ -23,6 +23,14 @@ export const AuthProvider = ({children}) => {
     const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const clearAuth = useCallback(() => {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+    }, []);
+
     const login = async (userData, accessToken, refreshToken) => {
         setUser(userData);
         setToken(accessToken);
@@ -35,14 +43,11 @@ export const AuthProvider = ({children}) => {
         try {
             const baseUrl = import.meta.env.VITE_API_URL;
             let response = await axios.post(`${baseUrl}/api/logout/`);
-            setUser(null);
-            setToken(null);
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
             notify.success(response.data.message);
         } catch (error) {
             console.error('Logout failed', error);
+        } finally {
+            clearAuth();
         }
     };
 
@@ -108,7 +113,7 @@ export const AuthProvider = ({children}) => {
     }, [refreshAccessToken, token]);
 
     return (
-        <AuthContext.Provider value={{user, login, logout, token, loading, setFirstLogin, updateUser, refreshUser}}>
+        <AuthContext.Provider value={{user, login, logout, clearAuth, token, loading, setFirstLogin, updateUser, refreshUser}}>
             {children}
         </AuthContext.Provider>
     );
