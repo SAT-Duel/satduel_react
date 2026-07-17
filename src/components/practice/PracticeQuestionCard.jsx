@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {CheckCircle2, Flag, Pause, Play, RotateCcw, Timer, XCircle} from 'lucide-react';
+import {Bookmark, CheckCircle2, Flag, Pause, Play, RotateCcw, Timer, XCircle} from 'lucide-react';
 import {Button, ModalShell, Spinner, Textarea} from '../ui';
 import RenderWithMath from '../RenderWithMath';
 import api from '../api';
@@ -60,6 +60,7 @@ function PracticeQuestionCard({
     onTimerToggle,
     onTimerReset,
     allowReporting = true,
+    allowSaving = false,
     className = '',
 }) {
     const {user} = useAuth();
@@ -73,9 +74,12 @@ function PracticeQuestionCard({
     const [reportDetails, setReportDetails] = useState('');
     const [reportError, setReportError] = useState('');
     const [reporting, setReporting] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [savingPending, setSavingPending] = useState(false);
     const promptRef = useRef(null);
     const desmos = useDesmos();
     const isMath = question?.subject === 'math';
+    const canSave = allowSaving && user && question?.id;
 
     useEffect(() => {
         setHighlightOn(false);
@@ -85,6 +89,43 @@ function PracticeQuestionCard({
         setReportDetails('');
         setReportError('');
     }, [question?.id]);
+
+    // The button reflects what the backend actually has, so a question saved
+    // earlier still reads as saved when it comes back around (or after reload).
+    useEffect(() => {
+        if (!canSave) return undefined;
+        let cancelled = false;
+        setSaved(false);
+        api.get('/api/practice/saved/status/', {params: {question_id: question.id}})
+            .then((response) => {
+                if (!cancelled) setSaved(Boolean(response.data.saved));
+            })
+            .catch(() => {
+                // Unknown saved state reads as unsaved; the toggle still works.
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [canSave, question?.id]);
+
+    const toggleSaved = async () => {
+        if (!canSave || savingPending) return;
+        const next = !saved;
+        setSavingPending(true);
+        setSaved(next);  // optimistic: the chip should answer the click instantly
+        try {
+            if (next) {
+                await api.post('/api/practice/saved/', {question_id: question.id});
+            } else {
+                await api.delete(`/api/practice/saved/${question.id}/`);
+            }
+        } catch {
+            setSaved(!next);
+            notify.error(next ? 'Could not save this question.' : 'Could not remove this question.');
+        } finally {
+            setSavingPending(false);
+        }
+    };
 
     const applyHighlight = () => {
         if (!highlightOn || answered) return;
@@ -185,6 +226,22 @@ function PracticeQuestionCard({
                             <span className={`${MONO} text-[11px] text-[#7C8AA5]`}>
                                 Q {questionNumber || 1}/{totalQuestions}
                             </span>
+                        )}
+                        {canSave && (
+                            <button
+                                type="button"
+                                onClick={toggleSaved}
+                                title={saved ? 'Remove from your saved questions' : 'Mark this question for review'}
+                                aria-pressed={saved}
+                                className={`${MONO} inline-flex cursor-pointer items-center gap-1 rounded-md border px-2 py-[3px] text-[10.5px] transition-colors ${
+                                    saved
+                                        ? 'border-[rgba(249,115,22,0.55)] bg-[rgba(249,115,22,0.18)] text-[#FB923C]'
+                                        : 'border-[rgba(148,163,184,0.35)] bg-transparent text-[#B9C2D8] hover:bg-white/10 hover:text-white'
+                                }`}
+                            >
+                                <Bookmark className={`size-3 ${saved ? 'fill-current' : ''}`}/>
+                                {saved ? 'SAVED' : 'MARK'}
+                            </button>
                         )}
                         <button
                             type="button"
