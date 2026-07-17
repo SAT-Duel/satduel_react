@@ -7,7 +7,7 @@ import withAuth from '../../hoc/withAuth';
 
 const CHOICE_LABELS = ['A', 'B', 'C', 'D'];
 
-function MistakeReviewResults({results}) {
+function MistakeReviewResults({results, returnTo, returnLabel}) {
     const correct = results.filter((result) => result.correct).length;
 
     return (
@@ -71,8 +71,8 @@ function MistakeReviewResults({results}) {
                 </Card>
 
                 <div className="mt-6 text-center">
-                    <Button to="/practice-history">
-                        <History className="size-4"/> Return to history
+                    <Button to={returnTo}>
+                        <History className="size-4"/> {returnLabel}
                     </Button>
                 </div>
             </PageContainer>
@@ -84,6 +84,11 @@ function MistakeReviewPage() {
     const location = useLocation();
     const questions = location.state?.questions || [];
     const label = location.state?.label || 'Mistake review';
+    // Saved-question reviews reuse this page, so they come back with their own
+    // return target instead of being dropped on the history page.
+    const fromSaved = location.state?.returnTo === '/saved-questions';
+    const returnTo = fromSaved ? '/saved-questions' : '/practice-history';
+    const returnLabel = fromSaved ? 'Return to saved' : 'Return to history';
     const [results, setResults] = useState(null);
 
     if (!questions.length) {
@@ -99,7 +104,7 @@ function MistakeReviewPage() {
         );
     }
 
-    if (results) return <MistakeReviewResults results={results}/>;
+    if (results) return <MistakeReviewResults results={results} returnTo={returnTo} returnLabel={returnLabel}/>;
 
     return (
         <QuestionSession

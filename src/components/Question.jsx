@@ -19,6 +19,7 @@ function Question({
     timerRunning = false,
     onTimerToggle,
     onTimerReset,
+    allowSaving = false,
 }) {
     const [selectedChoice, setSelectedChoice] = useState('');
     const [answerDetails, setAnswerDetails] = useState(null);
@@ -77,6 +78,7 @@ function Question({
             timerRunning={timerRunning}
             onTimerToggle={onTimerToggle}
             onTimerReset={onTimerReset}
+            allowSaving={allowSaving}
             correctAnswer={answerDetails?.answer}
             correctChoiceLabel={answerDetails?.answer_choice}
             explanation={answerDetails?.explanation}

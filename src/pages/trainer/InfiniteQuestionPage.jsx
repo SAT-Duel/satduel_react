@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {CheckCircle2, ChevronDown, Crown, Flame, History, Lock, LogOut, PanelLeftClose, PanelLeftOpen, Swords, Timer, Trophy, XCircle, Zap} from 'lucide-react';
+import {Bookmark, CheckCircle2, ChevronDown, Crown, Flame, History, Lock, LogOut, PanelLeftClose, PanelLeftOpen, Swords, Timer, Trophy, XCircle, Zap} from 'lucide-react';
 import '../../styles/landing.css';
 import {useAuth} from '../../context/AuthContext';
 import {useNavCollapse} from '../../layout/AppLayout';
@@ -723,6 +723,9 @@ function InfiniteQuestionsPage() {
                                     : <><PanelLeftClose className="size-4"/> Hide nav</>}
                             </Button>
                         </div>
+                        <Button to="/saved-questions" variant="ghost" size="sm" className="!bg-primary-50 !text-primary-700 hover:!bg-primary-100">
+                            <Bookmark className="size-4"/> Saved
+                        </Button>
                         <Button to="/practice-history" variant="ghost" size="sm" className="!bg-primary-50 !text-primary-700 hover:!bg-primary-100">
                             <History className="size-4"/> History
                         </Button>
@@ -757,6 +760,7 @@ function InfiniteQuestionsPage() {
                                 timerRunning={manualTimer.running}
                                 onTimerToggle={handleTimerToggle}
                                 onTimerReset={handleTimerReset}
+                                allowSaving
                             />
                         )}
                     </main>
