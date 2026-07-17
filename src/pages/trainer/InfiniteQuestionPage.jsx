@@ -369,16 +369,26 @@ export function ReadyToPractice({quota, onStart}) {
 
 const TIMER_STORAGE_KEY = 'satduel:practice-timer';
 
+const EMPTY_TIMER = {seconds: 0, running: false, startedAt: null, questionId: null};
+
+// `questionId` is what the elapsed time belongs to. It has to survive a reload
+// too, or the restored timer would look like it belongs to no question and get
+// restarted from 0.
 function readManualTimer() {
     try {
         const saved = JSON.parse(localStorage.getItem(TIMER_STORAGE_KEY));
-        if (!saved) return {seconds: 0, running: false, startedAt: null};
+        if (!saved) return EMPTY_TIMER;
         if (saved.running && saved.startedAt) {
             return {...saved, seconds: Math.max(0, Math.floor((Date.now() - saved.startedAt) / 1000))};
         }
-        return {seconds: saved.seconds || 0, running: false, startedAt: null};
+        return {
+            seconds: saved.seconds || 0,
+            running: false,
+            startedAt: null,
+            questionId: saved.questionId ?? null,
+        };
     } catch {
-        return {seconds: 0, running: false, startedAt: null};
+        return EMPTY_TIMER;
     }
 }
 
@@ -424,6 +434,19 @@ function InfiniteQuestionsPage() {
         );
         return () => clearInterval(id);
     }, [manualTimer.running]);
+
+    // Every question is timed from 0 on its own, counting as soon as it lands.
+    // Keyed on the question id rather than the fetch itself: reloading re-fetches
+    // the *same* active question, which should keep its elapsed time, not restart.
+    useEffect(() => {
+        const questionId = currentQuestion?.id;
+        if (!questionId) return;
+        setManualTimer((timer) => (
+            timer.questionId === questionId
+                ? timer
+                : {seconds: 0, running: true, startedAt: Date.now(), questionId}
+        ));
+    }, [currentQuestion?.id]);
 
     const fetchNextQuestion = useCallback(async (topic, subj) => {
         try {
@@ -503,7 +526,15 @@ function InfiniteQuestionsPage() {
     };
 
     const handleTimerReset = () => {
-        setManualTimer({seconds: 0, running: false, startedAt: null});
+        setManualTimer((timer) => ({...timer, seconds: 0, running: false, startedAt: null}));
+    };
+
+    // Stops the clock at the moment the answer is confirmed, so the reading is
+    // the solve time rather than however long the explanation was left open.
+    const freezeTimer = () => {
+        setManualTimer((timer) => (timer.running
+            ? {...timer, seconds: Math.floor((Date.now() - timer.startedAt) / 1000), running: false, startedAt: null}
+            : timer));
     };
 
     const handleTopicChange = (topic) => {
@@ -540,6 +571,7 @@ function InfiniteQuestionsPage() {
 
             const isCorrect = response.data.result === 'correct';
             setQuestionStatus(isCorrect ? 'Correct' : 'Incorrect');
+            freezeTimer();
             if (response.data.practice_stats) {
                 setStats(readPracticeStats(response.data.practice_stats));
             }
