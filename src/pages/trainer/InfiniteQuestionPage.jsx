@@ -367,30 +367,10 @@ export function ReadyToPractice({quota, onStart}) {
     );
 }
 
-const TIMER_STORAGE_KEY = 'satduel:practice-timer';
-
+// The practice stopwatch lives only in component state — it is deliberately
+// not persisted, so a page refresh starts it over from zero rather than
+// restoring the previous elapsed time.
 const EMPTY_TIMER = {seconds: 0, running: false, startedAt: null, questionId: null};
-
-// `questionId` is what the elapsed time belongs to. It has to survive a reload
-// too, or the restored timer would look like it belongs to no question and get
-// restarted from 0.
-function readManualTimer() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(TIMER_STORAGE_KEY));
-        if (!saved) return EMPTY_TIMER;
-        if (saved.running && saved.startedAt) {
-            return {...saved, seconds: Math.max(0, Math.floor((Date.now() - saved.startedAt) / 1000))};
-        }
-        return {
-            seconds: saved.seconds || 0,
-            running: false,
-            startedAt: null,
-            questionId: saved.questionId ?? null,
-        };
-    } catch {
-        return EMPTY_TIMER;
-    }
-}
 
 function InfiniteQuestionsPage() {
     const {hidden: navHidden, toggle: toggleNav} = useNavCollapse();
@@ -412,16 +392,9 @@ function InfiniteQuestionsPage() {
     const [streakCelebration, setStreakCelebration] = useState(null);
     const [stats, setStats] = useState(readPracticeStats());
     const [typeProgress, setTypeProgress] = useState({english: [], math: []});
-    const [manualTimer, setManualTimer] = useState(readManualTimer);
+    const [manualTimer, setManualTimer] = useState(EMPTY_TIMER);
     const {loading} = useAuth();
     const hasFetchedData = useRef(false);
-    useEffect(() => {
-        try {
-            localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(manualTimer));
-        } catch {
-            // The timer still works when browser storage is unavailable.
-        }
-    }, [manualTimer]);
 
     useEffect(() => {
         if (!manualTimer.running) return undefined;
@@ -436,8 +409,10 @@ function InfiniteQuestionsPage() {
     }, [manualTimer.running]);
 
     // Every question is timed from 0 on its own, counting as soon as it lands.
-    // Keyed on the question id rather than the fetch itself: reloading re-fetches
-    // the *same* active question, which should keep its elapsed time, not restart.
+    // Since the timer lives only in component state, a refresh or leaving and
+    // returning to the page remounts this component and restarts the stopwatch
+    // from 0. The questionId key just avoids restarting when the same active
+    // question re-renders within a single session.
     useEffect(() => {
         const questionId = currentQuestion?.id;
         if (!questionId) return;
