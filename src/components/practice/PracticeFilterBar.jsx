@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
+import {Link} from 'react-router-dom';
 import {BarChart3, Bookmark, Check, ChevronDown, CircleDot, FolderOpen, Lock, RotateCcw, Target} from 'lucide-react';
 
 // The filter bar for the practice page. It narrows which question the "next"
@@ -73,32 +74,46 @@ function FilterChip({icon: Icon, label, summary, active, disabled, children}) {
         };
     }, [open]);
 
+    const inner = (
+        <>
+            <Icon className="size-4 shrink-0"/>
+            <span className="whitespace-nowrap">{label}</span>
+            {active && summary && (
+                <span className="max-w-[10rem] truncate rounded-md bg-primary-100 px-1.5 py-0.5 text-xs font-bold text-primary-700">
+                    {summary}
+                </span>
+            )}
+            <ChevronDown className={`size-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}/>
+        </>
+    );
+    const chipClass = 'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors';
+
+    // Locked chips are an upsell: clicking one sends free users to the upgrade
+    // page rather than opening a panel they can't use.
+    if (disabled) {
+        return (
+            <Link to="/upgrade" className={`${chipClass} border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100`}>
+                {inner}
+            </Link>
+        );
+    }
+
     return (
         <div ref={ref} className="relative">
             <button
                 type="button"
-                disabled={disabled}
                 onClick={() => setOpen((value) => !value)}
                 aria-expanded={open}
                 className={[
-                    'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors',
-                    disabled
-                        ? 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400'
-                        : active
-                            ? 'border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100'
-                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
+                    chipClass,
+                    active
+                        ? 'border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100'
+                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
                 ].join(' ')}
             >
-                <Icon className="size-4 shrink-0"/>
-                <span className="whitespace-nowrap">{label}</span>
-                {active && summary && (
-                    <span className="max-w-[10rem] truncate rounded-md bg-primary-100 px-1.5 py-0.5 text-xs font-bold text-primary-700">
-                        {summary}
-                    </span>
-                )}
-                <ChevronDown className={`size-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}/>
+                {inner}
             </button>
-            {open && !disabled && (
+            {open && (
                 <div className="absolute left-0 top-full z-20 mt-2 w-60 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
                     {children}
                 </div>
@@ -255,9 +270,12 @@ export default function PracticeFilterBar({filters, onChange, topics, isPremium}
             </FilterChip>
 
             {locked ? (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-700">
+                <Link
+                    to="/upgrade"
+                    className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-100"
+                >
                     <Lock className="size-3.5"/> Premium
-                </span>
+                </Link>
             ) : filtersActiveCount(filters) > 0 && (
                 <button
                     type="button"
