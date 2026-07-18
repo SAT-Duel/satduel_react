@@ -1,0 +1,40 @@
+/* Party Mode animations */
+
+@keyframes party-pop {
+    0% { transform: scale(2.2); opacity: 0; }
+    40% { transform: scale(1); opacity: 1; }
+    85% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.3; }
+}
+
+.party-pop {
+    animation: party-pop 1s ease-out;
+}
+
+@keyframes party-rise {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+
+.party-podium-bar {
+    transform-origin: bottom;
+    animation: party-rise 0.9s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+@keyframes party-fade-up {
+    from { transform: translateY(14px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.party-fade-up {
+    animation: party-fade-up 0.45s ease-out both;
+}
+
+@keyframes party-bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.party-bounce {
+    animation: party-bounce-slow 1.6s ease-in-out infinite;
+}

@@ -13,6 +13,7 @@ import {
     LogOut,
     Crown,
     Menu,
+    PartyPopper,
     X,
 } from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
@@ -56,6 +57,7 @@ const NAV_ITEMS = [
     {label: 'Practice', to: '/infinite_questions', icon: Zap},
     {label: 'Study Guide', to: '/study_guides', icon: BookOpenCheck},
     {label: 'Duel', to: '/match', icon: Swords},
+    {label: 'Party', to: '/party', icon: PartyPopper},
     {label: 'Tournaments', to: '/tournaments', icon: Trophy},
     {label: 'Practice Test', to: '/practice_test', icon: ClipboardList},
     {label: 'Leaderboard', to: '/ranking', icon: Medal},
@@ -66,6 +68,7 @@ const MOBILE_ITEMS = [
     {label: 'Home', to: '/trainer', icon: Home},
     {label: 'Practice', to: '/infinite_questions', icon: Zap},
     {label: 'Duel', to: '/match', icon: Swords},
+    {label: 'Party', to: '/party', icon: PartyPopper},
     {label: 'Tournaments', to: '/tournaments', icon: Trophy},
 ];
 
