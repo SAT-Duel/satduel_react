@@ -147,8 +147,8 @@ function PartyHomePage() {
     return (
         <PageContainer maxWidth="max-w-2xl" className="px-4 py-8 sm:py-12">
             <div className="text-center">
-                <div className="mx-auto mb-4 grid size-16 place-items-center rounded-3xl bg-gradient-to-br from-primary-500 to-fuchsia-500 shadow-lg shadow-primary-500/30">
-                    <PartyPopper className="size-8 text-white"/>
+                <div className="mx-auto mb-4 grid size-16 place-items-center rounded-3xl bg-primary-50">
+                    <PartyPopper className="size-8 text-primary-600"/>
                 </div>
                 <h1 className="font-display text-3xl font-bold text-slate-900 sm:text-4xl">Party Mode</h1>
                 <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-slate-500">
@@ -162,13 +162,13 @@ function PartyHomePage() {
                         <button
                             type="button"
                             onClick={() => setView('create')}
-                            className="group cursor-pointer rounded-3xl bg-gradient-to-br from-primary-500 to-fuchsia-500 p-6 text-left shadow-lg shadow-primary-500/25 transition-transform active:scale-[0.98] sm:p-7"
+                            className="group cursor-pointer rounded-3xl border-2 border-primary-200 bg-primary-50/60 p-6 text-left shadow-sm transition-all hover:border-primary-300 active:scale-[0.98] sm:p-7"
                         >
-                            <span className="grid size-12 place-items-center rounded-2xl bg-white/20">
-                                <PartyPopper className="size-6 text-white"/>
+                            <span className="grid size-12 place-items-center rounded-2xl bg-primary-100">
+                                <PartyPopper className="size-6 text-primary-600"/>
                             </span>
-                            <span className="mt-4 block text-xl font-bold text-white">Create a room</span>
-                            <span className="mt-1 block text-sm leading-relaxed text-white/80">
+                            <span className="mt-4 block text-xl font-bold text-slate-900">Create a room</span>
+                            <span className="mt-1 block text-sm leading-relaxed text-slate-500">
                                 Host the game and get a join code to share.
                             </span>
                         </button>
