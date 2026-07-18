@@ -6,46 +6,11 @@ import {useNavCollapse} from '../../layout/AppLayout';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
-import {Alert, Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
+import {Alert, Button, Card, PageContainer, Spinner} from '../../components/ui';
 import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
 import ResetCountdown from '../../components/ResetCountdown';
 import DiscordCTA from '../../components/Discord';
-
-function TopicControl({quota, topics, selectedTopic, onChange, compact = false}) {
-    const isPremium = quota?.is_premium;
-
-    return (
-        <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-bold uppercase text-slate-400">Topic</span>
-                {!isPremium && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700">
-                        <Lock className="size-3"/> Premium
-                    </span>
-                )}
-            </div>
-            {isPremium ? (
-                <Select value={selectedTopic} onChange={(e) => onChange(e.target.value)}>
-                    <option value="any">All topics (random)</option>
-                    {topics.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                    ))}
-                </Select>
-            ) : (
-                <button
-                    type="button"
-                    disabled
-                    className={[
-                        'w-full rounded-xl border-2 border-dashed border-slate-200 bg-white text-left font-semibold text-slate-500',
-                        compact ? 'px-3 py-2 text-sm' : 'px-4 py-2.5 text-[15px]',
-                    ].join(' ')}
-                >
-                    All topics (random)
-                </button>
-            )}
-        </div>
-    );
-}
+import PracticeFilterBar, {EMPTY_FILTERS, filtersActiveCount, filtersToParams} from '../../components/practice/PracticeFilterBar';
 
 function PracticeProgress({subject, stats}) {
     const label = subject === 'math' ? 'Math' : 'English';
@@ -230,7 +195,7 @@ function readPracticeStats(data = {}) {
     };
 }
 
-function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange, onNext, loadingQuestions}) {
+function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, quota, onNext, loadingQuestions}) {
     const answered = status === 'Correct' || status === 'Incorrect';
     const correct = status === 'Correct';
     const Icon = correct ? CheckCircle2 : XCircle;
@@ -249,16 +214,6 @@ function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, 
             </div>
 
             <RatingChange feedback={ratingFeedback}/>
-
-            <div className="my-4 h-px bg-slate-100"/>
-
-            <TopicControl
-                quota={quota}
-                topics={topics}
-                selectedTopic={selectedTopic}
-                onChange={onTopicChange}
-                compact
-            />
 
             {answered && (
                 <>
@@ -284,39 +239,51 @@ function AnswerFeedback({status, ratingFeedback, elo, subject, onSubjectChange, 
     );
 }
 
-function PracticeEmptyState({emptyState, subject, onSubjectChange, quota, topics, selectedTopic, onTopicChange}) {
-    const completed = emptyState?.error === 'completed_topic';
-    const subjectLabel = subject === 'math' ? 'Math' : 'English';
-    const topicLabel = selectedTopic === 'any' ? `${subjectLabel} practice` : selectedTopic;
+function PracticeEmptyState({emptyState, subject, onSubjectChange, quota, topics, filters, onFiltersChange}) {
+    const error = emptyState?.error;
+    const filtered = filtersActiveCount(filters) > 0;
+    const heading = error === 'completed_topic'
+        ? 'You answered every matching question'
+        : error === 'no_matches'
+            ? 'No questions match these filters'
+            : 'No questions here yet';
+    const body = error === 'completed_topic'
+        ? "You've answered every problem in this slice. Widen your filters to keep going."
+        : error === 'no_matches'
+            ? 'Nothing matches this combination yet. Try loosening a filter or two.'
+            : "We're still building this question set. Check back soon or adjust your filters.";
 
     return (
         <div className="sat-bubble-field min-h-[calc(100vh-4rem)] py-12 sm:py-16">
             <PageContainer className="max-w-2xl">
                 <Card className="sat-arena-card p-6 sm:p-8">
                     <SubjectSwitch subject={subject} onChange={onSubjectChange}/>
-                    <TopicControl
-                        quota={quota}
-                        topics={topics}
-                        selectedTopic={selectedTopic}
-                        onChange={onTopicChange}
-                    />
+                    <div className="mt-4">
+                        <PracticeFilterBar
+                            filters={filters}
+                            onChange={onFiltersChange}
+                            topics={topics}
+                            isPremium={quota?.is_premium}
+                        />
+                    </div>
                     <div className="mt-8 border-t border-slate-100 pt-7 text-center">
-                        <div className={`mx-auto flex size-14 items-center justify-center rounded-2xl ${completed ? 'bg-emerald-50' : 'bg-amber-50'}`}>
-                            {completed
+                        <div className={`mx-auto flex size-14 items-center justify-center rounded-2xl ${error === 'completed_topic' ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                            {error === 'completed_topic'
                                 ? <CheckCircle2 className="size-7 text-emerald-600"/>
                                 : <Zap className="size-7 text-amber-600"/>}
                         </div>
-                        <h1 className="m-0 mt-4 font-display text-2xl font-bold text-slate-900">
-                            {completed ? `You finished ${topicLabel}` : `No ${topicLabel} questions yet`}
-                        </h1>
-                        <p className="mx-auto mt-3 max-w-md text-slate-600">
-                            {completed
-                                ? "You've answered every problem here. We'll add more soon."
-                                : "We're still building this question set. Check back soon or choose another topic."}
-                        </p>
-                        <Button to="/practice-history" variant="secondary" className="mt-6">
-                            <History className="size-4"/> View practice history
-                        </Button>
+                        <h1 className="m-0 mt-4 font-display text-2xl font-bold text-slate-900">{heading}</h1>
+                        <p className="mx-auto mt-3 max-w-md text-slate-600">{body}</p>
+                        <div className="mt-6 flex flex-wrap justify-center gap-3">
+                            {filtered && (
+                                <Button variant="secondary" onClick={() => onFiltersChange(EMPTY_FILTERS)}>
+                                    Reset filters
+                                </Button>
+                            )}
+                            <Button to="/practice-history" variant="secondary">
+                                <History className="size-4"/> View practice history
+                            </Button>
+                        </div>
                     </div>
                 </Card>
             </PageContainer>
@@ -372,6 +339,20 @@ export function ReadyToPractice({quota, onStart}) {
 // restoring the previous elapsed time.
 const EMPTY_TIMER = {seconds: 0, running: false, startedAt: null, questionId: null};
 
+// Filter selections survive a refresh (unlike the timer) so returning to
+// practice resumes the same slice of questions. Kept per subject since the
+// topic list differs between English and Math.
+const FILTERS_STORAGE_KEY = 'satduel:practice-filters';
+
+function readStoredFilters() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(FILTERS_STORAGE_KEY));
+        return {english: {...EMPTY_FILTERS, ...saved?.english}, math: {...EMPTY_FILTERS, ...saved?.math}};
+    } catch {
+        return {english: {...EMPTY_FILTERS}, math: {...EMPTY_FILTERS}};
+    }
+}
+
 function InfiniteQuestionsPage() {
     const {hidden: navHidden, toggle: toggleNav} = useNavCollapse();
     const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -383,7 +364,7 @@ function InfiniteQuestionsPage() {
         new URLSearchParams(window.location.search).get('subject') === 'math' ? 'math' : 'english');
     const [elos, setElos] = useState({english: null, math: null});
     const [topicsBySubject, setTopicsBySubject] = useState({english: [], math: []});
-    const [selectedTopic, setSelectedTopic] = useState('any');
+    const [filtersBySubject, setFiltersBySubject] = useState(readStoredFilters);
     const [limitReached, setLimitReached] = useState(false);
     const [billingLoading, setBillingLoading] = useState(false);
     const [ratingFeedback, setRatingFeedback] = useState(null);
@@ -395,6 +376,15 @@ function InfiniteQuestionsPage() {
     const [manualTimer, setManualTimer] = useState(EMPTY_TIMER);
     const {loading} = useAuth();
     const hasFetchedData = useRef(false);
+    const filters = filtersBySubject[subject];
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filtersBySubject));
+        } catch {
+            // Filters still work when browser storage is unavailable.
+        }
+    }, [filtersBySubject]);
 
     useEffect(() => {
         if (!manualTimer.running) return undefined;
@@ -423,15 +413,15 @@ function InfiniteQuestionsPage() {
         ));
     }, [currentQuestion?.id]);
 
-    const fetchNextQuestion = useCallback(async (topic, subj) => {
+    const fetchNextQuestion = useCallback(async (filtersArg, subj) => {
+        const effectiveSubject = typeof subj === 'string' ? subj : subject;
+        const effectiveFilters = filtersArg || filtersBySubject[effectiveSubject] || EMPTY_FILTERS;
         try {
             setLoadingQuestions(true);
             setError(null);
-            const effectiveSubject = typeof subj === 'string' ? subj : subject;
-            const params = {subject: effectiveSubject};
-            const effectiveTopic = typeof topic === 'string' ? topic : selectedTopic;
-            if (effectiveTopic && effectiveTopic !== 'any') params.type = effectiveTopic;
-            const response = await api.get('api/practice/next/', {params});
+            const response = await api.get('api/practice/next/', {
+                params: filtersToParams(effectiveFilters, effectiveSubject),
+            });
             setCurrentQuestion(response.data.question || null);
             setQuota(response.data.quota || null);
             setQuestionStatus('Blank');
@@ -443,14 +433,16 @@ function InfiniteQuestionsPage() {
                 setQuota(data.quota || null);
                 setLimitReached(true);
             } else if (data?.error === 'premium_required') {
-                setSelectedTopic('any');
-                const response = await api.get('api/practice/next/', {params: {subject: subj || subject}});
+                // The filter bar is locked for free users, so this only fires as
+                // a safety net: drop the filters and serve a plain question.
+                setFiltersBySubject((prev) => ({...prev, [effectiveSubject]: {...EMPTY_FILTERS}}));
+                const response = await api.get('api/practice/next/', {params: {subject: effectiveSubject}});
                 setCurrentQuestion(response.data.question || null);
                 setQuota(response.data.quota || null);
                 setQuestionStatus('Blank');
                 setRatingFeedback(null);
                 setEmptyState(null);
-            } else if (data?.error === 'completed_topic' || data?.error === 'no_questions') {
+            } else if (['completed_topic', 'no_questions', 'no_matches'].includes(data?.error)) {
                 setCurrentQuestion(null);
                 setQuota(data.quota || null);
                 setEmptyState(data);
@@ -460,7 +452,7 @@ function InfiniteQuestionsPage() {
         } finally {
             setLoadingQuestions(false);
         }
-    }, [selectedTopic, subject]);
+    }, [subject, filtersBySubject]);
 
     const fetchPracticeStatus = useCallback(async () => {
         try {
@@ -512,16 +504,16 @@ function InfiniteQuestionsPage() {
             : timer));
     };
 
-    const handleTopicChange = (topic) => {
-        setSelectedTopic(topic);
-        fetchNextQuestion(topic);
+    const handleFiltersChange = (nextFilters) => {
+        setFiltersBySubject((prev) => ({...prev, [subject]: nextFilters}));
+        fetchNextQuestion(nextFilters);
     };
 
     const handleSubjectChange = (subj) => {
         if (subj === subject) return;
         setSubject(subj);
-        setSelectedTopic('any');  // topic lists differ per subject
-        fetchNextQuestion('any', subj);
+        // Each subject keeps its own filters (the topic lists differ).
+        fetchNextQuestion(filtersBySubject[subj], subj);
     };
 
     const handleQuestionSubmit = async (id, choice) => {
@@ -667,8 +659,8 @@ function InfiniteQuestionsPage() {
                 onSubjectChange={handleSubjectChange}
                 quota={quota}
                 topics={topicsBySubject[subject] || []}
-                selectedTopic={selectedTopic}
-                onTopicChange={handleTopicChange}
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
             />
         );
     }
@@ -707,6 +699,15 @@ function InfiniteQuestionsPage() {
                     </div>
                 </div>
 
+                <div className="mb-5">
+                    <PracticeFilterBar
+                        filters={filters}
+                        onChange={handleFiltersChange}
+                        topics={topicsBySubject[subject] || []}
+                        isPremium={quota?.is_premium}
+                    />
+                </div>
+
                 <div className="mb-5 lg:hidden">
                     <AnswerFeedback
                         status={questionStatus}
@@ -715,9 +716,6 @@ function InfiniteQuestionsPage() {
                         subject={subject}
                         onSubjectChange={handleSubjectChange}
                         quota={quota}
-                        topics={topicsBySubject[subject] || []}
-                        selectedTopic={selectedTopic}
-                        onTopicChange={handleTopicChange}
                         onNext={() => quota?.remaining === 0 ? setLimitReached(true) : fetchNextQuestion()}
                         loadingQuestions={loadingQuestions}
                     />
@@ -749,9 +747,6 @@ function InfiniteQuestionsPage() {
                                 subject={subject}
                                 onSubjectChange={handleSubjectChange}
                                 quota={quota}
-                                topics={topicsBySubject[subject] || []}
-                                selectedTopic={selectedTopic}
-                                onTopicChange={handleTopicChange}
                                 onNext={() => quota?.remaining === 0 ? setLimitReached(true) : fetchNextQuestion()}
                                 loadingQuestions={loadingQuestions}
                             />
