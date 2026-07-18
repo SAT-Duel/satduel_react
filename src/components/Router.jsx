@@ -54,8 +54,6 @@ const QuestionListPage = React.lazy(() => import("../pages/admin/QuestionListPag
 const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEditorPage"));
 const QuestionGeneratorPage = React.lazy(() => import("../pages/admin/QuestionGeneratorPage"));
 const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminCreateTournamentPage"));
-const SATDuelHomePage = React.lazy(() => import("../pages/satduel/SATDuelHomePage"));
-const WaitingRoomPage = React.lazy(() => import("../pages/satduel/WaitingRoomPage"));
 const MyTournamentsPage = React.lazy(() => import("../pages/MyTournamentsPage"));
 const TestPage = React.lazy(() => import("../pages/practice_test/TestPage"));
 const TestResultPage = React.lazy(() => import("../pages/practice_test/TestResultPage"));
@@ -121,7 +119,6 @@ const APP_ROUTES = [
     {path: '/create_tournament', el: <CreateTournamentPage/>},
     {path: '/my_tournaments', el: <MyTournamentsPage/>},
     {path: '/shop', el: <ShopPage/>},
-    {path: '/duels', el: <SATDuelHomePage/>},
     {path: '/party', el: <PartyHomePage/>},
     {path: '/practice_test', el: <PracticeTestPage/>},
     {path: '/classes', el: <ClassListPage/>},
@@ -144,7 +141,6 @@ const FULLSCREEN_ROUTES = [
     {path: '/power_sprint', el: <PowerSprintPage/>},
     {path: '/sat_survival', el: <SATSurvivalPage/>},
     {path: '/bot_training/start', el: <BotGamePage/>},
-    {path: '/waiting-room/:gameId', el: <WaitingRoomPage/>},
     {path: '/party/:roomId', el: <PartyRoomPage/>},
     {path: '/tournament/:tournamentId/questions', el: <TournamentQuestionPage/>},
     {path: '/full_length_test', el: <TestPage/>},
