@@ -61,6 +61,8 @@ const TestPage = React.lazy(() => import("../pages/practice_test/TestPage"));
 const TestResultPage = React.lazy(() => import("../pages/practice_test/TestResultPage"));
 const PracticeTestPage = React.lazy(() => import("../pages/practice_test/PracticeTestPage"));
 const ClassListPage = React.lazy(() => import("../pages/classes/ClassListPage"));
+const PartyHomePage = React.lazy(() => import("../pages/party/PartyHomePage"));
+const PartyRoomPage = React.lazy(() => import("../pages/party/PartyRoomPage"));
 
 const Loading = () => <div className="p-8 text-center text-slate-400">Loading…</div>;
 const S = (el) => <Suspense fallback={<Loading/>}>{el}</Suspense>;
@@ -120,6 +122,7 @@ const APP_ROUTES = [
     {path: '/my_tournaments', el: <MyTournamentsPage/>},
     {path: '/shop', el: <ShopPage/>},
     {path: '/duels', el: <SATDuelHomePage/>},
+    {path: '/party', el: <PartyHomePage/>},
     {path: '/practice_test', el: <PracticeTestPage/>},
     {path: '/classes', el: <ClassListPage/>},
     {path: '/settings', el: <SettingsPage/>},
@@ -142,6 +145,7 @@ const FULLSCREEN_ROUTES = [
     {path: '/sat_survival', el: <SATSurvivalPage/>},
     {path: '/bot_training/start', el: <BotGamePage/>},
     {path: '/waiting-room/:gameId', el: <WaitingRoomPage/>},
+    {path: '/party/:roomId', el: <PartyRoomPage/>},
     {path: '/tournament/:tournamentId/questions', el: <TournamentQuestionPage/>},
     {path: '/full_length_test', el: <TestPage/>},
     {path: '/test_result', el: <TestResultPage/>},
