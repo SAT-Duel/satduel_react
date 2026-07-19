@@ -23,6 +23,12 @@ const TEAM_COUNTS = [
     ['4', '4 teams'],
 ];
 const TIMER_OPTIONS = [30, 45, 60, 90, 120];
+const MAX_LIVES = 5;
+
+// Mirrors party_lives_cap on the server: a fixed-length game scales the cap to
+// the question count so hearts stay scarce enough to be worth something.
+const livesCap = (lastStanding, numQuestions) =>
+    lastStanding ? MAX_LIVES : Math.max(1, Math.ceil(Math.sqrt(Math.max(1, numQuestions))));
 
 const HOW_IT_WORKS = [
     {
@@ -248,8 +254,11 @@ function PartyHomePage() {
         difficulty: 'medium',
         num_teams: 2,
         random_teams: true,
+        lives: 3,
+        last_standing: true,
     });
     const set = (key) => (value) => setSettings((s) => ({...s, [key]: value}));
+    const heartCap = livesCap(settings.last_standing, settings.num_questions);
 
     const pickMode = (key) => {
         setSettings((s) => ({
@@ -271,7 +280,12 @@ function PartyHomePage() {
     const createRoom = async () => {
         setBusy(true);
         try {
-            const {data} = await api.post('/api/party/create/', settings);
+            // Lowering the question count can pull the heart cap under the
+            // current pick, so send what the stepper is actually showing.
+            const {data} = await api.post('/api/party/create/', {
+                ...settings,
+                lives: Math.min(settings.lives, heartCap),
+            });
             navigate(`/party/${data.id}`);
         } catch (error) {
             notify.error(error.response?.data?.error || 'Could not create the room.');
@@ -426,6 +440,50 @@ function PartyHomePage() {
                                                     ? 'Players are split evenly at random when you start the game.'
                                                     : 'You sort players into teams yourself in the lobby.'
                                             }
+                                        />
+                                    </>
+                                )}
+                                {settings.mode === 'survival' && (
+                                    <>
+                                        <div>
+                                            <span className="mb-1.5 block text-sm font-semibold text-slate-700">
+                                                How does it end?
+                                            </span>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[
+                                                    [true, 'Last one standing', 'Play until one player is left'],
+                                                    [false, 'Fixed questions', 'Most hearts at the end wins'],
+                                                ].map(([value, label, hint]) => (
+                                                    <button
+                                                        key={label}
+                                                        type="button"
+                                                        onClick={() => setSettings((s) => ({
+                                                            ...s,
+                                                            last_standing: value,
+                                                            // The cap moves with the mode, so pull hearts back into range.
+                                                            lives: Math.min(s.lives, livesCap(value, s.num_questions)),
+                                                        }))}
+                                                        className={`cursor-pointer rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
+                                                            settings.last_standing === value
+                                                                ? 'border-primary-400 bg-primary-50 text-primary-800'
+                                                                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                                                        }`}
+                                                    >
+                                                        <span className="block text-sm font-bold">{label}</span>
+                                                        <span className="mt-0.5 block text-[11px] leading-snug text-slate-400">{hint}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <StepperInput
+                                            label="Hearts each"
+                                            hint={settings.last_standing
+                                                ? `up to ${MAX_LIVES}`
+                                                : `up to ${heartCap} for ${settings.num_questions} questions`}
+                                            value={Math.min(settings.lives, heartCap)}
+                                            onChange={set('lives')}
+                                            min={1}
+                                            max={heartCap}
                                         />
                                     </>
                                 )}

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {BarChart3, BookOpen, Check, ChevronDown, Copy, Crown, Pencil, Shuffle, Users, X} from 'lucide-react';
+import {BarChart3, BookOpen, Check, ChevronDown, Copy, Crown, Heart, Pencil, Shuffle, Skull, Users, X} from 'lucide-react';
 import {Button, ModalShell, Spinner} from '../../components/ui';
 import UserAvatar from '../../components/UserAvatar';
 import RenderWithMath from '../../components/RenderWithMath';
@@ -24,6 +24,24 @@ const fmtClock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padS
 function WaitingDots({children}) {
     return (
         <p className="m-0 animate-pulse text-center text-[15px] font-semibold text-slate-500">{children}</p>
+    );
+}
+
+/** Remaining hearts, with spent ones left as hollow outlines. */
+function Hearts({lives, total, className = 'size-4'}) {
+    const slots = Math.max(lives, total || 0);
+    if (!slots) return null;
+    return (
+        <span className="inline-flex items-center gap-0.5" aria-label={`${lives} hearts left`}>
+            {Array.from({length: slots}, (_, i) => (
+                <Heart
+                    key={i}
+                    className={`${className} ${
+                        i < lives ? 'fill-rose-500 text-rose-500' : 'text-slate-300'
+                    }`}
+                />
+            ))}
+        </span>
     );
 }
 
@@ -305,6 +323,16 @@ function Lobby({state, roomId, onLeave}) {
             <div className="mt-auto pt-8">
                 <div className="mb-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[13px] font-semibold text-slate-400">
                     {isTeams && <><span>{settings.num_teams} teams</span><span>·</span></>}
+                    {state.mode === 'survival' && (
+                        <>
+                            <span className="inline-flex items-center gap-1">
+                                {settings.lives} <Heart className="size-3 fill-rose-400 text-rose-400"/> each
+                            </span>
+                            <span>·</span>
+                            <span>{settings.last_standing ? 'Last one standing' : 'Most hearts wins'}</span>
+                            <span>·</span>
+                        </>
+                    )}
                     <span className="capitalize">{settings.subject === 'mixed' ? 'Math + English' : settings.subject}</span>
                     <span>·</span>
                     <span className="capitalize">{settings.difficulty}</span>
@@ -457,7 +485,7 @@ function QuestionPhase({state, roomId, secondsLeft}) {
     const compactChoices = question.choices.every((choice) => String(choice).length <= 32);
 
     const answer = async (letter) => {
-        if (locked) return;
+        if (locked || state.you_are_out) return;
         setLocked(letter);
         try {
             await api.post(`/api/party/${roomId}/answer/`, {choice: letter});
@@ -478,6 +506,29 @@ function QuestionPhase({state, roomId, secondsLeft}) {
                     <span className="text-[13px] font-semibold text-amber-600">
                         · {state.your_wager} on the line · speed doesn&apos;t count
                     </span>
+                </div>
+            )}
+            {state.mode === 'survival' && (
+                <div className={`mb-3 flex items-center justify-center gap-2 rounded-2xl border px-4 py-2 ${
+                    state.you_are_out ? 'border-slate-200 bg-slate-100' : 'border-rose-200 bg-rose-50'
+                }`}>
+                    {state.you_are_out ? (
+                        <>
+                            <Skull className="size-4 text-slate-500"/>
+                            <span className="text-[13px] font-bold text-slate-600">
+                                You&apos;re out — watching the rest
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <Hearts lives={state.your_lives} total={state.settings.lives}/>
+                            <span className="text-[13px] font-semibold text-rose-700">
+                                {state.settings.last_standing
+                                    ? `${state.survivors} still in`
+                                    : 'Wrong answers cost a heart'}
+                            </span>
+                        </>
+                    )}
                 </div>
             )}
             <div className="flex items-center justify-between gap-3">
@@ -520,7 +571,7 @@ function QuestionPhase({state, roomId, secondsLeft}) {
                             key={letter}
                             type="button"
                             onClick={() => answer(letter)}
-                            disabled={Boolean(locked)}
+                            disabled={Boolean(locked) || Boolean(state.you_are_out)}
                             className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all active:scale-[0.98] disabled:cursor-default sm:min-h-16 ${
                                 isMine
                                     ? 'border-primary-400 bg-primary-50'
@@ -776,6 +827,19 @@ function Leaderboard({state, roomId}) {
                         Answer: {reveal.correct_choice} — <span className="inline-block max-w-full align-bottom"><RenderWithMath text={reveal.correct_text || ''}/></span>
                     </div>
                 )}
+                {reveal.lost_life && (
+                    <p className="m-0 mt-2 flex items-center justify-center gap-2 text-sm font-bold text-rose-700">
+                        {reveal.your_lives > 0 ? (
+                            <>
+                                Lost a heart — <Hearts lives={reveal.your_lives} className="size-4"/> left
+                            </>
+                        ) : (
+                            <>
+                                <Skull className="size-4"/> That was your last heart.
+                            </>
+                        )}
+                    </p>
+                )}
                 {reveal.was_final_bet && reveal.wager > 0 && (
                     <p className={`m-0 mt-2 text-sm font-bold ${reveal.correct ? 'text-emerald-700' : 'text-rose-700'}`}>
                         {reveal.correct
@@ -814,7 +878,16 @@ function Leaderboard({state, roomId}) {
                                     size="xs"
                                     className="ring-0"
                                 />
-                                <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-slate-900">{player.username}</span>
+                                <span className={`min-w-0 flex-1 truncate text-[15px] font-bold ${
+                                    state.mode === 'survival' && player.lives <= 0 && state.settings.last_standing
+                                        ? 'text-slate-400 line-through'
+                                        : 'text-slate-900'
+                                }`}>
+                                    {player.username}
+                                </span>
+                                {state.mode === 'survival' && (
+                                    <Hearts lives={player.lives} total={state.settings.lives} className="size-3.5"/>
+                                )}
                                 <DeltaBadge points={player.last_points}/>
                                 <span className="font-mono text-[15px] font-bold text-slate-700">{player.score}</span>
                             </div>
@@ -890,6 +963,11 @@ function Podium({state, onExit}) {
                                 />
                             )}
                             <p className="m-0 mt-1 max-w-32 truncate text-sm font-bold text-slate-800">{entry.label}</p>
+                            {state.mode === 'survival' && entry.player && (
+                                <span className="mt-0.5 flex justify-center">
+                                    <Hearts lives={entry.player.lives} total={state.settings.lives} className="size-3.5"/>
+                                </span>
+                            )}
                             <p className="m-0 font-mono text-lg font-black text-slate-900">{entry.score}</p>
                         </div>
                         <div
