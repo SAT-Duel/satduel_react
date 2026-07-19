@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {ArrowRight, Info} from 'lucide-react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useAuth} from '../../context/AuthContext';
-import api from '../../components/api';
 import {Alert, Button, Card, PageContainer} from '../../components/ui';
 
 const TESTS = [
@@ -90,17 +89,11 @@ function PracticeTestPage() {
         );
     }, [location, user]);
 
-    const closeFirstRunBanner = async () => {
+    const closeFirstRunBanner = () => {
         setShowFirstRunBanner(false);
-        if (user?.is_first_login) {
-            try {
-                await api.post('api/profile/update_first_login/');
-                localStorage.setItem('is_first_login', 'false');
-                setFirstLogin();
-            } catch (error) {
-                console.error('Failed to update first login status:', error);
-            }
-        }
+        // Server-side the flag is derived from last_login, which login already
+        // bumped — dismissing it locally is all that's left to do.
+        if (user?.is_first_login) setFirstLogin();
     };
 
     const startTest = (test) => {

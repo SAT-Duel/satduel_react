@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {Helmet} from 'react-helmet';
 import {Link, useNavigate} from 'react-router-dom';
 import {ArrowRight, BookOpen, Calculator, Gauge} from 'lucide-react';
-import api from '../components/api';
 import {useAuth} from '../context/AuthContext';
 import useSdTheme from '../hooks/useSdTheme';
 import {consumePostLoginRedirect} from '../utils/authRedirect';
@@ -46,8 +45,9 @@ const WelcomePage = () => {
             navigate(redirectTo, {replace: true});
             return;
         }
-        // Fire-and-forget: this screen only shows once.
-        api.post('api/profile/update_first_login/').then(setFirstLogin).catch(() => {});
+        // This screen only shows once. The server derives is_first_login from
+        // last_login, which login already bumped, so clearing it locally is enough.
+        setFirstLogin();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
