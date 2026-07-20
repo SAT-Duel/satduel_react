@@ -105,6 +105,33 @@ function JeopardyArt() {
     );
 }
 
+function GoldRushArt() {
+    return (
+        <svg viewBox="0 0 140 84" fill="none" className="h-full w-full" aria-hidden="true">
+            <defs>
+                <linearGradient id="party-art-gold-lid" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="currentColor" stopOpacity="0.9"/>
+                    <stop offset="100%" stopColor="currentColor" stopOpacity="0.55"/>
+                </linearGradient>
+            </defs>
+            {/* Coins spilling out of an open chest. */}
+            {[
+                {cx: 40, cy: 30, r: 6}, {cx: 58, cy: 22, r: 7}, {cx: 78, cy: 26, r: 6},
+                {cx: 96, cy: 32, r: 5}, {cx: 50, cy: 40, r: 5},
+            ].map(({cx, cy, r}) => (
+                <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r}
+                        fill="currentColor" fillOpacity="0.85" stroke="currentColor" strokeOpacity="0.3"/>
+            ))}
+            <path d="M28 44h84v22a4 4 0 0 1-4 4H32a4 4 0 0 1-4-4z" fill="url(#party-art-gold-lid)"/>
+            <path d="M26 40l6-10h76l6 10a3 3 0 0 1-3 4H29a3 3 0 0 1-3-4z"
+                  fill="currentColor" fillOpacity="0.5"/>
+            <rect x="63" y="44" width="14" height="12" rx="2" fill="currentColor" fillOpacity="0.35"/>
+            <circle cx="70" cy="50" r="2" fill="currentColor"/>
+            <path d="M118 16l1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5z" fill="currentColor" fillOpacity="0.6"/>
+        </svg>
+    );
+}
+
 export const PARTY_MODES = [
     {
         key: 'classic',
@@ -179,6 +206,25 @@ export const PARTY_MODES = [
             'Nobody is ever mathematically out of it, so the room stays in until the end.',
         ],
         bestFor: 'Groups where one person would otherwise run away with it.',
+    },
+    {
+        key: 'goldrush',
+        name: 'Gold Rush',
+        tagline: 'Answer, open a chest, hoard gold.',
+        Art: GoldRushArt,
+        available: true,
+        text: 'text-yellow-600',
+        card: 'border-yellow-200 bg-gradient-to-br from-yellow-50 to-white',
+        cardOn: 'border-yellow-500 bg-gradient-to-br from-yellow-100 to-yellow-50 ring-2 ring-yellow-200',
+        summary: 'Everyone races their own questions against the clock, opening chests for gold.',
+        how: [
+            'No turns and no host — everyone plays at their own pace at the same time.',
+            'Answer correctly and pick 1 of 3 chests: gold, double-up, steal, or a swap.',
+            'A wrong answer costs you a few seconds before the next question.',
+            'Steal takes half of someone’s gold; swap trades your pile for theirs — you pick who.',
+            'Most gold when the timer hits zero wins. Check standings anytime.',
+        ],
+        bestFor: 'The one to run at a real party. Loud, swingy, and nobody waits their turn.',
     },
 ];
 

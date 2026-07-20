@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {BarChart3, BookOpen, Check, ChevronDown, Copy, Crown, Heart, Pencil, Shuffle, Skull, Users, X} from 'lucide-react';
+import {ArrowLeftRight, BarChart3, BookOpen, Check, ChevronDown, Coins, Copy, Crown, Hand, Heart, Pencil, Shuffle, Skull, TrendingDown, Trophy, Users, X, Zap} from 'lucide-react';
 import {Button, ModalShell, Spinner} from '../../components/ui';
 import UserAvatar from '../../components/UserAvatar';
 import RenderWithMath from '../../components/RenderWithMath';
@@ -337,9 +337,15 @@ function Lobby({state, roomId, onLeave}) {
                     <span>·</span>
                     <span className="capitalize">{settings.difficulty}</span>
                     <span>·</span>
-                    <span>{settings.num_questions} questions</span>
-                    <span>·</span>
-                    <span>{settings.seconds_per_question}s each</span>
+                    {state.mode === 'goldrush' ? (
+                        <span>{Math.round(settings.time_limit / 60)} min on the clock</span>
+                    ) : (
+                        <>
+                            <span>{settings.num_questions} questions</span>
+                            <span>·</span>
+                            <span>{settings.seconds_per_question}s each</span>
+                        </>
+                    )}
                 </div>
                 {state.is_host ? (
                     <>
@@ -1010,6 +1016,337 @@ function Podium({state, onExit}) {
     );
 }
 
+/** A closed treasure chest the player taps to open. */
+function ClosedChest({onClick, disabled, shaking}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            className={`group grid aspect-square cursor-pointer place-items-center rounded-2xl border-2 border-amber-200 bg-gradient-to-b from-amber-50 to-yellow-100 p-3 shadow-sm transition-all hover:-translate-y-1 hover:border-amber-400 hover:shadow-md active:scale-95 disabled:cursor-default disabled:opacity-60 ${shaking ? 'party-chest-shake' : ''}`}
+            aria-label="Open this chest"
+        >
+            <svg viewBox="0 0 64 64" className="h-full w-full text-amber-600" fill="none" aria-hidden="true">
+                <path d="M10 30h44v22a3 3 0 0 1-3 3H13a3 3 0 0 1-3-3z" fill="currentColor" fillOpacity="0.85"/>
+                <path d="M8 28l4-10h40l4 10a2 2 0 0 1-2 3H10a2 2 0 0 1-2-3z" fill="currentColor" fillOpacity="0.6"/>
+                <rect x="27" y="31" width="10" height="12" rx="2" fill="#fff" fillOpacity="0.85"/>
+                <circle cx="32" cy="37" r="2.2" fill="currentColor"/>
+                <path d="M10 38h44" stroke="#fff" strokeOpacity="0.5" strokeWidth="2"/>
+            </svg>
+        </button>
+    );
+}
+
+const REWARD_META = {
+    gold: {icon: Coins, tone: 'text-amber-600', ring: 'border-amber-300 bg-amber-50'},
+    double: {icon: Zap, tone: 'text-amber-600', ring: 'border-amber-300 bg-amber-50'},
+    steal: {icon: Hand, tone: 'text-emerald-600', ring: 'border-emerald-300 bg-emerald-50'},
+    swap: {icon: ArrowLeftRight, tone: 'text-violet-600', ring: 'border-violet-300 bg-violet-50'},
+    lose: {icon: TrendingDown, tone: 'text-rose-600', ring: 'border-rose-300 bg-rose-50'},
+};
+
+function rewardMessage(result) {
+    switch (result.kind) {
+        case 'gold': return {title: `+${result.amount} gold`, sub: 'Straight to the pile.'};
+        case 'double': return {title: result.amount > 0 ? `Doubled! +${result.amount}` : 'Double… of nothing', sub: 'Your gold, times two.'};
+        case 'steal': return {title: `Stole ${result.amount}`, sub: `Taken from ${result.target}.`};
+        case 'swap': return {title: 'Swapped piles!', sub: `You traded totals with ${result.target}.`};
+        case 'lose': return {title: `${result.amount} gold`, sub: 'A dud chest. Ouch.'};
+        default: return {title: 'Chest opened', sub: ''};
+    }
+}
+
+/** Full-screen overlay showing what a chest held, then auto-dismisses. */
+function ChestReveal({result}) {
+    const meta = REWARD_META[result.kind] || REWARD_META.gold;
+    const {icon: Icon} = meta;
+    const {title, sub} = rewardMessage(result);
+    return (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-slate-900/40 px-6 backdrop-blur-sm">
+            <div className={`party-pop-in w-full max-w-xs rounded-3xl border-2 bg-white p-6 text-center shadow-xl ${meta.ring}`}>
+                <div className={`mx-auto grid size-20 place-items-center rounded-full bg-white shadow-inner ${meta.tone}`}>
+                    <Icon className="size-10"/>
+                </div>
+                <p className={`m-0 mt-4 text-2xl font-black ${meta.tone}`}>{title}</p>
+                <p className="m-0 mt-1 text-sm font-semibold text-slate-500">{sub}</p>
+                <p className="m-0 mt-4 font-mono text-lg font-black text-slate-900">
+                    {result.gold} <span className="text-sm font-bold text-amber-500">gold</span>
+                </p>
+            </div>
+        </div>
+    );
+}
+
+function GoldLeaderboard({players, you, onClose}) {
+    return (
+        <ModalShell open title="Standings" onClose={onClose}>
+            <div className="space-y-2">
+                {players.map((player, index) => (
+                    <div
+                        key={player.id}
+                        className={`flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 ${
+                            player.id === you ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'
+                        }`}
+                    >
+                        <span className="w-7 text-center text-lg">
+                            {MEDALS[index] || <span className="text-sm font-bold text-slate-400">{index + 1}</span>}
+                        </span>
+                        <UserAvatar
+                            backgroundId={player.avatar}
+                            iconId={player.avatar_icon}
+                            profile={{username: player.username}}
+                            size="xs"
+                            className="ring-0"
+                        />
+                        <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-slate-900">
+                            {player.username}{player.id === you && ' (you)'}
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-mono text-[15px] font-bold text-amber-600">
+                            <Coins className="size-4"/> {player.score}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        </ModalShell>
+    );
+}
+
+function GoldRush({state, roomId, secondsLeft}) {
+    const gold = state.gold || {};
+    const [busy, setBusy] = useState(false);
+    const [picked, setPicked] = useState(null);        // answer letter, pre-poll
+    const [reveal, setReveal] = useState(null);         // chest outcome overlay
+    const [targeting, setTargeting] = useState(null);   // {kind} once a targeted chest is opened
+    const [showBoard, setShowBoard] = useState(false);
+    // Local countdown for the 3s wrong-answer penalty (server value only ticks per poll).
+    const wrongDeadline = useRef(null);
+
+    useEffect(() => {
+        if (gold.phase !== 'wrong') {
+            wrongDeadline.current = null;
+        } else if (wrongDeadline.current == null) {
+            wrongDeadline.current = Date.now() + (gold.seconds || 0) * 1000;
+        }
+    }, [gold.phase, gold.seconds]);
+
+    // Clear the answer highlight once the server moves us off the question.
+    useEffect(() => {
+        if (gold.phase !== 'question') setPicked(null);
+    }, [gold.phase]);
+
+    useEffect(() => {
+        if (!reveal) return undefined;
+        const t = setTimeout(() => setReveal(null), 1800);
+        return () => clearTimeout(t);
+    }, [reveal]);
+
+    const answer = async (letter) => {
+        if (busy || picked || gold.phase !== 'question') return;
+        setPicked(letter);
+        setBusy(true);
+        try {
+            await api.post(`/api/party/${roomId}/gold/answer/`, {choice: letter});
+        } catch (error) {
+            const message = error.response?.data?.error;
+            setPicked(null);
+            if (message && !['Hold on a moment.', 'Open your chest first.'].includes(message)) {
+                notify.error(message);
+            }
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const openChest = async (pick) => {
+        if (busy) return;
+        setBusy(true);
+        try {
+            const {data} = await api.post(`/api/party/${roomId}/gold/chest/`, {pick});
+            if (data.needs_target) setTargeting({kind: data.kind});
+            else setReveal(data);
+        } catch (error) {
+            notify.error(error.response?.data?.error || 'Could not open that chest.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const pickTarget = async (targetId) => {
+        if (busy) return;
+        setBusy(true);
+        try {
+            const {data} = await api.post(`/api/party/${roomId}/gold/chest/`, {target: targetId});
+            setTargeting(null);
+            setReveal(data);
+        } catch (error) {
+            notify.error(error.response?.data?.error || 'Could not do that.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const wrongLeft = gold.phase === 'wrong'
+        ? Math.max(0, wrongDeadline.current ? (wrongDeadline.current - Date.now()) / 1000 : (gold.seconds || 0))
+        : 0;
+    const urgent = secondsLeft <= 15;
+    // Steal/swap targets: the roster minus yourself, richest first.
+    const opponents = state.players.filter((p) => p.id !== state.you);
+
+    return (
+        <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-4 py-4 sm:py-6">
+            {/* Persistent bar: gold, standings, clock. */}
+            <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 font-mono text-sm font-black text-amber-700">
+                    <Coins className="size-4"/> {gold.gold}
+                </span>
+                <button
+                    type="button"
+                    onClick={() => setShowBoard(true)}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-bold text-slate-600 hover:border-slate-300"
+                >
+                    <Trophy className="size-4 text-slate-400"/> Standings
+                </button>
+                <span
+                    className={`rounded-full px-3.5 py-1.5 font-mono text-sm font-bold ${
+                        urgent ? 'animate-pulse bg-rose-500 text-white' : 'border border-slate-200 bg-white text-slate-700'
+                    }`}
+                >
+                    {fmtClock(secondsLeft)}
+                </span>
+            </div>
+
+            <div className="mt-4 min-h-0 flex-1">
+                {gold.phase === 'question' && gold.question && (
+                    <GoldQuestion question={gold.question} picked={picked} disabled={busy} onAnswer={answer}/>
+                )}
+
+                {gold.phase === 'wrong' && (
+                    <div className="party-fade-up mt-2 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-center">
+                        <p className="m-0 text-xl font-black text-rose-700">Not quite</p>
+                        {gold.review && (
+                            <p className="m-0 mt-1 text-sm font-semibold text-rose-600">
+                                Answer: {gold.correct_choice} —{' '}
+                                <span className="inline-block max-w-full align-bottom">
+                                    <RenderWithMath text={gold.review.choices[CHOICE_LABELS.indexOf(gold.correct_choice)] || ''}/>
+                                </span>
+                            </p>
+                        )}
+                        {gold.review?.explanation && (
+                            <div className="mx-auto mt-3 max-w-xl rounded-2xl bg-white/70 p-3 text-left text-[13px] leading-relaxed text-slate-600">
+                                <RenderWithMath text={gold.review.explanation}/>
+                            </div>
+                        )}
+                        <p className="m-0 mt-3 font-mono text-lg font-bold text-slate-500">
+                            Next question in {Math.ceil(wrongLeft)}…
+                        </p>
+                    </div>
+                )}
+
+                {gold.phase === 'chest' && (
+                    <div className="party-fade-up flex flex-col items-center pt-2">
+                        <p className="m-0 text-center text-lg font-black text-slate-900">Correct! Pick a chest</p>
+                        <p className="m-0 mt-1 text-center text-sm font-semibold text-slate-500">
+                            One of these three is yours.
+                        </p>
+                        <div className="mt-6 grid w-full max-w-md grid-cols-3 gap-3 sm:gap-4">
+                            {Array.from({length: gold.chest_count || 3}, (_, i) => (
+                                <ClosedChest key={i} onClick={() => openChest(i)} disabled={busy}/>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {(gold.phase === 'target' || targeting) && (
+                    <div className="party-fade-up flex flex-col items-center pt-2">
+                        <p className="m-0 text-center text-lg font-black text-slate-900">
+                            {(targeting?.kind || gold.reward?.kind) === 'swap' ? 'Swap piles with…' : 'Steal from…'}
+                        </p>
+                        <p className="m-0 mt-1 text-center text-sm font-semibold text-slate-500">
+                            {(targeting?.kind || gold.reward?.kind) === 'swap'
+                                ? 'Trade your gold total for theirs.'
+                                : 'Take half of their gold.'}
+                        </p>
+                        <div className="mt-5 w-full max-w-md space-y-2">
+                            {opponents.map((player) => (
+                                <button
+                                    key={player.id}
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => pickTarget(player.id)}
+                                    className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border-2 border-slate-200 bg-white px-3.5 py-2.5 text-left transition-all hover:border-primary-300 active:scale-[0.98] disabled:opacity-60"
+                                >
+                                    <UserAvatar
+                                        backgroundId={player.avatar}
+                                        iconId={player.avatar_icon}
+                                        profile={{username: player.username}}
+                                        size="xs"
+                                        className="ring-0"
+                                    />
+                                    <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-slate-900">
+                                        {player.username}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 font-mono text-sm font-bold text-amber-600">
+                                        <Coins className="size-4"/> {player.score}
+                                    </span>
+                                </button>
+                            ))}
+                            {opponents.length === 0 && (
+                                <p className="m-0 text-center text-sm font-semibold text-slate-400">
+                                    Nobody else to target — this one fizzles.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {reveal && <ChestReveal result={reveal}/>}
+            {showBoard && <GoldLeaderboard players={state.players} you={state.you} onClose={() => setShowBoard(false)}/>}
+        </div>
+    );
+}
+
+function GoldQuestion({question, picked, disabled, onAnswer}) {
+    const compactChoices = question.choices.every((choice) => String(choice).length <= 32);
+    return (
+        <div className="flex h-full flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                <div className="text-[15.5px] leading-relaxed text-slate-900 sm:text-[17px]">
+                    <RenderWithMath text={question.question}/>
+                </div>
+            </div>
+            <div className={`mt-4 grid gap-2.5 ${compactChoices ? 'grid-cols-2' : 'grid-cols-1'} sm:gap-3`}>
+                {question.choices.map((choice, index) => {
+                    const letter = CHOICE_LABELS[index];
+                    const isMine = picked === letter;
+                    return (
+                        <button
+                            key={letter}
+                            type="button"
+                            onClick={() => onAnswer(letter)}
+                            disabled={disabled || Boolean(picked)}
+                            className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all active:scale-[0.98] disabled:cursor-default sm:min-h-16 ${
+                                isMine ? 'border-primary-400 bg-primary-50' : 'border-slate-200 bg-white hover:border-primary-300'
+                            }`}
+                        >
+                            <span
+                                className={`grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-bold ${
+                                    isMine ? 'bg-primary-600 text-white' : 'border-2 border-slate-300 text-slate-500'
+                                }`}
+                            >
+                                {letter}
+                            </span>
+                            <span className="min-w-0 flex-1 text-[15px] font-semibold leading-snug text-slate-900">
+                                <RenderWithMath text={choice}/>
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function PartyRoomPage() {
     const {roomId} = useParams();
     const navigate = useNavigate();
@@ -1080,6 +1417,8 @@ function PartyRoomPage() {
         content = <WagerPhase state={state} roomId={roomId} secondsLeft={secondsLeft}/>;
     } else if (state.status === 'question') {
         content = <QuestionPhase state={state} roomId={roomId} secondsLeft={secondsLeft}/>;
+    } else if (state.status === 'playing') {
+        content = <GoldRush state={state} roomId={roomId} secondsLeft={secondsLeft}/>;
     } else if (state.status === 'leaderboard') {
         content = <Leaderboard state={state} roomId={roomId}/>;
     } else if (state.started) {
