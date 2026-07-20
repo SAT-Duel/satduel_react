@@ -23,6 +23,7 @@ const TEAM_COUNTS = [
     ['4', '4 teams'],
 ];
 const TIMER_OPTIONS = [30, 45, 60, 90, 120];
+const TIME_LIMIT_OPTIONS = [[300, '5 min'], [600, '10 min'], [900, '15 min']];
 const MAX_LIVES = 5;
 
 // Mirrors party_lives_cap on the server: a fixed-length game scales the cap to
@@ -256,6 +257,7 @@ function PartyHomePage() {
         random_teams: true,
         lives: 3,
         last_standing: true,
+        time_limit: 600,
     });
     const set = (key) => (value) => setSettings((s) => ({...s, [key]: value}));
     const heartCap = livesCap(settings.last_standing, settings.num_questions);
@@ -499,38 +501,71 @@ function PartyHomePage() {
                                     min={settings.mode === 'teams' ? settings.num_teams : 2}
                                     max={playerCap}
                                 />
-                                <StepperInput
-                                    label="Number of questions"
-                                    hint={premium ? 'up to 50' : (
-                                        <span className="inline-flex items-center gap-1">
-                                            up to 20 · <Crown className="size-3 text-amber-500"/> 50 with Premium
-                                        </span>
-                                    )}
-                                    value={settings.num_questions}
-                                    onChange={set('num_questions')}
-                                    // Final Jeopardy needs a normal question before the bet.
-                                    min={settings.mode === 'jeopardy' ? 2 : 1}
-                                    max={questionCap}
-                                />
-                                <div>
-                                    <span className="mb-1.5 block text-sm font-semibold text-slate-700">Time per question</span>
-                                    <div className="grid grid-cols-5 gap-2">
-                                        {TIMER_OPTIONS.map((seconds) => (
-                                            <button
-                                                key={seconds}
-                                                type="button"
-                                                onClick={() => set('seconds_per_question')(seconds)}
-                                                className={`cursor-pointer rounded-xl border-2 py-2.5 text-sm font-bold transition-colors ${
-                                                    settings.seconds_per_question === seconds
-                                                        ? 'border-primary-400 bg-primary-50 text-primary-800'
-                                                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                                                }`}
-                                            >
-                                                {seconds}s
-                                            </button>
-                                        ))}
+                                {settings.mode === 'goldrush' ? (
+                                    <div>
+                                        <div className="mb-1.5 flex items-baseline justify-between">
+                                            <span className="text-sm font-semibold text-slate-700">Game length</span>
+                                            <span className="text-[11px] text-slate-400">
+                                                {premium ? '100-question pool' : (
+                                                    <span className="inline-flex items-center gap-1">
+                                                        30-question pool · <Crown className="size-3 text-amber-500"/> 100 with Premium
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {TIME_LIMIT_OPTIONS.map(([seconds, label]) => (
+                                                <button
+                                                    key={seconds}
+                                                    type="button"
+                                                    onClick={() => set('time_limit')(seconds)}
+                                                    className={`cursor-pointer rounded-xl border-2 py-2.5 text-sm font-bold transition-colors ${
+                                                        settings.time_limit === seconds
+                                                            ? 'border-primary-400 bg-primary-50 text-primary-800'
+                                                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                                                    }`}
+                                                >
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <>
+                                        <StepperInput
+                                            label="Number of questions"
+                                            hint={premium ? 'up to 50' : (
+                                                <span className="inline-flex items-center gap-1">
+                                                    up to 20 · <Crown className="size-3 text-amber-500"/> 50 with Premium
+                                                </span>
+                                            )}
+                                            value={settings.num_questions}
+                                            onChange={set('num_questions')}
+                                            // Final Jeopardy needs a normal question before the bet.
+                                            min={settings.mode === 'jeopardy' ? 2 : 1}
+                                            max={questionCap}
+                                        />
+                                        <div>
+                                            <span className="mb-1.5 block text-sm font-semibold text-slate-700">Time per question</span>
+                                            <div className="grid grid-cols-5 gap-2">
+                                                {TIMER_OPTIONS.map((seconds) => (
+                                                    <button
+                                                        key={seconds}
+                                                        type="button"
+                                                        onClick={() => set('seconds_per_question')(seconds)}
+                                                        className={`cursor-pointer rounded-xl border-2 py-2.5 text-sm font-bold transition-colors ${
+                                                            settings.seconds_per_question === seconds
+                                                                ? 'border-primary-400 bg-primary-50 text-primary-800'
+                                                                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                                                        }`}
+                                                    >
+                                                        {seconds}s
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                                 <div>
                                     <span className="mb-1.5 block text-sm font-semibold text-slate-700">Subject</span>
                                     <SegmentedControl options={SUBJECTS} value={settings.subject} onChange={set('subject')}/>

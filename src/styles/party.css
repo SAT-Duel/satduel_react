@@ -38,3 +38,25 @@
 .party-bounce {
     animation: party-bounce-slow 1.6s ease-in-out infinite;
 }
+
+/* Gold Rush: chest reveal overlay pops in with a little overshoot. */
+@keyframes party-pop-in {
+    0% { transform: scale(0.6); opacity: 0; }
+    60% { transform: scale(1.06); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.party-pop-in {
+    animation: party-pop-in 0.35s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+/* Closed chests wobble invitingly on hover. */
+@keyframes party-chest-shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-4deg); }
+    75% { transform: rotate(4deg); }
+}
+
+.party-chest-shake {
+    animation: party-chest-shake 0.4s ease-in-out infinite;
+}
