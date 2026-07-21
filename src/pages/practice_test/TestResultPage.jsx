@@ -1,9 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {CheckCircle2, Eye, Home, X, XCircle} from 'lucide-react';
-import {useLocation, useNavigate} from 'react-router-dom';
+import {CheckCircle2, Eye, Home, Sparkles, TrendingDown, TrendingUp, X, XCircle} from 'lucide-react';
+import {useLocation} from 'react-router-dom';
 import api from '../../components/api';
 import RenderWithMath from '../../components/RenderWithMath';
-import {Button, Card, PageContainer, Spinner} from '../../components/ui';
+import {useAuth} from '../../context/AuthContext';
+import {Alert, Button, Card, PageContainer, Spinner} from '../../components/ui';
 
 function ReviewModal({question, details, loading, onClose, getChoiceText, getCorrectChoiceText}) {
     if (!question) return null;
@@ -84,7 +85,7 @@ function ReviewModal({question, details, loading, onClose, getChoiceText, getCor
                                 <p className="m-0 text-xs font-black uppercase text-slate-400">Your answer</p>
                                 <p className="m-0 mt-1 font-bold text-slate-900">
                                     {question.userChoice != null
-                                        ? `${question.userChoice}. ${getChoiceText(question.questionData, question.userChoice)}`
+                                        ? `${question.userChoice}. ${getChoiceText(details, question.userChoice)}`
                                         : 'No answer selected'}
                                 </p>
                             </div>
@@ -115,18 +116,42 @@ function ReviewModal({question, details, loading, onClose, getChoiceText, getCor
 
 function TestResults() {
     const location = useLocation();
-    const navigate = useNavigate();
-    const {questions = [], selectedAnswers = []} = location.state || {};
+    const {user} = useAuth();
+    const {
+        questions = [],
+        selectedAnswers = [],
+        testId = 1,
+        testName = 'SAT Diagnostic Test',
+        timeUsedSeconds = null,
+        savedResult = null,
+    } = location.state || {};
     const [testData, setTestData] = useState({score: 0, questions: []});
     const [loadingScore, setLoadingScore] = useState(true);
     const [selectedQuestion, setSelectedQuestion] = useState(null);
     const [questionDetails, setQuestionDetails] = useState(null);
     const [loadingQuestion, setLoadingQuestion] = useState(false);
+    // {previousBest, previousLast} from the save call — powers the progress banner.
+    const [progress, setProgress] = useState(null);
     const hasChecked = useRef(false);
 
     useEffect(() => {
         if (hasChecked.current) return;
         hasChecked.current = true;
+
+        // Reopened from test history: everything is already graded and stored.
+        if (savedResult) {
+            setTestData({
+                score: savedResult.score,
+                questions: (savedResult.questions || []).map((question, index) => ({
+                    id: index + 1,
+                    status: question.correct ? 'correct' : 'incorrect',
+                    questionId: question.question_id,
+                    userChoice: question.user_choice,
+                })),
+            });
+            setLoadingScore(false);
+            return;
+        }
 
         const checkAnswers = async () => {
             if (!questions.length) {
@@ -173,8 +198,29 @@ function TestResults() {
             return {score: finalScore, questions: results};
         };
 
-        checkAnswers().then((data) => setTestData(data));
-    }, [questions, selectedAnswers]);
+        checkAnswers().then(async (data) => {
+            setTestData(data);
+            if (!user || !data.questions.length) return;
+            try {
+                const {data: saved} = await api.post('api/practice_test/save/', {
+                    test_id: testId,
+                    test_name: testName,
+                    score: data.score,
+                    correct: data.questions.filter((question) => question.status === 'correct').length,
+                    total: data.questions.length,
+                    time_used_seconds: timeUsedSeconds,
+                    questions: data.questions.map((question) => ({
+                        question_id: question.questionId,
+                        user_choice: question.userChoice ?? null,
+                        correct: question.status === 'correct',
+                    })),
+                });
+                setProgress({previousBest: saved.previous_best, previousLast: saved.previous_last});
+            } catch (error) {
+                console.error('Error saving test result:', error);
+            }
+        });
+    }, [questions, selectedAnswers, savedResult, user, testId, testName, timeUsedSeconds]);
 
     const handleQuestionClick = async (question) => {
         setSelectedQuestion(question);
@@ -198,10 +244,10 @@ function TestResults() {
         }
     };
 
-    const getChoiceText = (questionData, choiceValue) => {
-        if (!questionData || choiceValue === null) return 'No answer selected';
-        const choiceMap = {A: 0, B: 1, C: 2, D: 3};
-        return questionData.choices[choiceMap[choiceValue]] || 'Invalid choice';
+    const getChoiceText = (details, choiceValue) => {
+        if (!details || choiceValue == null) return 'No answer selected';
+        const choices = {A: details.choice_a, B: details.choice_b, C: details.choice_c, D: details.choice_d};
+        return choices[choiceValue] || 'Invalid choice';
     };
 
     const getCorrectChoiceText = (details) => {
@@ -224,17 +270,68 @@ function TestResults() {
     }
 
     const correctCount = testData.questions.filter((question) => question.status === 'correct').length;
+    const timeUsed = savedResult ? savedResult.time_used_seconds : timeUsedSeconds;
+    const headerName = savedResult ? savedResult.test_name : testName;
+    const takenAt = savedResult && new Date(savedResult.created_at);
+
+    const renderProgressBanner = () => {
+        const {previousBest, previousLast} = progress;
+        let icon;
+        let title;
+        let copy;
+        if (previousLast == null) {
+            icon = <Sparkles className="size-5"/>;
+            title = 'Baseline set';
+            copy = 'First test saved. Take another soon to see your score move.';
+        } else {
+            const delta = testData.score - previousLast;
+            if (previousBest != null && testData.score > previousBest) {
+                icon = <Sparkles className="size-5"/>;
+                title = 'New personal best!';
+                copy = `Up ${delta} points from your last test (${previousLast}).`;
+            } else if (delta > 0) {
+                icon = <TrendingUp className="size-5"/>;
+                title = `+${delta} points since your last test`;
+                copy = `Last time you scored ${previousLast}. Keep it going.`;
+            } else if (delta < 0) {
+                icon = <TrendingDown className="size-5"/>;
+                title = `${delta} points since your last test`;
+                copy = `Last time you scored ${previousLast}. Review your misses below — that's where the points come back.`;
+            } else {
+                icon = <TrendingUp className="size-5"/>;
+                title = `Same score as your last test (${previousLast})`;
+                copy = 'Review your misses below to break through.';
+            }
+        }
+        return (
+            <Card className="sat-arena-card mt-6 p-5">
+                <div className="flex items-start gap-3">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+                        {icon}
+                    </div>
+                    <div>
+                        <p className="m-0 font-display text-lg font-black text-slate-950">{title}</p>
+                        <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">{copy}</p>
+                    </div>
+                </div>
+            </Card>
+        );
+    };
 
     return (
         <div className="sat-bubble-field min-h-screen py-8 sm:py-12">
             <PageContainer className="max-w-4xl">
                 <Card className="sat-arena-card overflow-hidden text-center">
                     <div className="sat-duel-lanes bg-slate-950 px-5 py-8 text-white">
-                        <p className="m-0 text-sm font-black uppercase text-cyan-200">Practice test result</p>
+                        <p className="m-0 text-sm font-black uppercase text-cyan-200">{headerName}</p>
                         <h1 className="m-0 mt-3 font-display text-5xl font-black">{testData.score}</h1>
-                        <p className="m-0 mt-2 text-slate-300">Estimated score from this practice set</p>
+                        <p className="m-0 mt-2 text-slate-300">
+                            {takenAt
+                                ? `Taken on ${takenAt.toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'})}`
+                                : 'Estimated score from this practice set'}
+                        </p>
                     </div>
-                    <div className="grid divide-y divide-slate-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                    <div className={`grid divide-y divide-slate-100 sm:divide-x sm:divide-y-0 ${timeUsed != null ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
                         <div className="p-4">
                             <p className="m-0 font-display text-2xl font-black text-emerald-600">{correctCount}</p>
                             <p className="m-0 text-xs font-black uppercase text-slate-400">Correct</p>
@@ -247,15 +344,42 @@ function TestResults() {
                             <p className="m-0 font-display text-2xl font-black text-primary-600">{testData.questions.length}</p>
                             <p className="m-0 text-xs font-black uppercase text-slate-400">Questions</p>
                         </div>
+                        {timeUsed != null && (
+                            <div className="p-4">
+                                <p className="m-0 font-display text-2xl font-black text-slate-900">
+                                    {Math.floor(timeUsed / 60)}m {timeUsed % 60}s
+                                </p>
+                                <p className="m-0 text-xs font-black uppercase text-slate-400">Time used</p>
+                            </div>
+                        )}
                     </div>
                 </Card>
+
+                {!savedResult && (user ? (progress && renderProgressBanner()) : (
+                    <Card className="sat-arena-card mt-6 p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p className="m-0 font-display text-lg font-black text-slate-950">Don't lose this score</p>
+                                <p className="m-0 mt-1 text-sm leading-relaxed text-slate-500">
+                                    Sign in to save your results, build a test history, and track your progress over time.
+                                </p>
+                            </div>
+                            <Button to="/login" variant="primary" size="sm">Sign in</Button>
+                        </div>
+                    </Card>
+                ))}
 
                 <Card className="sat-arena-card mt-6 p-5 sm:p-6">
                     <div className="mb-4 flex items-center justify-between gap-3">
                         <h2 className="m-0 font-display text-2xl font-black text-slate-950">Question review</h2>
-                        <Button to="/trainer" variant="secondary" size="sm">
-                            <Home className="size-4"/> Dashboard
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button to="/practice_test" variant="primary" size="sm">
+                                {savedResult ? 'All tests' : 'Take another test'}
+                            </Button>
+                            <Button to="/trainer" variant="secondary" size="sm">
+                                <Home className="size-4"/> Dashboard
+                            </Button>
+                        </div>
                     </div>
                     <div className="space-y-2">
                         {testData.questions.map((question) => {

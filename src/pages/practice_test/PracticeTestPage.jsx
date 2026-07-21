@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {ArrowRight, Info} from 'lucide-react';
+import {ArrowRight, ChevronRight, Info, Minus, TrendingDown, TrendingUp} from 'lucide-react';
 import {useLocation, useNavigate} from 'react-router-dom';
+import api from '../../components/api';
 import {useAuth} from '../../context/AuthContext';
 import {Alert, Button, Card, PageContainer} from '../../components/ui';
 
@@ -75,11 +76,83 @@ function TestCard({test, onStart}) {
     );
 }
 
+function HistoryRow({result, previousScore, onOpen}) {
+    const delta = previousScore == null ? null : result.score - previousScore;
+    const takenAt = new Date(result.created_at);
+    return (
+        <button
+            type="button"
+            onClick={onOpen}
+            className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-primary-300 hover:bg-slate-50"
+        >
+            <div className="min-w-0">
+                <p className="m-0 truncate font-black text-slate-900">{result.test_name}</p>
+                <p className="m-0 mt-0.5 text-xs font-bold text-slate-400">
+                    {takenAt.toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'})}
+                    {' · '}{result.correct}/{result.total} correct
+                </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+                {delta != null && (
+                    <span className={`flex items-center gap-1 text-xs font-black ${
+                        delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-rose-600' : 'text-slate-400'
+                    }`}>
+                        {delta > 0 ? <TrendingUp className="size-4"/> : delta < 0 ? <TrendingDown className="size-4"/> : <Minus className="size-4"/>}
+                        {delta > 0 ? `+${delta}` : delta}
+                    </span>
+                )}
+                <span className="font-display text-2xl font-black text-slate-950">{result.score}</span>
+                <ChevronRight className="size-5 text-slate-300"/>
+            </div>
+        </button>
+    );
+}
+
+function TestHistory({history, onOpen}) {
+    if (!history || !history.tests_taken) return null;
+    return (
+        <section className="mt-12">
+            <h2 className="mb-4 font-display text-2xl font-black text-slate-950">Your progress</h2>
+            <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                {[
+                    ['Tests taken', history.tests_taken, 'text-slate-950'],
+                    ['Best score', history.best_score, 'text-primary-600'],
+                    ['Average', history.average_score, 'text-slate-950'],
+                    ['Latest', history.latest_score, 'text-slate-950'],
+                ].map(([label, value, color]) => (
+                    <Card key={label} className="sat-arena-card p-4 text-center">
+                        <p className={`m-0 font-display text-3xl font-black ${color}`}>{value}</p>
+                        <p className="m-0 mt-1 text-xs font-black uppercase text-slate-400">{label}</p>
+                    </Card>
+                ))}
+            </div>
+            <div className="space-y-2">
+                {history.results.map((result, index) => (
+                    <HistoryRow
+                        key={result.id}
+                        result={result}
+                        previousScore={history.results[index + 1]?.score ?? null}
+                        onOpen={() => onOpen(result)}
+                    />
+                ))}
+            </div>
+        </section>
+    );
+}
+
 function PracticeTestPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const {user, setFirstLogin} = useAuth();
     const [showFirstRunBanner, setShowFirstRunBanner] = useState(false);
+    const [history, setHistory] = useState(null);
+
+    useEffect(() => {
+        if (!user) return;
+        api.get('api/practice_test/history/')
+            .then((response) => setHistory(response.data))
+            .catch((error) => console.error('Error loading test history:', error));
+    }, [user]);
 
     useEffect(() => {
         setShowFirstRunBanner(
@@ -100,6 +173,7 @@ function PracticeTestPage() {
         navigate(test.link, {
             state: {
                 testId: test.id,
+                testName: test.title,
                 initialSeconds: test.time_seconds,
             },
         });
@@ -133,6 +207,11 @@ function PracticeTestPage() {
                         ))}
                     </div>
                 </section>
+
+                <TestHistory
+                    history={history}
+                    onOpen={(result) => navigate('/test_result', {state: {savedResult: result}})}
+                />
 
                 <Card className="sat-arena-card mt-12 p-5 sm:p-6">
                     <div className="flex items-start gap-3">
