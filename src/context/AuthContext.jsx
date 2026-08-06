@@ -32,13 +32,13 @@ export const AuthProvider = ({children}) => {
         localStorage.removeItem('user');
     }, []);
 
-    const login = async (userData, accessToken, refreshToken) => {
+    const login = useCallback(async (userData, accessToken, refreshToken) => {
         setUser(userData);
         setToken(accessToken);
         localStorage.setItem('access_token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
         localStorage.setItem('user', JSON.stringify(userData));
-    };
+    }, []);
 
     const logout = async () => {
         try {

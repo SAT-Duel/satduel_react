@@ -24,7 +24,7 @@ function AccountCompletionModal() {
     const {updateUser} = useAuth();
     const [step, setStep] = useState(1);
     const [satExamDate, setSatExamDate] = useState('');
-    const [marketingOptIn, setMarketingOptIn] = useState(true);
+    const [marketingOptIn, setMarketingOptIn] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);

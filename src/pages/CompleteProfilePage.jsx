@@ -24,10 +24,12 @@ const CompleteProfilePage = () => {
     const {user, updateUser} = useAuth();
     const [step, setStep] = useState(1);
     const [username, setUsername] = useState(user?.username || '');
+    const [firstName, setFirstName] = useState(user?.first_name || '');
+    const [lastName, setLastName] = useState(user?.last_name || '');
     const [grade, setGrade] = useState('');
-    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [termsAccepted, setTermsAccepted] = useState(Boolean(user?.terms_accepted));
     const [satExamDate, setSatExamDate] = useState('');
-    const [marketingOptIn, setMarketingOptIn] = useState(true);
+    const [marketingOptIn, setMarketingOptIn] = useState(false);
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const {dates, loading: datesLoading, error: datesError} = useSatExamDates();
@@ -38,6 +40,10 @@ const CompleteProfilePage = () => {
         if (step === 1) {
             if (!USERNAME_RULE.test(username)) {
                 setError('Use 1–15 letters, numbers, or underscores for your username.');
+                return;
+            }
+            if (!firstName.trim() || !lastName.trim()) {
+                setError('Enter your first and last name.');
                 return;
             }
             if (!grade) {
@@ -68,12 +74,20 @@ const CompleteProfilePage = () => {
         try {
             const {data} = await api.post('api/auth/complete_profile/', {
                 username,
+                first_name: firstName.trim(),
+                last_name: lastName.trim(),
                 grade,
                 sat_exam_date: satExamDate === UNKNOWN_SAT_DATE ? null : satExamDate,
                 marketing_opt_in: marketingOptIn,
                 terms_accepted: termsAccepted,
             });
-            updateUser({username: data.username, onboarding_required: data.onboarding_required});
+            updateUser({
+                username: data.username,
+                first_name: data.first_name,
+                last_name: data.last_name,
+                onboarding_required: data.onboarding_required,
+                terms_accepted: true,
+            });
             navigate('/welcome');
         } catch (requestError) {
             setError(requestError.response?.data?.error || 'Could not save your profile. Please try again.');
@@ -82,7 +96,7 @@ const CompleteProfilePage = () => {
     };
 
     const titles = {
-        1: ['Welcome to SAT Duel!', 'Review your username, then tell us your grade.'],
+        1: ['Welcome to SAT Duel!', 'Choose your public username and tell us a little about you.'],
         2: ['When is your next SAT?', 'We’ll use this to put a helpful countdown on your dashboard.'],
         3: ['One last choice', 'Choose which SAT Duel emails you’d like to receive.'],
     };
@@ -106,16 +120,24 @@ const CompleteProfilePage = () => {
                                     autoComplete="username"
                                 />
                                 <span className="mt-1.5 block text-xs text-slate-400">
-                                    We started with the part of your Google email before @. Change it now if you’d like.
+                                    This is public. Use 1–15 letters, numbers, or underscores.
                                 </span>
                             </Field>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Field label="First name">
+                                    <Input value={firstName} onChange={(event) => setFirstName(event.target.value)} autoComplete="given-name"/>
+                                </Field>
+                                <Field label="Last name">
+                                    <Input value={lastName} onChange={(event) => setLastName(event.target.value)} autoComplete="family-name"/>
+                                </Field>
+                            </div>
                             <Field label="Grade">
                                 <Select value={grade} onChange={(event) => setGrade(event.target.value)}>
                                     <option value="" disabled>Select your grade</option>
                                     {GRADES.map((value) => <option key={value} value={value}>{value}</option>)}
                                 </Select>
                             </Field>
-                            <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>
+                            {!user?.terms_accepted && <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>}
                         </>
                     )}
 

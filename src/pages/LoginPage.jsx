@@ -12,11 +12,13 @@ function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
+    const [errorCode, setErrorCode] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const {login, loading, user} = useAuth();
     const rawNext = new URLSearchParams(location.search).get('next');
+    const emailWasVerified = new URLSearchParams(location.search).get('verified') === '1';
     const redirectTo = safeRedirectPath(rawNext, '/trainer');
     const isTournamentInvite = redirectTo.startsWith('/tournament');
 
@@ -34,6 +36,7 @@ function Login() {
         }
         setIsSubmitting(true);
         setError(null);
+        setErrorCode(null);
         try {
             const baseUrl = import.meta.env.VITE_API_URL;
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -45,16 +48,19 @@ function Login() {
             });
             const {access, refresh, user: userData} = response.data;
             await login(userData, access, refresh);
-            if (rawNext && userData.is_first_login) {
+            if (rawNext && (userData.is_first_login || userData.onboarding_required)) {
                 rememberPostLoginRedirect(redirectTo);
             }
-            if (userData.is_first_login) {
+            if (userData.onboarding_required) {
+                navigate('/complete_profile');
+            } else if (userData.is_first_login) {
                 navigate('/welcome');
             } else {
                 navigate(redirectTo);
             }
         } catch (err) {
             const msg = err.response?.data?.error;
+            setErrorCode(err.response?.data?.code || null);
             setError(msg || (err.response?.status === 401
                 ? 'Invalid username or password'
                 : 'An error occurred during login'));
@@ -83,6 +89,7 @@ function Login() {
                 <DividerLabel>or continue with email</DividerLabel>
 
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                    {emailWasVerified && <Alert type="success">Email verified. Log in to finish setting up your profile.</Alert>}
                     <Field label="Username or email">
                         <Input
                             placeholder="you@example.com"
@@ -101,7 +108,14 @@ function Login() {
                         />
                     </Field>
 
-                    {error && <Alert>{error}</Alert>}
+                    {error && (
+                        <Alert>
+                            {error}
+                            {errorCode === 'email_not_verified' && (
+                                <Link to="/register" className="ml-1 font-bold underline">Send a new verification email.</Link>
+                            )}
+                        </Alert>
+                    )}
 
                     <Button type="submit" block loading={isSubmitting}>
                         Log in

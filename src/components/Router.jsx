@@ -89,6 +89,7 @@ const MARKETING_ROUTES = [
     {path: '/sat-vocabulary-words-in-context', el: <SEOGuidePage pageKey="wordsInContext"/>},
     {path: '/digital-sat-score-guide', el: <SEOGuidePage pageKey="scoreGuide"/>},
     {path: '/confirm-email/:key', el: <ConfirmEmail/>},
+    {path: '/email_verification', el: <EmailVerificationPage/>},
     {path: '/email_verification/:email', el: <EmailVerificationPage/>},
     {path: '/password_reset', el: <PasswordResetPage/>},
     {path: '/api/reset/:uidb64/:token', el: <PasswordResetConfirmPage/>},

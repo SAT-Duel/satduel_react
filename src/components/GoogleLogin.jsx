@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {GoogleOAuthProvider, GoogleLogin} from '@react-oauth/google';
 import axios from 'axios';
 import {useNavigate} from 'react-router-dom';
@@ -21,6 +21,13 @@ const GoogleLoginButton = ({redirectTo}) => {
     const navigate = useNavigate();
     const {login} = useAuth();
     const nextPath = safeRedirectPath(redirectTo, '/trainer');
+    const [buttonWidth, setButtonWidth] = useState(() => Math.min(400, window.innerWidth - 82));
+
+    useEffect(() => {
+        const resize = () => setButtonWidth(Math.min(400, window.innerWidth - 82));
+        window.addEventListener('resize', resize);
+        return () => window.removeEventListener('resize', resize);
+    }, []);
 
     const handleSuccess = async (credentialResponse) => {
         try {
@@ -33,7 +40,7 @@ const GoogleLoginButton = ({redirectTo}) => {
 
             await login(data.user, data.access, data.refresh);
 
-            if (data.user.is_new_user) {
+            if (data.user.onboarding_required) {
                 if (redirectTo) rememberPostLoginRedirect(nextPath);
                 navigate('/complete_profile');
             } else if (data.user.is_first_login) {
@@ -64,7 +71,7 @@ const GoogleLoginButton = ({redirectTo}) => {
                     shape="pill"
                     text="continue_with"
                     logo_alignment="center"
-                    width="400"
+                    width={String(buttonWidth)}
                 />
             </div>
         </GoogleOAuthProvider>
