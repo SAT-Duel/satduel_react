@@ -11,11 +11,16 @@ import oneVariableEquations from './oneVariableEquations.js';
 import parallelAndPerpendicularLines from './parallelAndPerpendicularLines.js';
 import quadraticForms from './quadraticForms.js';
 import quadraticFormula from './quadraticFormula.js';
+import quadraticSystems from './quadraticSystems.js';
+import quadraticWordProblems from './quadraticWordProblems.js';
 import slopeAsRateOfChange from './slopeAsRateOfChange.js';
 import studyWithSatDuel from './studyWithSatDuel.js';
 import systemsAsIntersections from './systemsAsIntersections.js';
 import tablesToEquations from './tablesToEquations.js';
+import parabolaTransformations from './parabolaTransformations.js';
+import vertexAxisSymmetry from './vertexAxisSymmetry.js';
 import wordProblemsToEquations from './wordProblemsToEquations.js';
+import zerosInterceptsRoots from './zerosInterceptsRoots.js';
 
 export const STUDY_GUIDE_LESSONS = [
     howDigitalSatMathWorks,
@@ -36,6 +41,11 @@ export const STUDY_GUIDE_LESSONS = [
     completingTheSquare,
     quadraticFormula,
     discriminantMeaning,
+    zerosInterceptsRoots,
+    vertexAxisSymmetry,
+    parabolaTransformations,
+    quadraticWordProblems,
+    quadraticSystems,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
