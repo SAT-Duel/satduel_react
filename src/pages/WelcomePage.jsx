@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {Helmet} from 'react-helmet';
 import {Link, useNavigate} from 'react-router-dom';
-import {ArrowRight, BookOpen, Calculator, Gauge} from 'lucide-react';
+import {ArrowRight, BookOpen, Swords, Trophy} from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
 import useSdTheme from '../hooks/useSdTheme';
 import {consumePostLoginRedirect} from '../utils/authRedirect';
@@ -12,23 +12,26 @@ import '../styles/landing.css';
 // the rest of the product no longer used.
 const STARTS = [
     {
-        icon: Gauge,
-        title: '2-minute diagnostic',
-        text: 'Three real questions. Get a rough score range before you start grinding.',
-        to: '/diagnostic',
-        recommended: true,
-    },
-    {
         icon: BookOpen,
-        title: 'Reading & Writing',
-        text: 'Adaptive practice, one question at a time. Your English rating moves with every answer.',
-        to: '/infinite_questions',
+        title: 'Practice',
+        text: 'Build your Math or Reading & Writing rating with adaptive questions.',
+        actions: [
+            {label: 'English', to: '/infinite_questions'},
+            {label: 'Math', to: '/infinite_questions?subject=math'},
+        ],
     },
     {
-        icon: Calculator,
-        title: 'Math',
-        text: 'Same loop for Math — the questions adjust to your level as you answer.',
-        to: '/infinite_questions?subject=math',
+        icon: Swords,
+        title: 'Duel',
+        text: 'Compete with another student in real time and put your Duel Elo to the test.',
+        actions: [{label: 'Find an opponent', to: '/match'}],
+    },
+    {
+        icon: Trophy,
+        title: 'Tournament',
+        text: 'Join an asynchronous tournament, compete with students around the world, and see your ranking on a live leaderboard.',
+        actions: [{label: 'Browse tournaments', to: '/tournaments'}],
+        recommended: true,
     },
 ];
 
@@ -62,15 +65,14 @@ const WelcomePage = () => {
                     Where do you want to start{user?.first_name ? `, ${user.first_name}` : ''}?
                 </h1>
                 <p className="m-0 mt-3 text-base text-[var(--sd-mut)]">
-                    Pick one — you can switch anytime from the dashboard.
+                    Choose a core SAT Duel mode. You can switch anytime.
                 </p>
 
                 <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                    {STARTS.map(({icon: Icon, title, text, to, recommended}) => (
-                        <Link
+                    {STARTS.map(({icon: Icon, title, text, actions, recommended}) => (
+                        <div
                             key={title}
-                            to={to}
-                            className={`relative flex flex-col items-start gap-2 rounded-2xl border-[1.5px] p-5 text-left no-underline transition-all hover:-translate-y-0.5 ${
+                            className={`relative flex min-h-64 flex-col items-start gap-2 rounded-2xl border-[1.5px] p-5 text-left transition-all hover:-translate-y-0.5 ${
                                 recommended
                                     ? 'border-[#7C5CF0] bg-[rgba(124,92,240,0.14)] shadow-[0_0_0_4px_rgba(124,92,240,0.08)]'
                                     : 'border-[var(--sd-line2)] bg-[var(--sd-panel)] hover:border-[rgba(124,92,240,0.6)]'
@@ -84,7 +86,23 @@ const WelcomePage = () => {
                             <Icon className="size-6 text-[var(--sd-violet-lbl)]"/>
                             <span className="sd-display text-lg font-bold text-[var(--sd-text)]">{title}</span>
                             <span className="text-sm leading-relaxed text-[var(--sd-mut)]">{text}</span>
-                        </Link>
+                            <div className="mt-auto flex w-full gap-2 pt-4">
+                                {actions.map(({label, to}) => (
+                                    <Link
+                                        key={label}
+                                        to={to}
+                                        className={`group flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-center text-sm font-bold no-underline transition-colors ${
+                                            recommended
+                                                ? 'bg-[#7C5CF0] text-white hover:bg-[#6847e8]'
+                                                : 'border border-[var(--sd-line2)] bg-[var(--sd-panel)] text-[var(--sd-text)] hover:border-[#7C5CF0] hover:text-[var(--sd-violet-lbl)]'
+                                        } ${actions.length > 1 ? 'flex-1' : 'w-full'}`}
+                                    >
+                                        {label}
+                                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5"/>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </div>
 
