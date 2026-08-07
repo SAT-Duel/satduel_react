@@ -25,8 +25,7 @@ import ResetCountdown from '../components/ResetCountdown';
 import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 
 const GRADE_OPTIONS = [
-    {value: '<1', label: 'Below Grade 1'},
-    ...Array.from({length: 12}, (_, i) => ({value: String(i + 1), label: `Grade ${i + 1}`})),
+    ...Array.from({length: 5}, (_, i) => ({value: String(i + 8), label: `Grade ${i + 8}`})),
     {value: '>12', label: 'Above Grade 12'},
 ];
 

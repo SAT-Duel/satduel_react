@@ -29,7 +29,7 @@ function PasswordResetConfirmPage() {
             });
 
             if (response.status === 200) {
-                notify.success('Password reset successful.');
+                notify.success('Password changed. We sent a confirmation email.');
                 navigate('/login');
             } else {
                 notify.error('Invalid token or link expired.');

@@ -11,7 +11,7 @@ import {useAuth} from '../context/AuthContext';
 import {DEFAULT_DUEL_EMOTES, DUEL_EMOJIS} from '../utils/duelEmotes';
 import {notify} from '../utils/notify';
 
-const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
+const GRADES = [...Array.from({length: 5}, (_, i) => String(i + 8)), '>12'];
 const USERNAME_RULE = /^[a-zA-Z0-9_]{1,15}$/;
 
 function apiErrorMessage(error, fallback) {
@@ -29,8 +29,7 @@ function SettingsPage() {
     const [form, setForm] = useState(null);
     const [saving, setSaving] = useState(false);
     const [updatingUsername, setUpdatingUsername] = useState(false);
-    const [passwordForm, setPasswordForm] = useState({new_password1: '', new_password2: ''});
-    const [settingPassword, setSettingPassword] = useState(false);
+    const [sendingPasswordLink, setSendingPasswordLink] = useState(false);
     const [billingAction, setBillingAction] = useState(null);
     const [notice, setNotice] = useState(null);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -153,26 +152,20 @@ function SettingsPage() {
         }
     };
 
-    const handleSetPassword = async () => {
-        if (!passwordForm.new_password1 || passwordForm.new_password1 !== passwordForm.new_password2) {
-            setNotice({type: 'error', text: 'Enter the same new password twice.'});
-            return;
-        }
-
-        setSettingPassword(true);
+    const handlePasswordLink = async () => {
+        setSendingPasswordLink(true);
         setNotice(null);
         try {
-            await api.post('api/auth/set_password/', passwordForm);
-            setProfile((current) => ({
-                ...current,
-                account: {...current.account, has_usable_password: true},
-            }));
-            setPasswordForm({new_password1: '', new_password2: ''});
-            setNotice({type: 'success', text: 'Password set. You can now sign in with Google or your password.'});
+            const {data} = await api.post('api/auth/set_password/');
+            navigate('/password_reset', {
+                state: {
+                    sentTo: data.email,
+                },
+            });
         } catch (error) {
-            setNotice({type: 'error', text: apiErrorMessage(error, 'Could not set your password.')});
+            setNotice({type: 'error', text: apiErrorMessage(error, 'Could not send the password email.')});
         } finally {
-            setSettingPassword(false);
+            setSendingPasswordLink(false);
         }
     };
 
@@ -465,41 +458,10 @@ function SettingsPage() {
                                             : 'Reset it via an email link.'}
                                     </p>
                                 </div>
-                                {profile?.account?.has_usable_password !== false && (
-                                    <Button to="/password_reset" variant="secondary" size="sm">Change password</Button>
-                                )}
+                                <Button onClick={handlePasswordLink} loading={sendingPasswordLink} variant="secondary" size="sm">
+                                    {profile?.account?.has_usable_password === false ? 'Set password' : 'Change password'}
+                                </Button>
                             </div>
-                            {profile?.account?.has_usable_password === false && (
-                                <div className="mt-3">
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        <Field label="New password">
-                                            <Input
-                                                type="password"
-                                                value={passwordForm.new_password1}
-                                                onChange={(event) => setPasswordForm((current) => ({
-                                                    ...current,
-                                                    new_password1: event.target.value,
-                                                }))}
-                                                autoComplete="new-password"
-                                            />
-                                        </Field>
-                                        <Field label="Confirm new password">
-                                            <Input
-                                                type="password"
-                                                value={passwordForm.new_password2}
-                                                onChange={(event) => setPasswordForm((current) => ({
-                                                    ...current,
-                                                    new_password2: event.target.value,
-                                                }))}
-                                                autoComplete="new-password"
-                                            />
-                                        </Field>
-                                    </div>
-                                    <Button onClick={handleSetPassword} loading={settingPassword} size="sm" className="mt-3">
-                                        Set password
-                                    </Button>
-                                </div>
-                            )}
                         </div>
                         <div className="flex flex-col gap-2 rounded-xl bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
