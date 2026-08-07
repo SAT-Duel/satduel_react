@@ -1,0 +1,245 @@
+const equationsWithParameters = {
+    slug: 'equations-with-parameters',
+    moduleId: 'linear-equations',
+    title: 'Equations With Parameters',
+    eyebrow: 'Algebra',
+    minutes: '22 min',
+    summary: 'A parameter is an unknown constant. Treat it like a number, keep it organized, and notice when division requires a restriction.',
+    goals: [
+        'Solve a linear equation for one variable while other letters stay fixed.',
+        'Find a parameter from a known solution or a required equation behavior.',
+        'State restrictions before dividing by an expression that could equal zero.',
+    ],
+    facts: [
+        {label: 'Parameter', value: 'fixed value', note: 'it stays constant within the problem'},
+        {label: 'Target', value: 'named variable', note: 'isolate only the letter the question asks for'},
+        {label: 'Key check', value: 'denominator \u2260 0', note: 'division is valid only when the divisor is nonzero'},
+        {label: 'Fast method', value: 'use structure', note: 'scale a whole equation instead of solving unnecessarily'},
+    ],
+    sections: [
+        {
+            heading: 'Big idea 1: letters can play different jobs',
+            paragraphs: [
+                'In ax + b = c, x may be the variable you must solve for while a, b, and c are parameters. Their numerical values are unknown, but they behave like fixed numbers during the algebra.',
+                'Read the final sentence before moving symbols. If the question asks for b, then x is not your target. Keep x with the other known quantities and isolate b.',
+            ],
+        },
+        {
+            heading: 'Big idea 2: symbolic algebra uses the same inverse operations',
+            paragraphs: [
+                'To solve ax + b = c for x, subtract b and divide by a. The result contains letters because the inputs contained letters; that does not make the result incomplete.',
+                'Parentheses and fractions still act as groups. Move a whole term with addition or subtraction, and multiply every term when clearing a denominator.',
+            ],
+        },
+        {
+            heading: 'Big idea 3: never divide by a possible zero',
+            paragraphs: [
+                'The expression x = (c - b) / a assumes a is not zero. If a = 0, the x-term disappears, so the equation may have no solution or infinitely many solutions instead of one.',
+                'SAT questions often state that a parameter is nonzero. That sentence is permission to divide. If the problem does not give the restriction, identify the value that would make your denominator zero.',
+            ],
+        },
+    ],
+    formulas: [
+        {
+            label: 'Solve a parameterized linear equation',
+            math: 'ax+b=c \\Rightarrow x=\\frac{c-b}{a},\\quad a\\ne0',
+            note: 'The same two moves still work: subtract the constant term, then divide by the coefficient of x.',
+        },
+        {
+            label: 'Solve for a parameter',
+            math: 'ax+b=c \\Rightarrow a=\\frac{c-b}{x},\\quad x\\ne0',
+            note: 'The target changed from x to a, so the restriction changed too.',
+        },
+        {
+            label: 'Coefficient test for one solution',
+            math: 'ax+b=cx+d \\Rightarrow (a-c)x=d-b',
+            note: 'A unique solution requires a - c to be nonzero.',
+        },
+    ],
+    strategyCards: [
+        {
+            title: 'Before doing algebra',
+            items: ['Circle the variable the question asks for', 'Treat every other letter as a fixed number', 'Look for a stated nonzero condition'],
+        },
+        {
+            title: 'Use structure when possible',
+            items: ['Substitute a known solution directly into the original equation', 'Scale both sides if the requested expression is a multiple of the equation', 'Factor a shared parameter before expanding'],
+        },
+    ],
+    adaptiveDemo: {
+        title: 'Choose the target variable',
+        prompt: 'For ax + b = c, how does the first move depend on what you need?',
+        options: [
+            {
+                id: 'solve-x',
+                label: 'Solve for x',
+                result: 'Move b, then divide by a.',
+                advice: 'Subtract b to get ax = c - b. If a is nonzero, x = (c - b) / a.',
+            },
+            {
+                id: 'solve-b',
+                label: 'Solve for b',
+                result: 'Move ax and stop.',
+                advice: 'Subtract ax from both sides to get b = c - ax. Dividing by a would move away from the target.',
+            },
+        ],
+    },
+    quickCheck: {
+        prompt: 'Why must a \u2260 0 when x = (c - b) / a?',
+        choices: [
+            'Because a parameter can never equal zero.',
+            'Because division by zero is undefined.',
+            'Because x must be positive.',
+            'Because c - b must equal zero.',
+        ],
+        answer: 1,
+        explanation: 'Parameters may equal zero unless the problem says otherwise. The restriction is needed because a appears in the denominator.',
+    },
+    practiceSet: {
+        title: 'Classic SAT parameter traps',
+        intro: 'Keep the target visible, preserve groups, and check every denominator before accepting a symbolic answer.',
+        questions: [
+            {
+                id: 'symbolic-isolation',
+                skill: 'Isolation',
+                title: 'Keep the parameter in the result',
+                stem: 'Solve for x in terms of p.',
+                math: '5x+p=2',
+                choices: ['x = 2 - p', 'x = (2 - p)/5', 'x = 2/5 - p', 'x = (p - 2)/5'],
+                answer: 1,
+                explanation: {
+                    steps: ['Subtract p: 5x = 2 - p.', 'Divide the entire right side by 5: x = (2 - p) / 5.'],
+                    trap: 'The expression 2/5 - p divides only the 2 by 5, not the entire quantity 2 - p.',
+                    takeaway: 'Use parentheses or a fraction bar around a multi-term numerator.',
+                },
+            },
+            {
+                id: 'known-solution',
+                skill: 'Substitution',
+                title: 'Use the given solution',
+                stem: 'The solution to the equation is x = 4. What is the value of k?',
+                math: '3x+k=14',
+                choices: ['k = -2', 'k = 2', 'k = 4', 'k = 26'],
+                answer: 1,
+                explanation: {
+                    steps: ['Substitute x = 4: 3(4) + k = 14.', 'Then 12 + k = 14, so k = 2.'],
+                    trap: 'Solving for x again ignores the information that makes k numerical.',
+                    takeaway: 'A known solution can be plugged directly into the original equation.',
+                },
+            },
+            {
+                id: 'rearrange-two-letters',
+                skill: 'Rearranging',
+                title: 'Treat y as fixed',
+                stem: 'Which expression gives x in terms of y?',
+                math: '4x-3y=12',
+                choices: ['x = 3 - 3y/4', 'x = 3 + 3y/4', 'x = 12 + 3y', 'x = (12 - 3y)/4'],
+                answer: 1,
+                explanation: {
+                    steps: ['Add 3y: 4x = 12 + 3y.', 'Divide every term by 4: x = 3 + 3y/4.'],
+                    trap: 'Moving -3y to the other side changes it to +3y.',
+                    takeaway: 'Other variables behave like constants when they are not the target.',
+                },
+            },
+            {
+                id: 'cancel-factor',
+                skill: 'Nonzero factor',
+                title: 'Cancel before expanding',
+                stem: 'If a is nonzero, solve for x.',
+                math: 'a(x-5)=7a',
+                choices: ['x = 2', 'x = 7', 'x = 12', 'x = 12a'],
+                answer: 2,
+                explanation: {
+                    steps: ['Divide both sides by nonzero a: x - 5 = 7.', 'Add 5: x = 12.'],
+                    trap: 'The parameter cancels; it should not remain attached to the final answer.',
+                    takeaway: 'Cancel a shared nonzero factor before distributing.',
+                },
+            },
+            {
+                id: 'denominator-parameter',
+                skill: 'Fractions',
+                title: 'Clear the parameter denominator',
+                stem: 'If m is nonzero, solve for x.',
+                math: '\\frac{x}{m}+n=p',
+                choices: ['x = p - n', 'x = m(p - n)', 'x = mp - n', 'x = (p - n)/m'],
+                answer: 1,
+                explanation: {
+                    steps: ['Subtract n: x/m = p - n.', 'Multiply both sides by m: x = m(p - n).'],
+                    trap: 'The m multiplies the whole difference p - n, not only p.',
+                    takeaway: 'Preserve grouping when a parameter multiplies a multi-term expression.',
+                },
+            },
+            {
+                id: 'coefficient-from-solution',
+                skill: 'Substitution',
+                title: 'Find the coefficient',
+                stem: 'The equation has solution x = 3. What is k?',
+                math: 'kx+4=16',
+                choices: ['k = 3', 'k = 4', 'k = 6', 'k = 12'],
+                answer: 1,
+                explanation: {
+                    steps: ['Substitute x = 3: 3k + 4 = 16.', 'Subtract 4 and divide by 3: k = 4.'],
+                    trap: 'The product kx becomes 3k, not k + 3.',
+                    takeaway: 'Substitute with parentheses, then simplify the product.',
+                },
+            },
+            {
+                id: 'unique-condition',
+                skill: 'Restriction',
+                title: 'Protect the variable coefficient',
+                stem: 'For which condition does the equation have exactly one solution?',
+                math: '(k-2)x=7',
+                choices: ['k = 0', 'k = 2', 'k \u2260 2', 'k \u2260 7'],
+                answer: 2,
+                explanation: {
+                    steps: ['A unique solution would be x = 7/(k - 2).', 'The denominator must be nonzero, so k - 2 \u2260 0 and k \u2260 2.'],
+                    trap: 'If k = 2, the equation becomes 0 = 7, which has no solution.',
+                    takeaway: 'A linear equation needs a nonzero coefficient on its target variable for one solution.',
+                },
+            },
+            {
+                id: 'scale-expression',
+                skill: 'Structure',
+                title: 'Scale the whole equation',
+                stem: 'If 5x + 2p = 3, what is the value of 10x + 4p?',
+                choices: ['3', '5', '6', '12'],
+                answer: 2,
+                explanation: {
+                    steps: ['The requested expression is 2(5x + 2p).', 'Multiply both sides of the given equation by 2: 10x + 4p = 6.'],
+                    trap: 'There is no need to find x or p separately; the equation gives only their combined value.',
+                    takeaway: 'When the target is a multiple of the given expression, scale the relationship directly.',
+                },
+            },
+            {
+                id: 'infinite-parameter',
+                skill: 'Coefficient match',
+                title: 'Make both sides identical',
+                stem: 'For what value of q does the equation have infinitely many solutions?',
+                math: 'qx+6=3x+6',
+                choices: ['q = 0', 'q = 3', 'q = 6', 'q \u2260 3'],
+                answer: 1,
+                explanation: {
+                    steps: ['Infinitely many solutions require both sides to be the same expression.', 'The constants already match, so set q = 3 to match the x-coefficients.'],
+                    trap: 'Matching q to the constant 6 compares unlike parts of the equation.',
+                    takeaway: 'Match coefficient to coefficient and constant to constant.',
+                },
+            },
+            {
+                id: 'literal-formula',
+                skill: 'Formula',
+                title: 'Isolate a parameter inside a product',
+                stem: 'If P and t are nonzero, which expression gives r?',
+                math: 'A=P(1+rt)',
+                choices: ['r = (A - P)/(Pt)', 'r = A/P - t', 'r = (A - P)/t', 'r = A/(Pt)'],
+                answer: 0,
+                explanation: {
+                    steps: ['Divide by P: A/P = 1 + rt.', 'Subtract 1: A/P - 1 = rt.', 'Divide by t and combine the numerator: r = (A - P)/(Pt).'],
+                    trap: 'Subtracting 1 from A/P gives (A - P)/P, not (A - 1)/P.',
+                    takeaway: 'Clear outer operations one layer at a time and keep fractions grouped.',
+                },
+            },
+        ],
+    },
+};
+
+export default equationsWithParameters;

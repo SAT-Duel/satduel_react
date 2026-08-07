@@ -1,0 +1,250 @@
+const wordProblemsToEquations = {
+    slug: 'word-problems-to-equations',
+    moduleId: 'linear-equations',
+    title: 'Word Problems to Equations',
+    eyebrow: 'Algebra',
+    minutes: '25 min',
+    summary: 'Word problems become manageable when you define one unknown, attach units, and translate the relationship before calculating.',
+    goals: [
+        'Turn rates, totals, fees, and constraints into linear equations.',
+        'Use units to decide which quantities should be added or multiplied.',
+        'Interpret the coefficient and constant in a linear model.',
+    ],
+    facts: [
+        {label: 'First move', value: 'define x', note: 'write what the variable counts and include its unit'},
+        {label: 'Rate pattern', value: 'rate \u00d7 amount', note: 'dollars per item times items gives dollars'},
+        {label: 'Linear model', value: 'start + change', note: 'fixed amount plus rate times input'},
+        {label: 'Final check', value: 'answer the question', note: 'report the requested quantity, not an intermediate value'},
+    ],
+    sections: [
+        {
+            heading: 'Big idea 1: define the unknown before writing symbols',
+            paragraphs: [
+                'Write a short definition such as x = number of adult tickets. This prevents a common mistake: solving correctly for one quantity when the question asks for another.',
+                'If two quantities have a known total, one variable is often enough. If 30 tickets were sold and x were adult tickets, then 30 - x would be student tickets.',
+            ],
+        },
+        {
+            heading: 'Big idea 2: let units build the equation',
+            paragraphs: [
+                'Quantities can be added only when their units match. A fixed fee in dollars can be added to a per-mile charge times miles because both terms then represent dollars.',
+                'Words such as per, each, and every usually signal multiplication by a rate. A phrase such as 4 dollars per notebook becomes 4n dollars for n notebooks.',
+            ],
+        },
+        {
+            heading: 'Big idea 3: separate the starting value from the change',
+            paragraphs: [
+                'Many SAT models follow total = starting amount + rate times input. The constant is present even when the input is zero; the coefficient tells how much the total changes for one more unit of input.',
+                'After solving, put the value back into the story. Check whether the sign, size, and units make sense. A negative number of tickets or a travel time longer than the whole day usually reveals a setup error.',
+            ],
+        },
+    ],
+    formulas: [
+        {
+            label: 'Fixed fee plus usage',
+            math: 'T=F+rx',
+            note: 'F is the starting fee, r is the price per unit, and x is the number of units.',
+        },
+        {
+            label: 'Distance relationship',
+            math: 'd=rt',
+            note: 'Keep units consistent: miles per hour times hours gives miles.',
+        },
+        {
+            label: 'Two-part total',
+            math: 'x+y=N \\Rightarrow y=N-x',
+            note: 'Use the known total to describe both groups with one variable.',
+        },
+        {
+            label: 'Percent relationship',
+            math: '\\text{part}=\\text{decimal rate}\\times\\text{whole}',
+            note: 'After a 20% discount, the sale price is 80%, or 0.80, of the original price.',
+        },
+    ],
+    strategyCards: [
+        {
+            title: 'Four-line setup',
+            items: ['Define the unknown with units', 'Translate one relationship into an equation', 'Solve and keep the arithmetic labeled', 'Answer the exact question in context'],
+        },
+        {
+            title: 'Translation signals',
+            items: ['Per, each, and every suggest a rate times a quantity', 'Total and altogether often create an equation', 'More than means add; less than means subtract from the named reference'],
+        },
+    ],
+    adaptiveDemo: {
+        title: 'Build a one-variable model',
+        prompt: 'A group bought 20 adult and student tickets total. Which variable choice keeps the setup clean?',
+        options: [
+            {
+                id: 'one-variable',
+                label: 'a = adult tickets',
+                result: 'Then student tickets = 20 - a.',
+                advice: 'Both counts are now expressed with one variable, so a price-total equation can be solved directly.',
+            },
+            {
+                id: 'two-variables',
+                label: 'a = adults, s = students',
+                result: 'This works, but needs a second equation.',
+                advice: 'You would also need a + s = 20. Substituting s = 20 - a immediately gives the simpler one-variable form.',
+            },
+        ],
+    },
+    quickCheck: {
+        prompt: 'A service costs $12 to start and $5 per hour. Which equation gives the total cost C after h hours?',
+        choices: [
+            'C = 12h + 5',
+            'C = 12 + 5h',
+            'C = 17h',
+            'C = 5 + 12/h',
+        ],
+        answer: 1,
+        explanation: 'The $12 fee occurs once. The hourly charge is $5 multiplied by h hours, so C = 12 + 5h.',
+    },
+    practiceSet: {
+        title: 'Classic SAT modeling traps',
+        intro: 'Define the variable, follow the units, and check that your final value answers the question that was actually asked.',
+        questions: [
+            {
+                id: 'taxi-fee',
+                skill: 'Fixed fee',
+                title: 'Separate the start from the rate',
+                stem: 'A taxi ride costs $4 plus $2.50 per mile. If the total is $19, how many miles was the ride?',
+                math: '4+2.5m=19',
+                choices: ['4 miles', '6 miles', '7.6 miles', '9.2 miles'],
+                answer: 1,
+                explanation: {
+                    steps: ['Subtract the $4 fixed fee: 2.5m = 15.', 'Divide by $2.50 per mile: m = 6 miles.'],
+                    trap: 'Dividing 19 by 2.5 charges the per-mile rate to the fixed fee too.',
+                    takeaway: 'Remove a one-time fee before dividing by the usage rate.',
+                },
+            },
+            {
+                id: 'ticket-system',
+                skill: 'Two groups',
+                title: 'Use the total to eliminate a variable',
+                stem: 'A theater sold 30 tickets. Adult tickets cost $12 and student tickets cost $8. The total revenue was $300. How many adult tickets were sold?',
+                math: '12a+8(30-a)=300',
+                choices: ['10', '15', '20', '25'],
+                answer: 1,
+                explanation: {
+                    steps: ['Let a be adult tickets, so 30 - a is student tickets.', 'Expand: 12a + 240 - 8a = 300.', 'Then 4a = 60, so a = 15.'],
+                    trap: 'Using 30 - a for adults after defining a as adults swaps the groups.',
+                    takeaway: 'Define the variable in writing and keep that meaning throughout.',
+                },
+            },
+            {
+                id: 'draining-tank',
+                skill: 'Decrease',
+                title: 'A decreasing model needs subtraction',
+                stem: 'A tank starts with 120 liters and drains at 8 liters per minute. After how many minutes will 40 liters remain?',
+                math: '120-8t=40',
+                choices: ['5 minutes', '10 minutes', '15 minutes', '20 minutes'],
+                answer: 1,
+                explanation: {
+                    steps: ['Subtract 120: -8t = -80.', 'Divide by -8: t = 10 minutes.'],
+                    trap: 'The model is 120 - 8t because the amount remaining decreases; 120 + 8t describes filling.',
+                    takeaway: 'The sign of the rate must match the direction of change.',
+                },
+            },
+            {
+                id: 'consecutive-integers',
+                skill: 'Consecutive values',
+                title: 'Name each integer from one starting value',
+                stem: 'Three consecutive integers have a sum of 51. What is the greatest of the three integers?',
+                math: 'x+(x+1)+(x+2)=51',
+                choices: ['16', '17', '18', '19'],
+                answer: 2,
+                explanation: {
+                    steps: ['Combine: 3x + 3 = 51, so 3x = 48 and x = 16.', 'The three integers are 16, 17, and 18.', 'The greatest is 18.'],
+                    trap: 'The solved value x = 16 is the least integer, not the quantity the question asks for.',
+                    takeaway: 'Translate the solved variable back into the requested part of the story.',
+                },
+            },
+            {
+                id: 'reverse-discount',
+                skill: 'Percent',
+                title: 'The sale price is the remaining percent',
+                stem: 'After a 20% discount, a jacket costs $72. What was the original price?',
+                math: '0.80p=72',
+                choices: ['$57.60', '$86.40', '$90', '$92'],
+                answer: 2,
+                explanation: {
+                    steps: ['A 20% discount leaves 80% of the original price.', 'Divide: p = 72/0.80 = 90.'],
+                    trap: 'Taking 20% of $72 treats the sale price as the original base.',
+                    takeaway: 'Percent change is always measured from the original amount.',
+                },
+            },
+            {
+                id: 'rectangle-perimeter',
+                skill: 'Geometry model',
+                title: 'Count both pairs of sides',
+                stem: 'A rectangle is 3 units longer than it is wide. Its perimeter is 30 units. What is its width?',
+                math: '2w+2(w+3)=30',
+                choices: ['6', '7.5', '9', '12'],
+                answer: 0,
+                explanation: {
+                    steps: ['Expand: 2w + 2w + 6 = 30.', 'Then 4w = 24, so w = 6.'],
+                    trap: 'The expression w + (w + 3) counts only half the perimeter.',
+                    takeaway: 'Draw or name every repeated dimension before writing a geometry equation.',
+                },
+            },
+            {
+                id: 'distance-units',
+                skill: 'Rate',
+                title: 'Multiply compatible units',
+                stem: 'A car travels at 55 miles per hour for 2.5 hours. How far does it travel?',
+                math: 'd=55(2.5)',
+                choices: ['22 miles', '57.5 miles', '110 miles', '137.5 miles'],
+                answer: 3,
+                explanation: {
+                    steps: ['Use distance = rate times time.', '55 miles/hour times 2.5 hours = 137.5 miles.'],
+                    trap: 'Dividing 55 by 2.5 produces units that do not represent distance.',
+                    takeaway: 'Let unit cancellation confirm whether to multiply or divide.',
+                },
+            },
+            {
+                id: 'phone-plan',
+                skill: 'Usage model',
+                title: 'Solve for the number of units',
+                stem: 'A phone plan costs $18 per month plus $0.06 per text message. If one month costs $30, how many text messages were sent?',
+                math: '18+0.06t=30',
+                choices: ['20', '80', '200', '500'],
+                answer: 2,
+                explanation: {
+                    steps: ['Subtract the monthly fee: 0.06t = 12.', 'Divide by 0.06: t = 200 messages.'],
+                    trap: 'The decimal 0.06 means six cents, not sixty cents.',
+                    takeaway: 'Convert cents to dollars before combining charges stated in dollars.',
+                },
+            },
+            {
+                id: 'item-mixture',
+                skill: 'Two prices',
+                title: 'The remainder belongs to the other group',
+                stem: 'A student buys 10 items: notebooks cost $7 each and pencils cost $4 each. The total cost is $52. How many notebooks were bought?',
+                math: '7n+4(10-n)=52',
+                choices: ['3', '4', '6', '8'],
+                answer: 1,
+                explanation: {
+                    steps: ['Let n be notebooks, so 10 - n is pencils.', 'Expand: 7n + 40 - 4n = 52.', 'Then 3n = 12, so n = 4.'],
+                    trap: 'The difference between prices is $3, but the $40 cost of ten pencils must be included first.',
+                    takeaway: 'A baseline-plus-difference view can simplify two-price totals.',
+                },
+            },
+            {
+                id: 'interpret-coefficient',
+                skill: 'Interpretation',
+                title: 'Read the coefficient with units',
+                stem: 'The cost C, in dollars, to rent equipment for h hours is C = 45 + 12h. What does 12 represent?',
+                choices: ['The total cost', 'The initial fee in dollars', 'The number of rental hours', 'The cost in dollars for each additional hour'],
+                answer: 3,
+                explanation: {
+                    steps: ['The coefficient 12 multiplies h, the number of hours.', 'Its units are dollars per hour, so each added hour increases cost by $12.'],
+                    trap: 'The constant 45 is the initial fee; the coefficient 12 is the rate of change.',
+                    takeaway: 'In start + rate times input, the coefficient is the per-unit change.',
+                },
+            },
+        ],
+    },
+};
+
+export default wordProblemsToEquations;

@@ -35,13 +35,13 @@ export const STUDY_GUIDE_MODULES = [
         summary: 'Build clean equation habits so easy Algebra questions become automatic points.',
         icon: Sigma,
         accent: 'bg-cyan-100 text-cyan-700',
-        time: '45 min',
+        time: '1 hr 45 min',
         pages: [
             {title: 'One-Variable Equations', slug: 'one-variable-equations', focus: 'Fractions, parentheses, and signs'},
-            {title: 'Linear Inequalities', focus: 'Graph, interval, and flip rules'},
-            {title: 'Equations With Parameters', focus: 'Constants that stand in for numbers'},
-            {title: 'Word Problems to Equations', focus: 'Rates, totals, and constraints'},
-            {title: 'No-Solution and Infinite-Solution Cases', focus: 'When equations collapse'},
+            {title: 'Linear Inequalities', slug: 'linear-inequalities', focus: 'Graph, interval, and flip rules'},
+            {title: 'Equations With Parameters', slug: 'equations-with-parameters', focus: 'Constants that stand in for numbers'},
+            {title: 'Word Problems to Equations', slug: 'word-problems-to-equations', focus: 'Rates, totals, and constraints'},
+            {title: 'No-Solution and Infinite-Solution Cases', slug: 'no-solution-and-infinite-solution-cases', focus: 'When equations collapse'},
         ],
     },
     {
