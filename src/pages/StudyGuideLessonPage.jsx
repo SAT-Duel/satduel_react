@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {ArrowLeft, CheckCircle2, Clock3} from 'lucide-react';
+import {ArrowLeft, CheckCircle2, ChevronDown, Clock3, Lightbulb} from 'lucide-react';
 import {BlockMath} from 'react-katex';
 import 'katex/dist/katex.min.css';
 import {Link, Navigate, useParams} from 'react-router-dom';
@@ -57,7 +57,99 @@ function FormulaList({formulas}) {
                         <BlockMath math={formula.math}/>
                     </div>
                     <p className="m-0 mt-2">{formula.note}</p>
+                    {formula.meaning && (
+                        <p className="m-0 mt-2">
+                            <span className="font-black text-slate-900">What it means: </span>
+                            {formula.meaning}
+                        </p>
+                    )}
+                    {formula.useWhen && (
+                        <p className="m-0 mt-1">
+                            <span className="font-black text-slate-900">Use it when: </span>
+                            {formula.useWhen}
+                        </p>
+                    )}
                 </NoteBox>
+            ))}
+        </section>
+    );
+}
+
+function WorkedExamples({examples}) {
+    if (!examples?.length) return null;
+
+    return (
+        <section className="space-y-3">
+            <div className="border-b border-slate-200 pb-2">
+                <h2 className="m-0 text-xl font-black text-slate-950">Worked examples</h2>
+                <p className="m-0 mt-1 text-sm leading-6 text-slate-500">
+                    Try each setup before expanding the solution. The examples build from foundation to advanced.
+                </p>
+            </div>
+            {examples.map((example, index) => (
+                <details
+                    key={example.title}
+                    open={index === 0}
+                    className="group rounded-xl border border-slate-200 bg-slate-50 open:border-primary-200 open:bg-primary-50/30"
+                >
+                    <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3">
+                        <span className="rounded-full bg-white px-2 py-1 text-[11px] font-black uppercase tracking-wide text-primary-700">
+                            {example.level || `Example ${index + 1}`}
+                        </span>
+                        <span className="min-w-0 flex-1 font-black text-slate-950">{example.title}</span>
+                        <ChevronDown className="size-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"/>
+                    </summary>
+                    <div className="space-y-3 border-t border-slate-200 px-4 py-4 text-sm leading-7 text-slate-700">
+                        <p className="m-0">{example.prompt}</p>
+                        {example.math && (
+                            <div className="overflow-x-auto rounded-lg bg-white py-2 text-slate-950">
+                                <BlockMath math={example.math}/>
+                            </div>
+                        )}
+                        <div>
+                            <p className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Step by step</p>
+                            <ol className="m-0 mt-1 space-y-1 pl-5">
+                                {example.steps.map((step) => <li key={step}>{step}</li>)}
+                            </ol>
+                        </div>
+                        {example.insight && (
+                            <p className="m-0 rounded-lg bg-white p-3">
+                                <span className="font-black text-slate-950">Why it matters: </span>
+                                {example.insight}
+                            </p>
+                        )}
+                        {example.trap && (
+                            <p className="m-0 text-amber-900">
+                                <span className="font-black">Watch for: </span>{example.trap}
+                            </p>
+                        )}
+                    </div>
+                </details>
+            ))}
+        </section>
+    );
+}
+
+function StudyTips({tips}) {
+    if (!tips?.length) return null;
+
+    return (
+        <section className="space-y-3">
+            <h2 className="m-0 border-b border-slate-200 pb-2 text-xl font-black text-slate-950">Study tips</h2>
+            {tips.map((tip) => (
+                <details key={tip.title} className="group rounded-xl border border-amber-200 bg-amber-50">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 font-black text-amber-950">
+                        <Lightbulb className="size-4 shrink-0 text-amber-600"/>
+                        <span className="min-w-0 flex-1">{tip.title}</span>
+                        <ChevronDown className="size-4 shrink-0 text-amber-500 transition-transform group-open:rotate-180"/>
+                    </summary>
+                    <div className="border-t border-amber-200 px-4 py-4 text-sm leading-7 text-slate-700">
+                        {tip.summary && <p className="m-0">{tip.summary}</p>}
+                        <ul className="m-0 mt-2 space-y-1.5 pl-5">
+                            {tip.items.map((item) => <li key={item}>{item}</li>)}
+                        </ul>
+                    </div>
+                </details>
             ))}
         </section>
     );
@@ -184,7 +276,11 @@ function PracticeSet({set}) {
 
             {set.intro && <p className="m-0 text-base leading-7 text-slate-700">{set.intro}</p>}
 
-            <NoteBox tone="emerald" label={question.skill} title={question.title}>
+            <NoteBox
+                tone="emerald"
+                label={[question.difficulty, question.skill].filter(Boolean).join(' · ')}
+                title={question.title}
+            >
                 <p className="m-0">{question.stem}</p>
                 {question.math && (
                     <div className="mt-3 overflow-x-auto rounded-lg bg-white/70 py-2 text-slate-950">
@@ -337,7 +433,9 @@ export default function StudyGuideLessonPage() {
                         </section>
 
                         <FormulaList formulas={lesson.formulas}/>
+                        <WorkedExamples examples={lesson.workedExamples}/>
                         <MethodList cards={lesson.strategyCards}/>
+                        <StudyTips tips={lesson.studyTips}/>
                         <AdaptiveDemo demo={lesson.adaptiveDemo}/>
                         <QuickCheck check={lesson.quickCheck}/>
                         {lesson.practiceSet && <PracticeSet set={lesson.practiceSet}/>}
