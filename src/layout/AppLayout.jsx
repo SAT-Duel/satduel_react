@@ -12,6 +12,7 @@ import {
     Settings,
     LogOut,
     Crown,
+    Gift,
     Menu,
     PartyPopper,
     X,
@@ -22,6 +23,7 @@ import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {Spinner} from '../components/ui';
 import logo from '../assets/logo192.png';
 import {loginPathFor} from '../utils/authRedirect';
+import {dismissDiscordPromo, shouldShowDiscordPromo} from '../utils/discordPromo';
 
 // Routes where the sidebar may be collapsed for a wider question. Scoped on
 // purpose: with the sidebar hidden the toggle is the only way back to the nav,
@@ -80,7 +82,7 @@ const sidebarLinkClass = ({isActive}) =>
             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
     ].join(' ');
 
-function ProfileFooter({user, onLogout, onNavigate}) {
+function ProfileFooter({user, onLogout, onNavigate, showDiscordPromo, onDismissDiscordPromo}) {
     return (
         <div className="border-t border-slate-100 p-3">
             {!user?.is_premium ? (
@@ -99,20 +101,46 @@ function ProfileFooter({user, onLogout, onNavigate}) {
                 </div>
             )}
 
-            <a
-                href={DISCORD_INVITE}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mb-2 flex items-center gap-2.5 rounded-xl border border-[#5865F2]/20 bg-[#5865F2]/5 px-3 py-2.5 text-sm font-bold text-slate-800 no-underline transition-colors hover:bg-[#5865F2]/10"
-            >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5865F2] text-white">
-                    <DiscordIcon className="size-4"/>
-                </span>
-                <span className="min-w-0">
-                    <span className="block truncate">Join the community</span>
-                    <span className="block truncate text-xs font-semibold text-slate-500">Find help and duel partners</span>
-                </span>
-            </a>
+            <div className="relative">
+                {showDiscordPromo && (
+                    <div className="absolute bottom-[calc(100%+0.75rem)] left-0 w-full rounded-2xl border border-[#5865F2]/25 bg-white p-4 shadow-xl" role="status">
+                        <button
+                            type="button"
+                            onClick={onDismissDiscordPromo}
+                            aria-label="Dismiss Discord Premium offer"
+                            className="absolute right-2 top-2 cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                        >
+                            <X className="size-4"/>
+                        </button>
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                            <Gift className="size-5"/>
+                        </span>
+                        <p className="m-0 mt-3 pr-5 text-sm font-black leading-5 text-slate-900">One month of Premium free</p>
+                        <p className="m-0 mt-1 text-xs font-medium leading-5 text-slate-500">
+                            Join our Discord to get the limited-time promotion code.
+                        </p>
+                        <span className="absolute -bottom-1.5 left-7 size-3 rotate-45 border-b border-r border-[#5865F2]/25 bg-white" aria-hidden="true"/>
+                    </div>
+                )}
+
+                <a
+                    href={DISCORD_INVITE}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={onDismissDiscordPromo}
+                    className="mb-2 flex items-center gap-2.5 rounded-xl border border-[#5865F2]/20 bg-[#5865F2]/5 px-3 py-2.5 text-sm font-bold text-slate-800 no-underline transition-colors hover:bg-[#5865F2]/10"
+                >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5865F2] text-white">
+                        <DiscordIcon className="size-4"/>
+                    </span>
+                    <span className="min-w-0">
+                        <span className="block truncate">Join the community</span>
+                        <span className="block truncate text-xs font-semibold text-slate-500">
+                            {user?.is_premium ? 'Find help and duel partners' : '1 month Premium free'}
+                        </span>
+                    </span>
+                </a>
+            </div>
 
             <NavLink
                 to="/profile"
@@ -157,6 +185,7 @@ const AppLayout = () => {
     const location = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [navHidden, setNavHidden] = useState(readNavHidden);
+    const [showDiscordPromo, setShowDiscordPromo] = useState(false);
 
     const canCollapse = NAV_COLLAPSIBLE_ROUTES.includes(location.pathname);
     const navCollapsed = navHidden && canCollapse;
@@ -177,6 +206,19 @@ const AppLayout = () => {
         () => ({hidden: navCollapsed, canCollapse, toggle: toggleNav}),
         [navCollapsed, canCollapse, toggleNav]
     );
+
+    useEffect(() => {
+        if (!user || user.is_premium) {
+            setShowDiscordPromo(false);
+            return;
+        }
+        setShowDiscordPromo(shouldShowDiscordPromo());
+    }, [user?.id, user?.is_premium]);
+
+    const handleDismissDiscordPromo = useCallback(() => {
+        dismissDiscordPromo();
+        setShowDiscordPromo(false);
+    }, []);
 
     useEffect(() => {
         if (!user) return undefined;
@@ -251,7 +293,13 @@ const AppLayout = () => {
                 ))}
             </nav>
 
-            <ProfileFooter user={user} onLogout={handleLogout} onNavigate={closeDrawer}/>
+            <ProfileFooter
+                user={user}
+                onLogout={handleLogout}
+                onNavigate={closeDrawer}
+                showDiscordPromo={showDiscordPromo}
+                onDismissDiscordPromo={handleDismissDiscordPromo}
+            />
         </div>
     );
 

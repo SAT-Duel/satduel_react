@@ -2,6 +2,7 @@ import React, {createContext, useCallback, useContext, useState, useEffect} from
 import axios from "axios";
 import api from '../components/api';
 import {notify} from '../utils/notify';
+import {resetDiscordPromo} from '../utils/discordPromo';
 
 const AuthContext = createContext(null);
 
@@ -34,6 +35,7 @@ export const AuthProvider = ({children}) => {
     }, []);
 
     const login = useCallback(async (userData, accessToken, refreshToken) => {
+        resetDiscordPromo();
         setUser(userData);
         setToken(accessToken);
         localStorage.setItem('access_token', accessToken);
