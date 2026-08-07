@@ -1,0 +1,246 @@
+const noAndInfiniteSolutions = {
+    slug: 'no-solution-and-infinite-solution-cases',
+    moduleId: 'linear-equations',
+    title: 'No-Solution and Infinite-Solution Cases',
+    eyebrow: 'Algebra',
+    minutes: '18 min',
+    summary: 'When the variable cancels, the remaining statement tells you whether every value works or no value can work.',
+    goals: [
+        'Distinguish one solution, no solution, and infinitely many solutions.',
+        'Classify an equation from its coefficients and constants.',
+        'Choose parameter values that create a required number of solutions.',
+    ],
+    facts: [
+        {label: 'One solution', value: 'different x-coefficients', note: 'the equation reduces to x = one value'},
+        {label: 'No solution', value: 'false statement', note: 'the x-terms cancel but unequal constants remain'},
+        {label: 'Infinite', value: 'true identity', note: 'both sides simplify to the same expression'},
+        {label: 'Big trap', value: 'x cancels', note: 'zero x does not automatically mean zero solutions'},
+    ],
+    sections: [
+        {
+            heading: 'Big idea 1: watch what remains after x cancels',
+            paragraphs: [
+                'If simplifying produces a statement such as 4 = 4, the original equation is true for every value of x. The equation has infinitely many solutions.',
+                'If simplifying produces a statement such as 4 = 9, the original equation can never be true. The equation has no solution. The variable disappearing is not enough; classify the statement left behind.',
+            ],
+        },
+        {
+            heading: 'Big idea 2: compare matching parts of each side',
+            paragraphs: [
+                'For ax + b = cx + d, different x-coefficients produce one solution. If the x-coefficients match, the constants decide between the two special cases.',
+                'Matching coefficients and matching constants make identical expressions, so every x works. Matching coefficients but different constants make parallel expressions that never meet, so no x works.',
+            ],
+        },
+        {
+            heading: 'Big idea 3: parameters control the equation type',
+            paragraphs: [
+                'A parameter question may ask which value creates no solution or infinitely many solutions. Simplify first, then match the x-coefficients. After that, compare the constants.',
+                'Do not make every visible number equal. Coefficients match coefficients; constants match constants. Keeping those roles separate is the fastest reliable method.',
+            ],
+        },
+    ],
+    formulas: [
+        {
+            label: 'One solution',
+            math: 'ax+b=cx+d,\\quad a\\ne c \\Rightarrow x=\\frac{d-b}{a-c}',
+            note: 'Different x-coefficients leave a nonzero multiple of x to solve.',
+        },
+        {
+            label: 'No solution',
+            math: 'ax+b=ax+d,\\quad b\\ne d \\Rightarrow \\varnothing',
+            note: 'The variable terms match, but the constant difference creates a contradiction.',
+        },
+        {
+            label: 'Infinitely many solutions',
+            math: 'ax+b=ax+b \\Rightarrow x\\in\\mathbb{R}',
+            note: 'Both sides are identical, so every real number satisfies the equation.',
+        },
+    ],
+    strategyCards: [
+        {
+            title: 'Three-case decision rule',
+            items: ['Different x-coefficients: solve for one value', 'Same x-coefficient and different constants: no solution', 'Same x-coefficient and same constant: infinitely many solutions'],
+        },
+        {
+            title: 'For parameter questions',
+            items: ['Distribute and combine before comparing', 'Match x-coefficients first', 'Then check whether constants match or conflict'],
+        },
+    ],
+    adaptiveDemo: {
+        title: 'Classify what remains',
+        prompt: 'After simplifying an equation, x cancels. What does the final statement mean?',
+        options: [
+            {
+                id: 'true',
+                label: '7 = 7',
+                result: 'Infinitely many solutions.',
+                advice: 'The equality is true regardless of x, so every real value satisfies the original equation.',
+            },
+            {
+                id: 'false',
+                label: '7 = 2',
+                result: 'No solution.',
+                advice: 'The equality is impossible regardless of x, so no real value satisfies the original equation.',
+            },
+        ],
+    },
+    quickCheck: {
+        prompt: 'An equation simplifies to 0x = 0. How many solutions does it have?',
+        choices: [
+            'Exactly one: x = 0.',
+            'Exactly one: x = 1.',
+            'No solution.',
+            'Infinitely many solutions.',
+        ],
+        answer: 3,
+        explanation: 'Because 0 times every real number equals 0, the statement is true for every x. It does not isolate x at zero.',
+    },
+    practiceSet: {
+        title: 'Classic SAT solution-count traps',
+        intro: 'Simplify completely, classify the remaining statement, and compare coefficients only after parentheses are gone.',
+        questions: [
+            {
+                id: 'basic-identity',
+                skill: 'Identity',
+                title: 'Both sides are the same expression',
+                stem: 'How many solutions does the equation have?',
+                math: '2(x+3)=2x+6',
+                choices: ['No solution', 'Exactly one solution', 'Exactly two solutions', 'Infinitely many solutions'],
+                answer: 3,
+                explanation: {
+                    steps: ['Distribute: 2x + 6 = 2x + 6.', 'Subtracting 2x gives 6 = 6, which is always true.'],
+                    trap: 'The variable canceling does not mean x = 0; every x makes the original sides equal.',
+                    takeaway: 'A true statement after cancellation means infinitely many solutions.',
+                },
+            },
+            {
+                id: 'basic-contradiction',
+                skill: 'Contradiction',
+                title: 'Matching variables, conflicting constants',
+                stem: 'How many solutions does the equation have?',
+                math: '4(x-1)=4x+2',
+                choices: ['No solution', 'Exactly one solution', 'Exactly two solutions', 'Infinitely many solutions'],
+                answer: 0,
+                explanation: {
+                    steps: ['Distribute: 4x - 4 = 4x + 2.', 'Subtract 4x: -4 = 2, which is false.'],
+                    trap: 'Dividing both sides by 4 before distributing does not remove the contradiction; it only rewrites it.',
+                    takeaway: 'A false statement after cancellation means no solution.',
+                },
+            },
+            {
+                id: 'ordinary-one',
+                skill: 'One solution',
+                title: 'Do not label every two-sided equation special',
+                stem: 'How many solutions does the equation have?',
+                math: '3x+5=2x+9',
+                choices: ['No solution', 'Exactly one solution', 'Exactly four solutions', 'Infinitely many solutions'],
+                answer: 1,
+                explanation: {
+                    steps: ['Subtract 2x: x + 5 = 9.', 'Subtract 5: x = 4.', 'One value works, so there is exactly one solution.'],
+                    trap: 'The constants differ, but the x-coefficients differ too, so the equation is solvable rather than contradictory.',
+                    takeaway: 'Different x-coefficients give one solution.',
+                },
+            },
+            {
+                id: 'parameter-no-solution',
+                skill: 'Parameter',
+                title: 'Match coefficients and conflict constants',
+                stem: 'For what value of k does the equation have no solution?',
+                math: 'kx+7=3x-2',
+                choices: ['k = -2', 'k = 2', 'k = 3', 'k = 7'],
+                answer: 2,
+                explanation: {
+                    steps: ['No solution requires the x-coefficients to match, so k = 3.', 'Then the equation is 3x + 7 = 3x - 2, leaving 7 = -2.'],
+                    trap: 'Matching k to a constant compares unlike parts of the equation.',
+                    takeaway: 'For no solution, match variable coefficients but keep constants different.',
+                },
+            },
+            {
+                id: 'parameter-infinite',
+                skill: 'Parameter',
+                title: 'Make the constants match too',
+                stem: 'For what value of a does the equation have infinitely many solutions?',
+                math: '2(x+a)=2x+10',
+                choices: ['a = 2', 'a = 5', 'a = 8', 'a = 10'],
+                answer: 1,
+                explanation: {
+                    steps: ['Distribute: 2x + 2a = 2x + 10.', 'For an identity, 2a = 10, so a = 5.'],
+                    trap: 'Setting a = 10 ignores the factor of 2 outside the parentheses.',
+                    takeaway: 'Distribute before comparing constants.',
+                },
+            },
+            {
+                id: 'decimal-identity',
+                skill: 'Equivalent forms',
+                title: 'Recognize a fraction written as decimals',
+                stem: 'How many solutions does the equation have?',
+                math: '\\frac{x+1}{2}=0.5x+0.5',
+                choices: ['No solution', 'Exactly one solution', 'Exactly two solutions', 'Infinitely many solutions'],
+                answer: 3,
+                explanation: {
+                    steps: ['Split the left side: (x + 1)/2 = 0.5x + 0.5.', 'Both sides are identical, so every real x works.'],
+                    trap: 'Different-looking forms can still represent the same expression.',
+                    takeaway: 'Rewrite fractions or decimals consistently before classifying.',
+                },
+            },
+            {
+                id: 'minus-parentheses-identity',
+                skill: 'Signs',
+                title: 'Distribute the negative correctly',
+                stem: 'How many solutions does the equation have?',
+                math: '5-2(x+1)=3-2x',
+                choices: ['No solution', 'Exactly one solution', 'Exactly two solutions', 'Infinitely many solutions'],
+                answer: 3,
+                explanation: {
+                    steps: ['Distribute: 5 - 2x - 2 = 3 - 2x.', 'Combine: 3 - 2x = 3 - 2x.', 'The two sides are identical.'],
+                    trap: 'Writing -2(x + 1) as -2x + 2 creates a false difference.',
+                    takeaway: 'A sign error can change the apparent number of solutions.',
+                },
+            },
+            {
+                id: 'negative-distribution-no-solution',
+                skill: 'Signs',
+                title: 'A hidden contradiction',
+                stem: 'How many solutions does the equation have?',
+                math: '-3(2x-1)=-6x-4',
+                choices: ['No solution', 'Exactly one solution', 'Exactly two solutions', 'Infinitely many solutions'],
+                answer: 0,
+                explanation: {
+                    steps: ['Distribute: -6x + 3 = -6x - 4.', 'Add 6x: 3 = -4, which is false.'],
+                    trap: 'The product -3(-1) is +3, not -3.',
+                    takeaway: 'Simplify signs before comparing coefficients and constants.',
+                },
+            },
+            {
+                id: 'factored-identity',
+                skill: 'Structure',
+                title: 'Equivalent expressions without expansion',
+                stem: 'How many solutions does the equation have?',
+                math: '12+3m=3(m+4)',
+                choices: ['No solution', 'Exactly one solution', 'Exactly three solutions', 'Infinitely many solutions'],
+                answer: 3,
+                explanation: {
+                    steps: ['Expand the right side: 3(m + 4) = 3m + 12.', 'The left side 12 + 3m is the same expression in a different order.'],
+                    trap: 'Changing the order of addition does not change the expression.',
+                    takeaway: 'The commutative property can hide an identity.',
+                },
+            },
+            {
+                id: 'parameter-one-solution',
+                skill: 'Parameter',
+                title: 'Avoid the one value that cancels x',
+                stem: 'For which condition does the equation have exactly one solution?',
+                math: '(c-1)x+4=2x+4',
+                choices: ['c = 1', 'c = 2', 'c = 3', 'c \u2260 3'],
+                answer: 3,
+                explanation: {
+                    steps: ['Exactly one solution requires different x-coefficients.', 'Set the coefficients unequal: c - 1 \u2260 2.', 'Therefore c \u2260 3.'],
+                    trap: 'At c = 3, both sides become 2x + 4, producing infinitely many solutions instead of one.',
+                    takeaway: 'For one solution, prevent the variable coefficients from matching.',
+                },
+            },
+        ],
+    },
+};
+
+export default noAndInfiniteSolutions;
