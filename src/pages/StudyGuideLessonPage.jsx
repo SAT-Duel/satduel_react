@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {ArrowLeft, CheckCircle2, ChevronDown, Clock3, Lightbulb} from 'lucide-react';
-import {BlockMath} from 'react-katex';
+import {BlockMath, InlineMath} from 'react-katex';
 import 'katex/dist/katex.min.css';
 import {Link, Navigate, useParams} from 'react-router-dom';
 import SEO from '../components/SEO';
@@ -35,7 +35,9 @@ function AtAGlance({facts}) {
                     <div key={fact.label} className="grid gap-1 py-2 sm:grid-cols-[130px_1fr]">
                         <dt className="font-black text-slate-900">{fact.label}</dt>
                         <dd className="m-0 text-slate-600">
-                            <span className="font-black text-slate-900">{fact.value}</span>
+                            <span className="font-black text-slate-900">
+                                {fact.math ? <InlineMath math={fact.math}/> : fact.value}
+                            </span>
                             {fact.note && <span> - {fact.note}</span>}
                         </dd>
                     </div>
@@ -109,7 +111,16 @@ function WorkedExamples({examples}) {
                         <div>
                             <p className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Step by step</p>
                             <ol className="m-0 mt-1 space-y-1 pl-5">
-                                {example.steps.map((step) => <li key={step}>{step}</li>)}
+                                {example.steps.map((step, stepIndex) => (
+                                    <li key={typeof step === 'string' ? step : `${example.title}-${stepIndex}`}>
+                                        {typeof step === 'string' ? step : step.text}
+                                        {typeof step !== 'string' && step.math && (
+                                            <div className="my-1 overflow-x-auto rounded-lg bg-white py-1 text-slate-950">
+                                                <BlockMath math={step.math}/>
+                                            </div>
+                                        )}
+                                    </li>
+                                ))}
                             </ol>
                         </div>
                         {example.insight && (
@@ -219,6 +230,11 @@ function QuickCheck({check}) {
 
     return (
         <NoteBox tone="emerald" label="Exercise" title={check.prompt}>
+            {check.math && (
+                <div className="mb-3 overflow-x-auto rounded-lg bg-white/70 py-2 text-slate-950">
+                    <BlockMath math={check.math}/>
+                </div>
+            )}
             <div className="grid gap-2">
                 {check.choices.map((choice, index) => {
                     const correct = answered && index === check.answer;
@@ -235,7 +251,7 @@ function QuickCheck({check}) {
                                 !correct && !wrong ? 'border-emerald-200 text-slate-700 hover:border-emerald-400' : '',
                             ].join(' ')}
                         >
-                            {choice}
+                            {check.choiceMath ? <InlineMath math={choice}/> : choice}
                         </button>
                     );
                 })}
@@ -307,7 +323,9 @@ function PracticeSet({set}) {
                                 ].join(' ')}
                             >
                                 <span className="font-black">{letters[choiceIndex]}.</span>
-                                <span className="font-semibold">{choice}</span>
+                                <span className="font-semibold">
+                                    {question.choiceMath ? <InlineMath math={choice}/> : choice}
+                                </span>
                             </button>
                         );
                     })}
@@ -321,8 +339,15 @@ function PracticeSet({set}) {
                         <div>
                             <p className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Clean solution</p>
                             <ol className="m-0 mt-1 space-y-1 pl-5">
-                                {question.explanation.steps.map((step) => (
-                                    <li key={step}>{step}</li>
+                                {question.explanation.steps.map((step, stepIndex) => (
+                                    <li key={typeof step === 'string' ? step : `${question.id}-${stepIndex}`}>
+                                        {typeof step === 'string' ? step : step.text}
+                                        {typeof step !== 'string' && step.math && (
+                                            <div className="my-1 overflow-x-auto rounded-lg bg-white py-1 text-slate-950">
+                                                <BlockMath math={step.math}/>
+                                            </div>
+                                        )}
+                                    </li>
                                 ))}
                             </ol>
                         </div>
@@ -428,6 +453,11 @@ export default function StudyGuideLessonPage() {
                                             {paragraph}
                                         </p>
                                     ))}
+                                    {section.math && (
+                                        <div className="overflow-x-auto rounded-lg bg-slate-50 py-2 text-slate-950">
+                                            <BlockMath math={section.math}/>
+                                        </div>
+                                    )}
                                 </section>
                             ))}
                         </section>
