@@ -3,7 +3,7 @@ import {Link, useLocation, useNavigate} from 'react-router-dom';
 import {MailCheck} from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
-import {Alert, Button, Card, DividerLabel, Field, Input} from '../components/ui';
+import {Alert, Button, Card, DividerLabel, Field, Input, Select} from '../components/ui';
 import {TermsAgreement} from '../components/AccountSetupFields';
 import GoogleLoginButton from '../components/GoogleLogin';
 import {DiscordCTA} from '../components/Discord';
@@ -11,10 +11,11 @@ import SEO from '../components/SEO';
 import {safeRedirectPath} from '../utils/authRedirect';
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
 
 function Register() {
     const [form, setForm] = useState({
-        email: '', password: '', confirmPassword: '',
+        email: '', grade: '', password: '', confirmPassword: '',
     });
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [errors, setErrors] = useState([]);
@@ -54,6 +55,7 @@ function Register() {
         try {
             await api.post('/api/register/', {
                 email: form.email,
+                grade: form.grade,
                 password1: form.password,
                 password2: form.confirmPassword,
                 terms_accepted: termsAccepted,
@@ -93,6 +95,12 @@ function Register() {
                     <Field label="Email">
                         <Input type="email" placeholder="you@example.com" value={form.email} autoComplete="email" onChange={set('email')}/>
                     </Field>
+                    <Field label="Grade">
+                        <Select value={form.grade} onChange={set('grade')}>
+                            <option value="" disabled>Select your grade</option>
+                            {GRADES.map((grade) => <option key={grade} value={grade}>{grade}</option>)}
+                        </Select>
+                    </Field>
                     <Field label="Password">
                         <Input type="password" placeholder="••••••••" value={form.password} autoComplete="new-password" onChange={set('password')}/>
                         <span className="mt-1.5 block text-xs leading-5 text-slate-400">
@@ -108,7 +116,7 @@ function Register() {
                         <Alert>{errors.map((error, index) => <div key={index}>{error}</div>)}</Alert>
                     )}
 
-                    <Button type="submit" block loading={isSubmitting}>Send verification email</Button>
+                    <Button type="submit" block loading={isSubmitting}>Create account</Button>
                 </form>
 
                 <p className="mt-4 text-center text-xs leading-5 text-slate-400">

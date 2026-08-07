@@ -26,7 +26,7 @@ const CompleteProfilePage = () => {
     const [username, setUsername] = useState(user?.username || '');
     const [firstName, setFirstName] = useState(user?.first_name || '');
     const [lastName, setLastName] = useState(user?.last_name || '');
-    const [grade, setGrade] = useState('');
+    const [grade, setGrade] = useState(user?.grade_selected ? user.grade : '');
     const [termsAccepted, setTermsAccepted] = useState(Boolean(user?.terms_accepted));
     const [satExamDate, setSatExamDate] = useState('');
     const [marketingOptIn, setMarketingOptIn] = useState(false);
@@ -131,12 +131,14 @@ const CompleteProfilePage = () => {
                                     <Input value={lastName} onChange={(event) => setLastName(event.target.value)} autoComplete="family-name"/>
                                 </Field>
                             </div>
-                            <Field label="Grade">
-                                <Select value={grade} onChange={(event) => setGrade(event.target.value)}>
-                                    <option value="" disabled>Select your grade</option>
-                                    {GRADES.map((value) => <option key={value} value={value}>{value}</option>)}
-                                </Select>
-                            </Field>
+                            {!user?.grade_selected && (
+                                <Field label="Grade">
+                                    <Select value={grade} onChange={(event) => setGrade(event.target.value)}>
+                                        <option value="" disabled>Select your grade</option>
+                                        {GRADES.map((value) => <option key={value} value={value}>{value}</option>)}
+                                    </Select>
+                                </Field>
+                            )}
                             {!user?.terms_accepted && <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>}
                         </>
                     )}
