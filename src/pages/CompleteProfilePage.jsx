@@ -16,7 +16,7 @@ import withAuth from '../hoc/withAuth';
 import useSdTheme from '../hooks/useSdTheme';
 import '../styles/landing.css';
 
-const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
+const GRADES = [...Array.from({length: 5}, (_, i) => String(i + 8)), '>12'];
 const USERNAME_RULE = /^[a-zA-Z0-9_]{1,15}$/;
 
 const CompleteProfilePage = () => {

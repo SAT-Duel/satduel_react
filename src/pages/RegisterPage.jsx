@@ -11,7 +11,7 @@ import SEO from '../components/SEO';
 import {safeRedirectPath} from '../utils/authRedirect';
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-const GRADES = ['<1', ...Array.from({length: 12}, (_, i) => String(i + 1)), '>12'];
+const GRADES = [...Array.from({length: 5}, (_, i) => String(i + 8)), '>12'];
 
 function Register() {
     const [form, setForm] = useState({

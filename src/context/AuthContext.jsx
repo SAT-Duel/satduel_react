@@ -12,6 +12,7 @@ function profileToUserUpdates(profile) {
         email: profile.user?.email,
         first_name: profile.user?.first_name,
         last_name: profile.user?.last_name,
+        grade: profile.grade,
         is_premium: profile.is_premium,
         avatar: profile.avatar,
         avatar_icon: profile.avatar_icon,
