@@ -1,10 +1,15 @@
 import fourMathDomains from './fourMathDomains.js';
 import howDigitalSatMathWorks from './howDigitalSatMathWorks.js';
+import interceptsAsStartingValues from './interceptsAsStartingValues.js';
 import linearInequalities from './linearInequalities.js';
 import equationsWithParameters from './equationsWithParameters.js';
 import noAndInfiniteSolutions from './noAndInfiniteSolutions.js';
 import oneVariableEquations from './oneVariableEquations.js';
+import parallelAndPerpendicularLines from './parallelAndPerpendicularLines.js';
+import slopeAsRateOfChange from './slopeAsRateOfChange.js';
 import studyWithSatDuel from './studyWithSatDuel.js';
+import systemsAsIntersections from './systemsAsIntersections.js';
+import tablesToEquations from './tablesToEquations.js';
 import wordProblemsToEquations from './wordProblemsToEquations.js';
 
 export const STUDY_GUIDE_LESSONS = [
@@ -16,6 +21,11 @@ export const STUDY_GUIDE_LESSONS = [
     equationsWithParameters,
     wordProblemsToEquations,
     noAndInfiniteSolutions,
+    slopeAsRateOfChange,
+    interceptsAsStartingValues,
+    tablesToEquations,
+    systemsAsIntersections,
+    parallelAndPerpendicularLines,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
