@@ -18,6 +18,7 @@ const QuestionsPage = React.lazy(() => import("../pages/QuestionPage"));
 const LoginPage = React.lazy(() => import("../pages/LoginPage"));
 const RegisterPage = React.lazy(() => import("../pages/RegisterPage"));
 const ProfilePage = React.lazy(() => import("../pages/ProfilePage"));
+const MessagesPage = React.lazy(() => import("../pages/MessagesPage"));
 const Match = React.lazy(() => import("../pages/MatchingPage"));
 const DuelBattle = React.lazy(() => import("../pages/DuelBattlePage"));
 const BattleResultPage = React.lazy(() => import("../pages/BattleResultPage"));
@@ -113,6 +114,8 @@ const APP_ROUTES = [
     {path: '/bot_training', el: <BotTrainingPage/>},
     {path: '/profile', el: <ProfilePage/>},
     {path: '/profile/:userId', el: <ProfilePage/>},
+    {path: '/messages', el: <MessagesPage/>},
+    {path: '/messages/:userId', el: <MessagesPage/>},
     {path: '/tournaments', el: <TournamentListPage/>},
     {path: '/tournaments/info', el: <TournamentPage/>},
     {path: '/tournaments/join/:joinCode', el: <JoinTournamentLinkPage/>},
