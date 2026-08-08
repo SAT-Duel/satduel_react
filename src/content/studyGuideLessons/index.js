@@ -5,6 +5,9 @@ import howDigitalSatMathWorks from './howDigitalSatMathWorks.js';
 import interceptsAsStartingValues from './interceptsAsStartingValues.js';
 import linearInequalities from './linearInequalities.js';
 import equationsWithParameters from './equationsWithParameters.js';
+import equivalentExponentialForms from './equivalentExponentialForms.js';
+import exponentialModelInterpretation from './exponentialModelInterpretation.js';
+import exponentialTables from './exponentialTables.js';
 import completingTheSquare from './completingTheSquare.js';
 import discriminantMeaning from './discriminantMeaning.js';
 import factoringPatterns from './factoringPatterns.js';
@@ -26,6 +29,8 @@ import rationalEquations from './rationalEquations.js';
 import vertexAxisSymmetry from './vertexAxisSymmetry.js';
 import wordProblemsToEquations from './wordProblemsToEquations.js';
 import zerosInterceptsRoots from './zerosInterceptsRoots.js';
+import growthFactors from './growthFactors.js';
+import linearVsExponential from './linearVsExponential.js';
 
 export const STUDY_GUIDE_LESSONS = [
     howDigitalSatMathWorks,
@@ -56,6 +61,11 @@ export const STUDY_GUIDE_LESSONS = [
     polynomialStructure,
     rationalEquations,
     radicalEquations,
+    growthFactors,
+    exponentialTables,
+    linearVsExponential,
+    equivalentExponentialForms,
+    exponentialModelInterpretation,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
