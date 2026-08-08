@@ -36,6 +36,13 @@ export default function FriendActionsModal({friend, unreadCount = 0, onClose, on
 
     const username = friend.user?.username || 'This student';
 
+    // Viewing a profile keeps ProfilePage mounted, so the menu has to be
+    // dismissed explicitly or it lingers on top of the page you navigated to.
+    const goTo = (path) => {
+        onClose?.();
+        navigate(path);
+    };
+
     const removeFriend = async () => {
         setRemoving(true);
         setError('');
@@ -81,7 +88,7 @@ export default function FriendActionsModal({friend, unreadCount = 0, onClose, on
                 </div>
             ) : (
                 <div className="mt-5 space-y-2">
-                    <Button block onClick={() => navigate(`/messages/${friendUserId}`)}>
+                    <Button block onClick={() => goTo(`/messages/${friendUserId}`)}>
                         <MessageCircle className="size-4"/> Chat
                         {unreadCount > 0 && (
                             <span className="ml-1 rounded-full bg-white/25 px-2 py-0.5 text-xs font-black">
@@ -89,7 +96,7 @@ export default function FriendActionsModal({friend, unreadCount = 0, onClose, on
                             </span>
                         )}
                     </Button>
-                    <Button variant="secondary" block onClick={() => navigate(`/profile/${friendUserId}`)}>
+                    <Button variant="secondary" block onClick={() => goTo(`/profile/${friendUserId}`)}>
                         <UserRound className="size-4"/> View profile
                     </Button>
                     <Button variant="ghost" block className="text-rose-600 hover:bg-rose-50" onClick={() => setConfirmingRemove(true)}>

@@ -227,6 +227,9 @@ function ProfilePage() {
             setError('');
             setNotice(null);
             setActiveTab('overview');
+            // Same component instance across /profile → /profile/:id, so the
+            // friend menu has to be cleared with the rest of the page state.
+            setActiveFriend(null);
 
             try {
                 if (isOwnProfile) {
