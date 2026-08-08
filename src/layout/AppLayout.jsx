@@ -14,6 +14,7 @@ import {
     Crown,
     Gift,
     Menu,
+    MessageCircle,
     PartyPopper,
     X,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ import {useAuth} from '../context/AuthContext';
 import UserAvatar from '../components/UserAvatar';
 import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {Spinner} from '../components/ui';
+import useUnreadMessages from '../hooks/useUnreadMessages';
 import logo from '../assets/logo192.png';
 import {loginPathFor} from '../utils/authRedirect';
 import {dismissDiscordPromo, shouldShowDiscordPromo} from '../utils/discordPromo';
@@ -63,6 +65,7 @@ const NAV_ITEMS = [
     {label: 'Tournaments', to: '/tournaments', icon: Trophy},
     {label: 'Practice Test', to: '/practice_test', icon: ClipboardList},
     {label: 'Leaderboard', to: '/ranking', icon: Medal},
+    {label: 'Messages', to: '/messages', icon: MessageCircle, badge: 'unread'},
 ];
 
 // Items shown in the mobile bottom bar (a focused subset).
@@ -186,6 +189,7 @@ const AppLayout = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [navHidden, setNavHidden] = useState(readNavHidden);
     const [showDiscordPromo, setShowDiscordPromo] = useState(false);
+    const {unreadCount} = useUnreadMessages(Boolean(user));
 
     const canCollapse = NAV_COLLAPSIBLE_ROUTES.includes(location.pathname);
     const navCollapsed = navHidden && canCollapse;
@@ -286,9 +290,15 @@ const AppLayout = () => {
             </div>
 
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-                {NAV_ITEMS.map(({label, to, icon: Icon}) => (
+                {NAV_ITEMS.map(({label, to, icon: Icon, badge}) => (
                     <NavLink key={to} to={to} onClick={closeDrawer} className={sidebarLinkClass} end={to === '/trainer'}>
-                        <Icon className="size-5"/> {label}
+                        <Icon className="size-5"/>
+                        <span className="flex-1">{label}</span>
+                        {badge === 'unread' && unreadCount > 0 && (
+                            <span className="grid min-w-5 place-items-center rounded-full bg-primary-600 px-1.5 py-0.5 text-[11px] font-black text-white">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
                     </NavLink>
                 ))}
             </nav>
@@ -327,11 +337,16 @@ const AppLayout = () => {
                     </span>
                 </NavLink>
                 <button
-                    className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
+                    className="relative rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
                     onClick={() => setDrawerOpen(true)}
-                    aria-label="Open menu"
+                    aria-label={unreadCount > 0 ? `Open menu, ${unreadCount} unread messages` : 'Open menu'}
                 >
                     <Menu className="size-6"/>
+                    {/* Messages live in the drawer, not the bottom bar, so the
+                        unread signal has to ride on the menu button. */}
+                    {unreadCount > 0 && (
+                        <span className="absolute right-1 top-1 size-2.5 rounded-full bg-primary-600 ring-2 ring-white"/>
+                    )}
                 </button>
             </header>
 

@@ -21,6 +21,7 @@ import {Alert, Button, Card, Field, Input, PageContainer, Select, Spinner} from 
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
 import UserAvatar from '../components/UserAvatar';
+import FriendActionsModal from '../components/FriendActionsModal';
 import ResetCountdown from '../components/ResetCountdown';
 import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 
@@ -163,6 +164,8 @@ function ProfilePage() {
     const [tournamentHistory, setTournamentHistory] = useState([]);
     const [friends, setFriends] = useState([]);
     const [friendRequests, setFriendRequests] = useState([]);
+    const [friendUnread, setFriendUnread] = useState({});
+    const [activeFriend, setActiveFriend] = useState(null);
     const [pageLoading, setPageLoading] = useState(true);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState(null);
@@ -199,6 +202,16 @@ function ProfilePage() {
         if (!isOwnProfile || !token) return;
         const response = await api.get('api/profile/friend_requests/');
         setFriendRequests(response.data);
+    }, [isOwnProfile, token]);
+
+    // Unread counts come from the messages endpoint so the friends list can
+    // show which conversations are waiting on a reply.
+    const loadFriendUnread = useCallback(async () => {
+        if (!isOwnProfile || !token) return;
+        const response = await api.get('api/messages/conversations/');
+        setFriendUnread(Object.fromEntries(
+            response.data.map((entry) => [entry.friend.user.id, entry.unread_count])
+        ));
     }, [isOwnProfile, token]);
 
     useEffect(() => {
@@ -266,7 +279,8 @@ function ProfilePage() {
         if (!isOwnProfile || loading || !token) return;
         loadFriends().catch(() => setFriends([]));
         loadFriendRequests().catch(() => setFriendRequests([]));
-    }, [isOwnProfile, loadFriendRequests, loadFriends, loading, token]);
+        loadFriendUnread().catch(() => setFriendUnread({}));
+    }, [isOwnProfile, loadFriendRequests, loadFriendUnread, loadFriends, loading, token]);
 
     useEffect(() => {
         if (!searchQuery.trim() || searchQuery.trim().length < 2) {
@@ -748,26 +762,40 @@ function ProfilePage() {
                         )}
 
                         <Card className="p-6">
-                            <div className="mb-5 flex items-center gap-2">
+                            <div className="mb-1 flex items-center gap-2">
                                 <Users className="size-5 text-primary-600"/>
                                 <h2 className="m-0 text-xl font-bold text-slate-900">Friends list</h2>
                             </div>
                             {isOwnProfile && friends.length ? (
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    {friends.map((friend) => (
-                                        <Link
-                                            key={friend.id}
-                                            to={`/profile/${friend.user.id}`}
-                                            className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 no-underline transition-colors hover:border-primary-300 hover:bg-primary-50/40"
-                                        >
-                                            <UserAvatar profile={friend} size="sm"/>
-                                            <div className="min-w-0">
-                                                <p className="m-0 truncate font-semibold text-slate-900">{friend.user.username}</p>
-                                                <p className="m-0 text-sm text-slate-500">{gradeLabel(friend.grade)}</p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
+                                <>
+                                    <p className="m-0 mb-4 text-sm text-slate-500">
+                                        Tap a friend to chat, open their profile, or remove them.
+                                    </p>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        {friends.map((friend) => {
+                                            const unread = friendUnread[friend.user.id] || 0;
+                                            return (
+                                                <button
+                                                    key={friend.id}
+                                                    type="button"
+                                                    onClick={() => setActiveFriend(friend)}
+                                                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors hover:border-primary-300 hover:bg-primary-50/40"
+                                                >
+                                                    <UserAvatar profile={friend} size="sm"/>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="m-0 truncate font-semibold text-slate-900">{friend.user.username}</p>
+                                                        <p className="m-0 text-sm text-slate-500">{gradeLabel(friend.grade)}</p>
+                                                    </div>
+                                                    {unread > 0 && (
+                                                        <span className="grid min-w-5 shrink-0 place-items-center rounded-full bg-primary-600 px-1.5 py-0.5 text-[11px] font-black text-white">
+                                                            {unread > 99 ? '99+' : unread}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </>
                             ) : (
                                 <EmptyState title="No friends yet" text={isOwnProfile ? 'Search for classmates and send a friend request.' : 'Friend list is private for now.'}/>
                             )}
@@ -775,6 +803,21 @@ function ProfilePage() {
                     </div>
                 )}
             </PageContainer>
+
+            <FriendActionsModal
+                friend={activeFriend}
+                unreadCount={activeFriend ? friendUnread[activeFriend.user.id] || 0 : 0}
+                onClose={() => setActiveFriend(null)}
+                onRemoved={(friend) => {
+                    setFriends((current) => current.filter((entry) => entry.id !== friend.id));
+                    setFriendUnread((current) => {
+                        const next = {...current};
+                        delete next[friend.user.id];
+                        return next;
+                    });
+                    setNotice({type: 'success', text: `${friend.user.username} was removed from your friends.`});
+                }}
+            />
 
             {editOpen && (
                 <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/50 px-4 py-4 sm:items-center">
