@@ -145,10 +145,7 @@ function PracticeQuestionCard({
         selection.removeAllRanges();
     };
 
-    const headerLabel = [
-        question?.question_type?.toUpperCase(),
-        question?.difficulty ? `LEVEL ${question.difficulty}` : null,
-    ].filter(Boolean).join(' · ') || 'QUESTION';
+    const questionTypeLabel = question?.question_type?.toUpperCase() || 'QUESTION';
 
     const choose = (choice, index) => {
         if (answered || disabled || checking || eliminated.has(index)) return;
@@ -220,7 +217,17 @@ function PracticeQuestionCard({
         <div className={className}>
             <div className="overflow-hidden rounded-[18px] border border-[#E4E1D6] bg-[#F7F5EF] shadow-[0_18px_44px_rgba(15,23,42,0.18)]">
                 <div className="flex flex-wrap items-center justify-between gap-2 bg-[#131B2C] px-4 py-3 sm:px-[22px]">
-                    <span className={`${MONO} text-[11px] tracking-[0.08em] text-[#C0B0FA]`}>{headerLabel}</span>
+                    <span className={`${MONO} flex min-w-0 items-center gap-1.5 text-[11px] tracking-[0.08em] text-[#C0B0FA]`}>
+                        <span
+                            className="max-w-44 truncate sm:max-w-96"
+                            title={question?.question_type || 'Question'}
+                        >
+                            {questionTypeLabel}
+                        </span>
+                        {question?.difficulty && (
+                            <span className="shrink-0 text-[#7C8AA5]">· LEVEL {question.difficulty}</span>
+                        )}
+                    </span>
                     <div className="flex items-center gap-2">
                         {totalQuestions && (
                             <span className={`${MONO} text-[11px] text-[#7C8AA5]`}>

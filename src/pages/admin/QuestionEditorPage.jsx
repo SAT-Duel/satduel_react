@@ -6,6 +6,7 @@ import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
 import {Button, Card, Field, Input, ModalShell, PageContainer, Select, Spinner, Textarea} from '../../components/ui';
 import {notify} from '../../utils/notify';
+import {QUESTION_SOURCES} from '../../utils/questionSource';
 
 const blankQuestion = {
     question: '',
@@ -16,6 +17,8 @@ const blankQuestion = {
     answer: 'A',
     difficulty: '1',
     question_type: '',
+    source: 'sat_question_bank',
+    source_other: '',
     explanation: '',
 };
 
@@ -51,6 +54,8 @@ function QuestionEditorPage() {
                 answer: response.data.answer || 'A',
                 difficulty: String(response.data.difficulty || '1'),
                 question_type: response.data.question_type || '',
+                source: response.data.source || 'sat_question_bank',
+                source_other: response.data.source_other || '',
                 explanation: response.data.explanation || '',
             });
         } catch (error) {
@@ -81,6 +86,10 @@ function QuestionEditorPage() {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        if (values.source === 'other' && !values.source_other.trim()) {
+            notify.warning('Describe the other question source.');
+            return;
+        }
         if (!validate()) {
             notify.warning('Fill in the required question fields first.');
             return;
@@ -187,6 +196,26 @@ function QuestionEditorPage() {
                             onChange={(event) => updateValue('question_type', event.target.value)}
                         />
                     </Field>
+
+                    <div className={`grid gap-4 ${values.source === 'other' ? 'sm:grid-cols-2' : ''}`}>
+                        <Field label="Source">
+                            <Select value={values.source} onChange={(event) => updateValue('source', event.target.value)}>
+                                {QUESTION_SOURCES.map((source) => (
+                                    <option key={source.value} value={source.value}>{source.label}</option>
+                                ))}
+                            </Select>
+                        </Field>
+                        {values.source === 'other' && (
+                            <Field label="Other source">
+                                <Input
+                                    value={values.source_other}
+                                    onChange={(event) => updateValue('source_other', event.target.value)}
+                                    placeholder="e.g. Teacher-authored set"
+                                    maxLength={255}
+                                />
+                            </Field>
+                        )}
+                    </div>
 
                     <Field label="Explanation">
                         <Textarea
