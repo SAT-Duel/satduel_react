@@ -14,7 +14,6 @@ import {
     Crown,
     Gift,
     Menu,
-    MessageCircle,
     PartyPopper,
     X,
 } from 'lucide-react';
@@ -65,7 +64,6 @@ const NAV_ITEMS = [
     {label: 'Tournaments', to: '/tournaments', icon: Trophy},
     {label: 'Practice Test', to: '/practice_test', icon: ClipboardList},
     {label: 'Leaderboard', to: '/ranking', icon: Medal},
-    {label: 'Messages', to: '/messages', icon: MessageCircle, badge: 'unread'},
 ];
 
 // Items shown in the mobile bottom bar (a focused subset).
@@ -85,7 +83,7 @@ const sidebarLinkClass = ({isActive}) =>
             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
     ].join(' ');
 
-function ProfileFooter({user, onLogout, onNavigate, showDiscordPromo, onDismissDiscordPromo}) {
+function ProfileFooter({user, onLogout, onNavigate, showDiscordPromo, onDismissDiscordPromo, hasNotifications}) {
     return (
         <div className="border-t border-slate-100 p-3">
             {!user?.is_premium ? (
@@ -148,8 +146,11 @@ function ProfileFooter({user, onLogout, onNavigate, showDiscordPromo, onDismissD
             <NavLink
                 to="/profile"
                 onClick={onNavigate}
-                className="flex items-center gap-3 rounded-xl px-2 py-2 no-underline transition-colors hover:bg-slate-100"
+                className="relative flex items-center gap-3 rounded-xl px-2 py-2 no-underline transition-colors hover:bg-slate-100"
             >
+                {hasNotifications && (
+                    <span className="absolute right-2 top-2 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" aria-label="New friend activity"/>
+                )}
                 <UserAvatar
                     backgroundId={user?.avatar}
                     iconId={user?.avatar_icon}
@@ -189,7 +190,8 @@ const AppLayout = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [navHidden, setNavHidden] = useState(readNavHidden);
     const [showDiscordPromo, setShowDiscordPromo] = useState(false);
-    const {unreadCount} = useUnreadMessages(Boolean(user));
+    const {unreadCount, friendRequestCount} = useUnreadMessages(Boolean(user));
+    const hasNotifications = unreadCount + friendRequestCount > 0;
 
     const canCollapse = NAV_COLLAPSIBLE_ROUTES.includes(location.pathname);
     const navCollapsed = navHidden && canCollapse;
@@ -290,15 +292,10 @@ const AppLayout = () => {
             </div>
 
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-                {NAV_ITEMS.map(({label, to, icon: Icon, badge}) => (
+                {NAV_ITEMS.map(({label, to, icon: Icon}) => (
                     <NavLink key={to} to={to} onClick={closeDrawer} className={sidebarLinkClass} end={to === '/trainer'}>
                         <Icon className="size-5"/>
                         <span className="flex-1">{label}</span>
-                        {badge === 'unread' && unreadCount > 0 && (
-                            <span className="grid min-w-5 place-items-center rounded-full bg-primary-600 px-1.5 py-0.5 text-[11px] font-black text-white">
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
-                        )}
                     </NavLink>
                 ))}
             </nav>
@@ -309,6 +306,7 @@ const AppLayout = () => {
                 onNavigate={closeDrawer}
                 showDiscordPromo={showDiscordPromo}
                 onDismissDiscordPromo={handleDismissDiscordPromo}
+                hasNotifications={hasNotifications}
             />
         </div>
     );
@@ -339,13 +337,11 @@ const AppLayout = () => {
                 <button
                     className="relative rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
                     onClick={() => setDrawerOpen(true)}
-                    aria-label={unreadCount > 0 ? `Open menu, ${unreadCount} unread messages` : 'Open menu'}
+                    aria-label={hasNotifications ? 'Open menu, new friend activity' : 'Open menu'}
                 >
                     <Menu className="size-6"/>
-                    {/* Messages live in the drawer, not the bottom bar, so the
-                        unread signal has to ride on the menu button. */}
-                    {unreadCount > 0 && (
-                        <span className="absolute right-1 top-1 size-2.5 rounded-full bg-primary-600 ring-2 ring-white"/>
+                    {hasNotifications && (
+                        <span className="absolute right-1 top-1 size-2.5 rounded-full bg-rose-500 ring-2 ring-white"/>
                     )}
                 </button>
             </header>
@@ -388,18 +384,23 @@ const AppLayout = () => {
                     to="/profile"
                     className={({isActive}) =>
                         [
-                            'flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold no-underline transition-colors',
+                            'relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold no-underline transition-colors',
                             isActive ? 'text-primary-600' : 'text-slate-400',
                         ].join(' ')
                     }
                 >
-                    <UserAvatar
-                        backgroundId={user?.avatar}
-                        iconId={user?.avatar_icon}
-                        profile={{username: user?.username}}
-                        size="xs"
-                        className="ring-0 !size-5"
-                    />
+                    <span className="relative">
+                        <UserAvatar
+                            backgroundId={user?.avatar}
+                            iconId={user?.avatar_icon}
+                            profile={{username: user?.username}}
+                            size="xs"
+                            className="ring-0 !size-5"
+                        />
+                        {hasNotifications && (
+                            <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" aria-label="New friend activity"/>
+                        )}
+                    </span>
                     Profile
                 </NavLink>
             </nav>

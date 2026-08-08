@@ -5,7 +5,7 @@ import {MESSAGES_UPDATED_EVENT} from '../utils/messages';
 const POLL_INTERVAL_MS = 20000;
 
 /**
- * Total unread direct messages, for the sidebar badge.
+ * Lightweight message and friend-request counts for hidden activity badges.
  *
  * There is no websocket layer, so this polls slowly in the background and
  * refreshes on tab focus. Reading a thread fires MESSAGES_UPDATED_EVENT, which
@@ -13,11 +13,13 @@ const POLL_INTERVAL_MS = 20000;
  */
 export default function useUnreadMessages(enabled = true) {
     const [unreadCount, setUnreadCount] = useState(0);
+    const [friendRequestCount, setFriendRequestCount] = useState(0);
 
     const refresh = useCallback(async () => {
         try {
             const {data} = await api.get('api/messages/unread_count/');
             setUnreadCount(data.unread_count || 0);
+            setFriendRequestCount(data.friend_request_count || 0);
         } catch {
             // A missed badge refresh should never break navigation.
         }
@@ -26,6 +28,7 @@ export default function useUnreadMessages(enabled = true) {
     useEffect(() => {
         if (!enabled) {
             setUnreadCount(0);
+            setFriendRequestCount(0);
             return undefined;
         }
 
@@ -42,5 +45,5 @@ export default function useUnreadMessages(enabled = true) {
         };
     }, [enabled, refresh]);
 
-    return {unreadCount, refreshUnreadCount: refresh};
+    return {unreadCount, friendRequestCount, refreshUnreadCount: refresh};
 }
