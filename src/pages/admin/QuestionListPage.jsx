@@ -5,6 +5,7 @@ import RenderWithMath from '../../components/RenderWithMath';
 import withAuth from '../../hoc/withAuth';
 import api from '../../components/api';
 import {Button, Card, PageContainer, Select, Spinner} from '../../components/ui';
+import {questionSourceLabel} from '../../utils/questionSource';
 
 const questionTypesBySubject = {
     english: [
@@ -189,6 +190,12 @@ function QuestionListPage() {
                                     <div>
                                         <dt className="font-black text-slate-400">Type</dt>
                                         <dd className="text-slate-700">{question.question_type || 'Uncategorized'}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="font-black text-slate-400">Source</dt>
+                                        <dd className="text-slate-700">
+                                            {questionSourceLabel(question.source, question.source_other)}
+                                        </dd>
                                     </div>
                                 </dl>
                             </Card>
