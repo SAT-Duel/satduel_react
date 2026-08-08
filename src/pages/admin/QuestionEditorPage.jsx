@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
-import {ArrowLeft, Eye, Save} from 'lucide-react';
+import {AlertTriangle, ArrowLeft, Eye, Save, Trash2} from 'lucide-react';
 import api from '../../components/api';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
@@ -26,7 +26,9 @@ function QuestionEditorPage() {
     const [values, setValues] = useState(blankQuestion);
     const [loading, setLoading] = useState(!!id);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [previewVisible, setPreviewVisible] = useState(false);
+    const [deleteVisible, setDeleteVisible] = useState(false);
     const returnTo = useMemo(() => {
         const path = new URLSearchParams(location.search).get('returnTo') || '/admin/questions';
         return path.startsWith('/admin/questions') ? path : '/admin/questions';
@@ -101,6 +103,20 @@ function QuestionEditorPage() {
             notify.error(`Failed to ${id ? 'update' : 'create'} question`);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            setDeleting(true);
+            await api.delete(`/api/delete_question/${id}`);
+            notify.success(`Question ${id} deleted permanently`);
+            setDeleteVisible(false);
+            navigate(returnTo);
+        } catch (error) {
+            console.error('Error deleting question:', error);
+            notify.error('Failed to delete question');
+            setDeleting(false);
         }
     };
 
@@ -181,6 +197,11 @@ function QuestionEditorPage() {
                     </Field>
 
                     <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                        {id && (
+                            <Button type="button" variant="danger" onClick={() => setDeleteVisible(true)}>
+                                <Trash2 size={18}/> Delete
+                            </Button>
+                        )}
                         <Button type="button" variant="secondary" onClick={() => setPreviewVisible(true)}>
                             <Eye size={18}/> Preview
                         </Button>
@@ -205,6 +226,42 @@ function QuestionEditorPage() {
                     questionNumber={1}
                     disabled
                 />
+            </ModalShell>
+
+            <ModalShell
+                open={deleteVisible}
+                title={`Delete question ${id}?`}
+                onClose={() => setDeleteVisible(false)}
+                footer={(
+                    <>
+                        <Button variant="secondary" onClick={() => setDeleteVisible(false)} disabled={deleting}>
+                            Keep Question
+                        </Button>
+                        <Button variant="danger" loading={deleting} onClick={handleDelete}>
+                            <Trash2 size={18}/> Delete Permanently
+                        </Button>
+                    </>
+                )}
+            >
+                <div className="flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                    <AlertTriangle className="mt-0.5 size-5 shrink-0 text-rose-600"/>
+                    <div className="text-sm leading-6 text-rose-900">
+                        <p className="font-black">This erases the question from the database. It cannot be undone.</p>
+                        <p className="mt-2">Deleting it also removes everything attached to it:</p>
+                        <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                            <li>student practice attempts for this question</li>
+                            <li>saved and tracked copies in student accounts</li>
+                            <li>open question reports</li>
+                            <li>its slot in tournaments, duel rooms, and class problem sets</li>
+                        </ul>
+                        <p className="mt-2">
+                            To take it out of circulation without losing history, edit the question instead.
+                        </p>
+                    </div>
+                </div>
+                <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-500">
+                    {values.question || 'No question text.'}
+                </p>
             </ModalShell>
         </PageContainer>
     );
