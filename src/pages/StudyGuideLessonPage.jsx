@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ArrowLeft, CheckCircle2, ChevronDown, Clock3, Lightbulb} from 'lucide-react';
 import {BlockMath, InlineMath} from 'react-katex';
 import 'katex/dist/katex.min.css';
@@ -390,6 +390,10 @@ function PracticeSet({set}) {
 export default function StudyGuideLessonPage() {
     const {slug} = useParams();
     const lesson = STUDY_GUIDE_LESSON_BY_SLUG[slug];
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [slug]);
 
     if (!lesson) {
         return <Navigate to="/study_guides" replace/>;
