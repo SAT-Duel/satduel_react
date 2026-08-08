@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ArrowRight, BookOpen, Clock3, Lock} from 'lucide-react';
 import {Link} from 'react-router-dom';
 import SEO from '../components/SEO';
-import {Button, Card, PageContainer} from '../components/ui';
+import {Button, Card, PageContainer, Select} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import {STUDY_GUIDE_MODULES} from '../content/studyGuideModules';
 
@@ -135,6 +135,26 @@ export default function StudyGuidePage() {
     );
     const isLocked = (index) => !isPremium && index >= 3;
 
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setActiveId(entry.target.id.replace('module-', ''));
+                    }
+                });
+            },
+            {rootMargin: '-10% 0px -75% 0px'},
+        );
+
+        STUDY_GUIDE_MODULES.forEach((module) => {
+            const section = document.getElementById(`module-${module.id}`);
+            if (section) observer.observe(section);
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
     const goToModule = (moduleId) => {
         setActiveId(moduleId);
         document.getElementById(`module-${moduleId}`)?.scrollIntoView({
@@ -169,8 +189,19 @@ export default function StudyGuidePage() {
                     </Button>
                 </header>
 
+                <label className="mb-5 block lg:hidden">
+                    <span className="mb-1.5 block text-xs font-black uppercase text-slate-500">Jump to module</span>
+                    <Select value={activeId} onChange={(event) => goToModule(event.target.value)}>
+                        {STUDY_GUIDE_MODULES.map((module, index) => (
+                            <option key={module.id} value={module.id}>
+                                {index + 1}. {module.title}{isLocked(index) ? ' · Premium' : ''}
+                            </option>
+                        ))}
+                    </Select>
+                </label>
+
                 <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
-                    <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
+                    <aside className="hidden min-w-0 space-y-4 lg:sticky lg:top-6 lg:block lg:self-start">
                         <Card className="max-h-[calc(100vh-3rem)] overflow-y-auto p-3">
                             <div className="px-2 py-2">
                                 <p className="m-0 text-xs font-black uppercase text-slate-400">Modules</p>

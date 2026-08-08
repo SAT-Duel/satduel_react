@@ -1,4 +1,6 @@
+import absoluteValueEquations from './absoluteValueEquations.js';
 import fourMathDomains from './fourMathDomains.js';
+import functionNotation from './functionNotation.js';
 import howDigitalSatMathWorks from './howDigitalSatMathWorks.js';
 import interceptsAsStartingValues from './interceptsAsStartingValues.js';
 import linearInequalities from './linearInequalities.js';
@@ -18,6 +20,9 @@ import studyWithSatDuel from './studyWithSatDuel.js';
 import systemsAsIntersections from './systemsAsIntersections.js';
 import tablesToEquations from './tablesToEquations.js';
 import parabolaTransformations from './parabolaTransformations.js';
+import polynomialStructure from './polynomialStructure.js';
+import radicalEquations from './radicalEquations.js';
+import rationalEquations from './rationalEquations.js';
 import vertexAxisSymmetry from './vertexAxisSymmetry.js';
 import wordProblemsToEquations from './wordProblemsToEquations.js';
 import zerosInterceptsRoots from './zerosInterceptsRoots.js';
@@ -46,6 +51,11 @@ export const STUDY_GUIDE_LESSONS = [
     parabolaTransformations,
     quadraticWordProblems,
     quadraticSystems,
+    functionNotation,
+    absoluteValueEquations,
+    polynomialStructure,
+    rationalEquations,
+    radicalEquations,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
