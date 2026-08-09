@@ -53,6 +53,7 @@ const QuestionReportsPage = React.lazy(() => import("../pages/admin/QuestionRepo
 const QuestionListPage = React.lazy(() => import("../pages/admin/QuestionListPage"));
 const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEditorPage"));
 const QuestionGeneratorPage = React.lazy(() => import("../pages/admin/QuestionGeneratorPage"));
+const PracticeTestGeneratorPage = React.lazy(() => import("../pages/admin/PracticeTestGeneratorPage"));
 const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminCreateTournamentPage"));
 const MyTournamentsPage = React.lazy(() => import("../pages/MyTournamentsPage"));
 const TestPage = React.lazy(() => import("../pages/practice_test/TestPage"));
@@ -130,6 +131,7 @@ const APP_ROUTES = [
     {path: '/admin/questions', el: <QuestionListPage/>},
     {path: '/admin/create_question', el: <QuestionEditorPage/>},
     {path: '/admin/generate_questions', el: <QuestionGeneratorPage/>},
+    {path: '/admin/generate_practice_test', el: <PracticeTestGeneratorPage/>},
     {path: '/admin/edit_question/:id', el: <QuestionEditorPage/>},
     {path: '/admin/create_tournament', el: <AdminCreateTournamentPage/>},
 ];

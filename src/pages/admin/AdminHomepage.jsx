@@ -1,6 +1,6 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Database, FileText, Flag, Sparkles, Trophy} from 'lucide-react';
+import {ClipboardList, Database, FileText, Flag, Sparkles, Trophy} from 'lucide-react';
 import {Card, PageContainer} from '../../components/ui';
 import withAuth from '../../hoc/withAuth';
 
@@ -19,9 +19,15 @@ const tools = [
     },
     {
         title: 'AI Question Generator',
-        description: 'Generate SAT math questions with AI by official skill, review, and import.',
+        description: 'Generate SAT questions with AI by official skill, review, and import.',
         icon: Sparkles,
         action: 'generate',
+    },
+    {
+        title: 'AI Practice Test Generator',
+        description: 'Build and store isolated adaptive SAT modules with a manual AI prompt.',
+        icon: ClipboardList,
+        action: 'generate-test',
     },
     {
         title: 'Backend Database',
@@ -49,6 +55,7 @@ function AdminHome() {
             questions: '/admin/questions',
             reports: '/admin/question_reports',
             generate: '/admin/generate_questions',
+            'generate-test': '/admin/generate_practice_test',
             tournament: '/admin/create_tournament',
         };
         navigate(paths[action]);
