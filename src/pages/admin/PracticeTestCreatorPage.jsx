@@ -15,11 +15,17 @@ const slots = [
 ];
 
 const emptySelection = Object.fromEntries(slots.map(([field]) => [field, '']));
+const testTypes = {
+    full: {label: 'Full SAT', subjects: ['english', 'math'], score: 1600},
+    english: {label: 'Reading & Writing only', subjects: ['english'], score: 800},
+    math: {label: 'Math only', subjects: ['math'], score: 800},
+};
 
 function PracticeTestCreatorPage() {
     const [tests, setTests] = useState([]);
     const [modules, setModules] = useState([]);
     const [name, setName] = useState('');
+    const [testType, setTestType] = useState('full');
     const [selection, setSelection] = useState(emptySelection);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -39,14 +45,19 @@ function PracticeTestCreatorPage() {
     useEffect(() => { load(); }, []);
 
     const available = useMemo(() => modules.filter((module) => !module.assigned_test), [modules]);
-    const ready = name.trim() && slots.every(([field]) => selection[field]);
+    const activeSlots = useMemo(
+        () => slots.filter(([field]) => testTypes[testType].subjects.includes(field.split('_')[0])),
+        [testType],
+    );
+    const ready = name.trim() && activeSlots.every(([field]) => selection[field]);
 
     const createTest = async () => {
         try {
             setSaving(true);
             const response = await api.post('/api/admin/practice-tests/', {
                 name: name.trim(),
-                ...Object.fromEntries(Object.entries(selection).map(([field, value]) => [field, Number(value)])),
+                test_type: testType,
+                ...Object.fromEntries(activeSlots.map(([field]) => [field, Number(selection[field])])),
             });
             notify.success(`${response.data.test.name} is now live on the Practice Tests page.`);
             setName('');
@@ -71,24 +82,26 @@ function PracticeTestCreatorPage() {
                 </div>
                 <h1 className="text-3xl font-black text-slate-950">Assemble an Adaptive Test</h1>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-                    Pair one A, B, and C module for each section. Published modules are locked to this test,
-                    so another test can never serve the same questions.
+                    Build a full-length or single-subject test with one A, B, and C module per included section.
+                    Published modules are locked, so another test can never serve the same questions.
                 </p>
             </div>
 
             <Card className="mb-8 overflow-hidden">
-                <div className="border-b border-slate-200 bg-slate-50 p-5 sm:p-6">
+                <div className="grid gap-4 border-b border-slate-200 bg-slate-50 p-5 md:grid-cols-2 sm:p-6">
+                    <Field label="Test format">
+                        <Select value={testType} onChange={(event) => setTestType(event.target.value)}>
+                            {Object.entries(testTypes).map(([value, meta]) => (
+                                <option key={value} value={value}>{meta.label} · scored out of {meta.score}</option>
+                            ))}
+                        </Select>
+                    </Field>
                     <Field label="Practice test name">
-                        <Input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            placeholder="e.g. SAT Duel Practice Test 1"
-                            maxLength={120}
-                        />
+                        <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. SAT Duel Practice Test 1" maxLength={120}/>
                     </Field>
                 </div>
                 <div className="grid gap-4 p-5 md:grid-cols-2 sm:p-6">
-                    {slots.map(([field, label, description]) => {
+                    {activeSlots.map(([field, label, description]) => {
                         const [subject, route] = field.split('_');
                         const options = available.filter((module) => module.subject === subject && module.route === route.toUpperCase());
                         return (
@@ -109,7 +122,7 @@ function PracticeTestCreatorPage() {
                 </div>
                 <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <p className="m-0 text-xs font-bold text-slate-500">
-                        Students see the test immediately after creation. All 98 delivered questions count toward the score.
+                        Students see this {testTypes[testType].label.toLowerCase()} test immediately. Every delivered question counts toward its {testTypes[testType].score}-point score.
                     </p>
                     <Button onClick={createTest} disabled={!ready} loading={saving} className="shrink-0">
                         <Plus size={18}/> Create and publish
@@ -128,7 +141,9 @@ function PracticeTestCreatorPage() {
                             <div className="flex items-start justify-between gap-3">
                                 <div>
                                     <p className="m-0 font-display text-xl font-black text-slate-950">{test.name}</p>
-                                    <p className="m-0 mt-1 text-xs font-bold text-slate-400">Six exclusive modules · 98 questions</p>
+                                    <p className="m-0 mt-1 text-xs font-bold text-slate-400">
+                                        {testTypes[test.test_type]?.label} · {test.question_count} questions · {test.duration_minutes} minutes · /{test.maximum_score}
+                                    </p>
                                 </div>
                                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
                                     <CheckCircle2 className="size-3.5"/> Live
@@ -145,7 +160,7 @@ function PracticeTestCreatorPage() {
                                 </div>
                             </div>
                             <div className="mt-4 grid gap-1.5 text-xs text-slate-500 sm:grid-cols-2">
-                                {slots.map(([field, label]) => (
+                                {slots.filter(([field]) => test.modules[field]).map(([field, label]) => (
                                     <p key={field} className="m-0 truncate"><span className="font-black text-slate-700">{label}:</span> {test.modules[field].name}</p>
                                 ))}
                             </div>

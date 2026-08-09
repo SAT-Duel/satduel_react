@@ -96,6 +96,11 @@ function AdaptiveTestResultPage() {
 
     if (error) return <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4"><p className="font-bold text-rose-700">{error}</p><Button onClick={() => navigate('/practice_test')}>Back to practice tests</Button></div>;
     if (!result) return <div className="flex min-h-screen items-center justify-center gap-3 bg-slate-50 text-sm font-bold text-slate-500"><Spinner/> Calculating your score report…</div>;
+    const fullTest = result.test_type === 'full';
+    const typeLabel = fullTest ? 'Full SAT' : result.test_type === 'english' ? 'Reading & Writing' : 'Math';
+    const routeScore = fullTest
+        ? `${result.selected_routes.english} / ${result.selected_routes.math}`
+        : result.selected_routes[result.test_type];
 
     return (
         <div className="min-h-screen bg-slate-50 py-8 sm:py-12">
@@ -105,20 +110,26 @@ function AdaptiveTestResultPage() {
                     <div className="sat-score-strip h-2 border-0"/>
                     <div className="p-6 text-center sm:p-8">
                         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700"><Target className="size-7"/></div>
-                        <p className="m-0 mt-4 text-xs font-black uppercase tracking-[0.16em] text-primary-600">Practice test complete</p>
+                        <p className="m-0 mt-4 text-xs font-black uppercase tracking-[0.16em] text-primary-600">{typeLabel} practice test complete</p>
                         <h1 className="m-0 mt-1 font-display text-3xl font-black text-slate-950">{result.test_name}</h1>
-                        <p className="m-0 mt-5 font-display text-7xl font-black text-slate-950">{result.total_score}</p>
+                        <p className="m-0 mt-5 font-display text-7xl font-black text-slate-950">
+                            {result.total_score}<span className="ml-2 text-xl text-slate-400">/ {result.maximum_score}</span>
+                        </p>
                         <p className="m-0 mt-2 text-sm font-bold text-slate-500">Estimated score range {result.score_low}–{result.score_high}</p>
                         <p className="mx-auto mb-0 mt-3 max-w-2xl text-xs leading-5 text-slate-400">
-                            This range reflects statistical uncertainty. The reported score uses fixed SAT-aligned item difficulty, and all 98 questions count.
+                            This range reflects statistical uncertainty. The reported score uses fixed SAT-aligned item difficulty, and all {result.total} questions count.
                         </p>
                     </div>
                 </Card>
 
-                <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                    <ScoreCard label="Reading & Writing" score={result.reading_writing_score} detail={`${result.reading_writing.correct}/${result.reading_writing.total} correct`}/>
-                    <ScoreCard label="Math" score={result.math_score} detail={`${result.math.correct}/${result.math.total} correct`} tone="cyan"/>
-                    <ScoreCard label="Adaptive route" score={`${result.selected_routes.english} / ${result.selected_routes.math}`} detail="English / Math"/>
+                <div className={`mt-4 grid gap-4 ${fullTest ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+                    {result.reading_writing_score != null && (
+                        <ScoreCard label="Reading & Writing" score={result.reading_writing_score} detail={`${result.reading_writing.correct}/${result.reading_writing.total} correct`}/>
+                    )}
+                    {result.math_score != null && (
+                        <ScoreCard label="Math" score={result.math_score} detail={`${result.math.correct}/${result.math.total} correct`} tone="cyan"/>
+                    )}
+                    <ScoreCard label="Adaptive route" score={routeScore} detail={fullTest ? 'English / Math' : typeLabel}/>
                 </div>
 
                 <section className="mt-10">
