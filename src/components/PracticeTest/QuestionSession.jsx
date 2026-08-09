@@ -25,6 +25,7 @@ function QuestionSession({
     initialCurrentQuestion = 1,
     onQuit = null,
     paused = false,
+    showDesmos = false,
 }) {
     const [currentQuestion, setCurrentQuestion] = useState(initialCurrentQuestion);
     const [selectedAnswers, setSelectedAnswers] = useState(() => ({
@@ -35,22 +36,45 @@ function QuestionSession({
     const [timeLeft, setTimeLeft] = useState(initialSeconds);
     const [hideTimer, setHideTimer] = useState(false);
     const autoSubmitted = useRef(false);
+    const deadline = useRef(null);
     const totalQuestions = questions.length;
 
     const answeredQuestions = Object.entries(selectedAnswers)
         .filter(([, answer]) => answer !== null && answer !== '')
         .map(([number]) => Number(number));
 
+    const remainingTime = useCallback(() => (
+        deadline.current == null
+            ? timeLeft
+            : Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000))
+    ), [timeLeft]);
+
+    const currentState = useCallback(() => ({
+        currentQuestion,
+        reviewQuestions,
+        timeLeft: remainingTime(),
+    }), [currentQuestion, remainingTime, reviewQuestions]);
+
     const submit = useCallback(() => {
-        onSubmit(selectedAnswers, {currentQuestion, reviewQuestions, timeLeft});
-    }, [currentQuestion, onSubmit, reviewQuestions, selectedAnswers, timeLeft]);
+        onSubmit(selectedAnswers, currentState());
+    }, [currentState, onSubmit, selectedAnswers]);
 
     useEffect(() => {
         if (initialSeconds == null || paused) return undefined;
-        const timerId = window.setInterval(() => {
-            setTimeLeft((remaining) => Math.max(0, remaining - 1));
-        }, 1000);
-        return () => window.clearInterval(timerId);
+        const target = Date.now() + timeLeft * 1000;
+        deadline.current = target;
+        const updateTimer = () => setTimeLeft(Math.max(0, Math.ceil((target - Date.now()) / 1000)));
+        const timerId = window.setInterval(updateTimer, 250);
+        document.addEventListener('visibilitychange', updateTimer);
+        window.addEventListener('focus', updateTimer);
+        return () => {
+            window.clearInterval(timerId);
+            document.removeEventListener('visibilitychange', updateTimer);
+            window.removeEventListener('focus', updateTimer);
+            if (deadline.current === target) deadline.current = null;
+        };
+        // Restart the deadline only when the session is paused or resumed.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialSeconds, paused]);
 
     useEffect(() => {
@@ -73,7 +97,8 @@ function QuestionSession({
                 eyebrow={eyebrow}
                 title={title}
                 statusLabel={statusLabel}
-                onQuit={onQuit ? () => onQuit(selectedAnswers, {currentQuestion, reviewQuestions, timeLeft}) : null}
+                showDesmos={showDesmos}
+                onQuit={onQuit ? () => onQuit(selectedAnswers, currentState()) : null}
             />
 
             {currentQuestion <= totalQuestions && activeQuestion && (

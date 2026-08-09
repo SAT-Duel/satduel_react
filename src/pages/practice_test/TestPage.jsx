@@ -73,11 +73,13 @@ function TestPage() {
     const restart = async () => {
         try {
             setWorking(true);
-            await api.post(`/api/practice-tests/attempts/${session.attempt_id}/restart/`);
-            notify.success('Saved progress was deleted. The test is ready to start again.');
-            navigate('/practice_test');
+            const response = await api.post(`/api/practice-tests/attempts/${session.attempt_id}/restart/`);
+            setQuitState(null);
+            setSession(response.data);
+            notify.success('Progress cleared. The test has restarted from question 1.');
         } catch (requestError) {
             notify.error(requestError.response?.data?.error || 'Failed to restart this test.');
+        } finally {
             setWorking(false);
         }
     };
@@ -104,7 +106,7 @@ function TestPage() {
     return (
         <>
             <QuestionSession
-                key={session.phase}
+                key={`${session.attempt_id}:${session.phase}`}
                 questions={session.questions}
                 initialSeconds={session.remaining_seconds}
                 initialAnswers={session.answers}
@@ -113,6 +115,7 @@ function TestPage() {
                 eyebrow={session.eyebrow}
                 title={session.title}
                 statusLabel={working ? 'Submitting…' : session.status_label}
+                showDesmos={session.subject === 'math'}
                 sessionLabel={session.test_name}
                 navigationTitle={`${session.title} · ${session.eyebrow}`}
                 reviewDescription="Review any unanswered or marked questions before submitting this module. You cannot return after submission."
