@@ -1,5 +1,5 @@
 import React from 'react';
-import {Clock3} from 'lucide-react';
+import {Clock3, LogOut} from 'lucide-react';
 import {Button} from '../ui';
 
 const formatTime = (seconds) => {
@@ -15,6 +15,7 @@ function TestHeader({
     eyebrow = 'Section 1',
     title = 'Reading and Writing',
     statusLabel,
+    onQuit = null,
 }) {
     return (
         <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
@@ -41,9 +42,14 @@ function TestHeader({
                     </div>
                 )}
 
-                <div className="hidden items-center gap-2 sm:flex">
+                <div className="flex items-center gap-2">
+                    {onQuit && (
+                        <Button variant="ghost" size="sm" onClick={onQuit}>
+                            <LogOut className="size-4"/> <span className="hidden sm:inline">Quit</span>
+                        </Button>
+                    )}
                     {statusLabel ? (
-                        <span className="rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-black text-primary-700">
+                        <span className="hidden rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-black text-primary-700 sm:inline-flex">
                             {statusLabel}
                         </span>
                     ) : (

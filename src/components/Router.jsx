@@ -54,10 +54,12 @@ const QuestionListPage = React.lazy(() => import("../pages/admin/QuestionListPag
 const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEditorPage"));
 const QuestionGeneratorPage = React.lazy(() => import("../pages/admin/QuestionGeneratorPage"));
 const PracticeTestGeneratorPage = React.lazy(() => import("../pages/admin/PracticeTestGeneratorPage"));
+const PracticeTestCreatorPage = React.lazy(() => import("../pages/admin/PracticeTestCreatorPage"));
 const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminCreateTournamentPage"));
 const MyTournamentsPage = React.lazy(() => import("../pages/MyTournamentsPage"));
 const TestPage = React.lazy(() => import("../pages/practice_test/TestPage"));
 const TestResultPage = React.lazy(() => import("../pages/practice_test/TestResultPage"));
+const AdaptiveTestResultPage = React.lazy(() => import("../pages/practice_test/AdaptiveTestResultPage"));
 const PracticeTestPage = React.lazy(() => import("../pages/practice_test/PracticeTestPage"));
 const ClassListPage = React.lazy(() => import("../pages/classes/ClassListPage"));
 const PartyHomePage = React.lazy(() => import("../pages/party/PartyHomePage"));
@@ -132,6 +134,7 @@ const APP_ROUTES = [
     {path: '/admin/create_question', el: <QuestionEditorPage/>},
     {path: '/admin/generate_questions', el: <QuestionGeneratorPage/>},
     {path: '/admin/generate_practice_test', el: <PracticeTestGeneratorPage/>},
+    {path: '/admin/create_practice_test', el: <PracticeTestCreatorPage/>},
     {path: '/admin/edit_question/:id', el: <QuestionEditorPage/>},
     {path: '/admin/create_tournament', el: <AdminCreateTournamentPage/>},
 ];
@@ -146,8 +149,9 @@ const FULLSCREEN_ROUTES = [
     {path: '/bot_training/start', el: <BotGamePage/>},
     {path: '/party/:roomId', el: <PartyRoomPage/>},
     {path: '/tournament/:tournamentId/questions', el: <TournamentQuestionPage/>},
-    {path: '/full_length_test', el: <TestPage/>},
+    {path: '/full_length_test/:testId', el: <TestPage/>},
     {path: '/test_result', el: <TestResultPage/>},
+    {path: '/practice_test/result/:attemptId', el: <AdaptiveTestResultPage/>},
     {path: '/mistake-review', el: <MistakeReviewPage/>},
     {path: '/welcome', el: <WelcomePage/>},
     {path: '/complete_profile', el: <CompleteProfilePage/>},

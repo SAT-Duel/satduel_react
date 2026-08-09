@@ -1,6 +1,6 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {ClipboardList, Database, FileText, Flag, Sparkles, Trophy} from 'lucide-react';
+import {ClipboardCheck, ClipboardList, Database, FileText, Flag, Sparkles, Trophy} from 'lucide-react';
 import {Card, PageContainer} from '../../components/ui';
 import withAuth from '../../hoc/withAuth';
 
@@ -30,6 +30,12 @@ const tools = [
         action: 'generate-test',
     },
     {
+        title: 'Practice Test Creator',
+        description: 'Assemble six generated modules into a published adaptive test and monitor completions.',
+        icon: ClipboardCheck,
+        action: 'create-test',
+    },
+    {
         title: 'Backend Database',
         description: 'Open the Django admin for data operations that are not exposed here.',
         icon: Database,
@@ -56,6 +62,7 @@ function AdminHome() {
             reports: '/admin/question_reports',
             generate: '/admin/generate_questions',
             'generate-test': '/admin/generate_practice_test',
+            'create-test': '/admin/create_practice_test',
             tournament: '/admin/create_tournament',
         };
         navigate(paths[action]);
