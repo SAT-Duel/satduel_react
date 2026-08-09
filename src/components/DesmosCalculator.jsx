@@ -29,10 +29,9 @@ function defaultPosition() {
     return panelPosition(window.innerWidth - PANEL_WIDTH - 24, 80);
 }
 
-// Routes that want the calculator but don't render PracticeQuestionCard, so
-// they have nowhere to put an in-card button and keep the floating one.
+// Routes that want the calculator but don't render an in-page button.
 function shouldShowFloatingButton(pathname) {
-    return pathname.startsWith('/full_length_test/') || pathname.startsWith('/study_guides');
+    return pathname.startsWith('/study_guides');
 }
 
 const DesmosContext = createContext(null);
@@ -54,7 +53,6 @@ export function DesmosProvider({children}) {
     const [dragging, setDragging] = useState(false);
     const dragOffset = useRef({x: 0, y: 0});
     const showFloatingButton = useMemo(() => shouldShowFloatingButton(pathname), [pathname]);
-    const testRoute = pathname.startsWith('/full_length_test/');
 
     const openCalculator = useCallback(() => {
         setPosition((current) => (current ? panelPosition(current.x, current.y) : defaultPosition()));
@@ -107,7 +105,7 @@ export function DesmosProvider({children}) {
                 <button
                     type="button"
                     onClick={openCalculator}
-                    className={`fixed right-5 z-[60] flex size-12 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-slate-950 text-white shadow-lg transition hover:bg-slate-800 ${testRoute ? 'bottom-24' : 'bottom-20 sm:bottom-6'}`}
+                    className="fixed bottom-20 right-5 z-[60] flex size-12 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-slate-950 text-white shadow-lg transition hover:bg-slate-800 sm:bottom-6"
                     aria-label="Open Desmos calculator"
                     title="Open Desmos calculator"
                 >
