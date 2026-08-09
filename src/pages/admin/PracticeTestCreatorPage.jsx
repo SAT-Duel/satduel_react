@@ -109,7 +109,7 @@ function PracticeTestCreatorPage() {
                 </div>
                 <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <p className="m-0 text-xs font-bold text-slate-500">
-                        Students see the test immediately after creation. A score uses 90 operational questions; 8 pretest questions are unscored.
+                        Students see the test immediately after creation. All 98 delivered questions count toward the score.
                     </p>
                     <Button onClick={createTest} disabled={!ready} loading={saving} className="shrink-0">
                         <Plus size={18}/> Create and publish

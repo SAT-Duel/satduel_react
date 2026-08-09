@@ -26,9 +26,7 @@ function ReviewQuestion({item, number}) {
                 onClick={() => setOpen((value) => !value)}
                 className="flex w-full cursor-pointer items-center gap-3 bg-white p-4 text-left"
             >
-                {item.is_pretest ? (
-                    <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-xs font-black text-amber-700">P</span>
-                ) : item.correct ? (
+                {item.correct ? (
                     <CheckCircle2 className="size-7 shrink-0 text-emerald-500"/>
                 ) : (
                     <XCircle className="size-7 shrink-0 text-rose-500"/>
@@ -37,7 +35,7 @@ function ReviewQuestion({item, number}) {
                     <p className="m-0 font-black text-slate-900">Question {number}</p>
                     <p className="m-0 mt-0.5 text-xs font-bold text-slate-400">
                         {subject} · {item.phase.endsWith('_a') ? 'Module 1' : 'Module 2'}
-                        {item.is_pretest ? ' · Unscored pretest' : item.correct ? ' · Correct' : ' · Review this one'}
+                        {item.correct ? ' · Correct' : ' · Review this one'}
                     </p>
                 </div>
                 <ChevronDown className={`size-5 text-slate-400 transition ${open ? 'rotate-180' : ''}`}/>
@@ -92,8 +90,7 @@ function AdaptiveTestResultPage() {
 
     const questions = useMemo(() => {
         if (!result) return [];
-        if (filter === 'missed') return result.questions.filter((question) => !question.correct && !question.is_pretest);
-        if (filter === 'pretest') return result.questions.filter((question) => question.is_pretest);
+        if (filter === 'missed') return result.questions.filter((question) => !question.correct);
         return result.questions;
     }, [filter, result]);
 
@@ -113,7 +110,7 @@ function AdaptiveTestResultPage() {
                         <p className="m-0 mt-5 font-display text-7xl font-black text-slate-950">{result.total_score}</p>
                         <p className="m-0 mt-2 text-sm font-bold text-slate-500">Estimated score range {result.score_low}–{result.score_high}</p>
                         <p className="mx-auto mb-0 mt-3 max-w-2xl text-xs leading-5 text-slate-400">
-                            This range reflects statistical uncertainty. The reported score uses fixed SAT-aligned item difficulty and excludes all eight pretest questions.
+                            This range reflects statistical uncertainty. The reported score uses fixed SAT-aligned item difficulty, and all 98 questions count.
                         </p>
                     </div>
                 </Card>
@@ -134,7 +131,6 @@ function AdaptiveTestResultPage() {
                             {[
                                 ['all', `All ${result.questions.length}`],
                                 ['missed', 'Missed'],
-                                ['pretest', 'Pretest'],
                             ].map(([value, label]) => (
                                 <button key={value} type="button" onClick={() => setFilter(value)} className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs font-black ${filter === value ? 'border-primary-600 bg-primary-600 text-white' : 'border-slate-200 bg-white text-slate-600'}`}>{label}</button>
                             ))}
