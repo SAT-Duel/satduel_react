@@ -1,6 +1,6 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {ClipboardCheck, ClipboardList, Database, FileText, Flag, Sparkles, Trophy} from 'lucide-react';
+import {ClipboardCheck, ClipboardList, Database, FileText, Flag, Megaphone, Sparkles, Trophy} from 'lucide-react';
 import {Card, PageContainer} from '../../components/ui';
 import withAuth from '../../hoc/withAuth';
 
@@ -28,6 +28,7 @@ const toolGroups = [
         description: 'Review issues and manage supporting content.',
         tone: 'slate',
         tools: [
+            {title: 'Site Announcement', description: 'Publish or hide the banner shown across the signed-in app.', icon: Megaphone, action: 'announcement'},
             {title: 'Question Reports', description: 'Review reported questions and clear resolved reports.', icon: Flag, action: 'reports'},
             {title: 'Create Tournament', description: 'Build a curated tournament from selected questions.', icon: Trophy, action: 'tournament'},
             {title: 'Backend Database', description: 'Open Django admin for data operations not exposed here.', icon: Database, action: 'backend'},
@@ -50,6 +51,7 @@ function AdminHome() {
             return;
         }
         const paths = {
+            announcement: '/admin/announcement',
             questions: '/admin/questions',
             reports: '/admin/question_reports',
             generate: '/admin/generate_questions',

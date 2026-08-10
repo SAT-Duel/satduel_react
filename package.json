@@ -32,6 +32,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
+    "test": "node --test src/utils/*.test.js",
     "build": "vite build",
     "preview": "vite preview"
   },

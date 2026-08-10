@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Calculator, Clock3, LogOut} from 'lucide-react';
+import {Calculator, Clock3, Save} from 'lucide-react';
 import {useDesmos} from '../DesmosCalculator';
 import {Button} from '../ui';
 
@@ -57,8 +57,8 @@ function TestHeader({
                         </Button>
                     )}
                     {onQuit && (
-                        <Button variant="ghost" size="sm" onClick={onQuit} aria-label="Quit practice test">
-                            <LogOut className="size-4"/> <span className="hidden sm:inline">Quit</span>
+                        <Button variant="ghost" size="sm" onClick={onQuit} aria-label="Save and quit practice test">
+                            <Save className="size-4"/> <span className="hidden sm:inline">Save &amp; quit</span>
                         </Button>
                     )}
                     {statusLabel ? (

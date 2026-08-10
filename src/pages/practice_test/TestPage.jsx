@@ -1,10 +1,27 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {RotateCcw, Save} from 'lucide-react';
 import {useNavigate, useParams} from 'react-router-dom';
 import QuestionSession from '../../components/PracticeTest/QuestionSession';
 import api from '../../components/api';
 import {Button, ModalShell, Spinner} from '../../components/ui';
+import {
+    clearPracticeTestSession,
+    practiceTestSecondsLeft,
+    readPracticeTestSession,
+    restorePracticeTestSession,
+    writePracticeTestSession,
+} from '../../utils/practiceTestSession';
 import {notify} from '../../utils/notify';
+
+function hydrateSession(serverSession) {
+    const localSession = restorePracticeTestSession(serverSession);
+    writePracticeTestSession(serverSession.attempt_id, localSession);
+    return {
+        ...serverSession,
+        deadlineAt: localSession.deadlineAt,
+        progress: localSession.progress,
+    };
+}
 
 function TestPage() {
     const {testId} = useParams();
@@ -23,7 +40,7 @@ function TestPage() {
             return;
         }
         api.post(`/api/practice-tests/${testId}/start/`)
-            .then((response) => setSession(response.data))
+            .then((response) => setSession(hydrateSession(response.data)))
             .catch((requestError) => setError(requestError.response?.data?.error || 'This practice test could not be opened.'));
     }, [navigate, testId]);
 
@@ -34,6 +51,26 @@ function TestPage() {
         remaining_seconds: state.timeLeft,
     });
 
+    const persistProgress = useCallback((answers, state) => {
+        setSession((current) => {
+            if (!current) return current;
+            const cached = readPracticeTestSession(current.attempt_id);
+            if (!cached || cached.phase !== current.phase) return current;
+            const progress = {
+                answers,
+                currentQuestion: state.currentQuestion,
+                reviewQuestions: state.reviewQuestions,
+                hideTimer: state.hideTimer,
+            };
+            writePracticeTestSession(current.attempt_id, {
+                ...cached,
+                progress,
+                updatedAt: Date.now(),
+            });
+            return {...current, progress};
+        });
+    }, []);
+
     const finishModule = async (answers, state) => {
         if (working) return;
         try {
@@ -42,11 +79,12 @@ function TestPage() {
                 `/api/practice-tests/attempts/${session.attempt_id}/finish-module/`,
                 payload(answers, state),
             );
+            clearPracticeTestSession(session.attempt_id);
             if (response.data.completed) {
                 navigate(`/practice_test/result/${session.attempt_id}`, {replace: true});
                 return;
             }
-            setSession(response.data);
+            setSession(hydrateSession(response.data));
             notify.success('Module submitted. Your next module is ready.');
         } catch (requestError) {
             notify.error(requestError.response?.data?.error || 'Failed to submit this module.');
@@ -58,11 +96,19 @@ function TestPage() {
     const saveAndExit = async () => {
         try {
             setWorking(true);
+            const liveState = {
+                ...quitState.state,
+                timeLeft: practiceTestSecondsLeft({
+                    timeLimitSeconds: session.time_limit_seconds,
+                    deadlineAt: session.deadlineAt,
+                }),
+            };
             await api.patch(
                 `/api/practice-tests/attempts/${session.attempt_id}/`,
-                payload(quitState.answers, quitState.state),
+                payload(quitState.answers, liveState),
             );
-            notify.success('Your answers and remaining time were saved.');
+            clearPracticeTestSession(session.attempt_id);
+            notify.success('Your answers, position, and remaining time were saved.');
             navigate('/practice_test');
         } catch (requestError) {
             notify.error(requestError.response?.data?.error || 'Failed to save your progress.');
@@ -74,8 +120,9 @@ function TestPage() {
         try {
             setWorking(true);
             const response = await api.post(`/api/practice-tests/attempts/${session.attempt_id}/restart/`);
+            clearPracticeTestSession(session.attempt_id);
             setQuitState(null);
-            setSession(response.data);
+            setSession(hydrateSession(response.data));
             notify.success('Progress cleared. The test has restarted from question 1.');
         } catch (requestError) {
             notify.error(requestError.response?.data?.error || 'Failed to restart this test.');
@@ -108,10 +155,12 @@ function TestPage() {
             <QuestionSession
                 key={`${session.attempt_id}:${session.phase}`}
                 questions={session.questions}
-                initialSeconds={session.remaining_seconds}
-                initialAnswers={session.answers}
-                initialReviewQuestions={session.review_questions}
-                initialCurrentQuestion={session.current_question}
+                initialSeconds={practiceTestSecondsLeft({
+                    timeLimitSeconds: session.time_limit_seconds,
+                    deadlineAt: session.deadlineAt,
+                })}
+                deadlineAt={session.deadlineAt}
+                initialProgress={session.progress}
                 eyebrow={session.eyebrow}
                 title={session.title}
                 statusLabel={working ? 'Submitting…' : session.status_label}
@@ -119,14 +168,14 @@ function TestPage() {
                 sessionLabel={session.test_name}
                 navigationTitle={`${session.title} · ${session.eyebrow}`}
                 reviewDescription="Review any unanswered or marked questions before submitting this module. You cannot return after submission."
+                onProgressChange={persistProgress}
                 onSubmit={finishModule}
                 onQuit={(answers, state) => setQuitState({answers, state})}
-                paused={Boolean(quitState) || working}
             />
 
             <ModalShell
                 open={Boolean(quitState)}
-                title="Leave this practice test?"
+                title="Save and quit this practice test?"
                 onClose={() => !working && setQuitState(null)}
                 footer={(
                     <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -134,14 +183,14 @@ function TestPage() {
                             <RotateCcw className="size-4"/> Restart and delete progress
                         </Button>
                         <Button onClick={saveAndExit} loading={working}>
-                            <Save className="size-4"/> Save and exit
+                            <Save className="size-4"/> Save &amp; quit
                         </Button>
                     </div>
                 )}
             >
                 <p className="m-0 text-sm leading-6 text-slate-600">
-                    Save and exit keeps every answer, marked question, current position, and the exact time remaining.
-                    Restart permanently clears this unfinished attempt; completed scores are never deleted.
+                    Save &amp; quit pauses the test with every answer, marked question, current position, and the exact time remaining.
+                    Until you save, the timer continues—even if you close this dialog, switch tabs, or refresh.
                 </p>
             </ModalShell>
         </>

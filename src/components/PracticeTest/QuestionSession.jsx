@@ -9,10 +9,15 @@ const emptyAnswers = (total) => Object.fromEntries(
     Array.from({length: total}, (_, index) => [index + 1, null]),
 );
 
+const secondsUntil = (deadlineAt) => Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+
 function QuestionSession({
     questions,
     onSubmit,
     initialSeconds = null,
+    deadlineAt = null,
+    initialProgress = null,
+    onProgressChange,
     eyebrow,
     title,
     statusLabel,
@@ -20,50 +25,46 @@ function QuestionSession({
     navigationTitle,
     reviewDescription,
     variant = 'test',
-    initialAnswers = null,
-    initialReviewQuestions = [],
-    initialCurrentQuestion = 1,
     onQuit = null,
-    paused = false,
     showDesmos = false,
 }) {
-    const [currentQuestion, setCurrentQuestion] = useState(initialCurrentQuestion);
-    const [selectedAnswers, setSelectedAnswers] = useState(() => ({
-        ...emptyAnswers(questions.length),
-        ...(initialAnswers || {}),
-    }));
-    const [reviewQuestions, setReviewQuestions] = useState(initialReviewQuestions);
-    const [timeLeft, setTimeLeft] = useState(initialSeconds);
-    const [hideTimer, setHideTimer] = useState(false);
-    const autoSubmitted = useRef(false);
-    const deadline = useRef(null);
     const totalQuestions = questions.length;
+    const [currentQuestion, setCurrentQuestion] = useState(() => Math.min(
+        Math.max(Number(initialProgress?.currentQuestion) || 1, 1),
+        totalQuestions + 1,
+    ));
+    const [selectedAnswers, setSelectedAnswers] = useState(() => ({
+        ...emptyAnswers(totalQuestions),
+        ...(initialProgress?.answers || initialProgress?.selectedAnswers || {}),
+    }));
+    const [reviewQuestions, setReviewQuestions] = useState(() => (
+        Array.isArray(initialProgress?.reviewQuestions) ? initialProgress.reviewQuestions : []
+    ));
+    const [timeLeft, setTimeLeft] = useState(() => (
+        deadlineAt == null ? initialSeconds : secondsUntil(deadlineAt)
+    ));
+    const [hideTimer, setHideTimer] = useState(Boolean(initialProgress?.hideTimer));
+    const autoSubmitted = useRef(false);
 
     const answeredQuestions = Object.entries(selectedAnswers)
         .filter(([, answer]) => answer !== null && answer !== '')
         .map(([number]) => Number(number));
 
-    const remainingTime = useCallback(() => (
-        deadline.current == null
-            ? timeLeft
-            : Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000))
-    ), [timeLeft]);
-
     const currentState = useCallback(() => ({
         currentQuestion,
         reviewQuestions,
-        timeLeft: remainingTime(),
-    }), [currentQuestion, remainingTime, reviewQuestions]);
+        timeLeft: deadlineAt == null ? timeLeft : secondsUntil(deadlineAt),
+        hideTimer,
+    }), [currentQuestion, deadlineAt, hideTimer, reviewQuestions, timeLeft]);
 
     const submit = useCallback(() => {
         onSubmit(selectedAnswers, currentState());
     }, [currentState, onSubmit, selectedAnswers]);
 
     useEffect(() => {
-        if (initialSeconds == null || paused) return undefined;
-        const target = Date.now() + timeLeft * 1000;
-        deadline.current = target;
-        const updateTimer = () => setTimeLeft(Math.max(0, Math.ceil((target - Date.now()) / 1000)));
+        if (deadlineAt == null) return undefined;
+        const updateTimer = () => setTimeLeft(secondsUntil(deadlineAt));
+        updateTimer();
         const timerId = window.setInterval(updateTimer, 250);
         document.addEventListener('visibilitychange', updateTimer);
         window.addEventListener('focus', updateTimer);
@@ -71,11 +72,14 @@ function QuestionSession({
             window.clearInterval(timerId);
             document.removeEventListener('visibilitychange', updateTimer);
             window.removeEventListener('focus', updateTimer);
-            if (deadline.current === target) deadline.current = null;
         };
-        // Restart the deadline only when the session is paused or resumed.
+    }, [deadlineAt]);
+
+    useEffect(() => {
+        onProgressChange?.(selectedAnswers, {currentQuestion, reviewQuestions, timeLeft, hideTimer});
+        // The absolute deadline owns timer persistence, so ticks do not need storage writes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialSeconds, paused]);
+    }, [currentQuestion, hideTimer, onProgressChange, reviewQuestions, selectedAnswers]);
 
     useEffect(() => {
         if (initialSeconds != null && timeLeft === 0 && !autoSubmitted.current) {
