@@ -3,21 +3,44 @@ import {Bookmark, BookmarkCheck} from 'lucide-react';
 import AnnotatedText from './AnnotatedText';
 import {Input} from '../ui';
 
-function CrossOutButton({letter, crossed, onClick}) {
+function CrossOutIcon({letter}) {
     return (
-        <span className="group relative flex shrink-0 items-center">
+        <span className="relative flex size-7 items-center justify-center rounded-full border-2 border-current text-sm font-black">
+            {letter}
+            <span className="absolute h-0.5 w-8 -rotate-12 bg-current"/>
+        </span>
+    );
+}
+
+function CrossOutToggle({active, onClick}) {
+    return (
+        <span className="group relative ml-auto flex shrink-0 items-center">
             <button
                 type="button"
                 onClick={onClick}
-                aria-label={`${crossed ? 'Restore' : 'Cross out'} answer ${letter}`}
-                className={`relative flex size-9 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-sm font-black ${crossed ? 'bg-primary-700 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+                aria-label={`${active ? 'Hide' : 'Show'} answer eliminator`}
+                aria-pressed={active}
+                className={`relative flex h-10 cursor-pointer items-center justify-center rounded-lg px-2 ${active ? 'bg-primary-700 text-white' : 'bg-transparent text-slate-800 hover:bg-slate-200'}`}
             >
-                <span>AB</span><span className="absolute h-0.5 w-7 -rotate-12 bg-current"/>
+                <span className="relative text-xs font-black">ABC<span className="absolute left-0 top-1/2 h-0.5 w-full -rotate-12 bg-current"/></span>
             </button>
-            <span className="pointer-events-none absolute bottom-12 right-0 z-20 hidden w-56 rounded-lg bg-slate-700 px-3 py-2 text-left text-sm font-semibold leading-5 text-white shadow-xl group-hover:block">
+            <span className="pointer-events-none absolute right-0 top-12 z-20 hidden w-56 rounded-lg bg-slate-700 px-3 py-2 text-left text-sm font-semibold leading-5 text-white shadow-xl group-hover:block">
                 Cross out answer choices you think are wrong.
             </span>
         </span>
+    );
+}
+
+function CrossOutButton({letter, crossed, onClick}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label={`${crossed ? 'Undo cross out for' : 'Cross out'} answer ${letter}`}
+            className="flex h-10 w-14 shrink-0 cursor-pointer items-center justify-center bg-transparent text-slate-800"
+        >
+            {crossed ? <span className="text-sm font-bold underline underline-offset-2">Undo</span> : <CrossOutIcon letter={letter}/>}
+        </button>
     );
 }
 
@@ -33,6 +56,8 @@ export default function AnswerSection({
     highlighterActive,
     onCreateMark,
     onOpenMark,
+    eliminatorActive,
+    onToggleEliminator,
 }) {
     const prompt = question.question.split('\n').slice(-1)[0];
     const choices = 'ABCD'.split('').map((letter, index) => ({letter, text: question.choices[index]}));
@@ -53,7 +78,7 @@ export default function AnswerSection({
 
     return (
         <div className="px-5 py-7 sm:px-8 sm:py-10 lg:px-10">
-            <div className="mb-5 flex items-center justify-between border-b-2 border-slate-900 bg-slate-100">
+            <div className="mb-5 flex items-center border-b-2 border-slate-900 bg-slate-100">
                 <div className="flex items-center">
                     <span className="flex size-10 items-center justify-center bg-slate-950 text-lg font-black text-white">{currentQuestion}</span>
                     <button type="button" onClick={toggleReviewStatus} className="flex cursor-pointer items-center gap-2 bg-transparent px-4 py-2 text-sm font-bold text-slate-800">
@@ -61,6 +86,7 @@ export default function AnswerSection({
                         Mark for Review
                     </button>
                 </div>
+                {!studentProduced && <CrossOutToggle active={eliminatorActive} onClick={onToggleEliminator}/>}
             </div>
 
             <p className="m-0 mb-5 font-serif text-lg font-semibold leading-8 text-slate-950 sm:text-xl">
@@ -88,7 +114,7 @@ export default function AnswerSection({
                                         <AnnotatedText text={text} field={`choice:${letter}`} marks={tools.marks} highlighterActive={highlighterActive} onCreate={onCreateMark} onOpen={onOpenMark}/>
                                     </span>
                                 </button>
-                                <CrossOutButton letter={letter} crossed={crossed} onClick={() => toggleCrossOut(letter)}/>
+                                {eliminatorActive && <CrossOutButton letter={letter} crossed={crossed} onClick={() => toggleCrossOut(letter)}/>}
                             </div>
                         );
                     })}

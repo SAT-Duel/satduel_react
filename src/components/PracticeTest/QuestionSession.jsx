@@ -6,6 +6,7 @@ import ReviewPage from './ReviewPage';
 import TestNavigation from './TestNavigation';
 import AnnotationToolbar from './AnnotationToolbar';
 import {applyAnnotation} from '../../utils/practiceTestAnnotations';
+import {Button, ModalShell} from '../ui';
 
 const emptyAnswers = (total) => Object.fromEntries(Array.from({length: total}, (_, index) => [index + 1, null]));
 const secondsUntil = (deadlineAt) => Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
@@ -18,7 +19,7 @@ export default function QuestionSession({
     deadlineAt = null,
     initialProgress = null,
     onProgressChange,
-    onAnnotationsPersist,
+    onProgressPersist,
     title,
     statusLabel,
     navigationTitle,
@@ -37,9 +38,10 @@ export default function QuestionSession({
     const [timeLeft, setTimeLeft] = useState(() => deadlineAt == null ? initialSeconds : secondsUntil(deadlineAt));
     const [hideTimer, setHideTimer] = useState(Boolean(initialProgress?.hideTimer));
     const [highlighterActive, setHighlighterActive] = useState(false);
+    const [eliminatorActive, setEliminatorActive] = useState(false);
     const [activeAnnotation, setActiveAnnotation] = useState(null);
+    const [confirmSubmit, setConfirmSubmit] = useState(false);
     const autoSubmitted = useRef(false);
-    const annotationsMounted = useRef(false);
 
     const answeredQuestions = Object.entries(selectedAnswers)
         .filter(([, answer]) => answer !== null && answer !== '')
@@ -54,6 +56,11 @@ export default function QuestionSession({
     }), [annotations, currentQuestion, deadlineAt, hideTimer, reviewQuestions, timeLeft]);
 
     const submit = useCallback(() => onSubmit(selectedAnswers, currentState()), [currentState, onSubmit, selectedAnswers]);
+    const goToQuestion = useCallback((questionNumber) => {
+        if (questionNumber === currentQuestion) return;
+        onProgressPersist?.(selectedAnswers, currentState());
+        setCurrentQuestion(questionNumber);
+    }, [currentQuestion, currentState, onProgressPersist, selectedAnswers]);
 
     useEffect(() => {
         if (deadlineAt == null) return undefined;
@@ -76,14 +83,17 @@ export default function QuestionSession({
     }, [annotations, currentQuestion, hideTimer, onProgressChange, reviewQuestions, selectedAnswers]);
 
     useEffect(() => {
-        if (!annotationsMounted.current) {
-            annotationsMounted.current = true;
-            return;
-        }
-        onAnnotationsPersist?.(selectedAnswers, currentState());
-        // This effect intentionally runs only when a student changes test tools.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [annotations]);
+        const persistOnDeparture = () => onProgressPersist?.(selectedAnswers, currentState());
+        const persistWhenHidden = () => {
+            if (document.visibilityState === 'hidden') persistOnDeparture();
+        };
+        window.addEventListener('pagehide', persistOnDeparture);
+        document.addEventListener('visibilitychange', persistWhenHidden);
+        return () => {
+            window.removeEventListener('pagehide', persistOnDeparture);
+            document.removeEventListener('visibilitychange', persistWhenHidden);
+        };
+    }, [currentState, onProgressPersist, selectedAnswers]);
 
     useEffect(() => {
         setActiveAnnotation(null);
@@ -161,18 +171,39 @@ export default function QuestionSession({
                             highlighterActive={highlighterActive}
                             onCreateMark={createMark}
                             onOpenMark={openMark}
+                            eliminatorActive={eliminatorActive}
+                            onToggleEliminator={() => setEliminatorActive((active) => !active)}
                         />
                     </section>
                 </main>
             )}
 
             {currentQuestion > totalQuestions && (
-                <ReviewPage currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={setCurrentQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} description={reviewDescription} navigationTitle={navigationTitle}/>
+                <ReviewPage currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={goToQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} description={reviewDescription} navigationTitle={navigationTitle}/>
             )}
 
-            <TestNavigation currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={setCurrentQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} onSubmit={submit} navigationTitle={navigationTitle}/>
+            <TestNavigation currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={goToQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} onSubmit={mistakeMode ? submit : () => setConfirmSubmit(true)} navigationTitle={navigationTitle}/>
 
             <AnnotationToolbar mark={activeMark} rect={activeAnnotation?.rect} onChange={changeActiveMark} onDelete={deleteActiveMark}/>
+
+            <ModalShell
+                open={confirmSubmit}
+                title="Submit this module?"
+                onClose={() => setConfirmSubmit(false)}
+                footer={(
+                    <>
+                        <Button variant="secondary" onClick={() => setConfirmSubmit(false)}>Keep reviewing</Button>
+                        <Button onClick={() => {
+                            setConfirmSubmit(false);
+                            submit();
+                        }}>Submit module</Button>
+                    </>
+                )}
+            >
+                <p className="m-0 text-sm leading-6 text-slate-600">
+                    You still have time to review your answers. Once you submit, you cannot return to this module.
+                </p>
+            </ModalShell>
         </div>
     );
 }
