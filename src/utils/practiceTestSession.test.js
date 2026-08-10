@@ -37,7 +37,7 @@ test('a live module keeps counting down while the page is gone', () => {
     assert.equal(practiceTestSecondsLeft(session, 35_000), 1775);
 });
 
-test('answers, position, review marks, and timer survive a storage round trip', () => {
+test('answers, annotations, position, review marks, and timer survive a storage round trip', () => {
     const storage = memoryStorage();
     const session = createPracticeTestSession(serverSession(), 10_000);
     session.progress.answers['3'] = 'C';
@@ -47,6 +47,7 @@ test('answers, position, review marks, and timer survive a storage round trip', 
     const restored = restorePracticeTestSession(serverSession(), storage, 900_000);
 
     assert.deepEqual(restored, session);
+    assert.deepEqual(restored.progress.annotations, serverSession().annotations);
     assert.equal(practiceTestSecondsLeft(restored, 910_000), 900);
 });
 

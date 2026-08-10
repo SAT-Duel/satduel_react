@@ -52,13 +52,12 @@ function TestPage() {
     const [working, setWorking] = useState(false);
     const started = useRef(false);
     const sessionRef = useRef(null);
-    const annotationSaveTimer = useRef(null);
+    const progressSaveChain = useRef(Promise.resolve());
+    const lastQueuedProgress = useRef('');
 
     useEffect(() => {
         sessionRef.current = session;
     }, [session]);
-
-    useEffect(() => () => window.clearTimeout(annotationSaveTimer.current), []);
 
     useEffect(() => {
         if (started.current) return;
@@ -93,30 +92,38 @@ function TestPage() {
         });
     }, []);
 
-    const persistAnnotations = useCallback((answers, state) => {
+    const persistProgressRemote = useCallback((answers, state) => {
         const current = sessionRef.current;
         if (!current || current.break) return;
-        window.clearTimeout(annotationSaveTimer.current);
-        annotationSaveTimer.current = window.setTimeout(() => {
-            const liveState = {
-                ...state,
-                timeLeft: practiceTestSecondsLeft({
-                    timeLimitSeconds: current.time_limit_seconds,
-                    deadlineAt: current.deadlineAt,
-                }),
-            };
-            api.patch(
+        const liveState = {
+            ...state,
+            timeLeft: practiceTestSecondsLeft({
+                timeLimitSeconds: current.time_limit_seconds,
+                deadlineAt: current.deadlineAt,
+            }),
+        };
+        const payload = progressPayload(current, answers, liveState);
+        const serialized = JSON.stringify(payload);
+        if (serialized === lastQueuedProgress.current) return progressSaveChain.current;
+        lastQueuedProgress.current = serialized;
+        progressSaveChain.current = progressSaveChain.current
+            .catch(() => undefined)
+            .then(() => api.patch(
                 `/api/practice-tests/attempts/${current.attempt_id}/`,
-                progressPayload(current, answers, liveState),
-            ).catch(() => notify.error('Your test tools could not sync. Your browser copy is still safe.'));
-        }, 250);
+                payload,
+            ))
+            .catch(() => {
+                if (lastQueuedProgress.current === serialized) lastQueuedProgress.current = '';
+                notify.error('Your test progress could not sync. Your browser copy is still safe.');
+            });
+        return progressSaveChain.current;
     }, []);
 
     const finishModule = async (answers, state) => {
         if (working) return;
         try {
             setWorking(true);
-            window.clearTimeout(annotationSaveTimer.current);
+            await progressSaveChain.current;
             const response = await api.post(
                 `/api/practice-tests/attempts/${session.attempt_id}/finish-module/`,
                 progressPayload(session, answers, state),
@@ -138,7 +145,7 @@ function TestPage() {
     const saveAndExit = async () => {
         try {
             setWorking(true);
-            window.clearTimeout(annotationSaveTimer.current);
+            await progressSaveChain.current;
             const liveState = {
                 ...quitState.state,
                 timeLeft: practiceTestSecondsLeft({
@@ -162,7 +169,7 @@ function TestPage() {
     const restart = async () => {
         try {
             setWorking(true);
-            window.clearTimeout(annotationSaveTimer.current);
+            await progressSaveChain.current;
             const response = await api.post(`/api/practice-tests/attempts/${session.attempt_id}/restart/`);
             clearPracticeTestSession(session.attempt_id);
             setQuitState(null);
@@ -229,7 +236,7 @@ function TestPage() {
                 navigationTitle={`Section ${session.section_number}, Module ${session.module_number}: ${session.title} Questions`}
                 reviewDescription="Review any unanswered or marked questions before submitting this module. You cannot return after submission."
                 onProgressChange={persistProgress}
-                onAnnotationsPersist={persistAnnotations}
+                onProgressPersist={persistProgressRemote}
                 onSubmit={finishModule}
                 onQuit={(answers, state) => setQuitState({answers, state})}
             />
