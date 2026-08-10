@@ -5,6 +5,7 @@ import AnswerSection from './AnswerSection';
 import ReviewPage from './ReviewPage';
 import TestNavigation from './TestNavigation';
 import AnnotationToolbar from './AnnotationToolbar';
+import StudentProducedDirections from './StudentProducedDirections';
 import {applyAnnotation} from '../../utils/practiceTestAnnotations';
 import {Button, ModalShell} from '../ui';
 
@@ -27,6 +28,7 @@ export default function QuestionSession({
     variant = 'test',
     onQuit = null,
     showDesmos = false,
+    subject = null,
     sectionNumber = 1,
     moduleNumber = 1,
 }) {
@@ -97,6 +99,7 @@ export default function QuestionSession({
 
     useEffect(() => {
         setActiveAnnotation(null);
+        window.scrollTo(0, 0);
     }, [currentQuestion]);
 
     useEffect(() => {
@@ -141,6 +144,12 @@ export default function QuestionSession({
     const activeQuestion = questions[currentQuestion - 1];
     const mistakeMode = variant === 'mistakes';
     const hasSeparateContext = activeQuestion?.question?.includes('\n');
+    const isMath = subject === 'math' || showDesmos;
+    const studentProduced = activeQuestion?.response_type === 'student_produced';
+    const splitStudentResponse = isMath && studentProduced;
+    const splitReading = !isMath && hasSeparateContext;
+    const splitLayout = splitStudentResponse || splitReading;
+    const questionWidth = splitLayout ? 'max-w-[1500px]' : (isMath ? 'max-w-[940px]' : 'max-w-3xl');
 
     return (
         <div className={`min-h-screen pb-20 ${mistakeMode ? 'bg-primary-50/60' : 'bg-white'}`}>
@@ -159,13 +168,18 @@ export default function QuestionSession({
             />
 
             {currentQuestion <= totalQuestions && activeQuestion && (
-                <main className={`mx-auto grid min-h-[calc(100vh-9.5rem)] w-full max-w-[1500px] ${hasSeparateContext ? 'lg:grid-cols-2 lg:divide-x-2 lg:divide-slate-500' : 'max-w-3xl'}`}>
-                    {hasSeparateContext && (
-                        <section className="border-b-2 border-slate-300 bg-white lg:border-b-0">
+                <main className={`mx-auto grid min-h-[calc(100vh-9.5rem)] w-full ${questionWidth} ${splitLayout ? 'lg:h-[calc(100vh-9.5rem)] lg:grid-cols-2 lg:divide-x-2 lg:divide-slate-500 lg:overflow-hidden' : ''}`}>
+                    {splitReading && (
+                        <section className="border-b-2 border-slate-300 bg-white lg:overflow-y-auto lg:border-b-0">
                             <QuestionContent question={activeQuestion} marks={tools.marks} highlighterActive={highlighterActive} onCreateMark={createMark} onOpenMark={openMark}/>
                         </section>
                     )}
-                    <section className="bg-white">
+                    {splitStudentResponse && (
+                        <section className="border-b-2 border-slate-300 bg-white lg:overflow-y-auto lg:border-b-0">
+                            <StudentProducedDirections/>
+                        </section>
+                    )}
+                    <section className={`bg-white ${splitLayout ? 'lg:overflow-y-auto' : ''}`}>
                         <AnswerSection
                             question={activeQuestion}
                             currentQuestion={currentQuestion}
@@ -180,6 +194,7 @@ export default function QuestionSession({
                             onOpenMark={openMark}
                             eliminatorActive={eliminatorActive}
                             onToggleEliminator={() => setEliminatorActive((active) => !active)}
+                            renderFullQuestion={isMath}
                         />
                     </section>
                 </main>
