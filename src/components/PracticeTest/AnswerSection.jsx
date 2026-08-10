@@ -69,11 +69,14 @@ export default function AnswerSection({
         isMarkedForReview ? previous.filter((number) => number !== currentQuestion) : [...previous, currentQuestion]
     ));
 
-    const toggleCrossOut = (letter) => onToolsChange({
-        ...tools,
-        crossed_out: crossedOut.includes(letter)
-            ? crossedOut.filter((item) => item !== letter)
-            : [...crossedOut, letter],
+    const toggleCrossOut = (letter) => onToolsChange((current) => {
+        const currentCrossedOut = current.crossed_out || [];
+        return {
+            ...current,
+            crossed_out: currentCrossedOut.includes(letter)
+                ? currentCrossedOut.filter((item) => item !== letter)
+                : [...currentCrossedOut, letter],
+        };
     });
 
     return (
