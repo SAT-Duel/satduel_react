@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {ChevronDown, Highlighter, Trash2} from 'lucide-react';
 
 const colors = [
@@ -14,8 +14,26 @@ const underlines = [
     ['none', 'None'],
 ];
 
-export default function AnnotationToolbar({mark, rect, onChange, onDelete}) {
+export default function AnnotationToolbar({mark, rect, onChange, onDelete, onClose}) {
     const [underlineOpen, setUnderlineOpen] = useState(false);
+    const toolbar = useRef(null);
+
+    useEffect(() => {
+        if (!mark) return undefined;
+        const closeOutside = (event) => {
+            if (!toolbar.current?.contains(event.target)) onClose();
+        };
+        const closeOnEscape = (event) => {
+            if (event.key === 'Escape') onClose();
+        };
+        document.addEventListener('pointerdown', closeOutside, true);
+        document.addEventListener('keydown', closeOnEscape);
+        return () => {
+            document.removeEventListener('pointerdown', closeOutside, true);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [mark, onClose]);
+
     if (!mark || !rect) return null;
     const narrow = window.innerWidth < 420;
     const left = Math.max(190, Math.min(window.innerWidth - 190, rect.left + rect.width / 2));
@@ -23,6 +41,7 @@ export default function AnnotationToolbar({mark, rect, onChange, onDelete}) {
 
     return (
         <div
+            ref={toolbar}
             className="fixed z-[90] flex items-center gap-2 rounded-full border border-slate-200 bg-white p-2 shadow-2xl"
             style={narrow ? {left: 8, right: 8, top, justifyContent: 'center'} : {left, top, transform: 'translateX(-50%)'}}
             role="toolbar"

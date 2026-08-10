@@ -108,7 +108,13 @@ export default function QuestionSession({
 
     const questionKey = String(currentQuestion);
     const tools = annotations[questionKey] || emptyTools();
-    const updateTools = (next) => setAnnotations((previous) => ({...previous, [questionKey]: next}));
+    const updateTools = (next) => setAnnotations((previous) => {
+        const current = previous[questionKey] || emptyTools();
+        return {
+            ...previous,
+            [questionKey]: typeof next === 'function' ? next(current) : next,
+        };
+    });
 
     const createMark = ({field, start, end, rect}) => {
         const mark = {
@@ -119,15 +125,16 @@ export default function QuestionSession({
             color: 'yellow',
             underline: 'none',
         };
-        updateTools({...tools, marks: applyAnnotation(tools.marks || [], mark)});
+        updateTools((current) => ({...current, marks: applyAnnotation(current.marks || [], mark)}));
         setActiveAnnotation({id: mark.id, rect});
     };
 
     const openMark = (mark, rect) => setActiveAnnotation({id: mark.id, rect});
+    const closeActiveMark = useCallback(() => setActiveAnnotation(null), []);
     const activeMark = tools.marks?.find((mark) => mark.id === activeAnnotation?.id);
-    const changeActiveMark = (next) => updateTools({...tools, marks: tools.marks.map((mark) => mark.id === next.id ? next : mark)});
+    const changeActiveMark = (next) => updateTools((current) => ({...current, marks: current.marks.map((mark) => mark.id === next.id ? next : mark)}));
     const deleteActiveMark = () => {
-        updateTools({...tools, marks: tools.marks.filter((mark) => mark.id !== activeAnnotation.id)});
+        updateTools((current) => ({...current, marks: current.marks.filter((mark) => mark.id !== activeAnnotation.id)}));
         setActiveAnnotation(null);
     };
 
@@ -184,7 +191,7 @@ export default function QuestionSession({
 
             <TestNavigation currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={goToQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} onSubmit={mistakeMode ? submit : () => setConfirmSubmit(true)} navigationTitle={navigationTitle}/>
 
-            <AnnotationToolbar mark={activeMark} rect={activeAnnotation?.rect} onChange={changeActiveMark} onDelete={deleteActiveMark}/>
+            <AnnotationToolbar mark={activeMark} rect={activeAnnotation?.rect} onChange={changeActiveMark} onDelete={deleteActiveMark} onClose={closeActiveMark}/>
 
             <ModalShell
                 open={confirmSubmit}

@@ -33,8 +33,7 @@ export default function AnnotatedText({text, field, marks = [], highlighterActiv
     return (
         <span
             ref={root}
-            onMouseUp={() => window.setTimeout(finishSelection, 0)}
-            onDoubleClick={() => window.setTimeout(finishSelection, 0)}
+            onMouseUp={finishSelection}
             className={`${className} ${highlighterActive ? 'select-text' : ''}`}
             style={highlighterActive ? {cursor: HIGHLIGHTER_CURSOR} : undefined}
         >
