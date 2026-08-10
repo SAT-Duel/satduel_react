@@ -232,6 +232,7 @@ function TestPage() {
                 statusLabel={working ? 'Submitting…' : null}
                 sectionNumber={session.section_number}
                 moduleNumber={session.module_number}
+                subject={session.subject}
                 showDesmos={session.subject === 'math'}
                 navigationTitle={`Section ${session.section_number}, Module ${session.module_number}: ${session.title} Questions`}
                 reviewDescription="Review any unanswered or marked questions before submitting this module. You cannot return after submission."

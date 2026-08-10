@@ -1,7 +1,7 @@
 import React from 'react';
 import {Bookmark, BookmarkCheck} from 'lucide-react';
 import AnnotatedText from './AnnotatedText';
-import {Input} from '../ui';
+import RenderWithMath from '../RenderWithMath';
 
 function CrossOutIcon({letter}) {
     return (
@@ -44,6 +44,12 @@ function CrossOutButton({letter, crossed, onClick}) {
     );
 }
 
+function answerPreview(value) {
+    const fraction = /^(-?)(\d+)\/(\d+)$/.exec(value);
+    if (fraction) return `$${fraction[1]}\\frac{${fraction[2]}}{${fraction[3]}}$`;
+    return /^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value) && !value.endsWith('.') ? `$${value}$` : '';
+}
+
 export default function AnswerSection({
     currentQuestion,
     question,
@@ -58,12 +64,14 @@ export default function AnswerSection({
     onOpenMark,
     eliminatorActive,
     onToggleEliminator,
+    renderFullQuestion = false,
 }) {
-    const prompt = question.question.split('\n').slice(-1)[0];
+    const prompt = renderFullQuestion ? question.question : question.question.split('\n').slice(-1)[0];
     const choices = 'ABCD'.split('').map((letter, index) => ({letter, text: question.choices[index]}));
     const studentProduced = question.response_type === 'student_produced';
     const isMarkedForReview = reviewQuestions.includes(currentQuestion);
     const crossedOut = tools.crossed_out || [];
+    const studentResponse = selectedAnswer[currentQuestion] || '';
 
     const toggleReviewStatus = () => setReviewQuestions((previous) => (
         isMarkedForReview ? previous.filter((number) => number !== currentQuestion) : [...previous, currentQuestion]
@@ -79,6 +87,14 @@ export default function AnswerSection({
         };
     });
 
+    const updateStudentResponse = (event) => {
+        const value = event.target.value.replace('−', '-');
+        const withinLimit = value.length <= (value.startsWith('-') ? 6 : 5);
+        if (withinLimit && /^-?(?:\d*(?:\.\d*)?|\d*\/\d*)$/.test(value)) {
+            setSelectedAnswer({...selectedAnswer, [currentQuestion]: value});
+        }
+    };
+
     return (
         <div className="px-5 py-7 sm:px-8 sm:py-10 lg:px-10">
             <div className="mb-5 flex items-center border-b-2 border-slate-900 bg-slate-100">
@@ -92,7 +108,7 @@ export default function AnswerSection({
                 {!studentProduced && <CrossOutToggle active={eliminatorActive} onClick={onToggleEliminator}/>}
             </div>
 
-            <p className="m-0 mb-5 font-serif text-lg font-semibold leading-8 text-slate-950 sm:text-xl">
+            <p className={`m-0 mb-5 font-serif text-lg leading-8 text-slate-950 sm:text-xl ${renderFullQuestion ? 'font-normal' : 'font-semibold'}`}>
                 <AnnotatedText text={prompt} field="prompt" marks={tools.marks} highlighterActive={highlighterActive} onCreate={onCreateMark} onOpen={onOpenMark}/>
             </p>
 
@@ -125,9 +141,23 @@ export default function AnswerSection({
             )}
 
             {studentProduced && (
-                <div className="max-w-sm rounded-xl border-2 border-slate-500 bg-white p-5">
-                    <label htmlFor={`student-response-${currentQuestion}`} className="mb-2 block text-sm font-black text-slate-700">Enter your answer</label>
-                    <Input id={`student-response-${currentQuestion}`} value={selectedAnswer[currentQuestion] || ''} onChange={(event) => setSelectedAnswer({...selectedAnswer, [currentQuestion]: event.target.value})} inputMode="decimal" autoComplete="off"/>
+                <div className="mt-8">
+                    <label htmlFor={`student-response-${currentQuestion}`} className="sr-only">Enter your answer</label>
+                    <span className="flex h-[72px] w-32 items-end rounded-xl border-2 border-slate-600 bg-white px-3 pb-3">
+                        <input
+                            id={`student-response-${currentQuestion}`}
+                            value={studentResponse}
+                            onChange={updateStudentResponse}
+                            inputMode="decimal"
+                            autoComplete="off"
+                            maxLength={6}
+                            className="w-full border-0 border-b border-slate-700 bg-transparent text-center font-serif text-xl text-slate-950 outline-none"
+                        />
+                    </span>
+                    <h3 className="m-0 mt-10 font-serif text-2xl font-black">Answer Preview:</h3>
+                    <div className="mt-3 min-h-12 font-serif text-2xl text-slate-950">
+                        <RenderWithMath text={answerPreview(studentResponse)}/>
+                    </div>
                 </div>
             )}
         </div>
