@@ -84,13 +84,14 @@ export function Card({className = '', hover = false, children, ...rest}) {
     );
 }
 
-export function Field({label, error, children}) {
+export function Field({label, hint, error, children}) {
     return (
         <label className="block text-left">
             {label && (
                 <span className="mb-1.5 block text-sm font-semibold text-slate-700">{label}</span>
             )}
             {children}
+            {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
             {error && <span className="mt-1 block text-sm text-rose-600">{error}</span>}
         </label>
     );

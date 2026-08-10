@@ -18,6 +18,7 @@ const QuestionsPage = React.lazy(() => import("../pages/QuestionPage"));
 const LoginPage = React.lazy(() => import("../pages/LoginPage"));
 const RegisterPage = React.lazy(() => import("../pages/RegisterPage"));
 const ProfilePage = React.lazy(() => import("../pages/ProfilePage"));
+const MessagesPage = React.lazy(() => import("../pages/MessagesPage"));
 const Match = React.lazy(() => import("../pages/MatchingPage"));
 const DuelBattle = React.lazy(() => import("../pages/DuelBattlePage"));
 const BattleResultPage = React.lazy(() => import("../pages/BattleResultPage"));
@@ -53,11 +54,14 @@ const QuestionReportsPage = React.lazy(() => import("../pages/admin/QuestionRepo
 const QuestionListPage = React.lazy(() => import("../pages/admin/QuestionListPage"));
 const QuestionEditorPage = React.lazy(() => import("../pages/admin/QuestionEditorPage"));
 const QuestionGeneratorPage = React.lazy(() => import("../pages/admin/QuestionGeneratorPage"));
+const PracticeTestGeneratorPage = React.lazy(() => import("../pages/admin/PracticeTestGeneratorPage"));
+const PracticeTestCreatorPage = React.lazy(() => import("../pages/admin/PracticeTestCreatorPage"));
 const AdminCreateTournamentPage = React.lazy(() => import("../pages/admin/AdminCreateTournamentPage"));
 const AnnouncementPage = React.lazy(() => import("../pages/admin/AnnouncementPage"));
 const MyTournamentsPage = React.lazy(() => import("../pages/MyTournamentsPage"));
 const TestPage = React.lazy(() => import("../pages/practice_test/TestPage"));
 const TestResultPage = React.lazy(() => import("../pages/practice_test/TestResultPage"));
+const AdaptiveTestResultPage = React.lazy(() => import("../pages/practice_test/AdaptiveTestResultPage"));
 const PracticeTestPage = React.lazy(() => import("../pages/practice_test/PracticeTestPage"));
 const ClassListPage = React.lazy(() => import("../pages/classes/ClassListPage"));
 const PartyHomePage = React.lazy(() => import("../pages/party/PartyHomePage"));
@@ -114,6 +118,8 @@ const APP_ROUTES = [
     {path: '/bot_training', el: <BotTrainingPage/>},
     {path: '/profile', el: <ProfilePage/>},
     {path: '/profile/:userId', el: <ProfilePage/>},
+    {path: '/messages', el: <MessagesPage/>},
+    {path: '/messages/:userId', el: <MessagesPage/>},
     {path: '/tournaments', el: <TournamentListPage/>},
     {path: '/tournaments/info', el: <TournamentPage/>},
     {path: '/tournaments/join/:joinCode', el: <JoinTournamentLinkPage/>},
@@ -132,6 +138,8 @@ const APP_ROUTES = [
     {path: '/admin/questions', el: <QuestionListPage/>},
     {path: '/admin/create_question', el: <QuestionEditorPage/>},
     {path: '/admin/generate_questions', el: <QuestionGeneratorPage/>},
+    {path: '/admin/generate_practice_test', el: <PracticeTestGeneratorPage/>},
+    {path: '/admin/create_practice_test', el: <PracticeTestCreatorPage/>},
     {path: '/admin/edit_question/:id', el: <QuestionEditorPage/>},
     {path: '/admin/create_tournament', el: <AdminCreateTournamentPage/>},
 ];
@@ -146,8 +154,9 @@ const FULLSCREEN_ROUTES = [
     {path: '/bot_training/start', el: <BotGamePage/>},
     {path: '/party/:roomId', el: <PartyRoomPage/>},
     {path: '/tournament/:tournamentId/questions', el: <TournamentQuestionPage/>},
-    {path: '/full_length_test', el: <TestPage/>},
+    {path: '/full_length_test/:testId', el: <TestPage/>},
     {path: '/test_result', el: <TestResultPage/>},
+    {path: '/practice_test/result/:attemptId', el: <AdaptiveTestResultPage/>},
     {path: '/mistake-review', el: <MistakeReviewPage/>},
     {path: '/welcome', el: <WelcomePage/>},
     {path: '/complete_profile', el: <CompleteProfilePage/>},

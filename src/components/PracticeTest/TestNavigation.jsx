@@ -61,7 +61,7 @@ function TestNavigation({
                             </Button>
                         ) : (
                             <Button size="sm" onClick={onSubmit}>
-                                Submit <Check className="size-4"/>
+                                Submit module <Check className="size-4"/>
                             </Button>
                         )}
                     </div>

@@ -1,5 +1,7 @@
 import React from 'react';
 import {Bookmark, BookmarkCheck} from 'lucide-react';
+import RenderWithMath from '../RenderWithMath';
+import {Input} from '../ui';
 
 function AnswerSection({currentQuestion, question, selectedAnswer, setSelectedAnswer, reviewQuestions, setReviewQuestions}) {
     const prompt = question.question.split('\n').slice(-1)[0];
@@ -9,6 +11,7 @@ function AnswerSection({currentQuestion, question, selectedAnswer, setSelectedAn
         {letter: 'C', text: question.choices[2]},
         {letter: 'D', text: question.choices[3]},
     ];
+    const studentProduced = question.response_type === 'student_produced';
 
     const isMarkedForReview = reviewQuestions.includes(currentQuestion);
 
@@ -42,9 +45,9 @@ function AnswerSection({currentQuestion, question, selectedAnswer, setSelectedAn
                 </div>
             </div>
 
-            <p className="m-0 mb-5 text-base font-bold leading-relaxed text-slate-900">{prompt}</p>
+            <div className="mb-5 text-base font-bold leading-relaxed text-slate-900"><RenderWithMath text={prompt}/></div>
 
-            <div className="space-y-3" role="radiogroup" aria-label={`Question ${currentQuestion} choices`}>
+            {!studentProduced && <div className="space-y-3" role="radiogroup" aria-label={`Question ${currentQuestion} choices`}>
                 {choices.map(({letter, text}) => {
                     const selected = selectedAnswer[currentQuestion] === letter;
                     return (
@@ -65,11 +68,27 @@ function AnswerSection({currentQuestion, question, selectedAnswer, setSelectedAn
                             }`}>
                                 {letter}
                             </span>
-                            <span className="pt-1 text-sm leading-relaxed sm:text-base">{text}</span>
+                            <span className="pt-1 text-sm leading-relaxed sm:text-base"><RenderWithMath text={text}/></span>
                         </button>
                     );
                 })}
-            </div>
+            </div>}
+            {studentProduced && (
+                <div className="max-w-sm rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <label htmlFor={`student-response-${currentQuestion}`} className="mb-2 block text-sm font-black text-slate-700">
+                        Enter your answer
+                    </label>
+                    <Input
+                        id={`student-response-${currentQuestion}`}
+                        value={selectedAnswer[currentQuestion] || ''}
+                        onChange={(event) => setSelectedAnswer({...selectedAnswer, [currentQuestion]: event.target.value})}
+                        placeholder="Integer, decimal, or fraction"
+                        inputMode="decimal"
+                        autoComplete="off"
+                    />
+                    <p className="m-0 mt-2 text-xs leading-5 text-slate-500">Equivalent fractions and decimals are accepted.</p>
+                </div>
+            )}
         </div>
     );
 }

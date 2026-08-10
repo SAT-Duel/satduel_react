@@ -29,10 +29,9 @@ function defaultPosition() {
     return panelPosition(window.innerWidth - PANEL_WIDTH - 24, 80);
 }
 
-// Routes that want the calculator but don't render PracticeQuestionCard, so
-// they have nowhere to put an in-card button and keep the floating one.
+// Routes that want the calculator but don't render an in-page button.
 function shouldShowFloatingButton(pathname) {
-    return pathname === '/full_length_test' || pathname.startsWith('/study_guides');
+    return pathname.startsWith('/study_guides');
 }
 
 const DesmosContext = createContext(null);

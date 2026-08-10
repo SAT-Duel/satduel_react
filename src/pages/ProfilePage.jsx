@@ -9,11 +9,14 @@ import {
     Flame,
     History,
     LineChart,
+    MessageCircle,
     Search,
     Swords,
     Target,
     Trophy,
     UserPlus,
+    UserMinus,
+    UserRound,
     Users,
     X,
 } from 'lucide-react';
@@ -163,6 +166,11 @@ function ProfilePage() {
     const [tournamentHistory, setTournamentHistory] = useState([]);
     const [friends, setFriends] = useState([]);
     const [friendRequests, setFriendRequests] = useState([]);
+    const [outgoingRequests, setOutgoingRequests] = useState([]);
+    const [friendUnread, setFriendUnread] = useState({});
+    const [cancelingRequestId, setCancelingRequestId] = useState(null);
+    const [sendingRequestId, setSendingRequestId] = useState(null);
+    const [removingFriendId, setRemovingFriendId] = useState(null);
     const [pageLoading, setPageLoading] = useState(true);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState(null);
@@ -188,6 +196,8 @@ function ProfilePage() {
     const mathAccuracy = stats?.math_accuracy != null ? `${stats.math_accuracy}%` : '—';
     const daily = practiceStatus?.daily;
     const quota = practiceStatus?.quota;
+    const totalFriendUnread = Object.values(friendUnread).reduce((sum, count) => sum + count, 0);
+    const hasFriendActivity = isOwnProfile && (friendRequests.length > 0 || totalFriendUnread > 0);
 
     const loadFriends = useCallback(async () => {
         if (!isOwnProfile || !token) return;
@@ -197,8 +207,19 @@ function ProfilePage() {
 
     const loadFriendRequests = useCallback(async () => {
         if (!isOwnProfile || !token) return;
-        const response = await api.get('api/profile/friend_requests/');
-        setFriendRequests(response.data);
+        const response = await api.get('api/profile/friend_requests/', {params: {scope: 'all'}});
+        setFriendRequests(response.data.incoming || []);
+        setOutgoingRequests(response.data.outgoing || []);
+    }, [isOwnProfile, token]);
+
+    // Unread counts come from the messages endpoint so the friends list can
+    // show which conversations are waiting on a reply.
+    const loadFriendUnread = useCallback(async () => {
+        if (!isOwnProfile || !token) return;
+        const response = await api.get('api/messages/conversations/');
+        setFriendUnread(Object.fromEntries(
+            response.data.map((entry) => [entry.friend.user.id, entry.unread_count])
+        ));
     }, [isOwnProfile, token]);
 
     useEffect(() => {
@@ -214,7 +235,6 @@ function ProfilePage() {
             setError('');
             setNotice(null);
             setActiveTab('overview');
-
             try {
                 if (isOwnProfile) {
                     const [profileResponse, statsResponse, statusResponse] = await Promise.all([
@@ -266,7 +286,8 @@ function ProfilePage() {
         if (!isOwnProfile || loading || !token) return;
         loadFriends().catch(() => setFriends([]));
         loadFriendRequests().catch(() => setFriendRequests([]));
-    }, [isOwnProfile, loadFriendRequests, loadFriends, loading, token]);
+        loadFriendUnread().catch(() => setFriendUnread({}));
+    }, [isOwnProfile, loadFriendRequests, loadFriendUnread, loadFriends, loading, token]);
 
     useEffect(() => {
         if (!searchQuery.trim() || searchQuery.trim().length < 2) {
@@ -357,12 +378,16 @@ function ProfilePage() {
         }
     };
 
-    const sendFriendRequest = async () => {
+    const sendFriendRequest = async (toUserId = userId) => {
+        setSendingRequestId(toUserId);
         try {
-            await api.post('api/profile/send_friend_request/', {to_user_id: userId});
+            await api.post('api/profile/send_friend_request/', {to_user_id: toUserId});
+            if (isOwnProfile) await loadFriendRequests();
             setNotice({type: 'success', text: 'Friend request sent.'});
         } catch (err) {
             setNotice({type: 'error', text: err.response?.data?.detail || 'Could not send friend request.'});
+        } finally {
+            setSendingRequestId(null);
         }
     };
 
@@ -373,6 +398,39 @@ function ProfilePage() {
             await loadFriends();
         } catch {
             setNotice({type: 'error', text: 'Could not update friend request.'});
+        }
+    };
+
+    const cancelFriendRequest = async (requestId) => {
+        setCancelingRequestId(requestId);
+        try {
+            await api.post(`api/profile/cancel_friend_request/${requestId}/`);
+            setOutgoingRequests((requests) => requests.filter((request) => request.id !== requestId));
+        } catch {
+            setNotice({type: 'error', text: 'Could not cancel friend request.'});
+        } finally {
+            setCancelingRequestId(null);
+        }
+    };
+
+    const removeFriend = async (friend) => {
+        const username = friend.user.username;
+        if (!window.confirm(`Remove ${username}? This will permanently delete your chat history with them.`)) return;
+
+        setRemovingFriendId(friend.user.id);
+        try {
+            await api.post('api/profile/remove_friend/', {friend_id: friend.user.id});
+            setFriends((current) => current.filter((entry) => entry.id !== friend.id));
+            setFriendUnread((current) => {
+                const next = {...current};
+                delete next[friend.user.id];
+                return next;
+            });
+            setNotice({type: 'success', text: `${username} was removed and your chat history was deleted.`});
+        } catch (err) {
+            setNotice({type: 'error', text: err.response?.data?.detail || 'Could not remove this friend.'});
+        } finally {
+            setRemovingFriendId(null);
         }
     };
 
@@ -447,7 +505,7 @@ function ProfilePage() {
                                     </Button>
                                 </>
                             ) : (
-                                <Button onClick={sendFriendRequest}>
+                                <Button onClick={() => sendFriendRequest(userId)} loading={sendingRequestId === userId}>
                                     <UserPlus className="size-4"/> Add friend
                                 </Button>
                             )}
@@ -480,6 +538,9 @@ function ProfilePage() {
                                 }`}
                             >
                                 <Icon className="size-4"/> {label}
+                                {id === 'friends' && hasFriendActivity && (
+                                    <span className={`size-2 rounded-full ${activeTab === id ? 'bg-rose-300' : 'bg-rose-500'}`} aria-label="New friend activity"/>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -675,71 +736,102 @@ function ProfilePage() {
                 )}
 
                 {activeTab === 'friends' && (
-                    <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_1.1fr]">
+                    <div className="mt-6">
                         {isOwnProfile ? (
-                            <Card className="p-6">
-                                <div className="mb-4 flex items-center gap-2">
-                                    <Search className="size-5 text-primary-600"/>
-                                    <h2 className="m-0 text-xl font-bold text-slate-900">Find students</h2>
-                                </div>
-                                <Input
-                                    value={searchQuery}
-                                    onChange={(event) => setSearchQuery(event.target.value)}
-                                    placeholder="Search by username"
-                                />
-                                <div className="mt-4 space-y-2">
-                                    {searching && <p className="text-sm text-slate-500">Searching…</p>}
-                                    {searchResults.map((result) => (
-                                        <Link
-                                            key={result.id}
-                                            to={`/profile/${result.id}`}
-                                            className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 no-underline transition-colors hover:border-primary-300 hover:bg-primary-50/40"
-                                        >
-                                            <UserAvatar profile={result} size="sm"/>
-                                            <div>
-                                                <p className="m-0 font-semibold text-slate-900">{result.username}</p>
-                                                <p className="m-0 text-sm text-slate-500">
-                                                    {result.elo_rating} Duel Elo{result.is_premium ? ' · Premium' : ''}
-                                                </p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-
-                                <div className="mt-6 border-t border-slate-100 pt-5">
-                                    <h3 className="m-0 text-base font-bold text-slate-900">Friend requests</h3>
-                                    <div className="mt-3 space-y-2">
-                                        {friendRequests.length ? friendRequests.map((request) => (
-                                            <div key={request.id} className="flex flex-col gap-3 rounded-xl border border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
-                                                <div>
-                                                    <p className="m-0 font-semibold text-slate-900">{request.from_user.username}</p>
-                                                    <p className="m-0 text-sm text-slate-500">wants to connect</p>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => respondToFriendRequest(request.id, 'accepted')}
-                                                        className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                                        aria-label="Accept friend request"
-                                                    >
-                                                        <Check className="size-5"/>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => respondToFriendRequest(request.id, 'rejected')}
-                                                        className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100"
-                                                        aria-label="Reject friend request"
-                                                    >
-                                                        <X className="size-5"/>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )) : (
-                                            <p className="m-0 text-sm text-slate-500">No pending requests.</p>
-                                        )}
+                            <div className="grid gap-5 lg:grid-cols-2">
+                                <Card className="p-5 sm:p-6">
+                                    <div className="mb-4 flex items-center gap-2">
+                                        <Search className="size-5 text-primary-600"/>
+                                        <h2 className="m-0 text-xl font-bold text-slate-900">Find students</h2>
                                     </div>
-                                </div>
-                            </Card>
+                                    <Input
+                                        value={searchQuery}
+                                        onChange={(event) => setSearchQuery(event.target.value)}
+                                        placeholder="Search by username"
+                                        maxLength={30}
+                                    />
+                                    <div className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
+                                        {searching && <p className="m-0 text-sm text-slate-500">Searching…</p>}
+                                        {!searching && searchQuery.trim().length >= 2 && !searchResults.length && (
+                                            <p className="m-0 text-sm text-slate-500">No students found.</p>
+                                        )}
+                                        {searchResults.map((result) => {
+                                            const isFriend = friends.some((friend) => friend.user.id === result.id);
+                                            const outgoing = outgoingRequests.find((request) => request.to_user.id === result.id);
+                                            const incoming = friendRequests.some((request) => request.from_user.id === result.id);
+                                            return (
+                                                <div key={result.id} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+                                                    <Link to={`/profile/${result.id}`} className="flex min-w-0 flex-1 items-center gap-3 no-underline">
+                                                        <UserAvatar profile={result} size="sm"/>
+                                                        <div className="min-w-0">
+                                                            <p className="m-0 truncate font-semibold text-slate-900">{result.username}</p>
+                                                            <p className="m-0 text-sm text-slate-500">
+                                                                {result.elo_rating} Duel Elo · {result.is_premium ? 'Premium' : 'Free'}
+                                                            </p>
+                                                        </div>
+                                                    </Link>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        disabled={isFriend || outgoing || incoming}
+                                                        loading={sendingRequestId === result.id}
+                                                        onClick={() => sendFriendRequest(result.id)}
+                                                    >
+                                                        <UserPlus className="size-4"/>
+                                                        {isFriend ? 'Friends' : outgoing ? 'Sent' : incoming ? 'Pending' : 'Add'}
+                                                    </Button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </Card>
+
+                                <Card className="p-5 sm:p-6">
+                                    <div className="mb-4 flex items-center gap-2">
+                                        <UserPlus className="size-5 text-primary-600"/>
+                                        <h2 className="m-0 text-xl font-bold text-slate-900">Friend requests</h2>
+                                    </div>
+                                    <div className="max-h-72 space-y-5 overflow-y-auto pr-1">
+                                        <section>
+                                            <h3 className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Incoming</h3>
+                                            <div className="mt-2 space-y-2">
+                                                {friendRequests.length ? friendRequests.map((request) => (
+                                                    <div key={request.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
+                                                        <div className="min-w-0">
+                                                            <p className="m-0 truncate font-semibold text-slate-900">{request.from_user.username}</p>
+                                                            <p className="m-0 text-sm text-slate-500">wants to connect</p>
+                                                        </div>
+                                                        <div className="flex shrink-0 gap-2">
+                                                            <button type="button" onClick={() => respondToFriendRequest(request.id, 'accepted')} className="flex size-9 cursor-pointer items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100" aria-label={`Accept ${request.from_user.username}'s friend request`}>
+                                                                <Check className="size-4"/>
+                                                            </button>
+                                                            <button type="button" onClick={() => respondToFriendRequest(request.id, 'rejected')} className="flex size-9 cursor-pointer items-center justify-center rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100" aria-label={`Reject ${request.from_user.username}'s friend request`}>
+                                                                <X className="size-4"/>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )) : <p className="m-0 text-sm text-slate-500">No incoming requests.</p>}
+                                            </div>
+                                        </section>
+                                        <section className="border-t border-slate-100 pt-4">
+                                            <h3 className="m-0 text-xs font-black uppercase tracking-wide text-slate-400">Outgoing</h3>
+                                            <div className="mt-2 space-y-2">
+                                                {outgoingRequests.length ? outgoingRequests.map((request) => (
+                                                    <div key={request.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
+                                                        <div className="min-w-0">
+                                                            <p className="m-0 truncate font-semibold text-slate-900">{request.to_user.username}</p>
+                                                            <p className="m-0 text-sm text-slate-500">Request sent</p>
+                                                        </div>
+                                                        <Button size="sm" variant="ghost" loading={cancelingRequestId === request.id} onClick={() => cancelFriendRequest(request.id)}>
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                )) : <p className="m-0 text-sm text-slate-500">No outgoing requests.</p>}
+                                            </div>
+                                        </section>
+                                    </div>
+                                </Card>
+                            </div>
                         ) : (
                             <Card className="p-6">
                                 <h2 className="m-0 text-xl font-bold text-slate-900">Friends</h2>
@@ -747,27 +839,55 @@ function ProfilePage() {
                             </Card>
                         )}
 
-                        <Card className="p-6">
-                            <div className="mb-5 flex items-center gap-2">
+                        <Card className="mt-5 p-5 sm:p-6">
+                            <div className="mb-1 flex items-center gap-2">
                                 <Users className="size-5 text-primary-600"/>
-                                <h2 className="m-0 text-xl font-bold text-slate-900">Friends list</h2>
+                                <h2 className="m-0 text-xl font-bold text-slate-900">My friends</h2>
                             </div>
                             {isOwnProfile && friends.length ? (
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    {friends.map((friend) => (
-                                        <Link
-                                            key={friend.id}
-                                            to={`/profile/${friend.user.id}`}
-                                            className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 no-underline transition-colors hover:border-primary-300 hover:bg-primary-50/40"
-                                        >
-                                            <UserAvatar profile={friend} size="sm"/>
-                                            <div className="min-w-0">
-                                                <p className="m-0 truncate font-semibold text-slate-900">{friend.user.username}</p>
-                                                <p className="m-0 text-sm text-slate-500">{gradeLabel(friend.grade)}</p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
+                                <>
+                                    <p className="m-0 mb-4 text-sm text-slate-500">
+                                        Chat is tucked in here whenever you need it.
+                                    </p>
+                                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                        {friends.map((friend) => {
+                                            const unread = friendUnread[friend.user.id] || 0;
+                                            return (
+                                                <article
+                                                    key={friend.id}
+                                                    className="flex min-h-56 flex-col rounded-2xl border border-slate-200 bg-white p-4"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <UserAvatar profile={friend} size="md"/>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="m-0 truncate text-lg font-bold text-slate-900">{friend.user.username}</p>
+                                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-bold">
+                                                                <span className={friend.is_premium ? 'rounded-full bg-amber-100 px-2 py-1 text-amber-700' : 'rounded-full bg-slate-100 px-2 py-1 text-slate-500'}>
+                                                                    {friend.is_premium ? 'Premium' : 'Free'}
+                                                                </span>
+                                                                <span className="text-slate-400">{gradeLabel(friend.grade)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
+                                                        <Button to={`/profile/${friend.user.id}`} size="sm" variant="secondary">
+                                                            <UserRound className="size-4"/> Profile
+                                                        </Button>
+                                                        <Button to={`/messages/${friend.user.id}`} size="sm" className="relative">
+                                                            <MessageCircle className="size-4"/> Message
+                                                            {unread > 0 && (
+                                                                <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" aria-label={`${unread} unread messages`}/>
+                                                            )}
+                                                        </Button>
+                                                        <Button size="sm" variant="ghost" className="col-span-2 text-rose-600 hover:bg-rose-50" loading={removingFriendId === friend.user.id} onClick={() => removeFriend(friend)}>
+                                                            <UserMinus className="size-4"/> Remove friend
+                                                        </Button>
+                                                    </div>
+                                                </article>
+                                            );
+                                        })}
+                                    </div>
+                                </>
                             ) : (
                                 <EmptyState title="No friends yet" text={isOwnProfile ? 'Search for classmates and send a friend request.' : 'Friend list is private for now.'}/>
                             )}

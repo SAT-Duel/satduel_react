@@ -3,8 +3,9 @@ import {ArrowLeft, Check, Copy, Sparkles, Upload} from 'lucide-react';
 import api from '../../components/api';
 import withAuth from '../../hoc/withAuth';
 import RenderWithMath from '../../components/RenderWithMath';
-import {Button, Card, Field, PageContainer, Select, Spinner, Textarea} from '../../components/ui';
+import {Button, Card, Field, Input, PageContainer, Select, Spinner, Textarea} from '../../components/ui';
 import {notify} from '../../utils/notify';
+import {QUESTION_SOURCES, questionSourceLabel} from '../../utils/questionSource';
 
 // Mirrors api/generation.py parse_questions: tolerate fences/prose around the JSON array.
 function parseModelOutput(raw) {
@@ -31,7 +32,7 @@ function parseModelOutput(raw) {
     return questions;
 }
 
-function DraftCard({draft, selected, onToggle}) {
+function DraftCard({draft, selected, onToggle, source, sourceOther}) {
     const choices = [['A', draft.choice_a], ['B', draft.choice_b], ['C', draft.choice_c], ['D', draft.choice_d]];
     return (
         <Card className={`p-5 ${selected ? '' : 'opacity-50'}`}>
@@ -40,6 +41,9 @@ function DraftCard({draft, selected, onToggle}) {
                     <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-cyan-700">{draft.question_type}</span>
                     <span className="rounded-full bg-slate-100 px-2 py-0.5">Difficulty {draft.difficulty}</span>
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700">Answer {draft.answer}</span>
+                    <span className="rounded-full bg-violet-50 px-2 py-0.5 text-violet-700">
+                        {questionSourceLabel(source, sourceOther)}
+                    </span>
                 </div>
                 <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm font-bold text-slate-600">
                     <input type="checkbox" checked={selected} onChange={onToggle} className="size-4"/>
@@ -93,6 +97,8 @@ function QuestionGeneratorPage() {
     const [skillName, setSkillName] = useState('');
     const [difficulty, setDifficulty] = useState('3');
     const [count, setCount] = useState('5');
+    const [source, setSource] = useState('ai_generated');
+    const [sourceOther, setSourceOther] = useState('');
 
     const [generating, setGenerating] = useState(false);
     const [prompt, setPrompt] = useState('');
@@ -183,9 +189,17 @@ function QuestionGeneratorPage() {
             notify.warning('No drafts selected.');
             return;
         }
+        if (source === 'other' && !sourceOther.trim()) {
+            notify.warning('Describe the other question source.');
+            return;
+        }
         try {
             setImporting(true);
-            const res = await api.post('/api/admin/generation/import/', {questions: chosen});
+            const res = await api.post('/api/admin/generation/import/', {
+                questions: chosen,
+                source,
+                source_other: sourceOther.trim(),
+            });
             notify.success(`Imported ${res.data.created_ids.length} question(s) into the bank`);
             const remaining = drafts.filter((_, i) => !selected[i]);
             setDraftList(remaining);
@@ -278,7 +292,7 @@ function QuestionGeneratorPage() {
                         English generator topics are not configured yet.
                     </p>
                 )}
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
                     <Field label="Difficulty">
                         <Select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                             {[1, 2, 3, 4, 5].map((d) => <option key={d} value={d}>{d}</option>)}
@@ -289,7 +303,26 @@ function QuestionGeneratorPage() {
                             {[1, 2, 3, 5, 8, 10].map((n) => <option key={n} value={n}>{n}</option>)}
                         </Select>
                     </Field>
+                    <Field label="Source for this batch">
+                        <Select value={source} onChange={(e) => setSource(e.target.value)}>
+                            {QUESTION_SOURCES.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                        </Select>
+                    </Field>
                 </div>
+                {source === 'other' && (
+                    <div className="mt-4">
+                        <Field label="Other source">
+                            <Input
+                                value={sourceOther}
+                                onChange={(e) => setSourceOther(e.target.value)}
+                                placeholder="e.g. Teacher-authored set"
+                                maxLength={255}
+                            />
+                        </Field>
+                    </div>
+                )}
                 <div className="mt-5 flex justify-end">
                     <Button onClick={handleGenerate} loading={generating} disabled={!skill}>
                         <Sparkles size={18}/> {apiConfigured ? 'Generate' : 'Build Prompt'}
@@ -338,6 +371,8 @@ function QuestionGeneratorPage() {
                             draft={draft}
                             selected={selected[i]}
                             onToggle={() => setSelected(selected.map((s, j) => (j === i ? !s : s)))}
+                            source={source}
+                            sourceOther={sourceOther}
                         />
                     ))}
                 </div>

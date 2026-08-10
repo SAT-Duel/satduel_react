@@ -2,10 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
     createPracticeTestSession,
-    pausePracticeTestSession,
     practiceTestSecondsLeft,
     readPracticeTestSession,
-    resumePracticeTestSession,
+    restorePracticeTestSession,
     writePracticeTestSession,
 } from './practiceTestSession.js';
 
@@ -18,46 +17,52 @@ const memoryStorage = () => {
     };
 };
 
-test('running sessions keep counting down while the page is gone', () => {
-    const session = createPracticeTestSession({
-        testId: 1,
-        testName: 'Diagnostic',
-        initialSeconds: 1500,
-        questions: [{id: 1}],
-    }, 10_000);
-
-    assert.equal(practiceTestSecondsLeft(session, 25_000), 1485);
-    assert.equal(practiceTestSecondsLeft(session, 35_000), 1475);
+const serverSession = (updates = {}) => ({
+    attempt_id: 12,
+    test_id: 4,
+    phase: 'english_a',
+    time_limit_seconds: 1920,
+    remaining_seconds: 1800,
+    answers: {'1': 'B'},
+    review_questions: [2],
+    current_question: 3,
+    ...updates,
 });
 
-test('save and quit pauses the timer and resume starts it from the saved time', () => {
-    const session = createPracticeTestSession({
-        testId: 1,
-        testName: 'Diagnostic',
-        initialSeconds: 1500,
-        questions: [{id: 1}],
-    }, 10_000);
-    const progress = {currentQuestion: 2, selectedAnswers: {1: 'B'}, reviewQuestions: [1], hideTimer: true};
-    const paused = pausePracticeTestSession(session, progress, 25_000);
+test('a live module keeps counting down while the page is gone', () => {
+    const session = createPracticeTestSession(serverSession(), 10_000);
 
-    assert.equal(practiceTestSecondsLeft(paused, 900_000), 1485);
-    assert.deepEqual(paused.progress, progress);
-
-    const resumed = resumePracticeTestSession(paused, 900_000);
-    assert.equal(practiceTestSecondsLeft(resumed, 910_000), 1475);
+    assert.equal(practiceTestSecondsLeft(session, 25_000), 1785);
+    assert.equal(practiceTestSecondsLeft(session, 35_000), 1775);
 });
 
-test('session progress survives a storage round trip', () => {
+test('answers, position, review marks, and timer survive a storage round trip', () => {
     const storage = memoryStorage();
-    const session = createPracticeTestSession({
-        testId: 1,
-        testName: 'Diagnostic',
-        initialSeconds: 1500,
-        questions: [{id: 42}],
-    }, 10_000);
-    session.progress.selectedAnswers = {1: 'C'};
+    const session = createPracticeTestSession(serverSession(), 10_000);
+    session.progress.answers['3'] = 'C';
+    session.progress.hideTimer = true;
+    writePracticeTestSession(12, session, storage);
 
-    writePracticeTestSession(7, session, storage);
+    const restored = restorePracticeTestSession(serverSession(), storage, 900_000);
 
-    assert.deepEqual(readPracticeTestSession(7, storage), session);
+    assert.deepEqual(restored, session);
+    assert.equal(practiceTestSecondsLeft(restored, 910_000), 900);
+});
+
+test('a completed module cannot leak progress into the next module', () => {
+    const storage = memoryStorage();
+    const first = createPracticeTestSession(serverSession(), 10_000);
+    writePracticeTestSession(12, first, storage);
+
+    const next = restorePracticeTestSession(serverSession({
+        phase: 'english_c',
+        remaining_seconds: 1920,
+        answers: {},
+        review_questions: [],
+        current_question: 1,
+    }), storage, 20_000);
+
+    assert.equal(next.phase, 'english_c');
+    assert.deepEqual(next.progress.answers, {});
+    assert.equal(readPracticeTestSession(12, storage), null);
 });

@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
 import {Helmet} from 'react-helmet';
 import {useNavigate} from 'react-router-dom';
+import {ArrowRight, Check, Crown, Gift} from 'lucide-react';
 import api from '../components/api';
+import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {Alert, Button, Card, Field, Input, Select} from '../components/ui';
 import {
     MarketingChoice,
@@ -14,6 +16,7 @@ import {
 import {useAuth} from '../context/AuthContext';
 import withAuth from '../hoc/withAuth';
 import useSdTheme from '../hooks/useSdTheme';
+import {dismissDiscordPromo} from '../utils/discordPromo';
 import '../styles/landing.css';
 
 const GRADES = [...Array.from({length: 5}, (_, i) => String(i + 8)), '>12'];
@@ -30,6 +33,7 @@ const CompleteProfilePage = () => {
     const [termsAccepted, setTermsAccepted] = useState(Boolean(user?.terms_accepted));
     const [satExamDate, setSatExamDate] = useState('');
     const [marketingOptIn, setMarketingOptIn] = useState(false);
+    const [setupComplete, setSetupComplete] = useState(false);
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const {dates, loading: datesLoading, error: datesError} = useSatExamDates();
@@ -88,7 +92,9 @@ const CompleteProfilePage = () => {
                 onboarding_required: data.onboarding_required,
                 terms_accepted: true,
             });
-            navigate('/welcome');
+            dismissDiscordPromo();
+            setSetupComplete(true);
+            setSubmitting(false);
         } catch (requestError) {
             setError(requestError.response?.data?.error || 'Could not save your profile. Please try again.');
             setSubmitting(false);
@@ -100,6 +106,60 @@ const CompleteProfilePage = () => {
         2: ['When is your next SAT?', 'We’ll use this to put a helpful countdown on your dashboard.'],
         3: ['One last choice', 'Choose which SAT Duel emails you’d like to receive.'],
     };
+
+    if (setupComplete) {
+        return (
+            <div className="sd-landing flex min-h-screen items-center justify-center px-4 py-10" data-theme={theme}>
+                <Helmet><title>Claim free Premium | SAT Duel</title></Helmet>
+                <Card className="w-full max-w-xl overflow-hidden !p-0">
+                    <div className="sat-score-strip flex items-center justify-between px-5 py-3 sm:px-7">
+                        <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-primary-700">
+                            <Gift className="size-4"/> Limited-time offer
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                            <Check className="size-4"/> Account ready
+                        </span>
+                    </div>
+
+                    <div className="p-6 text-center sm:p-8">
+                        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-[#5865F2] text-white shadow-[0_8px_0_0_#4752c4]">
+                            <DiscordIcon className="size-8"/>
+                        </div>
+                        <p className="m-0 mt-7 text-xs font-black uppercase tracking-[0.12em] text-primary-600">Discord member bonus</p>
+                        <h1 className="m-0 mt-2 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                            Get one month of Premium free
+                        </h1>
+                        <p className="mx-auto mb-0 mt-3 max-w-md text-[15px] leading-6 text-slate-500">
+                            Join the SAT Duel Discord and grab the promotion code posted inside the server.
+                        </p>
+
+                        <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                            <Crown className="size-6 shrink-0 text-amber-500"/>
+                            <p className="m-0 text-sm font-semibold leading-5 text-amber-950">
+                                Unlock Premium practice features for your first month—on us.
+                            </p>
+                        </div>
+
+                        <a
+                            href={DISCORD_INVITE}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#4752c4] bg-[#5865F2] px-5 py-3 text-base font-bold text-white no-underline shadow-[0_4px_0_0_#4752c4] transition-all hover:bg-[#4f5bd5] active:translate-y-1 active:shadow-none"
+                        >
+                            <DiscordIcon className="size-5"/> Join Discord &amp; get my code
+                        </a>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/welcome')}
+                            className="mt-5 inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-slate-700"
+                        >
+                            Continue to SAT Duel <ArrowRight className="size-4"/>
+                        </button>
+                    </div>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="sd-landing flex min-h-screen items-center justify-center px-4 py-10" data-theme={theme}>

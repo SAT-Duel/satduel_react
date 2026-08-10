@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
-import {ArrowLeft, Eye, Save} from 'lucide-react';
+import {AlertTriangle, ArrowLeft, Eye, Save, Trash2} from 'lucide-react';
 import api from '../../components/api';
 import Question from '../../components/Question';
 import withAuth from '../../hoc/withAuth';
 import {Button, Card, Field, Input, ModalShell, PageContainer, Select, Spinner, Textarea} from '../../components/ui';
 import {notify} from '../../utils/notify';
+import {QUESTION_SOURCES} from '../../utils/questionSource';
 
 const blankQuestion = {
     question: '',
@@ -16,6 +17,8 @@ const blankQuestion = {
     answer: 'A',
     difficulty: '1',
     question_type: '',
+    source: 'sat_question_bank',
+    source_other: '',
     explanation: '',
 };
 
@@ -26,7 +29,9 @@ function QuestionEditorPage() {
     const [values, setValues] = useState(blankQuestion);
     const [loading, setLoading] = useState(!!id);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [previewVisible, setPreviewVisible] = useState(false);
+    const [deleteVisible, setDeleteVisible] = useState(false);
     const returnTo = useMemo(() => {
         const path = new URLSearchParams(location.search).get('returnTo') || '/admin/questions';
         return path.startsWith('/admin/questions') ? path : '/admin/questions';
@@ -49,6 +54,8 @@ function QuestionEditorPage() {
                 answer: response.data.answer || 'A',
                 difficulty: String(response.data.difficulty || '1'),
                 question_type: response.data.question_type || '',
+                source: response.data.source || 'sat_question_bank',
+                source_other: response.data.source_other || '',
                 explanation: response.data.explanation || '',
             });
         } catch (error) {
@@ -79,6 +86,10 @@ function QuestionEditorPage() {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        if (values.source === 'other' && !values.source_other.trim()) {
+            notify.warning('Describe the other question source.');
+            return;
+        }
         if (!validate()) {
             notify.warning('Fill in the required question fields first.');
             return;
@@ -101,6 +112,20 @@ function QuestionEditorPage() {
             notify.error(`Failed to ${id ? 'update' : 'create'} question`);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            setDeleting(true);
+            await api.delete(`/api/delete_question/${id}`);
+            notify.success(`Question ${id} deleted permanently`);
+            setDeleteVisible(false);
+            navigate(returnTo);
+        } catch (error) {
+            console.error('Error deleting question:', error);
+            notify.error('Failed to delete question');
+            setDeleting(false);
         }
     };
 
@@ -172,6 +197,26 @@ function QuestionEditorPage() {
                         />
                     </Field>
 
+                    <div className={`grid gap-4 ${values.source === 'other' ? 'sm:grid-cols-2' : ''}`}>
+                        <Field label="Source">
+                            <Select value={values.source} onChange={(event) => updateValue('source', event.target.value)}>
+                                {QUESTION_SOURCES.map((source) => (
+                                    <option key={source.value} value={source.value}>{source.label}</option>
+                                ))}
+                            </Select>
+                        </Field>
+                        {values.source === 'other' && (
+                            <Field label="Other source">
+                                <Input
+                                    value={values.source_other}
+                                    onChange={(event) => updateValue('source_other', event.target.value)}
+                                    placeholder="e.g. Teacher-authored set"
+                                    maxLength={255}
+                                />
+                            </Field>
+                        )}
+                    </div>
+
                     <Field label="Explanation">
                         <Textarea
                             rows={12}
@@ -181,6 +226,11 @@ function QuestionEditorPage() {
                     </Field>
 
                     <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                        {id && (
+                            <Button type="button" variant="danger" onClick={() => setDeleteVisible(true)}>
+                                <Trash2 size={18}/> Delete
+                            </Button>
+                        )}
                         <Button type="button" variant="secondary" onClick={() => setPreviewVisible(true)}>
                             <Eye size={18}/> Preview
                         </Button>
@@ -205,6 +255,42 @@ function QuestionEditorPage() {
                     questionNumber={1}
                     disabled
                 />
+            </ModalShell>
+
+            <ModalShell
+                open={deleteVisible}
+                title={`Delete question ${id}?`}
+                onClose={() => setDeleteVisible(false)}
+                footer={(
+                    <>
+                        <Button variant="secondary" onClick={() => setDeleteVisible(false)} disabled={deleting}>
+                            Keep Question
+                        </Button>
+                        <Button variant="danger" loading={deleting} onClick={handleDelete}>
+                            <Trash2 size={18}/> Delete Permanently
+                        </Button>
+                    </>
+                )}
+            >
+                <div className="flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                    <AlertTriangle className="mt-0.5 size-5 shrink-0 text-rose-600"/>
+                    <div className="text-sm leading-6 text-rose-900">
+                        <p className="font-black">This erases the question from the database. It cannot be undone.</p>
+                        <p className="mt-2">Deleting it also removes everything attached to it:</p>
+                        <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                            <li>student practice attempts for this question</li>
+                            <li>saved and tracked copies in student accounts</li>
+                            <li>open question reports</li>
+                            <li>its slot in tournaments, duel rooms, and class problem sets</li>
+                        </ul>
+                        <p className="mt-2">
+                            To take it out of circulation without losing history, edit the question instead.
+                        </p>
+                    </div>
+                </div>
+                <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-500">
+                    {values.question || 'No question text.'}
+                </p>
             </ModalShell>
         </PageContainer>
     );

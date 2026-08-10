@@ -18,7 +18,6 @@ function QuestionSession({
     deadlineAt = null,
     initialProgress = null,
     onProgressChange,
-    onSaveAndQuit,
     eyebrow,
     title,
     statusLabel,
@@ -26,6 +25,8 @@ function QuestionSession({
     navigationTitle,
     reviewDescription,
     variant = 'test',
+    onQuit = null,
+    showDesmos = false,
 }) {
     const totalQuestions = questions.length;
     const [currentQuestion, setCurrentQuestion] = useState(() => Math.min(
@@ -34,7 +35,7 @@ function QuestionSession({
     ));
     const [selectedAnswers, setSelectedAnswers] = useState(() => ({
         ...emptyAnswers(totalQuestions),
-        ...(initialProgress?.selectedAnswers || {}),
+        ...(initialProgress?.answers || initialProgress?.selectedAnswers || {}),
     }));
     const [reviewQuestions, setReviewQuestions] = useState(() => (
         Array.isArray(initialProgress?.reviewQuestions) ? initialProgress.reviewQuestions : []
@@ -43,43 +44,53 @@ function QuestionSession({
         deadlineAt == null ? initialSeconds : secondsUntil(deadlineAt)
     ));
     const [hideTimer, setHideTimer] = useState(Boolean(initialProgress?.hideTimer));
-    const submittedForDeadline = useRef(false);
+    const autoSubmitted = useRef(false);
 
     const answeredQuestions = Object.entries(selectedAnswers)
-        .filter(([, answer]) => answer !== null)
+        .filter(([, answer]) => answer !== null && answer !== '')
         .map(([number]) => Number(number));
 
+    const currentState = useCallback(() => ({
+        currentQuestion,
+        reviewQuestions,
+        timeLeft: deadlineAt == null ? timeLeft : secondsUntil(deadlineAt),
+        hideTimer,
+    }), [currentQuestion, deadlineAt, hideTimer, reviewQuestions, timeLeft]);
+
     const submit = useCallback(() => {
-        onSubmit(selectedAnswers);
-    }, [onSubmit, selectedAnswers]);
+        onSubmit(selectedAnswers, currentState());
+    }, [currentState, onSubmit, selectedAnswers]);
 
     useEffect(() => {
         if (deadlineAt == null) return undefined;
-        const updateTimer = () => {
-            const remaining = secondsUntil(deadlineAt);
-            setTimeLeft(remaining);
-            if (remaining === 0 && !submittedForDeadline.current) {
-                submittedForDeadline.current = true;
-                submit();
-            }
-        };
+        const updateTimer = () => setTimeLeft(secondsUntil(deadlineAt));
         updateTimer();
-        const timerId = window.setInterval(() => {
-            updateTimer();
-        }, 1000);
-        return () => window.clearInterval(timerId);
-    }, [deadlineAt, submit]);
+        const timerId = window.setInterval(updateTimer, 250);
+        document.addEventListener('visibilitychange', updateTimer);
+        window.addEventListener('focus', updateTimer);
+        return () => {
+            window.clearInterval(timerId);
+            document.removeEventListener('visibilitychange', updateTimer);
+            window.removeEventListener('focus', updateTimer);
+        };
+    }, [deadlineAt]);
 
     useEffect(() => {
-        onProgressChange?.({currentQuestion, selectedAnswers, reviewQuestions, hideTimer});
+        onProgressChange?.(selectedAnswers, {currentQuestion, reviewQuestions, timeLeft, hideTimer});
+        // The absolute deadline owns timer persistence, so ticks do not need storage writes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentQuestion, hideTimer, onProgressChange, reviewQuestions, selectedAnswers]);
 
-    const saveAndQuit = () => {
-        onSaveAndQuit?.({currentQuestion, selectedAnswers, reviewQuestions, hideTimer});
-    };
+    useEffect(() => {
+        if (initialSeconds != null && timeLeft === 0 && !autoSubmitted.current) {
+            autoSubmitted.current = true;
+            submit();
+        }
+    }, [initialSeconds, submit, timeLeft]);
 
     const activeQuestion = questions[currentQuestion - 1];
     const mistakeMode = variant === 'mistakes';
+    const hasSeparateContext = activeQuestion?.question?.includes('\n');
 
     return (
         <div className={`min-h-screen pb-24 ${mistakeMode ? 'bg-primary-50/60' : 'bg-slate-50'}`}>
@@ -90,14 +101,17 @@ function QuestionSession({
                 eyebrow={eyebrow}
                 title={title}
                 statusLabel={statusLabel}
-                onSaveAndQuit={onSaveAndQuit ? saveAndQuit : null}
+                showDesmos={showDesmos}
+                onQuit={onQuit ? () => onQuit(selectedAnswers, currentState()) : null}
             />
 
             {currentQuestion <= totalQuestions && activeQuestion && (
-                <main className="mx-auto grid max-w-7xl gap-0 lg:grid-cols-2">
-                    <section className={`border-b border-slate-200 lg:min-h-[calc(100vh-9rem)] lg:border-b-0 lg:border-r ${mistakeMode ? 'bg-primary-50/40' : 'bg-slate-50'}`}>
-                        <QuestionContent question={activeQuestion}/>
-                    </section>
+                <main className={`mx-auto grid gap-0 ${hasSeparateContext ? 'max-w-7xl lg:grid-cols-2' : 'max-w-3xl'}`}>
+                    {hasSeparateContext && (
+                        <section className={`border-b border-slate-200 lg:min-h-[calc(100vh-9rem)] lg:border-b-0 lg:border-r ${mistakeMode ? 'bg-primary-50/40' : 'bg-slate-50'}`}>
+                            <QuestionContent question={activeQuestion}/>
+                        </section>
+                    )}
                     <section className="bg-white lg:min-h-[calc(100vh-9rem)]">
                         <AnswerSection
                             question={activeQuestion}

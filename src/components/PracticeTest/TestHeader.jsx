@@ -1,5 +1,6 @@
-import React from 'react';
-import {Clock3, Save} from 'lucide-react';
+import React, {useEffect} from 'react';
+import {Calculator, Clock3, Save} from 'lucide-react';
+import {useDesmos} from '../DesmosCalculator';
 import {Button} from '../ui';
 
 const formatTime = (seconds) => {
@@ -15,18 +16,25 @@ function TestHeader({
     eyebrow = 'Section 1',
     title = 'Reading and Writing',
     statusLabel,
-    onSaveAndQuit,
+    onQuit = null,
+    showDesmos = false,
 }) {
+    const {open: openDesmos, close: closeDesmos} = useDesmos();
+
+    useEffect(() => {
+        if (!showDesmos) closeDesmos();
+    }, [closeDesmos, showDesmos]);
+
     return (
         <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+            <div className="relative mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:flex sm:justify-between">
                 <div className="min-w-0">
                     <p className={`m-0 text-xs font-black uppercase ${statusLabel ? 'text-primary-500' : 'text-slate-400'}`}>{eyebrow}</p>
-                    <p className="m-0 max-w-32 truncate font-display text-lg font-black text-slate-950 sm:max-w-none">{title}</p>
+                    <p className="m-0 truncate font-display text-lg font-black text-slate-950">{title}</p>
                 </div>
 
                 {timeLeft != null && (
-                    <div className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center">
+                    <div className="col-span-2 row-start-2 flex items-center justify-center gap-2 sm:absolute sm:left-1/2 sm:row-auto sm:-translate-x-1/2 sm:flex-col sm:gap-0">
                         {!hideTimer && (
                             <p className="m-0 flex items-center gap-2 font-display text-xl font-black text-slate-950">
                                 <Clock3 className="size-5 text-primary-600"/> {formatTime(timeLeft)}
@@ -35,21 +43,26 @@ function TestHeader({
                         <button
                             type="button"
                             onClick={onToggleHide}
-                            className="mt-1 cursor-pointer rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 text-xs font-black text-slate-500 hover:bg-white"
+                            className="cursor-pointer rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 text-xs font-black text-slate-500 hover:bg-white sm:mt-1"
                         >
                             {hideTimer ? 'Show timer' : 'Hide timer'}
                         </button>
                     </div>
                 )}
 
-                <div className={onSaveAndQuit ? 'flex items-center' : 'hidden items-center gap-2 sm:flex'}>
-                    {onSaveAndQuit ? (
-                        <Button variant="ghost" size="sm" className="px-2 sm:px-3.5" onClick={onSaveAndQuit}>
-                            <Save className="size-4"/>
-                            Save &amp; quit
+                <div className="flex items-center gap-2">
+                    {showDesmos && (
+                        <Button variant="secondary" size="sm" onClick={openDesmos}>
+                            <Calculator className="size-4"/> DESMOS
                         </Button>
-                    ) : statusLabel ? (
-                        <span className="rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-black text-primary-700">
+                    )}
+                    {onQuit && (
+                        <Button variant="ghost" size="sm" onClick={onQuit} aria-label="Save and quit practice test">
+                            <Save className="size-4"/> <span className="hidden sm:inline">Save &amp; quit</span>
+                        </Button>
+                    )}
+                    {statusLabel ? (
+                        <span className="hidden rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-black text-primary-700 sm:inline-flex">
                             {statusLabel}
                         </span>
                     ) : (

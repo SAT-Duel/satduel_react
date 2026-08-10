@@ -63,16 +63,16 @@ const TEAM = [
         lane: 'Engineering',
     },
     {
+        name: 'Bryan Zhou',
+        role: 'Co-founder & CFO',
+        avatar: bryan,
+        lane: 'Growth',
+    },
+    {
         name: 'Weiwei Luo',
         role: 'President & Project Manager',
         avatar: weiwei,
         lane: 'Operations',
-    },
-    {
-        name: 'Bryan Zhou',
-        role: 'Marketing & Finance',
-        avatar: bryan,
-        lane: 'Growth',
     },
 ];
 

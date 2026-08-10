@@ -1,112 +1,141 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
+import {RotateCcw, Save} from 'lucide-react';
+import {useNavigate, useParams} from 'react-router-dom';
 import QuestionSession from '../../components/PracticeTest/QuestionSession';
 import api from '../../components/api';
-import {Button, Spinner} from '../../components/ui';
-import {useAuth} from '../../context/AuthContext';
-import {loginPathFor} from '../../utils/authRedirect';
+import {Button, ModalShell, Spinner} from '../../components/ui';
 import {
     clearPracticeTestSession,
-    createPracticeTestSession,
-    pausePracticeTestSession,
     practiceTestSecondsLeft,
     readPracticeTestSession,
-    resumePracticeTestSession,
+    restorePracticeTestSession,
     writePracticeTestSession,
 } from '../../utils/practiceTestSession';
+import {notify} from '../../utils/notify';
 
-const DEFAULT_TEST_SECONDS = 25 * 60;
+function hydrateSession(serverSession) {
+    const localSession = restorePracticeTestSession(serverSession);
+    writePracticeTestSession(serverSession.attempt_id, localSession);
+    return {
+        ...serverSession,
+        deadlineAt: localSession.deadlineAt,
+        progress: localSession.progress,
+    };
+}
 
 function TestPage() {
-    const location = useLocation();
+    const {testId} = useParams();
     const navigate = useNavigate();
-    const {user, loading: authLoading} = useAuth();
     const [session, setSession] = useState(null);
-    const [loadError, setLoadError] = useState(false);
-    const hasLoaded = useRef(false);
-    const hasSubmitted = useRef(false);
+    const [error, setError] = useState('');
+    const [quitState, setQuitState] = useState(null);
+    const [working, setWorking] = useState(false);
+    const started = useRef(false);
 
     useEffect(() => {
-        if (authLoading || hasLoaded.current) return;
-        if (!user) {
-            navigate(loginPathFor('/practice_test'), {replace: true});
+        if (started.current) return;
+        started.current = true;
+        if (!testId) {
+            navigate('/practice_test', {replace: true});
             return;
         }
-        hasLoaded.current = true;
+        api.post(`/api/practice-tests/${testId}/start/`)
+            .then((response) => setSession(hydrateSession(response.data)))
+            .catch((requestError) => setError(requestError.response?.data?.error || 'This practice test could not be opened.'));
+    }, [navigate, testId]);
 
-        const saved = readPracticeTestSession(user.id);
-        if (saved) {
-            const restored = saved.timer.status === 'paused'
-                ? resumePracticeTestSession(saved)
-                : saved;
-            writePracticeTestSession(user.id, restored);
-            setSession(restored);
-            return;
-        }
+    const payload = (answers, state) => ({
+        answers,
+        current_question: state.currentQuestion,
+        review_questions: state.reviewQuestions,
+        remaining_seconds: state.timeLeft,
+    });
 
-        const queryParams = new URLSearchParams({
-            type: 'any',
-            difficulty: 'any',
-            page: 1,
-            page_size: 10,
-            random: true,
-        }).toString();
-
-        api.get(`api/filter_questions/?${queryParams}`)
-            .then((response) => {
-                const created = createPracticeTestSession({
-                    testId: location.state?.testId ?? 1,
-                    testName: location.state?.testName ?? 'SAT Diagnostic Test',
-                    initialSeconds: location.state?.initialSeconds ?? DEFAULT_TEST_SECONDS,
-                    questions: response.data.questions,
-                });
-                writePracticeTestSession(user.id, created);
-                setSession(created);
-            })
-            .catch((error) => {
-                console.error(error);
-                setLoadError(true);
-            });
-    }, [authLoading, location.state, navigate, user]);
-
-    const persistProgress = useCallback((progress) => {
-        if (!user || hasSubmitted.current) return;
+    const persistProgress = useCallback((answers, state) => {
         setSession((current) => {
             if (!current) return current;
-            const next = {...current, progress, updatedAt: Date.now()};
-            writePracticeTestSession(user.id, next);
-            return next;
+            const cached = readPracticeTestSession(current.attempt_id);
+            if (!cached || cached.phase !== current.phase) return current;
+            const progress = {
+                answers,
+                currentQuestion: state.currentQuestion,
+                reviewQuestions: state.reviewQuestions,
+                hideTimer: state.hideTimer,
+            };
+            writePracticeTestSession(current.attempt_id, {
+                ...cached,
+                progress,
+                updatedAt: Date.now(),
+            });
+            return {...current, progress};
         });
-    }, [user]);
+    }, []);
 
-    const saveAndQuit = useCallback((progress) => {
-        if (!user || !session) return;
-        const paused = pausePracticeTestSession(session, progress);
-        writePracticeTestSession(user.id, paused);
-        navigate('/practice_test', {replace: true, state: {testSaved: true}});
-    }, [navigate, session, user]);
+    const finishModule = async (answers, state) => {
+        if (working) return;
+        try {
+            setWorking(true);
+            const response = await api.post(
+                `/api/practice-tests/attempts/${session.attempt_id}/finish-module/`,
+                payload(answers, state),
+            );
+            clearPracticeTestSession(session.attempt_id);
+            if (response.data.completed) {
+                navigate(`/practice_test/result/${session.attempt_id}`, {replace: true});
+                return;
+            }
+            setSession(hydrateSession(response.data));
+            notify.success('Module submitted. Your next module is ready.');
+        } catch (requestError) {
+            notify.error(requestError.response?.data?.error || 'Failed to submit this module.');
+        } finally {
+            setWorking(false);
+        }
+    };
 
-    const submit = useCallback((selectedAnswers) => {
-        if (!user || !session || hasSubmitted.current) return;
-        hasSubmitted.current = true;
-        const timeUsedSeconds = session.initialSeconds - practiceTestSecondsLeft(session);
-        clearPracticeTestSession(user.id);
-        navigate('/test_result', {
-            state: {
-                questions: session.questions,
-                selectedAnswers,
-                testId: session.testId,
-                testName: session.testName,
-                timeUsedSeconds,
-            },
-        });
-    }, [navigate, session, user]);
+    const saveAndExit = async () => {
+        try {
+            setWorking(true);
+            const liveState = {
+                ...quitState.state,
+                timeLeft: practiceTestSecondsLeft({
+                    timeLimitSeconds: session.time_limit_seconds,
+                    deadlineAt: session.deadlineAt,
+                }),
+            };
+            await api.patch(
+                `/api/practice-tests/attempts/${session.attempt_id}/`,
+                payload(quitState.answers, liveState),
+            );
+            clearPracticeTestSession(session.attempt_id);
+            notify.success('Your answers, position, and remaining time were saved.');
+            navigate('/practice_test');
+        } catch (requestError) {
+            notify.error(requestError.response?.data?.error || 'Failed to save your progress.');
+            setWorking(false);
+        }
+    };
 
-    if (loadError) {
+    const restart = async () => {
+        try {
+            setWorking(true);
+            const response = await api.post(`/api/practice-tests/attempts/${session.attempt_id}/restart/`);
+            clearPracticeTestSession(session.attempt_id);
+            setQuitState(null);
+            setSession(hydrateSession(response.data));
+            notify.success('Progress cleared. The test has restarted from question 1.');
+        } catch (requestError) {
+            notify.error(requestError.response?.data?.error || 'Failed to restart this test.');
+        } finally {
+            setWorking(false);
+        }
+    };
+
+    if (error) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center text-slate-600">
-                <p className="m-0 font-bold">We couldn’t load your test.</p>
-                <Button to="/practice_test" variant="secondary">Return to practice tests</Button>
+            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
+                <p className="m-0 font-bold text-rose-700">{error}</p>
+                <Button onClick={() => navigate('/practice_test')}>Back to practice tests</Button>
             </div>
         );
     }
@@ -115,22 +144,56 @@ function TestPage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 text-slate-600">
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4">
-                    <Spinner/> Loading your test…
+                    <Spinner/> Preparing your saved test…
                 </div>
             </div>
         );
     }
 
     return (
-        <QuestionSession
-            questions={session.questions}
-            initialSeconds={session.initialSeconds}
-            deadlineAt={session.timer.deadlineAt}
-            initialProgress={session.progress}
-            onProgressChange={persistProgress}
-            onSaveAndQuit={saveAndQuit}
-            onSubmit={submit}
-        />
+        <>
+            <QuestionSession
+                key={`${session.attempt_id}:${session.phase}`}
+                questions={session.questions}
+                initialSeconds={practiceTestSecondsLeft({
+                    timeLimitSeconds: session.time_limit_seconds,
+                    deadlineAt: session.deadlineAt,
+                })}
+                deadlineAt={session.deadlineAt}
+                initialProgress={session.progress}
+                eyebrow={session.eyebrow}
+                title={session.title}
+                statusLabel={working ? 'Submitting…' : session.status_label}
+                showDesmos={session.subject === 'math'}
+                sessionLabel={session.test_name}
+                navigationTitle={`${session.title} · ${session.eyebrow}`}
+                reviewDescription="Review any unanswered or marked questions before submitting this module. You cannot return after submission."
+                onProgressChange={persistProgress}
+                onSubmit={finishModule}
+                onQuit={(answers, state) => setQuitState({answers, state})}
+            />
+
+            <ModalShell
+                open={Boolean(quitState)}
+                title="Save and quit this practice test?"
+                onClose={() => !working && setQuitState(null)}
+                footer={(
+                    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <Button variant="danger" onClick={restart} loading={working}>
+                            <RotateCcw className="size-4"/> Restart and delete progress
+                        </Button>
+                        <Button onClick={saveAndExit} loading={working}>
+                            <Save className="size-4"/> Save &amp; quit
+                        </Button>
+                    </div>
+                )}
+            >
+                <p className="m-0 text-sm leading-6 text-slate-600">
+                    Save &amp; quit pauses the test with every answer, marked question, current position, and the exact time remaining.
+                    Until you save, the timer continues—even if you close this dialog, switch tabs, or refresh.
+                </p>
+            </ModalShell>
+        </>
     );
 }
 

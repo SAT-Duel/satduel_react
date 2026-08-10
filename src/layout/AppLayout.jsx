@@ -12,6 +12,7 @@ import {
     Settings,
     LogOut,
     Crown,
+    Gift,
     Menu,
     PartyPopper,
     X,
@@ -20,9 +21,11 @@ import {useAuth} from '../context/AuthContext';
 import UserAvatar from '../components/UserAvatar';
 import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {Spinner} from '../components/ui';
+import useUnreadMessages from '../hooks/useUnreadMessages';
 import logo from '../assets/logo192.png';
 import {loginPathFor} from '../utils/authRedirect';
 import AnnouncementBanner from '../components/AnnouncementBanner';
+import {dismissDiscordPromo, shouldShowDiscordPromo} from '../utils/discordPromo';
 
 // Routes where the sidebar may be collapsed for a wider question. Scoped on
 // purpose: with the sidebar hidden the toggle is the only way back to the nav,
@@ -81,7 +84,7 @@ const sidebarLinkClass = ({isActive}) =>
             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
     ].join(' ');
 
-function ProfileFooter({user, onLogout, onNavigate}) {
+function ProfileFooter({user, onLogout, onNavigate, showDiscordPromo, onDismissDiscordPromo, hasNotifications}) {
     return (
         <div className="border-t border-slate-100 p-3">
             {!user?.is_premium ? (
@@ -100,26 +103,55 @@ function ProfileFooter({user, onLogout, onNavigate}) {
                 </div>
             )}
 
-            <a
-                href={DISCORD_INVITE}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mb-2 flex items-center gap-2.5 rounded-xl border border-[#5865F2]/20 bg-[#5865F2]/5 px-3 py-2.5 text-sm font-bold text-slate-800 no-underline transition-colors hover:bg-[#5865F2]/10"
-            >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5865F2] text-white">
-                    <DiscordIcon className="size-4"/>
-                </span>
-                <span className="min-w-0">
-                    <span className="block truncate">Join the community</span>
-                    <span className="block truncate text-xs font-semibold text-slate-500">Find help and duel partners</span>
-                </span>
-            </a>
+            <div className="relative">
+                {showDiscordPromo && (
+                    <div className="absolute bottom-[calc(100%+0.75rem)] left-0 w-full rounded-2xl border border-[#5865F2]/25 bg-white p-4 shadow-xl" role="status">
+                        <button
+                            type="button"
+                            onClick={onDismissDiscordPromo}
+                            aria-label="Dismiss Discord Premium offer"
+                            className="absolute right-2 top-2 cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                        >
+                            <X className="size-4"/>
+                        </button>
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                            <Gift className="size-5"/>
+                        </span>
+                        <p className="m-0 mt-3 pr-5 text-sm font-black leading-5 text-slate-900">One month of Premium free</p>
+                        <p className="m-0 mt-1 text-xs font-medium leading-5 text-slate-500">
+                            Join our Discord to get the limited-time promotion code.
+                        </p>
+                        <span className="absolute -bottom-1.5 left-7 size-3 rotate-45 border-b border-r border-[#5865F2]/25 bg-white" aria-hidden="true"/>
+                    </div>
+                )}
+
+                <a
+                    href={DISCORD_INVITE}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={onDismissDiscordPromo}
+                    className="mb-2 flex items-center gap-2.5 rounded-xl border border-[#5865F2]/20 bg-[#5865F2]/5 px-3 py-2.5 text-sm font-bold text-slate-800 no-underline transition-colors hover:bg-[#5865F2]/10"
+                >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5865F2] text-white">
+                        <DiscordIcon className="size-4"/>
+                    </span>
+                    <span className="min-w-0">
+                        <span className="block truncate">Join the community</span>
+                        <span className="block truncate text-xs font-semibold text-slate-500">
+                            {user?.is_premium ? 'Find help and duel partners' : '1 month Premium free'}
+                        </span>
+                    </span>
+                </a>
+            </div>
 
             <NavLink
                 to="/profile"
                 onClick={onNavigate}
-                className="flex items-center gap-3 rounded-xl px-2 py-2 no-underline transition-colors hover:bg-slate-100"
+                className="relative flex items-center gap-3 rounded-xl px-2 py-2 no-underline transition-colors hover:bg-slate-100"
             >
+                {hasNotifications && (
+                    <span className="absolute right-2 top-2 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" aria-label="New friend activity"/>
+                )}
                 <UserAvatar
                     backgroundId={user?.avatar}
                     iconId={user?.avatar_icon}
@@ -158,6 +190,9 @@ const AppLayout = () => {
     const location = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [navHidden, setNavHidden] = useState(readNavHidden);
+    const [showDiscordPromo, setShowDiscordPromo] = useState(false);
+    const {unreadCount, friendRequestCount} = useUnreadMessages(Boolean(user));
+    const hasNotifications = unreadCount + friendRequestCount > 0;
 
     const canCollapse = NAV_COLLAPSIBLE_ROUTES.includes(location.pathname);
     const navCollapsed = navHidden && canCollapse;
@@ -178,6 +213,19 @@ const AppLayout = () => {
         () => ({hidden: navCollapsed, canCollapse, toggle: toggleNav}),
         [navCollapsed, canCollapse, toggleNav]
     );
+
+    useEffect(() => {
+        if (!user || user.is_premium) {
+            setShowDiscordPromo(false);
+            return;
+        }
+        setShowDiscordPromo(shouldShowDiscordPromo());
+    }, [user?.id, user?.is_premium]);
+
+    const handleDismissDiscordPromo = useCallback(() => {
+        dismissDiscordPromo();
+        setShowDiscordPromo(false);
+    }, []);
 
     useEffect(() => {
         if (!user) return undefined;
@@ -247,12 +295,20 @@ const AppLayout = () => {
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
                 {NAV_ITEMS.map(({label, to, icon: Icon}) => (
                     <NavLink key={to} to={to} onClick={closeDrawer} className={sidebarLinkClass} end={to === '/trainer'}>
-                        <Icon className="size-5"/> {label}
+                        <Icon className="size-5"/>
+                        <span className="flex-1">{label}</span>
                     </NavLink>
                 ))}
             </nav>
 
-            <ProfileFooter user={user} onLogout={handleLogout} onNavigate={closeDrawer}/>
+            <ProfileFooter
+                user={user}
+                onLogout={handleLogout}
+                onNavigate={closeDrawer}
+                showDiscordPromo={showDiscordPromo}
+                onDismissDiscordPromo={handleDismissDiscordPromo}
+                hasNotifications={hasNotifications}
+            />
         </div>
     );
 
@@ -280,11 +336,14 @@ const AppLayout = () => {
                     </span>
                 </NavLink>
                 <button
-                    className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
+                    className="relative rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
                     onClick={() => setDrawerOpen(true)}
-                    aria-label="Open menu"
+                    aria-label={hasNotifications ? 'Open menu, new friend activity' : 'Open menu'}
                 >
                     <Menu className="size-6"/>
+                    {hasNotifications && (
+                        <span className="absolute right-1 top-1 size-2.5 rounded-full bg-rose-500 ring-2 ring-white"/>
+                    )}
                 </button>
             </header>
 
@@ -327,18 +386,23 @@ const AppLayout = () => {
                     to="/profile"
                     className={({isActive}) =>
                         [
-                            'flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold no-underline transition-colors',
+                            'relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold no-underline transition-colors',
                             isActive ? 'text-primary-600' : 'text-slate-400',
                         ].join(' ')
                     }
                 >
-                    <UserAvatar
-                        backgroundId={user?.avatar}
-                        iconId={user?.avatar_icon}
-                        profile={{username: user?.username}}
-                        size="xs"
-                        className="ring-0 !size-5"
-                    />
+                    <span className="relative">
+                        <UserAvatar
+                            backgroundId={user?.avatar}
+                            iconId={user?.avatar_icon}
+                            profile={{username: user?.username}}
+                            size="xs"
+                            className="ring-0 !size-5"
+                        />
+                        {hasNotifications && (
+                            <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" aria-label="New friend activity"/>
+                        )}
+                    </span>
                     Profile
                 </NavLink>
             </nav>
