@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {RotateCcw, Save} from 'lucide-react';
 import {useNavigate, useParams} from 'react-router-dom';
 import QuestionSession from '../../components/PracticeTest/QuestionSession';
+import BreakScreen from '../../components/PracticeTest/BreakScreen';
 import api from '../../components/api';
 import {Button, ModalShell, Spinner} from '../../components/ui';
 import {
@@ -23,6 +24,25 @@ function hydrateSession(serverSession) {
     };
 }
 
+function prepareSession(serverSession) {
+    if (serverSession.break) {
+        clearPracticeTestSession(serverSession.attempt_id);
+        return serverSession;
+    }
+    return hydrateSession(serverSession);
+}
+
+function progressPayload(session, answers, state) {
+    return {
+        phase: session.phase,
+        answers,
+        current_question: state.currentQuestion,
+        review_questions: state.reviewQuestions,
+        annotations: state.annotations,
+        remaining_seconds: state.timeLeft,
+    };
+}
+
 function TestPage() {
     const {testId} = useParams();
     const navigate = useNavigate();
@@ -31,6 +51,14 @@ function TestPage() {
     const [quitState, setQuitState] = useState(null);
     const [working, setWorking] = useState(false);
     const started = useRef(false);
+    const sessionRef = useRef(null);
+    const annotationSaveTimer = useRef(null);
+
+    useEffect(() => {
+        sessionRef.current = session;
+    }, [session]);
+
+    useEffect(() => () => window.clearTimeout(annotationSaveTimer.current), []);
 
     useEffect(() => {
         if (started.current) return;
@@ -40,16 +68,9 @@ function TestPage() {
             return;
         }
         api.post(`/api/practice-tests/${testId}/start/`)
-            .then((response) => setSession(hydrateSession(response.data)))
+            .then((response) => setSession(prepareSession(response.data)))
             .catch((requestError) => setError(requestError.response?.data?.error || 'This practice test could not be opened.'));
     }, [navigate, testId]);
-
-    const payload = (answers, state) => ({
-        answers,
-        current_question: state.currentQuestion,
-        review_questions: state.reviewQuestions,
-        remaining_seconds: state.timeLeft,
-    });
 
     const persistProgress = useCallback((answers, state) => {
         setSession((current) => {
@@ -60,6 +81,7 @@ function TestPage() {
                 answers,
                 currentQuestion: state.currentQuestion,
                 reviewQuestions: state.reviewQuestions,
+                annotations: state.annotations,
                 hideTimer: state.hideTimer,
             };
             writePracticeTestSession(current.attempt_id, {
@@ -71,21 +93,41 @@ function TestPage() {
         });
     }, []);
 
+    const persistAnnotations = useCallback((answers, state) => {
+        const current = sessionRef.current;
+        if (!current || current.break) return;
+        window.clearTimeout(annotationSaveTimer.current);
+        annotationSaveTimer.current = window.setTimeout(() => {
+            const liveState = {
+                ...state,
+                timeLeft: practiceTestSecondsLeft({
+                    timeLimitSeconds: current.time_limit_seconds,
+                    deadlineAt: current.deadlineAt,
+                }),
+            };
+            api.patch(
+                `/api/practice-tests/attempts/${current.attempt_id}/`,
+                progressPayload(current, answers, liveState),
+            ).catch(() => notify.error('Your test tools could not sync. Your browser copy is still safe.'));
+        }, 250);
+    }, []);
+
     const finishModule = async (answers, state) => {
         if (working) return;
         try {
             setWorking(true);
+            window.clearTimeout(annotationSaveTimer.current);
             const response = await api.post(
                 `/api/practice-tests/attempts/${session.attempt_id}/finish-module/`,
-                payload(answers, state),
+                progressPayload(session, answers, state),
             );
             clearPracticeTestSession(session.attempt_id);
             if (response.data.completed) {
                 navigate(`/practice_test/result/${session.attempt_id}`, {replace: true});
                 return;
             }
-            setSession(hydrateSession(response.data));
-            notify.success('Module submitted. Your next module is ready.');
+            setSession(prepareSession(response.data));
+            if (!response.data.break) notify.success('Module submitted. Your next module is ready.');
         } catch (requestError) {
             notify.error(requestError.response?.data?.error || 'Failed to submit this module.');
         } finally {
@@ -96,6 +138,7 @@ function TestPage() {
     const saveAndExit = async () => {
         try {
             setWorking(true);
+            window.clearTimeout(annotationSaveTimer.current);
             const liveState = {
                 ...quitState.state,
                 timeLeft: practiceTestSecondsLeft({
@@ -105,7 +148,7 @@ function TestPage() {
             };
             await api.patch(
                 `/api/practice-tests/attempts/${session.attempt_id}/`,
-                payload(quitState.answers, liveState),
+                progressPayload(session, quitState.answers, liveState),
             );
             clearPracticeTestSession(session.attempt_id);
             notify.success('Your answers, position, and remaining time were saved.');
@@ -119,13 +162,26 @@ function TestPage() {
     const restart = async () => {
         try {
             setWorking(true);
+            window.clearTimeout(annotationSaveTimer.current);
             const response = await api.post(`/api/practice-tests/attempts/${session.attempt_id}/restart/`);
             clearPracticeTestSession(session.attempt_id);
             setQuitState(null);
-            setSession(hydrateSession(response.data));
+            setSession(prepareSession(response.data));
             notify.success('Progress cleared. The test has restarted from question 1.');
         } catch (requestError) {
             notify.error(requestError.response?.data?.error || 'Failed to restart this test.');
+        } finally {
+            setWorking(false);
+        }
+    };
+
+    const resumeAfterBreak = async () => {
+        try {
+            setWorking(true);
+            const response = await api.post(`/api/practice-tests/attempts/${session.attempt_id}/resume-after-break/`);
+            setSession(hydrateSession(response.data));
+        } catch (requestError) {
+            notify.error(requestError.response?.data?.error || 'Failed to open the Math section.');
         } finally {
             setWorking(false);
         }
@@ -150,6 +206,10 @@ function TestPage() {
         );
     }
 
+    if (session.break) {
+        return <BreakScreen initialSeconds={session.break_remaining_seconds} onResume={resumeAfterBreak} working={working}/>;
+    }
+
     return (
         <>
             <QuestionSession
@@ -161,14 +221,15 @@ function TestPage() {
                 })}
                 deadlineAt={session.deadlineAt}
                 initialProgress={session.progress}
-                eyebrow={session.eyebrow}
                 title={session.title}
-                statusLabel={working ? 'Submitting…' : session.status_label}
+                statusLabel={working ? 'Submitting…' : null}
+                sectionNumber={session.section_number}
+                moduleNumber={session.module_number}
                 showDesmos={session.subject === 'math'}
-                sessionLabel={session.test_name}
-                navigationTitle={`${session.title} · ${session.eyebrow}`}
+                navigationTitle={`Section ${session.section_number}, Module ${session.module_number}: ${session.title} Questions`}
                 reviewDescription="Review any unanswered or marked questions before submitting this module. You cannot return after submission."
                 onProgressChange={persistProgress}
+                onAnnotationsPersist={persistAnnotations}
                 onSubmit={finishModule}
                 onQuit={(answers, state) => setQuitState({answers, state})}
             />

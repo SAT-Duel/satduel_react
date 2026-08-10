@@ -25,6 +25,7 @@ const serverSession = (updates = {}) => ({
     remaining_seconds: 1800,
     answers: {'1': 'B'},
     review_questions: [2],
+    annotations: {'1': {marks: [], crossed_out: ['D']}},
     current_question: 3,
     ...updates,
 });

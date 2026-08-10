@@ -127,3 +127,15 @@ code {
         inset 0 0 0 2px rgba(90, 33, 182, 0.95),
         0 3px 0 rgba(90, 33, 182, 0.35);
 }
+
+.bluebook-break-screen {
+    color: #111827;
+    background: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+    .bluebook-break-screen {
+        color: #f8fafc;
+        background: #191919;
+    }
+}

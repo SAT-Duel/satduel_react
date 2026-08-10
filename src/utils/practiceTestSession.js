@@ -57,6 +57,7 @@ export function createPracticeTestSession(serverSession, now = Date.now()) {
         progress: {
             answers: serverSession.answers || {},
             reviewQuestions: serverSession.review_questions || [],
+            annotations: serverSession.annotations || {},
             currentQuestion: serverSession.current_question || 1,
             hideTimer: false,
         },
