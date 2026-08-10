@@ -1,10 +1,16 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Database, FileText, Flag, Sparkles, Trophy} from 'lucide-react';
+import {Database, FileText, Flag, Megaphone, Sparkles, Trophy} from 'lucide-react';
 import {Card, PageContainer} from '../../components/ui';
 import withAuth from '../../hoc/withAuth';
 
 const tools = [
+    {
+        title: 'Site Announcement',
+        description: 'Publish or hide the banner shown across the signed-in app.',
+        icon: Megaphone,
+        action: 'announcement',
+    },
     {
         title: 'Question List',
         description: 'Manage, preview, create, and edit the question bank.',
@@ -46,6 +52,7 @@ function AdminHome() {
             return;
         }
         const paths = {
+            announcement: '/admin/announcement',
             questions: '/admin/questions',
             reports: '/admin/question_reports',
             generate: '/admin/generate_questions',

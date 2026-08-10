@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import TestHeader from './TestHeader';
 import QuestionContent from './QuestionContent';
 import AnswerSection from './AnswerSection';
@@ -9,10 +9,16 @@ const emptyAnswers = (total) => Object.fromEntries(
     Array.from({length: total}, (_, index) => [index + 1, null]),
 );
 
+const secondsUntil = (deadlineAt) => Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+
 function QuestionSession({
     questions,
     onSubmit,
     initialSeconds = null,
+    deadlineAt = null,
+    initialProgress = null,
+    onProgressChange,
+    onSaveAndQuit,
     eyebrow,
     title,
     statusLabel,
@@ -21,12 +27,23 @@ function QuestionSession({
     reviewDescription,
     variant = 'test',
 }) {
-    const [currentQuestion, setCurrentQuestion] = useState(1);
-    const [selectedAnswers, setSelectedAnswers] = useState(() => emptyAnswers(questions.length));
-    const [reviewQuestions, setReviewQuestions] = useState([]);
-    const [timeLeft, setTimeLeft] = useState(initialSeconds);
-    const [hideTimer, setHideTimer] = useState(false);
     const totalQuestions = questions.length;
+    const [currentQuestion, setCurrentQuestion] = useState(() => Math.min(
+        Math.max(Number(initialProgress?.currentQuestion) || 1, 1),
+        totalQuestions + 1,
+    ));
+    const [selectedAnswers, setSelectedAnswers] = useState(() => ({
+        ...emptyAnswers(totalQuestions),
+        ...(initialProgress?.selectedAnswers || {}),
+    }));
+    const [reviewQuestions, setReviewQuestions] = useState(() => (
+        Array.isArray(initialProgress?.reviewQuestions) ? initialProgress.reviewQuestions : []
+    ));
+    const [timeLeft, setTimeLeft] = useState(() => (
+        deadlineAt == null ? initialSeconds : secondsUntil(deadlineAt)
+    ));
+    const [hideTimer, setHideTimer] = useState(Boolean(initialProgress?.hideTimer));
+    const submittedForDeadline = useRef(false);
 
     const answeredQuestions = Object.entries(selectedAnswers)
         .filter(([, answer]) => answer !== null)
@@ -37,19 +54,29 @@ function QuestionSession({
     }, [onSubmit, selectedAnswers]);
 
     useEffect(() => {
-        if (initialSeconds == null) return undefined;
+        if (deadlineAt == null) return undefined;
+        const updateTimer = () => {
+            const remaining = secondsUntil(deadlineAt);
+            setTimeLeft(remaining);
+            if (remaining === 0 && !submittedForDeadline.current) {
+                submittedForDeadline.current = true;
+                submit();
+            }
+        };
+        updateTimer();
         const timerId = window.setInterval(() => {
-            setTimeLeft((remaining) => {
-                if (remaining <= 1) {
-                    window.clearInterval(timerId);
-                    submit();
-                    return 0;
-                }
-                return remaining - 1;
-            });
+            updateTimer();
         }, 1000);
         return () => window.clearInterval(timerId);
-    }, [initialSeconds, submit]);
+    }, [deadlineAt, submit]);
+
+    useEffect(() => {
+        onProgressChange?.({currentQuestion, selectedAnswers, reviewQuestions, hideTimer});
+    }, [currentQuestion, hideTimer, onProgressChange, reviewQuestions, selectedAnswers]);
+
+    const saveAndQuit = () => {
+        onSaveAndQuit?.({currentQuestion, selectedAnswers, reviewQuestions, hideTimer});
+    };
 
     const activeQuestion = questions[currentQuestion - 1];
     const mistakeMode = variant === 'mistakes';
@@ -63,6 +90,7 @@ function QuestionSession({
                 eyebrow={eyebrow}
                 title={title}
                 statusLabel={statusLabel}
+                onSaveAndQuit={onSaveAndQuit ? saveAndQuit : null}
             />
 
             {currentQuestion <= totalQuestions && activeQuestion && (

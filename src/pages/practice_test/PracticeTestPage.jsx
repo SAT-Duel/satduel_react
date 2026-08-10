@@ -4,6 +4,7 @@ import {useLocation, useNavigate} from 'react-router-dom';
 import api from '../../components/api';
 import {useAuth} from '../../context/AuthContext';
 import {Alert, Button, Card, PageContainer} from '../../components/ui';
+import {practiceTestSecondsLeft, readPracticeTestSession} from '../../utils/practiceTestSession';
 
 const TESTS = [
     {
@@ -33,20 +34,38 @@ const TESTS = [
     },
 ];
 
-function TestCard({test, onStart}) {
+const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+
+function TestCard({test, onStart, session, secondsLeft}) {
+    const sessionLabel = session?.timer?.status === 'paused'
+        ? `Saved safely · ${formatTime(secondsLeft)} left`
+        : secondsLeft === 0
+            ? 'Time expired · open to submit'
+            : `In progress · timer running · ${formatTime(secondsLeft)} left`;
+    const tag = session ? (session.timer.status === 'paused' ? 'Saved' : 'In progress') : test.tag;
+
     return (
         <Card className={`sat-arena-card relative flex h-full flex-col overflow-hidden ${test.recommended ? 'border-primary-300' : ''}`}>
             <div className={test.recommended ? 'sat-score-strip h-1 border-0' : 'h-1 bg-slate-100'}/>
-            {test.tag && (
+            {tag && (
                 <span className={`absolute right-4 top-4 rounded-full px-2.5 py-1 text-xs font-black uppercase ${
                     test.recommended ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-500'
                 }`}>
-                    {test.tag}
+                    {tag}
                 </span>
             )}
             <div className="flex flex-1 flex-col p-5">
                 <h3 className="m-0 pr-20 font-display text-2xl font-black text-slate-950">{test.title}</h3>
                 <p className="m-0 mt-3 text-sm leading-relaxed text-slate-500">{test.description}</p>
+                {session && (
+                    <p className={`m-0 mt-3 rounded-xl px-3 py-2 text-xs font-black ${
+                        session.timer.status === 'paused'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-amber-50 text-amber-700'
+                    }`}>
+                        {sessionLabel}
+                    </p>
+                )}
 
                 <div className="mt-5 grid gap-2">
                     {[
@@ -68,7 +87,7 @@ function TestCard({test, onStart}) {
                         disabled={test.comingSoon}
                         onClick={() => onStart(test)}
                     >
-                        {test.comingSoon ? 'Coming soon' : 'Start test'} {!test.comingSoon && <ArrowRight className="size-4"/>}
+                        {test.comingSoon ? 'Coming soon' : session ? 'Resume test' : 'Start test'} {!test.comingSoon && <ArrowRight className="size-4"/>}
                     </Button>
                 </div>
             </div>
@@ -146,13 +165,22 @@ function PracticeTestPage() {
     const {user, setFirstLogin} = useAuth();
     const [showFirstRunBanner, setShowFirstRunBanner] = useState(false);
     const [history, setHistory] = useState(null);
+    const [activeSession, setActiveSession] = useState(null);
+    const [now, setNow] = useState(Date.now());
 
     useEffect(() => {
         if (!user) return;
+        setActiveSession(readPracticeTestSession(user.id));
         api.get('api/practice_test/history/')
             .then((response) => setHistory(response.data))
             .catch((error) => console.error('Error loading test history:', error));
-    }, [user]);
+    }, [location.state, user]);
+
+    useEffect(() => {
+        if (activeSession?.timer?.status !== 'running') return undefined;
+        const timer = window.setInterval(() => setNow(Date.now()), 1000);
+        return () => window.clearInterval(timer);
+    }, [activeSession]);
 
     useEffect(() => {
         setShowFirstRunBanner(
@@ -203,7 +231,15 @@ function PracticeTestPage() {
                 <section>
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {TESTS.map((test) => (
-                            <TestCard key={test.id} test={test} onStart={startTest}/>
+                            <TestCard
+                                key={test.id}
+                                test={test}
+                                onStart={startTest}
+                                session={activeSession?.testId === test.id ? activeSession : null}
+                                secondsLeft={activeSession?.testId === test.id
+                                    ? practiceTestSecondsLeft(activeSession, now)
+                                    : 0}
+                            />
                         ))}
                     </div>
                 </section>
@@ -222,7 +258,7 @@ function PracticeTestPage() {
                             <h2 className="m-0 font-display text-2xl font-black text-slate-950">Before you begin</h2>
                             <div className="mt-4 grid gap-3 md:grid-cols-3">
                                 {[
-                                    ['No pausing', 'The timer runs like the real test — set aside the full time before you start.'],
+                                    ['Real test timing', 'Refreshes and tab switches do not pause the clock. Use Save & quit when you need to stop safely.'],
                                     ["Guess, don't skip", "There's no penalty for wrong answers, so answer everything."],
                                     ["Read your misses", "After scoring, open the explanations for what you got wrong — that's where the points are."],
                                 ].map(([title, copy]) => (

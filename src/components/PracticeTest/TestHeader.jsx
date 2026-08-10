@@ -1,5 +1,5 @@
 import React from 'react';
-import {Clock3} from 'lucide-react';
+import {Clock3, Save} from 'lucide-react';
 import {Button} from '../ui';
 
 const formatTime = (seconds) => {
@@ -15,13 +15,14 @@ function TestHeader({
     eyebrow = 'Section 1',
     title = 'Reading and Writing',
     statusLabel,
+    onSaveAndQuit,
 }) {
     return (
         <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                     <p className={`m-0 text-xs font-black uppercase ${statusLabel ? 'text-primary-500' : 'text-slate-400'}`}>{eyebrow}</p>
-                    <p className="m-0 font-display text-lg font-black text-slate-950">{title}</p>
+                    <p className="m-0 max-w-32 truncate font-display text-lg font-black text-slate-950 sm:max-w-none">{title}</p>
                 </div>
 
                 {timeLeft != null && (
@@ -41,8 +42,13 @@ function TestHeader({
                     </div>
                 )}
 
-                <div className="hidden items-center gap-2 sm:flex">
-                    {statusLabel ? (
+                <div className={onSaveAndQuit ? 'flex items-center' : 'hidden items-center gap-2 sm:flex'}>
+                    {onSaveAndQuit ? (
+                        <Button variant="ghost" size="sm" className="px-2 sm:px-3.5" onClick={onSaveAndQuit}>
+                            <Save className="size-4"/>
+                            Save &amp; quit
+                        </Button>
+                    ) : statusLabel ? (
                         <span className="rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-black text-primary-700">
                             {statusLabel}
                         </span>
