@@ -4,47 +4,42 @@ import QuestionContent from './QuestionContent';
 import AnswerSection from './AnswerSection';
 import ReviewPage from './ReviewPage';
 import TestNavigation from './TestNavigation';
+import AnnotationToolbar from './AnnotationToolbar';
+import {applyAnnotation} from '../../utils/practiceTestAnnotations';
 
-const emptyAnswers = (total) => Object.fromEntries(
-    Array.from({length: total}, (_, index) => [index + 1, null]),
-);
-
+const emptyAnswers = (total) => Object.fromEntries(Array.from({length: total}, (_, index) => [index + 1, null]));
 const secondsUntil = (deadlineAt) => Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+const emptyTools = () => ({marks: [], crossed_out: []});
 
-function QuestionSession({
+export default function QuestionSession({
     questions,
     onSubmit,
     initialSeconds = null,
     deadlineAt = null,
     initialProgress = null,
     onProgressChange,
-    eyebrow,
+    onAnnotationsPersist,
     title,
     statusLabel,
-    sessionLabel,
     navigationTitle,
     reviewDescription,
     variant = 'test',
     onQuit = null,
     showDesmos = false,
+    sectionNumber = 1,
+    moduleNumber = 1,
 }) {
     const totalQuestions = questions.length;
-    const [currentQuestion, setCurrentQuestion] = useState(() => Math.min(
-        Math.max(Number(initialProgress?.currentQuestion) || 1, 1),
-        totalQuestions + 1,
-    ));
-    const [selectedAnswers, setSelectedAnswers] = useState(() => ({
-        ...emptyAnswers(totalQuestions),
-        ...(initialProgress?.answers || initialProgress?.selectedAnswers || {}),
-    }));
-    const [reviewQuestions, setReviewQuestions] = useState(() => (
-        Array.isArray(initialProgress?.reviewQuestions) ? initialProgress.reviewQuestions : []
-    ));
-    const [timeLeft, setTimeLeft] = useState(() => (
-        deadlineAt == null ? initialSeconds : secondsUntil(deadlineAt)
-    ));
+    const [currentQuestion, setCurrentQuestion] = useState(() => Math.min(Math.max(Number(initialProgress?.currentQuestion) || 1, 1), totalQuestions + 1));
+    const [selectedAnswers, setSelectedAnswers] = useState(() => ({...emptyAnswers(totalQuestions), ...(initialProgress?.answers || initialProgress?.selectedAnswers || {})}));
+    const [reviewQuestions, setReviewQuestions] = useState(() => Array.isArray(initialProgress?.reviewQuestions) ? initialProgress.reviewQuestions : []);
+    const [annotations, setAnnotations] = useState(() => initialProgress?.annotations || {});
+    const [timeLeft, setTimeLeft] = useState(() => deadlineAt == null ? initialSeconds : secondsUntil(deadlineAt));
     const [hideTimer, setHideTimer] = useState(Boolean(initialProgress?.hideTimer));
+    const [highlighterActive, setHighlighterActive] = useState(false);
+    const [activeAnnotation, setActiveAnnotation] = useState(null);
     const autoSubmitted = useRef(false);
+    const annotationsMounted = useRef(false);
 
     const answeredQuestions = Object.entries(selectedAnswers)
         .filter(([, answer]) => answer !== null && answer !== '')
@@ -53,13 +48,12 @@ function QuestionSession({
     const currentState = useCallback(() => ({
         currentQuestion,
         reviewQuestions,
+        annotations,
         timeLeft: deadlineAt == null ? timeLeft : secondsUntil(deadlineAt),
         hideTimer,
-    }), [currentQuestion, deadlineAt, hideTimer, reviewQuestions, timeLeft]);
+    }), [annotations, currentQuestion, deadlineAt, hideTimer, reviewQuestions, timeLeft]);
 
-    const submit = useCallback(() => {
-        onSubmit(selectedAnswers, currentState());
-    }, [currentState, onSubmit, selectedAnswers]);
+    const submit = useCallback(() => onSubmit(selectedAnswers, currentState()), [currentState, onSubmit, selectedAnswers]);
 
     useEffect(() => {
         if (deadlineAt == null) return undefined;
@@ -76,10 +70,24 @@ function QuestionSession({
     }, [deadlineAt]);
 
     useEffect(() => {
-        onProgressChange?.(selectedAnswers, {currentQuestion, reviewQuestions, timeLeft, hideTimer});
-        // The absolute deadline owns timer persistence, so ticks do not need storage writes.
+        onProgressChange?.(selectedAnswers, {currentQuestion, reviewQuestions, annotations, timeLeft, hideTimer});
+        // Absolute deadlines own timer persistence, so timer ticks do not write storage.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentQuestion, hideTimer, onProgressChange, reviewQuestions, selectedAnswers]);
+    }, [annotations, currentQuestion, hideTimer, onProgressChange, reviewQuestions, selectedAnswers]);
+
+    useEffect(() => {
+        if (!annotationsMounted.current) {
+            annotationsMounted.current = true;
+            return;
+        }
+        onAnnotationsPersist?.(selectedAnswers, currentState());
+        // This effect intentionally runs only when a student changes test tools.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [annotations]);
+
+    useEffect(() => {
+        setActiveAnnotation(null);
+    }, [currentQuestion]);
 
     useEffect(() => {
         if (initialSeconds != null && timeLeft === 0 && !autoSubmitted.current) {
@@ -88,31 +96,59 @@ function QuestionSession({
         }
     }, [initialSeconds, submit, timeLeft]);
 
+    const questionKey = String(currentQuestion);
+    const tools = annotations[questionKey] || emptyTools();
+    const updateTools = (next) => setAnnotations((previous) => ({...previous, [questionKey]: next}));
+
+    const createMark = ({field, start, end, rect}) => {
+        const mark = {
+            id: window.crypto?.randomUUID?.() || `${Date.now()}-${start}`,
+            field,
+            start,
+            end,
+            color: 'yellow',
+            underline: 'none',
+        };
+        updateTools({...tools, marks: applyAnnotation(tools.marks || [], mark)});
+        setActiveAnnotation({id: mark.id, rect});
+    };
+
+    const openMark = (mark, rect) => setActiveAnnotation({id: mark.id, rect});
+    const activeMark = tools.marks?.find((mark) => mark.id === activeAnnotation?.id);
+    const changeActiveMark = (next) => updateTools({...tools, marks: tools.marks.map((mark) => mark.id === next.id ? next : mark)});
+    const deleteActiveMark = () => {
+        updateTools({...tools, marks: tools.marks.filter((mark) => mark.id !== activeAnnotation.id)});
+        setActiveAnnotation(null);
+    };
+
     const activeQuestion = questions[currentQuestion - 1];
     const mistakeMode = variant === 'mistakes';
     const hasSeparateContext = activeQuestion?.question?.includes('\n');
 
     return (
-        <div className={`min-h-screen pb-24 ${mistakeMode ? 'bg-primary-50/60' : 'bg-slate-50'}`}>
+        <div className={`min-h-screen pb-20 ${mistakeMode ? 'bg-primary-50/60' : 'bg-white'}`}>
             <TestHeader
                 timeLeft={initialSeconds == null ? null : timeLeft}
                 hideTimer={hideTimer}
                 onToggleHide={() => setHideTimer((hidden) => !hidden)}
-                eyebrow={eyebrow}
+                sectionNumber={sectionNumber}
+                moduleNumber={moduleNumber}
                 title={title}
                 statusLabel={statusLabel}
                 showDesmos={showDesmos}
+                highlighterActive={highlighterActive}
+                onToggleHighlighter={mistakeMode ? null : () => setHighlighterActive((active) => !active)}
                 onQuit={onQuit ? () => onQuit(selectedAnswers, currentState()) : null}
             />
 
             {currentQuestion <= totalQuestions && activeQuestion && (
-                <main className={`mx-auto grid gap-0 ${hasSeparateContext ? 'max-w-7xl lg:grid-cols-2' : 'max-w-3xl'}`}>
+                <main className={`mx-auto grid min-h-[calc(100vh-9.5rem)] w-full max-w-[1500px] ${hasSeparateContext ? 'lg:grid-cols-2 lg:divide-x-2 lg:divide-slate-500' : 'max-w-3xl'}`}>
                     {hasSeparateContext && (
-                        <section className={`border-b border-slate-200 lg:min-h-[calc(100vh-9rem)] lg:border-b-0 lg:border-r ${mistakeMode ? 'bg-primary-50/40' : 'bg-slate-50'}`}>
-                            <QuestionContent question={activeQuestion}/>
+                        <section className="border-b-2 border-slate-300 bg-white lg:border-b-0">
+                            <QuestionContent question={activeQuestion} marks={tools.marks} highlighterActive={highlighterActive} onCreateMark={createMark} onOpenMark={openMark}/>
                         </section>
                     )}
-                    <section className="bg-white lg:min-h-[calc(100vh-9rem)]">
+                    <section className="bg-white">
                         <AnswerSection
                             question={activeQuestion}
                             currentQuestion={currentQuestion}
@@ -120,35 +156,23 @@ function QuestionSession({
                             setSelectedAnswer={setSelectedAnswers}
                             reviewQuestions={reviewQuestions}
                             setReviewQuestions={setReviewQuestions}
+                            tools={tools}
+                            onToolsChange={updateTools}
+                            highlighterActive={highlighterActive}
+                            onCreateMark={createMark}
+                            onOpenMark={openMark}
                         />
                     </section>
                 </main>
             )}
 
             {currentQuestion > totalQuestions && (
-                <ReviewPage
-                    currentQuestion={currentQuestion}
-                    totalQuestions={totalQuestions}
-                    setCurrentQuestion={setCurrentQuestion}
-                    reviewQuestions={reviewQuestions}
-                    answeredQuestions={answeredQuestions}
-                    description={reviewDescription}
-                    navigationTitle={navigationTitle}
-                />
+                <ReviewPage currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={setCurrentQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} description={reviewDescription} navigationTitle={navigationTitle}/>
             )}
 
-            <TestNavigation
-                currentQuestion={currentQuestion}
-                totalQuestions={totalQuestions}
-                setCurrentQuestion={setCurrentQuestion}
-                reviewQuestions={reviewQuestions}
-                answeredQuestions={answeredQuestions}
-                onSubmit={submit}
-                sessionLabel={sessionLabel}
-                navigationTitle={navigationTitle}
-            />
+            <TestNavigation currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={setCurrentQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} onSubmit={submit} navigationTitle={navigationTitle}/>
+
+            <AnnotationToolbar mark={activeMark} rect={activeAnnotation?.rect} onChange={changeActiveMark} onDelete={deleteActiveMark}/>
         </div>
     );
 }
-
-export default QuestionSession;
