@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {ArrowLeft, Check, Copy, Sparkles, Upload} from 'lucide-react';
+import {ArrowLeft, Check, Copy, Search, Sparkles, Upload} from 'lucide-react';
 import api from '../../components/api';
 import withAuth from '../../hoc/withAuth';
 import RenderWithMath from '../../components/RenderWithMath';
@@ -32,10 +32,36 @@ function parseModelOutput(raw) {
     return questions;
 }
 
-function DraftCard({draft, selected, onToggle, source, sourceOther}) {
-    const choices = [['A', draft.choice_a], ['B', draft.choice_b], ['C', draft.choice_c], ['D', draft.choice_d]];
+function QuestionPreview({question, label}) {
+    const choices = [['A', question.choice_a], ['B', question.choice_b], ['C', question.choice_c], ['D', question.choice_d]];
     return (
-        <Card className={`p-5 ${selected ? '' : 'opacity-50'}`}>
+        <div className={label ? 'min-w-0 rounded-xl border border-slate-200 bg-white p-4' : 'min-w-0'}>
+            {label && <div className="mb-3 text-xs font-black uppercase tracking-wide text-slate-500">{label}</div>}
+            <div className="mb-4 text-[15px] leading-7 text-slate-900">
+                <RenderWithMath text={question.question}/>
+            </div>
+            <div className="grid gap-2">
+                {choices.map(([letter, text]) => (
+                    <div
+                        key={letter}
+                        className={`rounded-lg border px-3 py-2 text-sm ${
+                            letter === question.answer
+                                ? 'border-emerald-300 bg-emerald-50'
+                                : 'border-slate-200'
+                        }`}
+                    >
+                        <span className="mr-2 font-black">{letter}.</span>
+                        <RenderWithMath text={text}/>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function DraftCard({draft, selected, onToggle, source, sourceOther, duplicate}) {
+    return (
+        <Card className={`p-5 ${selected ? '' : 'bg-slate-50/60'}`}>
             <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500">
                     <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-cyan-700">{draft.question_type}</span>
@@ -50,23 +76,29 @@ function DraftCard({draft, selected, onToggle, source, sourceOther}) {
                     Import
                 </label>
             </div>
-            <div className="mb-4 text-[15px] leading-7 text-slate-900">
-                <RenderWithMath text={draft.question}/>
-            </div>
-            <div className="mb-4 grid gap-2">
-                {choices.map(([letter, text]) => (
-                    <div
-                        key={letter}
-                        className={`rounded-lg border px-3 py-2 text-sm ${
-                            letter === draft.answer
-                                ? 'border-emerald-300 bg-emerald-50'
-                                : 'border-slate-200'
-                        }`}
-                    >
-                        <span className="mr-2 font-black">{letter}.</span>
-                        <RenderWithMath text={text}/>
-                    </div>
-                ))}
+            {duplicate && (
+                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-800">
+                    <span className="font-black">
+                        {duplicate.match === 'near' ? 'Possible duplicate' : 'Duplicate found'}
+                    </span>
+                    {duplicate.where === 'batch'
+                        ? ` — matches draft #${duplicate.draft_index + 1} in this batch.`
+                        : duplicate.match === 'near'
+                            ? ` — ${Math.round(duplicate.ratio * 100)}% text match with question #${duplicate.question_id}.`
+                            : ` — matches question #${duplicate.question_id}.`}
+                    {' '}Review both versions below. This draft was unchecked automatically.
+                </div>
+            )}
+            <div className={duplicate ? 'mb-4 grid gap-3 lg:grid-cols-2' : 'mb-4'}>
+                <QuestionPreview question={draft} label={duplicate ? 'Import candidate' : null}/>
+                {duplicate?.comparison && (
+                    <QuestionPreview
+                        question={duplicate.comparison}
+                        label={duplicate.where === 'batch'
+                            ? `Earlier draft #${duplicate.draft_index + 1}`
+                            : `Existing question #${duplicate.question_id}`}
+                    />
+                )}
             </div>
             <details className="text-sm leading-6 text-slate-600">
                 <summary className="cursor-pointer font-bold text-slate-500">Explanation</summary>
@@ -105,6 +137,9 @@ function QuestionGeneratorPage() {
     const [pasted, setPasted] = useState('');
     const [drafts, setDrafts] = useState([]);
     const [selected, setSelected] = useState([]);
+    const [duplicates, setDuplicates] = useState({});
+    const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+    const [duplicateCheckDone, setDuplicateCheckDone] = useState(false);
     const [importing, setImporting] = useState(false);
     const [copied, setCopied] = useState(false);
 
@@ -130,6 +165,15 @@ function QuestionGeneratorPage() {
     const domain = useMemo(() => subjectDomains.find((d) => d.name === domainName), [subjectDomains, domainName]);
     const skill = useMemo(() => domain?.skills.find((s) => s.name === skillName), [domain, skillName]);
     const apiConfigured = apiStatus.anthropic || apiStatus.openai;
+    const englishSkillNames = useMemo(() => new Set(
+        domains
+            .filter((item) => domainSubject(item.name) === 'english')
+            .flatMap((item) => item.skills.map((itemSkill) => itemSkill.name.toLowerCase()))
+    ), [domains]);
+    const hasEnglishDrafts = drafts.some((draft) => (
+        typeof draft.question_type === 'string'
+        && englishSkillNames.has(draft.question_type.trim().toLowerCase())
+    ));
 
     const setSubject = (value) => {
         const first = domains.find((d) => domainSubject(d.name) === value);
@@ -141,6 +185,30 @@ function QuestionGeneratorPage() {
     const setDraftList = (questions) => {
         setDrafts(questions);
         setSelected(questions.map(() => true));
+        setDuplicates({});
+        setDuplicateCheckDone(false);
+    };
+
+    const handleCheckDuplicates = async () => {
+        try {
+            setCheckingDuplicates(true);
+            const res = await api.post('/api/admin/generation/duplicates/', {questions: drafts});
+            const dupes = res.data.duplicates;
+            setDuplicates(dupes);
+            setSelected((current) => drafts.map((_, i) => (i in dupes ? false : current[i])));
+            setDuplicateCheckDone(true);
+            const duplicateCount = Object.keys(dupes).length;
+            if (duplicateCount) {
+                notify.warning(`${duplicateCount} possible duplicate(s) found and unchecked`);
+            } else {
+                notify.success(`No duplicates found across ${res.data.checked_count} English draft(s)`);
+            }
+        } catch {
+            setDuplicateCheckDone(false);
+            notify.error('Duplicate check failed — English drafts cannot be imported yet');
+        } finally {
+            setCheckingDuplicates(false);
+        }
     };
 
     const handleGenerate = async () => {
@@ -201,8 +269,15 @@ function QuestionGeneratorPage() {
                 source_other: sourceOther.trim(),
             });
             notify.success(`Imported ${res.data.created_ids.length} question(s) into the bank`);
-            const remaining = drafts.filter((_, i) => !selected[i]);
-            setDraftList(remaining);
+            const remainingIndexes = drafts.map((_, i) => i).filter((i) => !selected[i]);
+            const remainingDuplicates = {};
+            remainingIndexes.forEach((oldIndex, newIndex) => {
+                if (duplicates[oldIndex]) remainingDuplicates[newIndex] = duplicates[oldIndex];
+            });
+            setDrafts(remainingIndexes.map((i) => drafts[i]));
+            setSelected(remainingIndexes.map(() => false));
+            setDuplicates(remainingDuplicates);
+            setDuplicateCheckDone(remainingIndexes.length > 0 && duplicateCheckDone);
         } catch (error) {
             notify.error(error.response?.data?.error || 'Import failed');
         } finally {
@@ -357,13 +432,34 @@ function QuestionGeneratorPage() {
 
             {drafts.length > 0 && (
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-black text-slate-950">
-                            Review drafts ({selected.filter(Boolean).length}/{drafts.length} selected)
-                        </h2>
-                        <Button onClick={handleImport} loading={importing}>
-                            <Upload size={18}/> Import selected
-                        </Button>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 className="text-lg font-black text-slate-950">
+                                Review drafts ({selected.filter(Boolean).length}/{drafts.length} selected
+                                {Object.keys(duplicates).length > 0 && `, ${Object.keys(duplicates).length} duplicate`})
+                            </h2>
+                            {hasEnglishDrafts && (
+                                <p className={`mt-1 text-sm ${duplicateCheckDone ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                    {duplicateCheckDone
+                                        ? 'English duplicate check complete. Flagged drafts stay unchecked unless you override them.'
+                                        : 'Run the English duplicate check before importing.'}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {hasEnglishDrafts && (
+                                <Button variant="secondary" onClick={handleCheckDuplicates} loading={checkingDuplicates}>
+                                    <Search size={18}/> {duplicateCheckDone ? 'Check again' : 'Check duplicates'}
+                                </Button>
+                            )}
+                            <Button
+                                onClick={handleImport}
+                                loading={importing}
+                                disabled={!selected.some(Boolean) || (hasEnglishDrafts && !duplicateCheckDone)}
+                            >
+                                <Upload size={18}/> Import selected
+                            </Button>
+                        </div>
                     </div>
                     {drafts.map((draft, i) => (
                         <DraftCard
@@ -373,6 +469,7 @@ function QuestionGeneratorPage() {
                             onToggle={() => setSelected(selected.map((s, j) => (j === i ? !s : s)))}
                             source={source}
                             sourceOther={sourceOther}
+                            duplicate={duplicates[i]}
                         />
                     ))}
                 </div>
