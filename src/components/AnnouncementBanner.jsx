@@ -51,11 +51,9 @@ export default function AnnouncementBanner({userId}) {
     };
 
     return (
-        <section aria-label="Site announcement" className="mx-auto mt-4 max-w-6xl px-4 text-primary-950 sm:mt-6 sm:px-6">
-            <div className="flex items-start gap-3 rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3.5 shadow-sm">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-primary-200 bg-white text-primary-600">
-                    <Megaphone className="size-4" aria-hidden="true"/>
-                </span>
+        <section aria-label="Site announcement" className="border-b border-primary-200 bg-primary-50 text-primary-950">
+            <div className="mx-auto flex min-h-11 max-w-6xl items-center gap-3 px-4 py-2 sm:px-6">
+                <Megaphone className="size-4 shrink-0 text-primary-600" aria-hidden="true"/>
                 <p className="m-0 min-w-0 flex-1 whitespace-pre-wrap text-sm font-semibold leading-5">
                     {announcement.message}
                 </p>
@@ -63,7 +61,7 @@ export default function AnnouncementBanner({userId}) {
                     type="button"
                     onClick={dismiss}
                     aria-label="Dismiss announcement"
-                    className="flex size-8 shrink-0 items-center justify-center rounded-xl text-primary-700 transition-colors hover:bg-primary-100"
+                    className="flex size-7 shrink-0 items-center justify-center rounded-lg text-primary-700 transition-colors hover:bg-primary-100"
                 >
                     <X className="size-4"/>
                 </button>
