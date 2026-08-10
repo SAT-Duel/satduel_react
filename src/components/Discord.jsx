@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const DISCORD_INVITE = 'https://discord.gg/jzZTy3cdwm';
+export const DISCORD_INVITE = 'https://discord.gg/xz3GSCsbZC';
 const DISCORD_BLURPLE = '#5865F2';
 
 export function DiscordIcon({className = 'size-5'}) {
