@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {Helmet} from 'react-helmet';
 import {Navigate, NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom';
 import {
@@ -25,7 +25,7 @@ import useUnreadMessages from '../hooks/useUnreadMessages';
 import logo from '../assets/logo192.png';
 import {loginPathFor} from '../utils/authRedirect';
 import AnnouncementBanner from '../components/AnnouncementBanner';
-import {dismissDiscordPromo, shouldShowDiscordPromo} from '../utils/discordPromo';
+import {DISCORD_PROMO_EVENT, dismissDiscordPromo, shouldShowDiscordPromo} from '../utils/discordPromo';
 
 // Routes where the sidebar may be collapsed for a wider question. Scoped on
 // purpose: with the sidebar hidden the toggle is the only way back to the nav,
@@ -84,7 +84,7 @@ const sidebarLinkClass = ({isActive}) =>
             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
     ].join(' ');
 
-function ProfileFooter({user, onLogout, onNavigate, showDiscordPromo, onDismissDiscordPromo, hasNotifications}) {
+function ProfileFooter({user, onLogout, onNavigate, onDiscordJoin, hasNotifications}) {
     return (
         <div className="border-t border-slate-100 p-3">
             {!user?.is_premium ? (
@@ -103,33 +103,12 @@ function ProfileFooter({user, onLogout, onNavigate, showDiscordPromo, onDismissD
                 </div>
             )}
 
-            <div className="relative">
-                {showDiscordPromo && (
-                    <div className="absolute bottom-[calc(100%+0.75rem)] left-0 w-full rounded-2xl border border-[#5865F2]/25 bg-white p-4 shadow-xl" role="status">
-                        <button
-                            type="button"
-                            onClick={onDismissDiscordPromo}
-                            aria-label="Dismiss Discord Premium offer"
-                            className="absolute right-2 top-2 cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                        >
-                            <X className="size-4"/>
-                        </button>
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-                            <Gift className="size-5"/>
-                        </span>
-                        <p className="m-0 mt-3 pr-5 text-sm font-black leading-5 text-slate-900">One month of Premium free</p>
-                        <p className="m-0 mt-1 text-xs font-medium leading-5 text-slate-500">
-                            Join our Discord to get the limited-time promotion code.
-                        </p>
-                        <span className="absolute -bottom-1.5 left-7 size-3 rotate-45 border-b border-r border-[#5865F2]/25 bg-white" aria-hidden="true"/>
-                    </div>
-                )}
-
+            <div>
                 <a
                     href={DISCORD_INVITE}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={onDismissDiscordPromo}
+                    onClick={onDiscordJoin}
                     className="mb-2 flex items-center gap-2.5 rounded-xl border border-[#5865F2]/20 bg-[#5865F2]/5 px-3 py-2.5 text-sm font-bold text-slate-800 no-underline transition-colors hover:bg-[#5865F2]/10"
                 >
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5865F2] text-white">
@@ -191,6 +170,9 @@ const AppLayout = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [navHidden, setNavHidden] = useState(readNavHidden);
     const [showDiscordPromo, setShowDiscordPromo] = useState(false);
+    const discordDialogRef = useRef(null);
+    const discordCloseRef = useRef(null);
+    const previousFocusRef = useRef(null);
     const {unreadCount, friendRequestCount} = useUnreadMessages(Boolean(user));
     const hasNotifications = unreadCount + friendRequestCount > 0;
 
@@ -214,18 +196,57 @@ const AppLayout = () => {
         [navCollapsed, canCollapse, toggleNav]
     );
 
+    const handleDismissDiscordPromo = useCallback(() => {
+        dismissDiscordPromo(user?.id);
+        setShowDiscordPromo(false);
+        window.setTimeout(() => previousFocusRef.current?.focus?.(), 0);
+    }, [user?.id]);
+
     useEffect(() => {
-        if (!user || user.is_premium) {
-            setShowDiscordPromo(false);
-            return;
-        }
-        setShowDiscordPromo(shouldShowDiscordPromo());
+        const handleEligibility = () => {
+            if (!user || user.is_premium || !shouldShowDiscordPromo(user.id)) return;
+            previousFocusRef.current = document.activeElement;
+            setShowDiscordPromo(true);
+        };
+
+        window.addEventListener(DISCORD_PROMO_EVENT, handleEligibility);
+        return () => window.removeEventListener(DISCORD_PROMO_EVENT, handleEligibility);
     }, [user?.id, user?.is_premium]);
 
-    const handleDismissDiscordPromo = useCallback(() => {
-        dismissDiscordPromo();
-        setShowDiscordPromo(false);
-    }, []);
+    useEffect(() => {
+        if (!showDiscordPromo) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        discordCloseRef.current?.focus();
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                handleDismissDiscordPromo();
+                return;
+            }
+            if (event.key !== 'Tab') return;
+
+            const focusable = [...(discordDialogRef.current?.querySelectorAll('a[href], button:not([disabled])') || [])];
+            if (!focusable.length) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [handleDismissDiscordPromo, showDiscordPromo]);
 
     useEffect(() => {
         if (!user) return undefined;
@@ -305,8 +326,7 @@ const AppLayout = () => {
                 user={user}
                 onLogout={handleLogout}
                 onNavigate={closeDrawer}
-                showDiscordPromo={showDiscordPromo}
-                onDismissDiscordPromo={handleDismissDiscordPromo}
+                onDiscordJoin={handleDismissDiscordPromo}
                 hasNotifications={hasNotifications}
             />
         </div>
@@ -406,6 +426,79 @@ const AppLayout = () => {
                     Profile
                 </NavLink>
             </nav>
+
+            {showDiscordPromo && (
+                <div
+                    className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 px-4 py-8 backdrop-blur-[2px]"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) handleDismissDiscordPromo();
+                    }}
+                >
+                    <section
+                        ref={discordDialogRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="discord-promo-title"
+                        aria-describedby="discord-promo-description"
+                        className="sd-up w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_28px_80px_rgba(15,23,42,0.34)]"
+                    >
+                        <div className="sat-score-strip flex items-center justify-between gap-3 px-5 py-3">
+                            <span className="inline-flex items-center gap-2 text-sm font-bold text-primary-800">
+                                <Gift className="size-4"/> First question complete
+                            </span>
+                            <button
+                                ref={discordCloseRef}
+                                type="button"
+                                onClick={handleDismissDiscordPromo}
+                                aria-label="Dismiss Discord offer"
+                                className="flex size-11 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-white/70 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                            >
+                                <X className="size-5"/>
+                            </button>
+                        </div>
+
+                        <div className="p-5 sm:p-7">
+                            <div className="flex items-start gap-4">
+                                <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#5865F2] text-white shadow-[0_10px_24px_rgba(88,101,242,0.28)]">
+                                    <DiscordIcon className="size-6"/>
+                                </span>
+                                <div>
+                                    <h2 id="discord-promo-title" className="m-0 font-display text-2xl font-bold tracking-[-0.02em] text-slate-950">
+                                        Get one month of Premium free
+                                    </h2>
+                                    <p id="discord-promo-description" className="m-0 mt-2 text-[15px] leading-6 text-slate-600">
+                                        Join the SAT Duel Discord and use the promotion code posted in the community.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-5 flex items-center gap-3 rounded-xl bg-amber-50 px-4 py-3 text-amber-950">
+                                <Crown className="size-5 shrink-0 text-amber-600"/>
+                                <p className="m-0 text-sm font-semibold leading-5">Unlock Premium practice tools for your first month.</p>
+                            </div>
+
+                            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                                <button
+                                    type="button"
+                                    onClick={handleDismissDiscordPromo}
+                                    className="min-h-11 cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                                >
+                                    Maybe later
+                                </button>
+                                <a
+                                    href={DISCORD_INVITE}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={handleDismissDiscordPromo}
+                                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#5865F2] px-4 py-2.5 text-sm font-bold text-white no-underline shadow-[0_10px_24px_rgba(88,101,242,0.24)] transition-colors hover:bg-[#4f5bd5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5865F2]"
+                                >
+                                    <DiscordIcon className="size-4"/> Join Discord
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            )}
         </div>
         </NavCollapseContext.Provider>
     );

@@ -25,6 +25,7 @@
     --sd-track: rgba(148, 163, 184, 0.18);
     /* accent text tuned per theme for contrast on panels */
     --sd-violet-lbl: #C0B0FA;
+    --sd-cyan-lbl: #67E8F9;
     --sd-gold-lbl: #E9BC4F;
     --sd-green-lbl: #2FBF71;
     --sd-orange-lbl: #F08A3E;
@@ -54,6 +55,7 @@
     --sd-tile-idle: #FFFFFF;
     --sd-track: rgba(15, 23, 42, 0.12);
     --sd-violet-lbl: #6B28D9;
+    --sd-cyan-lbl: #0E7490;
     --sd-gold-lbl: #A16E14;
     --sd-green-lbl: #1E9A5A;
     --sd-orange-lbl: #C2611D;

@@ -4,7 +4,6 @@ import {Link, useLocation, useNavigate} from 'react-router-dom';
 import {useAuth} from "../context/AuthContext";
 import {Button, Card, Field, Input, DividerLabel, Alert} from "../components/ui";
 import GoogleLoginButton from "../components/GoogleLogin";
-import {DiscordCTA} from "../components/Discord";
 import SEO from '../components/SEO';
 import {rememberPostLoginRedirect, safeRedirectPath} from '../utils/authRedirect';
 
@@ -140,9 +139,6 @@ function Login() {
                     </span>
                 </div>
 
-                <div className="mt-6">
-                    <DiscordCTA variant="banner"/>
-                </div>
             </Card>
         </div>
     );

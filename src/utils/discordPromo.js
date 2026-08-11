@@ -1,25 +1,25 @@
-const DISMISSED_KEY = 'sd:discord-premium-promo-dismissed';
+export const DISCORD_PROMO_EVENT = 'satduel:discord-promo-eligible';
 
-export function dismissDiscordPromo() {
+const promoKey = (userId) => `sd:discord-premium-promo-dismissed:${userId}`;
+
+export function dismissDiscordPromo(userId) {
+    if (userId == null) return;
     try {
-        sessionStorage.setItem(DISMISSED_KEY, 'true');
+        window.localStorage.setItem(promoKey(userId), 'true');
     } catch {
-        // The callout can safely reappear if browser storage is unavailable.
+        // The promotion must never interrupt practice when storage is blocked.
     }
 }
 
-export function resetDiscordPromo() {
-    try {
-        sessionStorage.removeItem(DISMISSED_KEY);
-    } catch {
-        // Login should never depend on browser storage being available.
-    }
+export function isFirstPracticeAnswer(stats, review = false) {
+    return !review && stats?.practice_answered === 1;
 }
 
-export function shouldShowDiscordPromo() {
+export function shouldShowDiscordPromo(userId) {
+    if (userId == null) return false;
     try {
-        return sessionStorage.getItem(DISMISSED_KEY) !== 'true';
+        return window.localStorage.getItem(promoKey(userId)) !== 'true';
     } catch {
-        return true;
+        return false;
     }
 }

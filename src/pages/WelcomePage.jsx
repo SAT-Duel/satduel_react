@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {Helmet} from 'react-helmet';
 import {Link, useNavigate} from 'react-router-dom';
-import {ArrowRight, BookOpen, Swords, Trophy} from 'lucide-react';
+import {ArrowRight, BookOpen, Calculator, Swords, Trophy} from 'lucide-react';
 import {useAuth} from '../context/AuthContext';
 import useSdTheme from '../hooks/useSdTheme';
 import {consumePostLoginRedirect} from '../utils/authRedirect';
@@ -10,16 +10,7 @@ import '../styles/landing.css';
 // First-login onboarding: one screen, three concrete starting points.
 // Replaces the old goal-setting flow (target scores / daily quotas), which
 // the rest of the product no longer used.
-const STARTS = [
-    {
-        icon: BookOpen,
-        title: 'Practice',
-        text: 'Build your Math or Reading & Writing rating with adaptive questions.',
-        actions: [
-            {label: 'English', to: '/infinite_questions'},
-            {label: 'Math', to: '/infinite_questions?subject=math'},
-        ],
-    },
+const OTHER_STARTS = [
     {
         icon: Swords,
         title: 'Duel',
@@ -31,7 +22,23 @@ const STARTS = [
         title: 'Tournament',
         text: 'Join an asynchronous tournament, compete with students around the world, and see your ranking on a live leaderboard.',
         actions: [{label: 'Browse tournaments', to: '/tournaments'}],
-        recommended: true,
+    },
+];
+
+const PRACTICE_SUBJECTS = [
+    {
+        icon: BookOpen,
+        title: 'English',
+        text: 'Reading & Writing',
+        to: '/infinite_questions',
+        tone: 'border-cyan-400/35 bg-cyan-400/10 text-[var(--sd-cyan-lbl)] hover:border-cyan-300',
+    },
+    {
+        icon: Calculator,
+        title: 'Math',
+        text: 'Algebra, data & geometry',
+        to: '/infinite_questions?subject=math',
+        tone: 'border-amber-400/35 bg-amber-400/10 text-[var(--sd-gold-lbl)] hover:border-amber-300',
     },
 ];
 
@@ -55,60 +62,93 @@ const WelcomePage = () => {
     }, []);
 
     return (
-        <div className="sd-landing flex min-h-screen flex-col items-center justify-center px-5 py-12" data-theme={theme}>
+        <div className="sd-landing flex min-h-screen flex-col items-center justify-center px-5 py-10 sm:py-14" data-theme={theme}>
             <Helmet>
                 <title>Welcome | SAT Duel</title>
             </Helmet>
-            <div className="w-full max-w-[840px] text-center">
-                <span className="sd-mono text-xs font-bold tracking-[0.12em] text-[#7C5CF0]">WELCOME TO THE ARENA</span>
-                <h1 className="sd-display m-0 mt-3 text-3xl font-bold tracking-[-0.02em] text-[var(--sd-text)] sm:text-[40px]">
-                    Where do you want to start{user?.first_name ? `, ${user.first_name}` : ''}?
-                </h1>
-                <p className="m-0 mt-3 text-base text-[var(--sd-mut)]">
-                    Choose a core SAT Duel mode. You can switch anytime.
-                </p>
+            <div className="w-full max-w-5xl">
+                <div className="text-center">
+                    <h1 className="sd-display m-0 text-3xl font-bold tracking-[-0.025em] text-[var(--sd-text)] sm:text-[42px]">
+                        Start with one real question{user?.first_name ? `, ${user.first_name}` : ''}.
+                    </h1>
+                    <p className="mx-auto mb-0 mt-3 max-w-2xl text-base leading-6 text-[var(--sd-mut)]">
+                        Practice is the fastest way to establish your level. Pick a subject now—you can switch anytime.
+                    </p>
+                </div>
 
-                <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                    {STARTS.map(({icon: Icon, title, text, actions, recommended}) => (
-                        <div
-                            key={title}
-                            className={`relative flex min-h-64 flex-col items-start gap-2 rounded-2xl border-[1.5px] p-5 text-left transition-all hover:-translate-y-0.5 ${
-                                recommended
-                                    ? 'border-[#7C5CF0] bg-[rgba(124,92,240,0.14)] shadow-[0_0_0_4px_rgba(124,92,240,0.08)]'
-                                    : 'border-[var(--sd-line2)] bg-[var(--sd-panel)] hover:border-[rgba(124,92,240,0.6)]'
-                            }`}
-                        >
-                            {recommended && (
-                                <span className="sd-mono absolute -top-2.5 right-4 rounded-md bg-[#7C5CF0] px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-white">
-                                    RECOMMENDED
-                                </span>
-                            )}
-                            <Icon className="size-6 text-[var(--sd-violet-lbl)]"/>
-                            <span className="sd-display text-lg font-bold text-[var(--sd-text)]">{title}</span>
-                            <span className="text-sm leading-relaxed text-[var(--sd-mut)]">{text}</span>
-                            <div className="mt-auto flex w-full gap-2 pt-4">
-                                {actions.map(({label, to}) => (
+                <div className="mt-9 grid gap-5 lg:grid-cols-[1.55fr_0.85fr]">
+                    <section className="overflow-hidden rounded-2xl border border-[#7C5CF0]/55 bg-[rgba(124,92,240,0.11)] shadow-[0_24px_60px_rgba(0,0,0,0.2)]">
+                        <div className="sat-score-strip flex items-center justify-between gap-3 px-5 py-3 sm:px-7">
+                            <span className="inline-flex items-center gap-2 text-sm font-bold text-[var(--sd-text)]">
+                                <BookOpen className="size-4 text-[var(--sd-violet-lbl)]"/> Focused practice
+                            </span>
+                            <span className="rounded-full bg-[#7C5CF0] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-white">
+                                Recommended
+                            </span>
+                        </div>
+
+                        <div className="p-5 sm:p-7">
+                            <h2 className="sd-display m-0 text-2xl font-bold tracking-[-0.02em] text-[var(--sd-text)] sm:text-3xl">
+                                Choose your first subject
+                            </h2>
+                            <p className="m-0 mt-2 max-w-xl text-sm leading-6 text-[var(--sd-mut)]">
+                                Answer adaptive SAT questions, see explanations, and build a separate Practice Elo for each subject.
+                            </p>
+
+                            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                                {PRACTICE_SUBJECTS.map(({icon: Icon, title, text, to, tone}) => (
                                     <Link
-                                        key={label}
+                                        key={title}
                                         to={to}
-                                        className={`group flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-center text-sm font-bold no-underline transition-colors ${
-                                            recommended
-                                                ? 'bg-[#7C5CF0] text-white hover:bg-[#6847e8]'
-                                                : 'border border-[var(--sd-line2)] bg-[var(--sd-panel)] text-[var(--sd-text)] hover:border-[#7C5CF0] hover:text-[var(--sd-violet-lbl)]'
-                                        } ${actions.length > 1 ? 'flex-1' : 'w-full'}`}
+                                        className={`group flex min-h-28 items-center gap-4 rounded-2xl border p-4 no-underline transition-[border-color,background-color,transform] hover:-translate-y-0.5 ${tone}`}
                                     >
-                                        {label}
-                                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5"/>
+                                        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-black/10">
+                                            <Icon className="size-6"/>
+                                        </span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block text-lg font-bold text-[var(--sd-text)]">{title}</span>
+                                            <span className="mt-0.5 block text-sm text-[var(--sd-mut)]">{text}</span>
+                                            <span className="mt-2 inline-flex items-center gap-1 text-sm font-bold">
+                                                Start practice <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5"/>
+                                            </span>
+                                        </span>
                                     </Link>
                                 ))}
                             </div>
                         </div>
-                    ))}
+                    </section>
+
+                    <section className="rounded-2xl border border-[var(--sd-line2)] bg-[var(--sd-panel)] p-5 sm:p-6">
+                        <h2 className="sd-display m-0 text-xl font-bold text-[var(--sd-text)]">Other ways to train</h2>
+                        <div className="mt-4 divide-y divide-[var(--sd-line)]">
+                            {OTHER_STARTS.map(({icon: Icon, title, text, actions}) => (
+                                <div key={title} className="py-4 first:pt-0 last:pb-0">
+                                    <div className="flex items-start gap-3">
+                                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[rgba(124,92,240,0.12)] text-[var(--sd-violet-lbl)]">
+                                            <Icon className="size-5"/>
+                                        </span>
+                                        <div className="min-w-0">
+                                            <h3 className="m-0 text-base font-bold text-[var(--sd-text)]">{title}</h3>
+                                            <p className="m-0 mt-1 text-sm leading-5 text-[var(--sd-mut)]">{text}</p>
+                                        </div>
+                                    </div>
+                                    <Link
+                                        to={actions[0].to}
+                                        className="group mt-3 inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--sd-line2)] bg-transparent px-3 py-2 text-sm font-bold text-[var(--sd-text)] no-underline transition-colors hover:border-[#7C5CF0] hover:text-[var(--sd-violet-lbl)]"
+                                    >
+                                        {actions[0].label} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5"/>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
                 </div>
 
-                <Link to="/trainer" className="mt-9 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--sd-dim)] no-underline hover:text-[var(--sd-text)]">
-                    Skip — take me to the dashboard <ArrowRight className="size-4"/>
-                </Link>
+                <div className="mt-7 text-center">
+                    <Link to="/trainer" className="inline-flex min-h-11 items-center gap-1.5 px-2 text-sm font-semibold text-[var(--sd-dim)] no-underline hover:text-[var(--sd-text)]">
+                        I’ll explore on my own <ArrowRight className="size-4"/>
+                    </Link>
+                </div>
             </div>
         </div>
     );

@@ -2,7 +2,6 @@ import React, {createContext, useCallback, useContext, useState, useEffect} from
 import axios from "axios";
 import api from '../components/api';
 import {notify} from '../utils/notify';
-import {resetDiscordPromo} from '../utils/discordPromo';
 
 const AuthContext = createContext(null);
 
@@ -18,6 +17,8 @@ function profileToUserUpdates(profile) {
         avatar: profile.avatar,
         avatar_icon: profile.avatar_icon,
         onboarding_required: profile.onboarding?.required,
+        marketing_opt_in: profile.onboarding?.marketing_opt_in,
+        terms_accepted: profile.onboarding?.terms_accepted,
     };
 }
 
@@ -35,7 +36,6 @@ export const AuthProvider = ({children}) => {
     }, []);
 
     const login = useCallback(async (userData, accessToken, refreshToken) => {
-        resetDiscordPromo();
         setUser(userData);
         setToken(accessToken);
         localStorage.setItem('access_token', accessToken);

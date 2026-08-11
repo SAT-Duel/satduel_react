@@ -8,6 +8,7 @@ import {
     SetupProgress,
     TermsAgreement,
     UNKNOWN_SAT_DATE,
+    useOnboardingPreferences,
     useSatExamDates,
 } from './AccountSetupFields';
 import {useAuth} from '../context/AuthContext';
@@ -21,22 +22,28 @@ export default function AccountCompletionGate() {
 }
 
 function AccountCompletionModal() {
-    const {updateUser} = useAuth();
+    const {user, updateUser} = useAuth();
     const [step, setStep] = useState(1);
     const [satExamDate, setSatExamDate] = useState('');
-    const [marketingOptIn, setMarketingOptIn] = useState(false);
-    const [termsAccepted, setTermsAccepted] = useState(false);
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const {dates, loading, error: datesError} = useSatExamDates();
+    const {
+        marketingOptIn,
+        setMarketingOptIn,
+        termsAccepted,
+        setTermsAccepted,
+        preferencesReady,
+        preferencesError,
+    } = useOnboardingPreferences(user);
 
     const continueSetup = () => {
         setError('');
-        if (step === 1 && !satExamDate) {
+        if (!satExamDate) {
             setError('Choose an SAT date or “I don’t know yet”.');
             return;
         }
-        setStep((current) => current + 1);
+        setStep(2);
     };
 
     const finish = async () => {
@@ -52,7 +59,11 @@ function AccountCompletionModal() {
                 marketing_opt_in: marketingOptIn,
                 terms_accepted: termsAccepted,
             });
-            updateUser({onboarding_required: data.onboarding_required});
+            updateUser({
+                onboarding_required: data.onboarding_required,
+                terms_accepted: true,
+                marketing_opt_in: marketingOptIn,
+            });
         } catch (requestError) {
             setError(requestError.response?.data?.error || 'Could not save your choices. Please try again.');
             setSubmitting(false);
@@ -61,14 +72,13 @@ function AccountCompletionModal() {
 
     const titles = {
         1: ['Let’s finish setting up your account', 'First, choose your next SAT date.'],
-        2: ['SAT Duel updates', 'Choose whether you’d like occasional practice and tournament news.'],
-        3: ['Terms and privacy', 'Please review and accept the latest SAT Duel terms.'],
+        2: ['Privacy and updates', 'Review the latest terms and choose whether you want occasional SAT Duel emails.'],
     };
 
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 px-4 py-8" role="dialog" aria-modal="true" aria-labelledby="account-setup-title">
             <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
-                <SetupProgress step={step} labels={['SAT date', 'Updates', 'Terms']}/>
+                <SetupProgress step={step} labels={['SAT date', 'Privacy']}/>
                 <h2 id="account-setup-title" className="m-0 text-center font-display text-2xl font-bold text-slate-900">
                     {titles[step][0]}
                 </h2>
@@ -80,8 +90,18 @@ function AccountCompletionModal() {
                         {datesError && <div className="mt-4"><Alert>{datesError}</Alert></div>}
                     </>
                 )}
-                {step === 2 && <MarketingChoice checked={marketingOptIn} onChange={setMarketingOptIn}/>}
-                {step === 3 && <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>}
+                {step === 2 && (
+                    <div className="space-y-4">
+                        {!user?.terms_accepted && (
+                            <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>
+                        )}
+                        <MarketingChoice checked={marketingOptIn} onChange={setMarketingOptIn}/>
+                    </div>
+                )}
+                {!preferencesReady && !preferencesError && (
+                    <p className="m-0 mt-4 text-sm font-semibold text-slate-500">Loading your account choices…</p>
+                )}
+                {preferencesError && <div className="mt-4"><Alert>{preferencesError}</Alert></div>}
                 {error && <div className="mt-4"><Alert>{error}</Alert></div>}
 
                 <div className="mt-6 flex gap-3">
@@ -94,10 +114,10 @@ function AccountCompletionModal() {
                         type="button"
                         block
                         loading={submitting}
-                        disabled={step === 1 && loading}
-                        onClick={step === 3 ? finish : continueSetup}
+                        disabled={!preferencesReady || (step === 1 && loading)}
+                        onClick={step === 2 ? finish : continueSetup}
                     >
-                        {step === 3 ? 'Save and continue' : 'Continue'}
+                        {step === 2 ? 'Save and continue' : 'Continue'}
                     </Button>
                 </div>
             </div>
