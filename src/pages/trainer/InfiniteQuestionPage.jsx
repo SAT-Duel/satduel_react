@@ -11,7 +11,7 @@ import {billingErrorMessage, startPremiumCheckout} from '../../utils/billing';
 import ResetCountdown from '../../components/ResetCountdown';
 import DiscordCTA from '../../components/Discord';
 import PracticeFilterBar, {EMPTY_FILTERS, filtersActiveCount, filtersToParams} from '../../components/practice/PracticeFilterBar';
-import {DISCORD_PROMO_EVENT, isFirstPracticeAnswer} from '../../utils/discordPromo';
+import {DISCORD_PROMO_EVENT, isThirdPracticeAnswer} from '../../utils/discordPromo';
 
 function PracticeProgress({subject, stats}) {
     const label = subject === 'math' ? 'Math' : 'English';
@@ -561,7 +561,7 @@ function InfiniteQuestionsPage() {
             freezeTimer();
             if (response.data.practice_stats) {
                 setStats(readPracticeStats(response.data.practice_stats));
-                if (isFirstPracticeAnswer(response.data.practice_stats, response.data.review)) {
+                if (isThirdPracticeAnswer(response.data.practice_stats, response.data.review)) {
                     window.dispatchEvent(new CustomEvent(DISCORD_PROMO_EVENT));
                 }
             }
