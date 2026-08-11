@@ -36,6 +36,16 @@ import wordProblemsToEquations from './wordProblemsToEquations.js';
 import zerosInterceptsRoots from './zerosInterceptsRoots.js';
 import growthFactors from './growthFactors.js';
 import linearVsExponential from './linearVsExponential.js';
+import ratiosProportionalRelationships from './ratiosProportionalRelationships.js';
+import ratesDerivedUnits from './ratesDerivedUnits.js';
+import unitConversionScale from './unitConversionScale.js';
+import percentRelationships from './percentRelationships.js';
+import percentChangeMultipliers from './percentChangeMultipliers.js';
+import oneVariableDataDistributions from './oneVariableDataDistributions.js';
+import comparingCenterSpread from './comparingCenterSpread.js';
+import scatterplotsModels from './scatterplotsModels.js';
+import probabilityTwoWayTables from './probabilityTwoWayTables.js';
+import samplingMarginClaims from './samplingMarginClaims.js';
 
 export const STUDY_GUIDE_LESSONS = [
     howDigitalSatMathWorks,
@@ -76,6 +86,16 @@ export const STUDY_GUIDE_LESSONS = [
     rationalExpressions,
     radicalsAndRationalExponents,
     choosingUsefulForms,
+    ratiosProportionalRelationships,
+    ratesDerivedUnits,
+    unitConversionScale,
+    percentRelationships,
+    percentChangeMultipliers,
+    oneVariableDataDistributions,
+    comparingCenterSpread,
+    scatterplotsModels,
+    probabilityTwoWayTables,
+    samplingMarginClaims,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
