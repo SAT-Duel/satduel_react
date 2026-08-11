@@ -1,4 +1,5 @@
 import absoluteValueEquations from './absoluteValueEquations.js';
+import choosingUsefulForms from './choosingUsefulForms.js';
 import fourMathDomains from './fourMathDomains.js';
 import functionNotation from './functionNotation.js';
 import howDigitalSatMathWorks from './howDigitalSatMathWorks.js';
@@ -24,8 +25,12 @@ import systemsAsIntersections from './systemsAsIntersections.js';
 import tablesToEquations from './tablesToEquations.js';
 import parabolaTransformations from './parabolaTransformations.js';
 import polynomialStructure from './polynomialStructure.js';
+import polynomialOperations from './polynomialOperations.js';
 import radicalEquations from './radicalEquations.js';
+import radicalsAndRationalExponents from './radicalsAndRationalExponents.js';
 import rationalEquations from './rationalEquations.js';
+import rationalExpressions from './rationalExpressions.js';
+import strategicFactoring from './strategicFactoring.js';
 import vertexAxisSymmetry from './vertexAxisSymmetry.js';
 import wordProblemsToEquations from './wordProblemsToEquations.js';
 import zerosInterceptsRoots from './zerosInterceptsRoots.js';
@@ -66,6 +71,11 @@ export const STUDY_GUIDE_LESSONS = [
     linearVsExponential,
     equivalentExponentialForms,
     exponentialModelInterpretation,
+    polynomialOperations,
+    strategicFactoring,
+    rationalExpressions,
+    radicalsAndRationalExponents,
+    choosingUsefulForms,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
