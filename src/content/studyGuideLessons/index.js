@@ -46,6 +46,11 @@ import comparingCenterSpread from './comparingCenterSpread.js';
 import scatterplotsModels from './scatterplotsModels.js';
 import probabilityTwoWayTables from './probabilityTwoWayTables.js';
 import samplingMarginClaims from './samplingMarginClaims.js';
+import {TRIANGLES_LESSONS} from './trianglesLessons.js';
+import {CIRCLES_COORDINATE_LESSONS} from './circlesCoordinateLessons.js';
+import {AREA_VOLUME_TRIG_LESSONS} from './areaVolumeTrigLessons.js';
+import {CALCULATOR_STRATEGY_LESSONS} from './calculatorStrategyLessons.js';
+import {MISTAKE_REVIEW_LESSONS} from './mistakeReviewLessons.js';
 
 export const STUDY_GUIDE_LESSONS = [
     howDigitalSatMathWorks,
@@ -96,6 +101,11 @@ export const STUDY_GUIDE_LESSONS = [
     scatterplotsModels,
     probabilityTwoWayTables,
     samplingMarginClaims,
+    ...TRIANGLES_LESSONS,
+    ...CIRCLES_COORDINATE_LESSONS,
+    ...AREA_VOLUME_TRIG_LESSONS,
+    ...CALCULATOR_STRATEGY_LESSONS,
+    ...MISTAKE_REVIEW_LESSONS,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
