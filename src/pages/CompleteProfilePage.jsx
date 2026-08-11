@@ -1,22 +1,21 @@
 import React, {useState} from 'react';
 import {Helmet} from 'react-helmet';
 import {useNavigate} from 'react-router-dom';
-import {ArrowRight, Check, Crown, Gift} from 'lucide-react';
+import {CalendarDays, Check, ShieldCheck, UserRound} from 'lucide-react';
 import api from '../components/api';
-import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
-import {Alert, Button, Card, Field, Input, Select} from '../components/ui';
+import {Alert, Button, Field, Input, Select} from '../components/ui';
 import {
     MarketingChoice,
     SatDatePicker,
     SetupProgress,
     TermsAgreement,
     UNKNOWN_SAT_DATE,
+    useOnboardingPreferences,
     useSatExamDates,
 } from '../components/AccountSetupFields';
 import {useAuth} from '../context/AuthContext';
 import withAuth from '../hoc/withAuth';
 import useSdTheme from '../hooks/useSdTheme';
-import {dismissDiscordPromo} from '../utils/discordPromo';
 import '../styles/landing.css';
 
 const GRADES = [...Array.from({length: 5}, (_, i) => String(i + 8)), '>12'];
@@ -30,46 +29,49 @@ const CompleteProfilePage = () => {
     const [firstName, setFirstName] = useState(user?.first_name || '');
     const [lastName, setLastName] = useState(user?.last_name || '');
     const [grade, setGrade] = useState(user?.grade_selected ? user.grade : '');
-    const [termsAccepted, setTermsAccepted] = useState(Boolean(user?.terms_accepted));
     const [satExamDate, setSatExamDate] = useState('');
-    const [marketingOptIn, setMarketingOptIn] = useState(false);
-    const [setupComplete, setSetupComplete] = useState(false);
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const {dates, loading: datesLoading, error: datesError} = useSatExamDates();
+    const {
+        marketingOptIn,
+        setMarketingOptIn,
+        termsAccepted,
+        setTermsAccepted,
+        preferencesReady,
+        preferencesError,
+    } = useOnboardingPreferences(user);
     const navigate = useNavigate();
 
     const continueSetup = () => {
         setError('');
-        if (step === 1) {
-            if (!USERNAME_RULE.test(username)) {
-                setError('Use 1–15 letters, numbers, or underscores for your username.');
-                return;
-            }
-            if (!firstName.trim() || !lastName.trim()) {
-                setError('Enter your first and last name.');
-                return;
-            }
-            if (!grade) {
-                setError('Please select your grade.');
-                return;
-            }
-            if (!termsAccepted) {
-                setError('You must accept the Terms of Service to continue.');
-                return;
-            }
-        }
-        if (step === 2 && !satExamDate) {
-            setError('Choose an SAT date or “I don’t know yet”.');
+        if (!USERNAME_RULE.test(username)) {
+            setError('Use 1–15 letters, numbers, or underscores for your username.');
             return;
         }
-        setStep((current) => current + 1);
+        if (!firstName.trim() || !lastName.trim()) {
+            setError('Enter your first and last name.');
+            return;
+        }
+        if (!grade) {
+            setError('Please select your grade.');
+            return;
+        }
+        if (!termsAccepted) {
+            setError('You must accept the Terms of Service to continue.');
+            return;
+        }
+        setStep(2);
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (step < 3) {
+        if (step === 1) {
             continueSetup();
+            return;
+        }
+        if (!satExamDate) {
+            setError('Choose an SAT date or “I don’t know yet”.');
             return;
         }
 
@@ -92,9 +94,7 @@ const CompleteProfilePage = () => {
                 onboarding_required: data.onboarding_required,
                 terms_accepted: true,
             });
-            dismissDiscordPromo();
-            setSetupComplete(true);
-            setSubmitting(false);
+            navigate('/welcome', {replace: true});
         } catch (requestError) {
             setError(requestError.response?.data?.error || 'Could not save your profile. Please try again.');
             setSubmitting(false);
@@ -102,74 +102,59 @@ const CompleteProfilePage = () => {
     };
 
     const titles = {
-        1: ['Welcome to SAT Duel!', 'Choose your public username and tell us a little about you.'],
-        2: ['When is your next SAT?', 'We’ll use this to put a helpful countdown on your dashboard.'],
-        3: ['One last choice', 'Choose which SAT Duel emails you’d like to receive.'],
+        1: ['Make SAT Duel yours', 'Set the identity other students will see, then review your account choices.'],
+        2: ['Put your SAT on the calendar', 'Choose a test date for a useful countdown, or tell us you are still deciding.'],
     };
 
-    if (setupComplete) {
-        return (
-            <div className="sd-landing flex min-h-screen items-center justify-center px-4 py-10" data-theme={theme}>
-                <Helmet><title>Claim free Premium | SAT Duel</title></Helmet>
-                <Card className="w-full max-w-xl overflow-hidden !p-0">
-                    <div className="sat-score-strip flex items-center justify-between px-5 py-3 sm:px-7">
-                        <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-primary-700">
-                            <Gift className="size-4"/> Limited-time offer
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700">
-                            <Check className="size-4"/> Account ready
-                        </span>
-                    </div>
-
-                    <div className="p-6 text-center sm:p-8">
-                        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-[#5865F2] text-white shadow-[0_8px_0_0_#4752c4]">
-                            <DiscordIcon className="size-8"/>
-                        </div>
-                        <p className="m-0 mt-7 text-xs font-black uppercase tracking-[0.12em] text-primary-600">Discord member bonus</p>
-                        <h1 className="m-0 mt-2 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                            Get one month of Premium free
-                        </h1>
-                        <p className="mx-auto mb-0 mt-3 max-w-md text-[15px] leading-6 text-slate-500">
-                            Join the SAT Duel Discord and grab the promotion code posted inside the server.
-                        </p>
-
-                        <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
-                            <Crown className="size-6 shrink-0 text-amber-500"/>
-                            <p className="m-0 text-sm font-semibold leading-5 text-amber-950">
-                                Unlock Premium practice features for your first month—on us.
-                            </p>
-                        </div>
-
-                        <a
-                            href={DISCORD_INVITE}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#4752c4] bg-[#5865F2] px-5 py-3 text-base font-bold text-white no-underline shadow-[0_4px_0_0_#4752c4] transition-all hover:bg-[#4f5bd5] active:translate-y-1 active:shadow-none"
-                        >
-                            <DiscordIcon className="size-5"/> Join Discord &amp; get my code
-                        </a>
-                        <button
-                            type="button"
-                            onClick={() => navigate('/welcome')}
-                            className="mt-5 inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-slate-700"
-                        >
-                            Continue to SAT Duel <ArrowRight className="size-4"/>
-                        </button>
-                    </div>
-                </Card>
-            </div>
-        );
-    }
-
     return (
-        <div className="sd-landing flex min-h-screen items-center justify-center px-4 py-10" data-theme={theme}>
+        <div className="sd-landing min-h-screen px-4 py-6 sm:px-6 sm:py-10" data-theme={theme}>
             <Helmet><title>Complete profile | SAT Duel</title></Helmet>
-            <Card className="w-full max-w-2xl p-6 sm:p-8">
-                <SetupProgress step={step}/>
-                <h1 className="mb-1 text-center font-display text-2xl font-bold text-slate-900">{titles[step][0]}</h1>
-                <p className="mb-6 text-center text-[15px] text-slate-500">{titles[step][1]}</p>
+            <div className="mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-[var(--sd-line2)] bg-white shadow-[0_28px_80px_rgba(0,0,0,0.28)] lg:min-h-[680px] lg:grid-cols-[0.82fr_1.18fr]">
+                <aside className="relative overflow-hidden bg-[#111a2d] px-6 py-8 text-white sm:px-9 sm:py-10 lg:flex lg:flex-col lg:justify-between lg:p-11">
+                    <div className="absolute -right-8 -top-6 grid grid-cols-2 gap-3 opacity-20" aria-hidden="true">
+                        {['A', 'B', 'C', 'D'].map((choice) => (
+                            <span key={choice} className="flex size-14 items-center justify-center rounded-full border-2 border-white text-sm font-black">
+                                {choice}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="relative max-w-md">
+                        <span className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-cyan-300">
+                            {step === 1 ? <UserRound className="size-6"/> : <CalendarDays className="size-6"/>}
+                        </span>
+                        <h1 className="m-0 mt-6 max-w-sm font-display text-3xl font-bold tracking-[-0.025em] sm:text-4xl">
+                            {titles[step][0]}
+                        </h1>
+                        <p className="m-0 mt-3 max-w-sm text-[15px] leading-6 text-slate-300">
+                            {titles[step][1]}
+                        </p>
+                    </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <ol className="relative mt-12 hidden gap-3 lg:grid" aria-label="Account setup progress">
+                        {[
+                            ['About you', UserRound],
+                            ['SAT date', CalendarDays],
+                        ].map(([label, Icon], index) => {
+                            const number = index + 1;
+                            const active = number === step;
+                            const complete = number < step;
+                            return (
+                                <li key={label} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 ${active ? 'bg-white/10' : ''}`}>
+                                    <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-black ${complete ? 'border-emerald-300 bg-emerald-400 text-emerald-950' : active ? 'border-cyan-300 text-cyan-200' : 'border-slate-600 text-slate-400'}`}>
+                                        {complete ? <Check className="size-4"/> : number}
+                                    </span>
+                                    <span className={active || complete ? 'font-bold text-white' : 'font-semibold text-slate-400'}>{label}</span>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                </aside>
+
+                <section className="flex flex-col justify-center px-5 py-7 sm:px-9 sm:py-9 lg:px-12 lg:py-11">
+                    <div className="lg:hidden">
+                        <SetupProgress step={step} labels={['About you', 'SAT date']}/>
+                    </div>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     {step === 1 && (
                         <>
                             <Field label="Username">
@@ -199,7 +184,16 @@ const CompleteProfilePage = () => {
                                     </Select>
                                 </Field>
                             )}
-                            {!user?.terms_accepted && <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>}
+                            <div className="mt-2 space-y-3 border-t border-slate-200 pt-5">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="size-5 text-primary-600"/>
+                                    <h2 className="m-0 text-base font-bold text-slate-900">Privacy and updates</h2>
+                                </div>
+                                {!user?.terms_accepted && (
+                                    <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>
+                                )}
+                                <MarketingChoice checked={marketingOptIn} onChange={setMarketingOptIn}/>
+                            </div>
                         </>
                     )}
 
@@ -210,7 +204,10 @@ const CompleteProfilePage = () => {
                         </>
                     )}
 
-                    {step === 3 && <MarketingChoice checked={marketingOptIn} onChange={setMarketingOptIn}/>}
+                    {!preferencesReady && !preferencesError && (
+                        <p className="m-0 text-sm font-semibold text-slate-500">Loading your account choices…</p>
+                    )}
+                    {preferencesError && <Alert>{preferencesError}</Alert>}
                     {error && <Alert>{error}</Alert>}
 
                     <div className="mt-2 flex gap-3">
@@ -219,12 +216,13 @@ const CompleteProfilePage = () => {
                                 Back
                             </Button>
                         )}
-                        <Button type="submit" block loading={submitting} disabled={step === 2 && datesLoading}>
-                            {step === 3 ? 'Finish setup' : 'Continue'}
+                        <Button type="submit" block loading={submitting} disabled={!preferencesReady || (step === 2 && datesLoading)}>
+                            {step === 2 ? 'Finish setup' : 'Continue'}
                         </Button>
                     </div>
                 </form>
-            </Card>
+                </section>
+            </div>
         </div>
     );
 };

@@ -6,7 +6,6 @@ import api from '../components/api';
 import {Alert, Button, Card, DividerLabel, Field, Input, Select} from '../components/ui';
 import {TermsAgreement} from '../components/AccountSetupFields';
 import GoogleLoginButton from '../components/GoogleLogin';
-import {DiscordCTA} from '../components/Discord';
 import SEO from '../components/SEO';
 import {safeRedirectPath} from '../utils/authRedirect';
 
@@ -131,7 +130,6 @@ function Register() {
                         Log in
                     </Link>
                 </p>
-                <div className="mt-5"><DiscordCTA variant="banner"/></div>
             </Card>
         </div>
     );

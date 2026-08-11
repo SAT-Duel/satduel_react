@@ -1,10 +1,51 @@
 import React, {useEffect, useState} from 'react';
-import {CalendarDays, Mail, ShieldCheck} from 'lucide-react';
+import {CalendarDays, ShieldCheck} from 'lucide-react';
 import {Link} from 'react-router-dom';
 import api from './api';
 import {Toggle} from './ui';
 
 export const UNKNOWN_SAT_DATE = 'unknown';
+
+export function useOnboardingPreferences(user) {
+    const [marketingOptIn, setMarketingOptIn] = useState(Boolean(user?.marketing_opt_in));
+    const [termsAccepted, setTermsAccepted] = useState(Boolean(user?.terms_accepted));
+    const [preferencesReady, setPreferencesReady] = useState(typeof user?.marketing_opt_in === 'boolean');
+    const [preferencesError, setPreferencesError] = useState('');
+
+    useEffect(() => {
+        if (!user) return undefined;
+        if (typeof user.marketing_opt_in === 'boolean') {
+            setMarketingOptIn(user.marketing_opt_in);
+            setTermsAccepted(Boolean(user.terms_accepted));
+            setPreferencesReady(true);
+            return undefined;
+        }
+
+        let active = true;
+        api.get('api/profile/')
+            .then(({data}) => {
+                if (!active) return;
+                setMarketingOptIn(Boolean(data.onboarding?.marketing_opt_in));
+                setTermsAccepted(Boolean(data.onboarding?.terms_accepted));
+                setPreferencesReady(true);
+            })
+            .catch(() => {
+                if (!active) return;
+                setPreferencesError('Could not load your current account choices. Reload the page to try again.');
+            });
+
+        return () => { active = false; };
+    }, [user]);
+
+    return {
+        marketingOptIn,
+        setMarketingOptIn,
+        termsAccepted,
+        setTermsAccepted,
+        preferencesReady,
+        preferencesError,
+    };
+}
 
 export function useSatExamDates() {
     const [dates, setDates] = useState([]);
@@ -132,25 +173,16 @@ export function TermsAgreement({checked, onChange}) {
 
 export function MarketingChoice({checked, onChange}) {
     return (
-        <div className="space-y-4 text-left">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700">
-                <Mail className="size-6"/>
-            </div>
-            <div>
-                <h2 className="m-0 font-display text-2xl font-bold text-slate-900">Stay in the SAT Duel loop</h2>
-                <p className="m-0 mt-2 text-[15px] leading-6 text-slate-500">
-                    Get occasional practice reminders, tournament news, product updates, and SAT Duel discount codes.
-                </p>
-            </div>
+        <div className="space-y-2.5 text-left">
             <Toggle
                 checked={checked}
                 onChange={onChange}
-                label="Send me SAT Duel updates and offers"
-                description="Recommended. You can unsubscribe from any email."
+                label="Email me SAT Duel updates (optional)"
+                description="Occasional practice reminders, tournament news, and offers. Unsubscribe anytime."
             />
-            <p className="m-0 flex items-start gap-2 text-xs leading-5 text-slate-400">
+            <p className="m-0 flex items-start gap-2 px-1 text-xs leading-5 text-slate-500">
                 <ShieldCheck className="mt-0.5 size-3.5 shrink-0"/>
-                We’ll use this choice only for SAT Duel communications and won’t sell your information.
+                This choice is separate from accepting the Terms and does not affect your account.
             </p>
         </div>
     );
