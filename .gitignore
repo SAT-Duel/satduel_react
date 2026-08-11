@@ -12,6 +12,13 @@
 /build
 src/assets/avatars/raw/
 
+# Agents
+/.agents
+/.claude
+/.codex
+/.impeccable
+
+
 # misc
 .DS_Store
 .env.local
