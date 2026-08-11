@@ -217,99 +217,96 @@ function PracticeQuestionCard({
     return (
         <div className={className}>
             <div className="overflow-hidden rounded-[18px] border border-[#E4E1D6] bg-[#F7F5EF] shadow-[0_18px_44px_rgba(15,23,42,0.18)]">
-                <div className="bg-[#131B2C] px-4 py-3 sm:px-[22px]">
+                <div className="bg-[#131B2C] px-4 py-2.5 sm:px-[22px]">
                     <div className="flex min-w-0 items-start justify-between gap-3">
-                        <div className={`${MONO} flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] tracking-[0.08em]`}>
-                            <span className="min-w-0 break-words text-[#C0B0FA]" title={question?.question_type || 'Question'}>
-                                {questionTypeLabel}
-                            </span>
+                        <span className={`${MONO} min-w-0 flex-1 break-words text-[11px] tracking-[0.08em] text-[#C0B0FA]`} title={question?.question_type || 'Question'}>
+                            {questionTypeLabel}
+                        </span>
+                        <div className={`${MONO} flex shrink-0 items-center gap-2 text-[10px] tracking-[0.08em] text-[#7C8AA5]`}>
+                            {totalQuestions && <span>Q {questionNumber || 1}/{totalQuestions}</span>}
                             {question?.difficulty && (
-                                <span className="shrink-0 rounded bg-white/5 px-1.5 py-0.5 text-[#7C8AA5]">
+                                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[#AAB4C8]">
                                     LEVEL {question.difficulty}
                                 </span>
                             )}
                         </div>
-                        {totalQuestions && (
-                            <span className={`${MONO} shrink-0 text-[11px] text-[#7C8AA5]`}>
-                                Q {questionNumber || 1}/{totalQuestions}
-                            </span>
-                        )}
                     </div>
+                </div>
 
-                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-white/10 pt-2.5">
-                        {canSave && (
+                <div className="flex flex-wrap items-center gap-1.5 border-b border-[#D6DAE3] bg-[#E9ECF2] px-4 py-2 sm:px-[22px]">
+                    {canSave && (
                             <button
                                 type="button"
                                 onClick={toggleSaved}
                                 title={saved ? 'Remove from your saved questions' : 'Mark this question for review'}
                                 aria-label={saved ? 'Remove from saved questions' : 'Mark question for review'}
                                 aria-pressed={saved}
-                                className={`${MONO} inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors ${
+                                className={`${MONO} inline-flex h-[30px] cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors ${
                                     saved
-                                        ? 'border-[rgba(249,115,22,0.55)] bg-[rgba(249,115,22,0.18)] text-[#FB923C]'
-                                        : 'border-[rgba(148,163,184,0.35)] bg-transparent text-[#B9C2D8] hover:bg-white/10 hover:text-white'
+                                        ? 'border-orange-300 bg-orange-50 text-orange-600'
+                                        : 'border-[#C7CDD8] bg-white/70 text-[#536077] hover:border-[#AEB6C5] hover:bg-white hover:text-[#263247]'
                                 }`}
                             >
                                 <Bookmark className={`size-3.5 ${saved ? 'fill-current' : ''}`}/>
                                 <span className="hidden sm:inline">{saved ? 'SAVED' : 'MARK'}</span>
                             </button>
-                        )}
-                        <button
+                    )}
+                    <button
                             type="button"
                             onClick={() => setHighlightOn((on) => !on)}
                             title="Highlight: select text in the question to mark it"
                             aria-label={`${highlightOn ? 'Disable' : 'Enable'} question highlighting`}
                             aria-pressed={highlightOn}
-                            className={`${MONO} inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors ${
+                            className={`${MONO} inline-flex h-[30px] cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors ${
                                 highlightOn
-                                    ? 'border-[rgba(233,188,79,0.5)] bg-[rgba(233,188,79,0.15)] text-[#E9BC4F]'
-                                    : 'border-[rgba(148,163,184,0.35)] bg-transparent text-[#B9C2D8]'
+                                    ? 'border-amber-300 bg-amber-50 text-amber-700'
+                                    : 'border-[#C7CDD8] bg-white/70 text-[#536077] hover:border-[#AEB6C5] hover:bg-white hover:text-[#263247]'
                             }`}
                         >
                             <Highlighter className="size-3.5"/>
                             <span className="hidden sm:inline">HIGHLIGHT</span>
-                        </button>
-                        <button
+                    </button>
+                    <button
                             type="button"
                             onClick={() => setEliminatorOn((on) => !on)}
                             disabled={answered}
                             title="Cross out answer choices you think are wrong"
                             aria-label={`${eliminatorOn ? 'Hide' : 'Show'} answer eliminator`}
                             aria-pressed={eliminatorOn}
-                            className={`${MONO} inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors disabled:cursor-default disabled:opacity-45 ${
+                            className={`${MONO} inline-flex h-[30px] cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors disabled:cursor-default disabled:opacity-45 ${
                                 eliminatorOn
-                                    ? 'border-[rgba(124,92,240,0.55)] bg-[rgba(124,92,240,0.2)] text-[#C0B0FA]'
-                                    : 'border-[rgba(148,163,184,0.35)] bg-transparent text-[#B9C2D8] hover:bg-white/10 hover:text-white'
+                                    ? 'border-[#A99AF5] bg-[#EEEAFE] text-[#6345D8]'
+                                    : 'border-[#C7CDD8] bg-white/70 text-[#536077] hover:border-[#AEB6C5] hover:bg-white hover:text-[#263247]'
                             }`}
                         >
                             <span className="relative text-[9px] font-black leading-none">
                                 ABC<span className="absolute left-0 top-1/2 h-px w-full -rotate-12 bg-current"/>
                             </span>
                             <span className="hidden sm:inline">ELIMINATE</span>
-                        </button>
-                        {isMath && (
+                    </button>
+                    {isMath && (
                             <button
                                 type="button"
                                 onClick={desmos.open}
                                 title="Open the Desmos graphing calculator"
                                 aria-label="Open Desmos graphing calculator"
-                                className={`${MONO} inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors ${
+                                className={`${MONO} inline-flex h-[30px] cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-[10.5px] transition-colors ${
                                     desmos.isOpen
-                                        ? 'border-[rgba(124,92,240,0.5)] bg-[rgba(124,92,240,0.18)] text-[#C0B0FA]'
-                                        : 'border-[rgba(148,163,184,0.35)] bg-transparent text-[#B9C2D8] hover:bg-white/10 hover:text-white'
+                                        ? 'border-[#A99AF5] bg-[#EEEAFE] text-[#6345D8]'
+                                        : 'border-[#C7CDD8] bg-white/70 text-[#536077] hover:border-[#AEB6C5] hover:bg-white hover:text-[#263247]'
                                 }`}
                             >
                                 <Calculator className="size-3.5"/>
                                 <span className="hidden sm:inline">DESMOS</span>
                             </button>
-                        )}
-                        {timerSeconds != null && (
+                    )}
+                    {timerSeconds != null && (
                             <div className="flex items-center gap-1 sm:ml-auto">
                                 <button
                                     type="button"
                                     onClick={onTimerToggle}
                                     title={timerRunning ? 'Pause timer' : timerSeconds ? 'Resume timer' : 'Start timer'}
-                                    className={`${MONO} inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-[rgba(233,188,79,0.4)] px-[9px] text-[11px] text-[#E9BC4F] transition-colors hover:bg-[rgba(233,188,79,0.12)]`}
+                                    className={`${MONO} inline-flex h-[30px] cursor-pointer items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-[9px] text-[11px] text-amber-700 transition-colors hover:bg-amber-100`}
                                 >
                                     {timerSeconds === 0 && !timerRunning ? (
                                         <><Timer className="size-3.5"/> TIMER</>
@@ -323,14 +320,13 @@ function PracticeQuestionCard({
                                         onClick={onTimerReset}
                                         title="Reset timer"
                                         aria-label="Reset timer"
-                                        className="grid size-7 cursor-pointer place-items-center rounded-md border border-[rgba(148,163,184,0.35)] text-[#B9C2D8] transition-colors hover:bg-white/10 hover:text-white"
+                                        className="grid size-[30px] cursor-pointer place-items-center rounded-md border border-[#C7CDD8] bg-white/70 text-[#536077] transition-colors hover:bg-white hover:text-[#263247]"
                                     >
                                         <RotateCcw className="size-3.5"/>
                                     </button>
                                 )}
                             </div>
-                        )}
-                    </div>
+                    )}
                 </div>
 
                 <div className="p-4 sm:p-6">
