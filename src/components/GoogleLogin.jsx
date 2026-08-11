@@ -5,6 +5,7 @@ import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 import {notify} from '../utils/notify';
 import {rememberPostLoginRedirect, safeRedirectPath} from '../utils/authRedirect';
+import {needsFullOnboarding} from '../utils/onboarding';
 
 const CLIENT_ID =
     import.meta.env.VITE_GOOGLE_CLIENT_ID ||
@@ -40,7 +41,7 @@ const GoogleLoginButton = ({redirectTo}) => {
 
             await login(data.user, data.access, data.refresh);
 
-            if (data.user.onboarding_required) {
+            if (needsFullOnboarding(data.user)) {
                 if (redirectTo) rememberPostLoginRedirect(nextPath);
                 navigate('/complete_profile');
             } else if (data.user.is_first_login) {
