@@ -413,9 +413,20 @@ function InfiniteQuestionsPage() {
         ));
     }, [currentQuestion?.id]);
 
-    const fetchNextQuestion = useCallback(async (filtersArg, subj) => {
+    const fetchNextQuestion = useCallback(async (filtersArg, subj, advanceTopic = false) => {
         const effectiveSubject = typeof subj === 'string' ? subj : subject;
-        const effectiveFilters = filtersArg || filtersBySubject[effectiveSubject] || EMPTY_FILTERS;
+        let effectiveFilters = filtersArg || filtersBySubject[effectiveSubject] || EMPTY_FILTERS;
+        if (advanceTopic && effectiveFilters.types.length > 1) {
+            const nextIndex = Math.floor(Math.random() * effectiveFilters.types.length);
+            effectiveFilters = {
+                ...effectiveFilters,
+                types: [
+                    effectiveFilters.types[nextIndex],
+                    ...effectiveFilters.types.filter((_, index) => index !== nextIndex),
+                ],
+            };
+            setFiltersBySubject((prev) => ({...prev, [effectiveSubject]: effectiveFilters}));
+        }
         try {
             setLoadingQuestions(true);
             setError(null);
@@ -514,6 +525,14 @@ function InfiniteQuestionsPage() {
         setSubject(subj);
         // Each subject keeps its own filters (the topic lists differ).
         fetchNextQuestion(filtersBySubject[subj], subj);
+    };
+
+    const handleNextQuestion = () => {
+        if (quota?.remaining === 0) {
+            setLimitReached(true);
+            return;
+        }
+        fetchNextQuestion(undefined, undefined, true);
     };
 
     const handleQuestionSubmit = async (id, choice) => {
@@ -716,7 +735,7 @@ function InfiniteQuestionsPage() {
                         subject={subject}
                         onSubjectChange={handleSubjectChange}
                         quota={quota}
-                        onNext={() => quota?.remaining === 0 ? setLimitReached(true) : fetchNextQuestion()}
+                        onNext={handleNextQuestion}
                         loadingQuestions={loadingQuestions}
                     />
                 </div>
@@ -747,7 +766,7 @@ function InfiniteQuestionsPage() {
                                 subject={subject}
                                 onSubjectChange={handleSubjectChange}
                                 quota={quota}
-                                onNext={() => quota?.remaining === 0 ? setLimitReached(true) : fetchNextQuestion()}
+                                onNext={handleNextQuestion}
                                 loadingQuestions={loadingQuestions}
                             />
                         </div>
