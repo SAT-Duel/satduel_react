@@ -65,6 +65,7 @@ const AdaptiveTestResultPage = React.lazy(() => import("../pages/practice_test/A
 const PracticeTestPage = React.lazy(() => import("../pages/practice_test/PracticeTestPage"));
 const ClassListPage = React.lazy(() => import("../pages/classes/ClassListPage"));
 const PartyHomePage = React.lazy(() => import("../pages/party/PartyHomePage"));
+const PartyHistoryPage = React.lazy(() => import("../pages/party/PartyHistoryPage"));
 const PartyRoomPage = React.lazy(() => import("../pages/party/PartyRoomPage"));
 
 const Loading = () => <div className="p-8 text-center text-slate-400">Loading…</div>;
@@ -128,6 +129,7 @@ const APP_ROUTES = [
     {path: '/my_tournaments', el: <MyTournamentsPage/>},
     {path: '/shop', el: <ShopPage/>},
     {path: '/party', el: <PartyHomePage/>},
+    {path: '/party/history', el: <PartyHistoryPage/>},
     {path: '/practice_test', el: <PracticeTestPage/>},
     {path: '/classes', el: <ClassListPage/>},
     {path: '/settings', el: <SettingsPage/>},

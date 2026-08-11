@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {ArrowLeft, Check, Crown, HelpCircle, PartyPopper, Play, Smartphone, Trophy, Users} from 'lucide-react';
+import {ArrowLeft, Check, Crown, HelpCircle, History, PartyPopper, Play, Smartphone, Trophy, Users} from 'lucide-react';
 import {Button, ModalShell, PageContainer, Toggle} from '../../components/ui';
 import {useAuth} from '../../context/AuthContext';
 import api from '../../components/api';
@@ -309,14 +309,23 @@ function PartyHomePage() {
 
     return (
         <PageContainer maxWidth="max-w-2xl" className="px-4 py-8 sm:py-12">
-            <div className="text-center">
-                <div className="mx-auto mb-4 grid size-16 place-items-center rounded-3xl bg-primary-50">
-                    <PartyPopper className="size-8 text-primary-600"/>
+            <div className="relative">
+                <button
+                    type="button"
+                    onClick={() => navigate('/party/history')}
+                    className="absolute right-0 top-0 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-600 transition-colors hover:border-primary-300 hover:text-primary-700"
+                >
+                    <History className="size-4"/> History
+                </button>
+                <div className="pt-12 text-center sm:pt-0">
+                    <div className="mx-auto mb-4 grid size-16 place-items-center rounded-3xl bg-primary-50">
+                        <PartyPopper className="size-8 text-primary-600"/>
+                    </div>
+                    <h1 className="font-display text-3xl font-bold text-slate-900 sm:text-4xl">Party Mode</h1>
+                    <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-slate-500">
+                        A live SAT quiz for you and your friends. One phone each — pick a game mode and go.
+                    </p>
                 </div>
-                <h1 className="font-display text-3xl font-bold text-slate-900 sm:text-4xl">Party Mode</h1>
-                <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-slate-500">
-                    A live SAT quiz for you and your friends. One phone each — pick a game mode and go.
-                </p>
             </div>
 
             {view === 'menu' && (
