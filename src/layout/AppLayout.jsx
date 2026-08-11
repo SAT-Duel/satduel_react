@@ -444,7 +444,7 @@ const AppLayout = () => {
                     >
                         <div className="sat-score-strip flex items-center justify-between gap-3 px-5 py-3">
                             <span className="inline-flex items-center gap-2 text-sm font-bold text-primary-800">
-                                <Gift className="size-4"/> First question complete
+                                <Gift className="size-4"/> 3 practice questions complete
                             </span>
                             <button
                                 ref={discordCloseRef}
@@ -463,18 +463,13 @@ const AppLayout = () => {
                                     <DiscordIcon className="size-6"/>
                                 </span>
                                 <div>
-                                    <h2 id="discord-promo-title" className="m-0 font-display text-2xl font-bold tracking-[-0.02em] text-slate-950">
-                                        Get one month of Premium free
+                                    <h2 id="discord-promo-title" className="m-0 font-display text-[2rem] font-black leading-[1.05] tracking-[-0.03em] text-slate-950 sm:text-4xl">
+                                        One month of Premium, free
                                     </h2>
-                                    <p id="discord-promo-description" className="m-0 mt-2 text-[15px] leading-6 text-slate-600">
-                                        Join the SAT Duel Discord and use the promotion code posted in the community.
+                                    <p id="discord-promo-description" className="m-0 mt-3 text-sm leading-5 text-slate-600">
+                                        Join the SAT Duel Discord and claim the promotion code posted in the community.
                                     </p>
                                 </div>
-                            </div>
-
-                            <div className="mt-5 flex items-center gap-3 rounded-xl bg-amber-50 px-4 py-3 text-amber-950">
-                                <Crown className="size-5 shrink-0 text-amber-600"/>
-                                <p className="m-0 text-sm font-semibold leading-5">Unlock Premium practice tools for your first month.</p>
                             </div>
 
                             <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -492,7 +487,7 @@ const AppLayout = () => {
                                     onClick={handleDismissDiscordPromo}
                                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#5865F2] px-4 py-2.5 text-sm font-bold text-white no-underline shadow-[0_10px_24px_rgba(88,101,242,0.24)] transition-colors hover:bg-[#4f5bd5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5865F2]"
                                 >
-                                    <DiscordIcon className="size-4"/> Join Discord
+                                    <DiscordIcon className="size-4"/> Join Discord &amp; claim it
                                 </a>
                             </div>
                         </div>

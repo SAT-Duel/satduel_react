@@ -11,8 +11,8 @@ export function dismissDiscordPromo(userId) {
     }
 }
 
-export function isFirstPracticeAnswer(stats, review = false) {
-    return !review && stats?.practice_answered === 1;
+export function isThirdPracticeAnswer(stats, review = false) {
+    return !review && stats?.practice_answered === 3;
 }
 
 export function shouldShowDiscordPromo(userId) {

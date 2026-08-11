@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {CalendarDays, ShieldCheck} from 'lucide-react';
+import {CalendarDays} from 'lucide-react';
 import {Link} from 'react-router-dom';
 import api from './api';
-import {Toggle} from './ui';
 
 export const UNKNOWN_SAT_DATE = 'unknown';
 
@@ -154,12 +153,12 @@ export function SatDatePicker({dates, value, onChange, loading = false}) {
 
 export function TermsAgreement({checked, onChange}) {
     return (
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left">
+        <label className="flex min-h-11 cursor-pointer items-start gap-3 py-2 text-left">
             <input
                 type="checkbox"
                 checked={checked}
                 onChange={(event) => onChange(event.target.checked)}
-                className="mt-0.5 size-4 shrink-0 accent-primary-600"
+                className="mt-0.5 size-5 shrink-0 accent-primary-600"
             />
             <span className="text-sm leading-5 text-slate-600">
                 I’ve read and agree to SAT Duel’s{' '}
@@ -173,17 +172,17 @@ export function TermsAgreement({checked, onChange}) {
 
 export function MarketingChoice({checked, onChange}) {
     return (
-        <div className="space-y-2.5 text-left">
-            <Toggle
+        <label className="flex min-h-11 cursor-pointer items-start gap-3 py-2 text-left">
+            <input
+                type="checkbox"
                 checked={checked}
-                onChange={onChange}
-                label="Email me SAT Duel updates (optional)"
-                description="Occasional practice reminders, tournament news, and offers. Unsubscribe anytime."
+                onChange={(event) => onChange(event.target.checked)}
+                className="mt-0.5 size-5 shrink-0 accent-primary-600"
             />
-            <p className="m-0 flex items-start gap-2 px-1 text-xs leading-5 text-slate-500">
-                <ShieldCheck className="mt-0.5 size-3.5 shrink-0"/>
-                This choice is separate from accepting the Terms and does not affect your account.
-            </p>
-        </div>
+            <span className="text-sm leading-5 text-slate-600">
+                Email me SAT Duel practice reminders, tournament news, and offers.
+                <span className="block text-xs text-slate-500">Unsubscribe anytime.</span>
+            </span>
+        </label>
     );
 }

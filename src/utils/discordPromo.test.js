@@ -28,11 +28,12 @@ test('dismissal is scoped to one user', () => {
     assert.equal(promo.shouldShowDiscordPromo(8), true);
 });
 
-test('only an answered total of one is the first practice answer', () => {
-    assert.equal(promo.isFirstPracticeAnswer?.({practice_answered: 1}), true);
-    assert.equal(promo.isFirstPracticeAnswer?.({practice_answered: 2}), false);
-    assert.equal(promo.isFirstPracticeAnswer?.({practice_answered: 1}, true), false);
-    assert.equal(promo.isFirstPracticeAnswer?.(), false);
+test('only an answered total of three is eligible for the Discord promotion', () => {
+    assert.equal(promo.isThirdPracticeAnswer?.({practice_answered: 2}), false);
+    assert.equal(promo.isThirdPracticeAnswer?.({practice_answered: 3}), true);
+    assert.equal(promo.isThirdPracticeAnswer?.({practice_answered: 4}), false);
+    assert.equal(promo.isThirdPracticeAnswer?.({practice_answered: 3}, true), false);
+    assert.equal(promo.isThirdPracticeAnswer?.(), false);
 });
 
 test('storage failure keeps the promotion closed', () => {
