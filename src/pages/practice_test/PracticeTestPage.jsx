@@ -197,7 +197,7 @@ function PracticeTestPage() {
                             <h2 className="m-0 font-display text-2xl font-black text-slate-950">Before you begin</h2>
                             <div className="mt-4 grid gap-3 md:grid-cols-3">
                                 {[
-                                    ['Saving is allowed', 'Exit between questions and return with the same answers, position, and time remaining.'],
+                                    ['Real test timing', 'Refreshes and tab switches do not pause the clock. Use Save & quit when you need to stop safely.'],
                                     ["Guess, don't skip", "There's no penalty for wrong answers, so answer everything."],
                                     ['Your route adapts', 'Performance in each first module determines whether your second module is easier or harder.'],
                                 ].map(([title, copy]) => (

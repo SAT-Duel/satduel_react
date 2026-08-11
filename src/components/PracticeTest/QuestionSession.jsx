@@ -4,66 +4,70 @@ import QuestionContent from './QuestionContent';
 import AnswerSection from './AnswerSection';
 import ReviewPage from './ReviewPage';
 import TestNavigation from './TestNavigation';
+import AnnotationToolbar from './AnnotationToolbar';
+import StudentProducedDirections from './StudentProducedDirections';
+import {applyAnnotation} from '../../utils/practiceTestAnnotations';
+import {Button, ModalShell} from '../ui';
 
-const emptyAnswers = (total) => Object.fromEntries(
-    Array.from({length: total}, (_, index) => [index + 1, null]),
-);
+const emptyAnswers = (total) => Object.fromEntries(Array.from({length: total}, (_, index) => [index + 1, null]));
+const secondsUntil = (deadlineAt) => Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+const emptyTools = () => ({marks: [], crossed_out: []});
 
-function QuestionSession({
+export default function QuestionSession({
     questions,
     onSubmit,
     initialSeconds = null,
-    eyebrow,
+    deadlineAt = null,
+    initialProgress = null,
+    onProgressChange,
+    onProgressPersist,
     title,
     statusLabel,
-    sessionLabel,
     navigationTitle,
     reviewDescription,
     variant = 'test',
-    initialAnswers = null,
-    initialReviewQuestions = [],
-    initialCurrentQuestion = 1,
     onQuit = null,
-    paused = false,
     showDesmos = false,
+    subject = null,
+    sectionNumber = 1,
+    moduleNumber = 1,
 }) {
-    const [currentQuestion, setCurrentQuestion] = useState(initialCurrentQuestion);
-    const [selectedAnswers, setSelectedAnswers] = useState(() => ({
-        ...emptyAnswers(questions.length),
-        ...(initialAnswers || {}),
-    }));
-    const [reviewQuestions, setReviewQuestions] = useState(initialReviewQuestions);
-    const [timeLeft, setTimeLeft] = useState(initialSeconds);
-    const [hideTimer, setHideTimer] = useState(false);
-    const autoSubmitted = useRef(false);
-    const deadline = useRef(null);
     const totalQuestions = questions.length;
+    const [currentQuestion, setCurrentQuestion] = useState(() => Math.min(Math.max(Number(initialProgress?.currentQuestion) || 1, 1), totalQuestions + 1));
+    const [selectedAnswers, setSelectedAnswers] = useState(() => ({...emptyAnswers(totalQuestions), ...(initialProgress?.answers || initialProgress?.selectedAnswers || {})}));
+    const [reviewQuestions, setReviewQuestions] = useState(() => Array.isArray(initialProgress?.reviewQuestions) ? initialProgress.reviewQuestions : []);
+    const [annotations, setAnnotations] = useState(() => initialProgress?.annotations || {});
+    const [timeLeft, setTimeLeft] = useState(() => deadlineAt == null ? initialSeconds : secondsUntil(deadlineAt));
+    const [hideTimer, setHideTimer] = useState(Boolean(initialProgress?.hideTimer));
+    const [highlighterActive, setHighlighterActive] = useState(false);
+    const [eliminatorActive, setEliminatorActive] = useState(false);
+    const [activeAnnotation, setActiveAnnotation] = useState(null);
+    const [confirmSubmit, setConfirmSubmit] = useState(false);
+    const autoSubmitted = useRef(false);
 
     const answeredQuestions = Object.entries(selectedAnswers)
         .filter(([, answer]) => answer !== null && answer !== '')
         .map(([number]) => Number(number));
 
-    const remainingTime = useCallback(() => (
-        deadline.current == null
-            ? timeLeft
-            : Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000))
-    ), [timeLeft]);
-
     const currentState = useCallback(() => ({
         currentQuestion,
         reviewQuestions,
-        timeLeft: remainingTime(),
-    }), [currentQuestion, remainingTime, reviewQuestions]);
+        annotations,
+        timeLeft: deadlineAt == null ? timeLeft : secondsUntil(deadlineAt),
+        hideTimer,
+    }), [annotations, currentQuestion, deadlineAt, hideTimer, reviewQuestions, timeLeft]);
 
-    const submit = useCallback(() => {
-        onSubmit(selectedAnswers, currentState());
-    }, [currentState, onSubmit, selectedAnswers]);
+    const submit = useCallback(() => onSubmit(selectedAnswers, currentState()), [currentState, onSubmit, selectedAnswers]);
+    const goToQuestion = useCallback((questionNumber) => {
+        if (questionNumber === currentQuestion) return;
+        onProgressPersist?.(selectedAnswers, currentState());
+        setCurrentQuestion(questionNumber);
+    }, [currentQuestion, currentState, onProgressPersist, selectedAnswers]);
 
     useEffect(() => {
-        if (initialSeconds == null || paused) return undefined;
-        const target = Date.now() + timeLeft * 1000;
-        deadline.current = target;
-        const updateTimer = () => setTimeLeft(Math.max(0, Math.ceil((target - Date.now()) / 1000)));
+        if (deadlineAt == null) return undefined;
+        const updateTimer = () => setTimeLeft(secondsUntil(deadlineAt));
+        updateTimer();
         const timerId = window.setInterval(updateTimer, 250);
         document.addEventListener('visibilitychange', updateTimer);
         window.addEventListener('focus', updateTimer);
@@ -71,11 +75,32 @@ function QuestionSession({
             window.clearInterval(timerId);
             document.removeEventListener('visibilitychange', updateTimer);
             window.removeEventListener('focus', updateTimer);
-            if (deadline.current === target) deadline.current = null;
         };
-        // Restart the deadline only when the session is paused or resumed.
+    }, [deadlineAt]);
+
+    useEffect(() => {
+        onProgressChange?.(selectedAnswers, {currentQuestion, reviewQuestions, annotations, timeLeft, hideTimer});
+        // Absolute deadlines own timer persistence, so timer ticks do not write storage.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialSeconds, paused]);
+    }, [annotations, currentQuestion, hideTimer, onProgressChange, reviewQuestions, selectedAnswers]);
+
+    useEffect(() => {
+        const persistOnDeparture = () => onProgressPersist?.(selectedAnswers, currentState());
+        const persistWhenHidden = () => {
+            if (document.visibilityState === 'hidden') persistOnDeparture();
+        };
+        window.addEventListener('pagehide', persistOnDeparture);
+        document.addEventListener('visibilitychange', persistWhenHidden);
+        return () => {
+            window.removeEventListener('pagehide', persistOnDeparture);
+            document.removeEventListener('visibilitychange', persistWhenHidden);
+        };
+    }, [currentState, onProgressPersist, selectedAnswers]);
+
+    useEffect(() => {
+        setActiveAnnotation(null);
+        window.scrollTo(0, 0);
+    }, [currentQuestion]);
 
     useEffect(() => {
         if (initialSeconds != null && timeLeft === 0 && !autoSubmitted.current) {
@@ -84,31 +109,77 @@ function QuestionSession({
         }
     }, [initialSeconds, submit, timeLeft]);
 
+    const questionKey = String(currentQuestion);
+    const tools = annotations[questionKey] || emptyTools();
+    const updateTools = (next) => setAnnotations((previous) => {
+        const current = previous[questionKey] || emptyTools();
+        return {
+            ...previous,
+            [questionKey]: typeof next === 'function' ? next(current) : next,
+        };
+    });
+
+    const createMark = ({field, start, end, rect}) => {
+        const mark = {
+            id: window.crypto?.randomUUID?.() || `${Date.now()}-${start}`,
+            field,
+            start,
+            end,
+            color: 'yellow',
+            underline: 'none',
+        };
+        updateTools((current) => ({...current, marks: applyAnnotation(current.marks || [], mark)}));
+        setActiveAnnotation({id: mark.id, rect});
+    };
+
+    const openMark = (mark, rect) => setActiveAnnotation({id: mark.id, rect});
+    const closeActiveMark = useCallback(() => setActiveAnnotation(null), []);
+    const activeMark = tools.marks?.find((mark) => mark.id === activeAnnotation?.id);
+    const changeActiveMark = (next) => updateTools((current) => ({...current, marks: current.marks.map((mark) => mark.id === next.id ? next : mark)}));
+    const deleteActiveMark = () => {
+        updateTools((current) => ({...current, marks: current.marks.filter((mark) => mark.id !== activeAnnotation.id)}));
+        setActiveAnnotation(null);
+    };
+
     const activeQuestion = questions[currentQuestion - 1];
     const mistakeMode = variant === 'mistakes';
     const hasSeparateContext = activeQuestion?.question?.includes('\n');
+    const isMath = subject === 'math' || showDesmos;
+    const studentProduced = activeQuestion?.response_type === 'student_produced';
+    const splitStudentResponse = isMath && studentProduced;
+    const splitReading = !isMath && hasSeparateContext;
+    const splitLayout = splitStudentResponse || splitReading;
+    const questionWidth = splitLayout ? 'max-w-[1500px]' : (isMath ? 'max-w-[940px]' : 'max-w-3xl');
 
     return (
-        <div className={`min-h-screen pb-24 ${mistakeMode ? 'bg-primary-50/60' : 'bg-slate-50'}`}>
+        <div className={`min-h-screen pb-20 ${mistakeMode ? 'bg-primary-50/60' : 'bg-white'}`}>
             <TestHeader
                 timeLeft={initialSeconds == null ? null : timeLeft}
                 hideTimer={hideTimer}
                 onToggleHide={() => setHideTimer((hidden) => !hidden)}
-                eyebrow={eyebrow}
+                sectionNumber={sectionNumber}
+                moduleNumber={moduleNumber}
                 title={title}
                 statusLabel={statusLabel}
                 showDesmos={showDesmos}
+                highlighterActive={highlighterActive}
+                onToggleHighlighter={mistakeMode ? null : () => setHighlighterActive((active) => !active)}
                 onQuit={onQuit ? () => onQuit(selectedAnswers, currentState()) : null}
             />
 
             {currentQuestion <= totalQuestions && activeQuestion && (
-                <main className={`mx-auto grid gap-0 ${hasSeparateContext ? 'max-w-7xl lg:grid-cols-2' : 'max-w-3xl'}`}>
-                    {hasSeparateContext && (
-                        <section className={`border-b border-slate-200 lg:min-h-[calc(100vh-9rem)] lg:border-b-0 lg:border-r ${mistakeMode ? 'bg-primary-50/40' : 'bg-slate-50'}`}>
-                            <QuestionContent question={activeQuestion}/>
+                <main className={`mx-auto grid min-h-[calc(100vh-9.5rem)] w-full ${questionWidth} ${splitLayout ? 'lg:h-[calc(100vh-9.5rem)] lg:grid-cols-2 lg:divide-x-2 lg:divide-slate-500 lg:overflow-hidden' : ''}`}>
+                    {splitReading && (
+                        <section className="border-b-2 border-slate-300 bg-white lg:overflow-y-auto lg:border-b-0">
+                            <QuestionContent question={activeQuestion} marks={tools.marks} highlighterActive={highlighterActive} onCreateMark={createMark} onOpenMark={openMark}/>
                         </section>
                     )}
-                    <section className="bg-white lg:min-h-[calc(100vh-9rem)]">
+                    {splitStudentResponse && (
+                        <section className="border-b-2 border-slate-300 bg-white lg:overflow-y-auto lg:border-b-0">
+                            <StudentProducedDirections/>
+                        </section>
+                    )}
+                    <section className={`bg-white ${splitLayout ? 'lg:overflow-y-auto' : ''}`}>
                         <AnswerSection
                             question={activeQuestion}
                             currentQuestion={currentQuestion}
@@ -116,35 +187,45 @@ function QuestionSession({
                             setSelectedAnswer={setSelectedAnswers}
                             reviewQuestions={reviewQuestions}
                             setReviewQuestions={setReviewQuestions}
+                            tools={tools}
+                            onToolsChange={updateTools}
+                            highlighterActive={highlighterActive}
+                            onCreateMark={createMark}
+                            onOpenMark={openMark}
+                            eliminatorActive={eliminatorActive}
+                            onToggleEliminator={() => setEliminatorActive((active) => !active)}
+                            renderFullQuestion={isMath}
                         />
                     </section>
                 </main>
             )}
 
             {currentQuestion > totalQuestions && (
-                <ReviewPage
-                    currentQuestion={currentQuestion}
-                    totalQuestions={totalQuestions}
-                    setCurrentQuestion={setCurrentQuestion}
-                    reviewQuestions={reviewQuestions}
-                    answeredQuestions={answeredQuestions}
-                    description={reviewDescription}
-                    navigationTitle={navigationTitle}
-                />
+                <ReviewPage currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={goToQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} description={reviewDescription} navigationTitle={navigationTitle}/>
             )}
 
-            <TestNavigation
-                currentQuestion={currentQuestion}
-                totalQuestions={totalQuestions}
-                setCurrentQuestion={setCurrentQuestion}
-                reviewQuestions={reviewQuestions}
-                answeredQuestions={answeredQuestions}
-                onSubmit={submit}
-                sessionLabel={sessionLabel}
-                navigationTitle={navigationTitle}
-            />
+            <TestNavigation currentQuestion={currentQuestion} totalQuestions={totalQuestions} setCurrentQuestion={goToQuestion} reviewQuestions={reviewQuestions} answeredQuestions={answeredQuestions} onSubmit={mistakeMode ? submit : () => setConfirmSubmit(true)} navigationTitle={navigationTitle}/>
+
+            <AnnotationToolbar mark={activeMark} rect={activeAnnotation?.rect} onChange={changeActiveMark} onDelete={deleteActiveMark} onClose={closeActiveMark}/>
+
+            <ModalShell
+                open={confirmSubmit}
+                title="Submit this module?"
+                onClose={() => setConfirmSubmit(false)}
+                footer={(
+                    <>
+                        <Button variant="secondary" onClick={() => setConfirmSubmit(false)}>Keep reviewing</Button>
+                        <Button onClick={() => {
+                            setConfirmSubmit(false);
+                            submit();
+                        }}>Submit module</Button>
+                    </>
+                )}
+            >
+                <p className="m-0 text-sm leading-6 text-slate-600">
+                    You still have time to review your answers. Once you submit, you cannot return to this module.
+                </p>
+            </ModalShell>
         </div>
     );
 }
-
-export default QuestionSession;

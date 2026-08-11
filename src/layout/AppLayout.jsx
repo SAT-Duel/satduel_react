@@ -24,6 +24,7 @@ import {Spinner} from '../components/ui';
 import useUnreadMessages from '../hooks/useUnreadMessages';
 import logo from '../assets/logo192.png';
 import {loginPathFor} from '../utils/authRedirect';
+import AnnouncementBanner from '../components/AnnouncementBanner';
 import {DISCORD_PROMO_EVENT, dismissDiscordPromo, shouldShowDiscordPromo} from '../utils/discordPromo';
 
 // Routes where the sidebar may be collapsed for a wider question. Scoped on
@@ -378,6 +379,7 @@ const AppLayout = () => {
 
             {/* Content */}
             <div className={navCollapsed ? '' : 'lg:pl-60'}>
+                <AnnouncementBanner userId={user.id}/>
                 <main className="pb-20 lg:pb-0">
                     <Outlet/>
                 </main>
