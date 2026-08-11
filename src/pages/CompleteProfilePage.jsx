@@ -91,7 +91,13 @@ const CompleteProfilePage = () => {
                 username: data.username,
                 first_name: data.first_name,
                 last_name: data.last_name,
+                grade: data.grade,
+                grade_selected: true,
+                username_finalized: true,
                 onboarding_required: data.onboarding_required,
+                sat_exam_date: data.sat_exam_date,
+                sat_exam_date_selected: true,
+                marketing_opt_in: data.marketing_opt_in,
                 terms_accepted: true,
             });
             navigate('/welcome', {replace: true});

@@ -181,7 +181,6 @@ export function MarketingChoice({checked, onChange}) {
             />
             <span className="text-sm leading-5 text-slate-600">
                 Email me SAT Duel practice reminders, tournament news, and offers.
-                <span className="block text-xs text-slate-500">Unsubscribe anytime.</span>
             </span>
         </label>
     );

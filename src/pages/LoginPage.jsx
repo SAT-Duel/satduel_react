@@ -6,6 +6,7 @@ import {Button, Card, Field, Input, DividerLabel, Alert} from "../components/ui"
 import GoogleLoginButton from "../components/GoogleLogin";
 import SEO from '../components/SEO';
 import {rememberPostLoginRedirect, safeRedirectPath} from '../utils/authRedirect';
+import {needsFullOnboarding} from '../utils/onboarding';
 
 function Login() {
     const [username, setUsername] = useState('');
@@ -50,7 +51,7 @@ function Login() {
             if (rawNext && (userData.is_first_login || userData.onboarding_required)) {
                 rememberPostLoginRedirect(redirectTo);
             }
-            if (userData.onboarding_required) {
+            if (needsFullOnboarding(userData)) {
                 navigate('/complete_profile');
             } else if (userData.is_first_login) {
                 navigate('/welcome');

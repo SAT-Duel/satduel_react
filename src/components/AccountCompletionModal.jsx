@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
-import {useLocation} from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {Navigate, useLocation} from 'react-router-dom';
 import api from './api';
-import {Alert, Button} from './ui';
+import {Alert, Button, Spinner} from './ui';
 import {
     MarketingChoice,
     SatDatePicker,
@@ -12,19 +12,41 @@ import {
     useSatExamDates,
 } from './AccountSetupFields';
 import {useAuth} from '../context/AuthContext';
+import {incompleteOnboardingSections, needsFullOnboarding} from '../utils/onboarding';
 
 export default function AccountCompletionGate() {
-    const {user} = useAuth();
+    const {user, refreshUser} = useAuth();
     const {pathname} = useLocation();
+    const [checkedUserId, setCheckedUserId] = useState(null);
+    const excluded = ['/login', '/register', '/complete_profile'].includes(pathname);
+    const gradeUnknown = user?.onboarding_required && typeof user.grade_selected !== 'boolean';
 
-    if (!user?.onboarding_required || ['/login', '/register', '/complete_profile'].includes(pathname)) return null;
+    useEffect(() => {
+        if (!gradeUnknown || excluded || checkedUserId === user.id) return;
+        refreshUser()
+            .catch(() => {})
+            .finally(() => setCheckedUserId(user.id));
+    }, [checkedUserId, excluded, gradeUnknown, refreshUser, user?.id]);
+
+    if (!user?.onboarding_required || excluded) return null;
+    if (gradeUnknown && checkedUserId !== user.id) {
+        return (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-white" aria-label="Checking account setup">
+                <Spinner/>
+            </div>
+        );
+    }
+    if (needsFullOnboarding(user)) return <Navigate to="/complete_profile" replace/>;
     return <AccountCompletionModal/>;
 }
 
 function AccountCompletionModal() {
     const {user, updateUser} = useAuth();
-    const [step, setStep] = useState(1);
-    const [satExamDate, setSatExamDate] = useState('');
+    const sections = incompleteOnboardingSections(user);
+    const [step, setStep] = useState(0);
+    const [satExamDate, setSatExamDate] = useState(
+        user?.sat_exam_date_selected ? (user.sat_exam_date || UNKNOWN_SAT_DATE) : ''
+    );
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const {dates, loading, error: datesError} = useSatExamDates();
@@ -36,15 +58,6 @@ function AccountCompletionModal() {
         preferencesReady,
         preferencesError,
     } = useOnboardingPreferences(user);
-
-    const continueSetup = () => {
-        setError('');
-        if (!satExamDate) {
-            setError('Choose an SAT date or “I don’t know yet”.');
-            return;
-        }
-        setStep(2);
-    };
 
     const finish = async () => {
         if (!termsAccepted) {
@@ -61,6 +74,8 @@ function AccountCompletionModal() {
             });
             updateUser({
                 onboarding_required: data.onboarding_required,
+                sat_exam_date: data.sat_exam_date,
+                sat_exam_date_selected: true,
                 terms_accepted: true,
                 marketing_opt_in: marketingOptIn,
             });
@@ -70,32 +85,49 @@ function AccountCompletionModal() {
         }
     };
 
-    const titles = {
-        1: ['Let’s finish setting up your account', 'First, choose your next SAT date.'],
-        2: ['Privacy and updates', 'Review the latest terms and choose whether you want occasional SAT Duel emails.'],
+    const continueSetup = () => {
+        setError('');
+        if (sections[step] === 'sat-date' && !satExamDate) {
+            setError('Choose an SAT date or “I don’t know yet”.');
+            return;
+        }
+        if (step < sections.length - 1) {
+            setStep((current) => current + 1);
+            return;
+        }
+        finish();
     };
+
+    const titles = {
+        'sat-date': ['Let’s finish setting up your account', 'Choose your next SAT date.'],
+        privacy: ['Privacy and updates', 'Review the latest terms and choose whether you want occasional SAT Duel emails.'],
+    };
+    const currentSection = sections[step] || 'privacy';
+    const labels = sections.map((section) => section === 'sat-date' ? 'SAT date' : 'Privacy');
 
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 px-4 py-8" role="dialog" aria-modal="true" aria-labelledby="account-setup-title">
             <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
-                <SetupProgress step={step} labels={['SAT date', 'Privacy']}/>
+                <SetupProgress step={step + 1} labels={labels}/>
                 <h2 id="account-setup-title" className="m-0 text-center font-display text-2xl font-bold text-slate-900">
-                    {titles[step][0]}
+                    {titles[currentSection][0]}
                 </h2>
-                <p className="m-0 mb-6 mt-1 text-center text-[15px] text-slate-500">{titles[step][1]}</p>
+                <p className="m-0 mb-6 mt-1 text-center text-[15px] text-slate-500">{titles[currentSection][1]}</p>
 
-                {step === 1 && (
+                {currentSection === 'sat-date' && (
                     <>
                         <SatDatePicker dates={dates} value={satExamDate} onChange={setSatExamDate} loading={loading}/>
                         {datesError && <div className="mt-4"><Alert>{datesError}</Alert></div>}
                     </>
                 )}
-                {step === 2 && (
+                {currentSection === 'privacy' && (
                     <div className="space-y-4">
                         {!user?.terms_accepted && (
                             <TermsAgreement checked={termsAccepted} onChange={setTermsAccepted}/>
                         )}
-                        <MarketingChoice checked={marketingOptIn} onChange={setMarketingOptIn}/>
+                        {typeof user?.marketing_opt_in !== 'boolean' && (
+                            <MarketingChoice checked={marketingOptIn} onChange={setMarketingOptIn}/>
+                        )}
                     </div>
                 )}
                 {!preferencesReady && !preferencesError && (
@@ -105,7 +137,7 @@ function AccountCompletionModal() {
                 {error && <div className="mt-4"><Alert>{error}</Alert></div>}
 
                 <div className="mt-6 flex gap-3">
-                    {step > 1 && (
+                    {step > 0 && (
                         <Button type="button" variant="secondary" onClick={() => { setError(''); setStep((current) => current - 1); }}>
                             Back
                         </Button>
@@ -114,10 +146,10 @@ function AccountCompletionModal() {
                         type="button"
                         block
                         loading={submitting}
-                        disabled={!preferencesReady || (step === 1 && loading)}
-                        onClick={step === 2 ? finish : continueSetup}
+                        disabled={!preferencesReady || (currentSection === 'sat-date' && loading)}
+                        onClick={continueSetup}
                     >
-                        {step === 2 ? 'Save and continue' : 'Continue'}
+                        {step === sections.length - 1 ? 'Save and continue' : 'Continue'}
                     </Button>
                 </div>
             </div>
