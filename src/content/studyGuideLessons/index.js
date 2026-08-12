@@ -46,6 +46,7 @@ import comparingCenterSpread from './comparingCenterSpread.js';
 import scatterplotsModels from './scatterplotsModels.js';
 import probabilityTwoWayTables from './probabilityTwoWayTables.js';
 import samplingMarginClaims from './samplingMarginClaims.js';
+import {ENGLISH_STUDY_GUIDE_LESSONS} from '../englishStudyGuideLessons';
 
 export const STUDY_GUIDE_LESSONS = [
     howDigitalSatMathWorks,
@@ -96,6 +97,7 @@ export const STUDY_GUIDE_LESSONS = [
     scatterplotsModels,
     probabilityTwoWayTables,
     samplingMarginClaims,
+    ...ENGLISH_STUDY_GUIDE_LESSONS,
 ];
 
 export const STUDY_GUIDE_LESSON_BY_SLUG = Object.fromEntries(
