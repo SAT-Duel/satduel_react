@@ -6,6 +6,14 @@ const DESMOS_URL = 'https://www.desmos.com/calculator';
 const PANEL_WIDTH = 380;
 const PANEL_HEIGHT = 660;
 const PANEL_MARGIN = 8;
+const ENGLISH_LESSON_PATHS = new Set([
+    '/study_guides/digital-sat-english-map',
+    '/study_guides/read-the-task-before-the-text',
+    '/study_guides/the-textual-contract',
+    '/study_guides/predict-before-you-pick',
+    '/study_guides/distractor-anatomy',
+    '/study_guides/review-that-raises-your-score',
+]);
 
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
@@ -31,7 +39,7 @@ function defaultPosition() {
 
 // Routes that want the calculator but don't render an in-page button.
 function shouldShowFloatingButton(pathname) {
-    return pathname.startsWith('/study_guides');
+    return pathname.startsWith('/study_guides/') && !ENGLISH_LESSON_PATHS.has(pathname);
 }
 
 const DesmosContext = createContext(null);

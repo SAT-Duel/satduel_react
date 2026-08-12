@@ -4,9 +4,11 @@ import {BlockMath, InlineMath} from 'react-katex';
 import 'katex/dist/katex.min.css';
 import {Link, Navigate, useParams} from 'react-router-dom';
 import SEO from '../components/SEO';
-import {Button, PageContainer} from '../components/ui';
+import {PageContainer} from '../components/ui';
 import {STUDY_GUIDE_LESSON_BY_SLUG} from '../content/studyGuideLessons';
 import {STUDY_GUIDE_MODULES} from '../content/studyGuideModules';
+import {ENGLISH_STUDY_GUIDE_MODULES} from '../content/englishStudyGuideModules';
+import EnglishStudyGuideLessonPage from './EnglishStudyGuideLessonPage';
 
 const NOTE_TONES = {
     blue: 'border-primary-200 bg-primary-50/60 text-primary-800',
@@ -17,7 +19,7 @@ const NOTE_TONES = {
 
 function NoteBox({tone = 'blue', label, title, children}) {
     return (
-        <section className={`rounded-xl border-l-4 px-4 py-3 ${NOTE_TONES[tone] || NOTE_TONES.blue}`}>
+        <section className={`rounded-xl border px-4 py-3 ${NOTE_TONES[tone] || NOTE_TONES.blue}`}>
             {label && <p className="m-0 text-xs font-black uppercase tracking-wide opacity-70">{label}</p>}
             {title && <h2 className="m-0 mt-1 text-base font-black">{title}</h2>}
             <div className="mt-2 text-sm leading-7 text-slate-700">{children}</div>
@@ -399,6 +401,21 @@ export default function StudyGuideLessonPage() {
         return <Navigate to="/study_guides" replace/>;
     }
 
+    if (lesson.subject === 'english') {
+        const englishModule = ENGLISH_STUDY_GUIDE_MODULES.find((item) => item.id === lesson.moduleId);
+        const englishModuleNumber = ENGLISH_STUDY_GUIDE_MODULES.findIndex((item) => item.id === lesson.moduleId) + 1;
+        const pageIndex = englishModule?.pages.findIndex((page) => page.slug === lesson.slug) ?? 0;
+        return (
+            <EnglishStudyGuideLessonPage
+                key={lesson.slug}
+                lesson={lesson}
+                module={englishModule}
+                moduleNumber={englishModuleNumber}
+                pageIndex={pageIndex}
+            />
+        );
+    }
+
     const module = STUDY_GUIDE_MODULES.find((item) => item.id === lesson.moduleId);
     const moduleNumber = STUDY_GUIDE_MODULES.findIndex((item) => item.id === lesson.moduleId) + 1;
 
@@ -473,12 +490,6 @@ export default function StudyGuideLessonPage() {
                         <AdaptiveDemo demo={lesson.adaptiveDemo}/>
                         <QuickCheck check={lesson.quickCheck}/>
                         {lesson.practiceSet && <PracticeSet set={lesson.practiceSet}/>}
-
-                        <div className="border-t border-slate-200 pt-5">
-                            <Button to="/infinite_questions" size="sm">
-                                Practice questions
-                            </Button>
-                        </div>
                     </div>
                 </article>
             </PageContainer>
