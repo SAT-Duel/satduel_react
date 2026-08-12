@@ -1,10 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {
     ArrowRight,
-    Calculator,
     ChevronDown,
     Clock3,
-    Languages,
     Lock,
 } from 'lucide-react';
 import {Link, useSearchParams} from 'react-router-dom';
@@ -19,40 +17,38 @@ const SUBJECTS = {
         label: 'Math',
         heading: 'SAT Math',
         description: 'Build concept fluency with concise lessons, guided examples, and a clear path through every math domain.',
-        icon: Calculator,
         modules: STUDY_GUIDE_MODULES,
     },
     english: {
         label: 'English',
         heading: 'SAT English',
         description: 'Learn a repeatable Reading and Writing process, then master every tested skill with evidence-first lessons and focused practice.',
-        icon: Languages,
         modules: ENGLISH_STUDY_GUIDE_MODULES,
     },
 };
 
 function SubjectSwitcher({subject, onChange}) {
     return (
-        <div role="group" className="grid w-full grid-cols-2 gap-1 rounded-xl bg-slate-200/70 p-1 sm:w-auto" aria-label="Study guide subject">
+        <div role="tablist" className="flex border-b border-slate-200" aria-label="Study guide subject">
             {Object.entries(SUBJECTS).map(([id, item]) => {
-                const Icon = item.icon;
                 const active = id === subject;
 
                 return (
                     <button
                         key={id}
                         type="button"
+                        role="tab"
                         aria-pressed={active}
+                        aria-selected={active}
                         onClick={() => onChange(id)}
                         className={[
-                            'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm font-black transition-colors',
-                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+                            '-mb-px min-h-11 cursor-pointer border-b-2 px-5 text-sm font-black transition-colors',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset',
                             active
-                                ? 'bg-white text-slate-950 shadow-sm'
-                                : 'text-slate-600 hover:bg-white/60 hover:text-slate-950',
+                                ? 'border-primary-600 text-primary-700'
+                                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-950',
                         ].join(' ')}
                     >
-                        <Icon className={`size-4 ${active ? 'text-primary-600' : 'text-slate-400'}`}/>
                         {item.label}
                     </button>
                 );
@@ -252,32 +248,18 @@ export default function StudyGuidePage() {
                 noindex
             />
             <PageContainer maxWidth="max-w-7xl">
-                <header className="mb-6">
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                            <h1 className="m-0 font-display text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-                                Study guides
-                            </h1>
-                            <p className="m-0 mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-                                Choose a subject, then work through the curriculum at your own pace.
-                            </p>
-                        </div>
+                <header className="mb-6 border-b border-slate-200 pb-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <h1 className="m-0 font-display text-3xl font-black tracking-tight text-slate-950">
+                            Study guides
+                        </h1>
                         <SubjectSwitcher subject={subject} onChange={changeSubject}/>
                     </div>
-
-                    <div className="mt-6 flex items-start gap-3 border-y border-slate-200 py-4">
-                        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${subject === 'math' ? 'bg-primary-100 text-primary-700' : 'bg-cyan-100 text-cyan-700'}`}>
-                            {React.createElement(subjectDetails.icon, {className: 'size-5'})}
-                        </span>
-                        <div>
-                            <h2 className="m-0 text-xl font-black text-slate-950">{subjectDetails.heading}</h2>
-                            <p className="m-0 mt-1 max-w-3xl text-sm leading-relaxed text-slate-600">
-                                {subjectDetails.description}
-                            </p>
-                            <p className="m-0 mt-2 text-xs font-bold text-slate-500">
-                                {modules.length} modules · {lessonCount} lessons {readyCount ? `· ${readyCount} ready to study` : 'mapped'}
-                            </p>
-                        </div>
+                    <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+                        <p className="m-0 max-w-3xl text-sm leading-relaxed text-slate-600">{subjectDetails.description}</p>
+                        <p className="m-0 shrink-0 text-xs font-bold text-slate-500">
+                            {modules.length} modules · {lessonCount} lessons{readyCount ? ` · ${readyCount} available` : ''}
+                        </p>
                     </div>
                 </header>
 
