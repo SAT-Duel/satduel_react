@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: Inter, sans-serif;
+    background: #0A1120;
+    position: relative;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(148,163,184,.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.055) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .glow {
+    position: absolute; width: 900px; height: 900px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,92,240,.30) 0%, rgba(124,92,240,0) 62%);
+    top: -330px; right: -230px;
+  }
+  .glow2 {
+    position: absolute; width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(6,182,212,.16) 0%, rgba(6,182,212,0) 62%);
+    bottom: -380px; left: -180px;
+  }
+  .wrap {
+    position: relative; height: 100%;
+    padding: 66px 72px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  /* The logo's crossed swords are dark navy — they vanish on the dark canvas,
+     so the mark sits on a white tile (same treatment as the email header). */
+  .brand .mark {
+    width: 70px; height: 70px; border-radius: 19px; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 30px rgba(124,92,240,.28);
+  }
+  .brand img { width: 54px; height: 54px; }
+  .brand .name {
+    font-family: Poppins, sans-serif; font-weight: 800; font-size: 34px;
+    color: #fff; letter-spacing: -.02em;
+  }
+  .brand .name span { color: #9D78FF; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: "JetBrains Mono", monospace; font-weight: 600;
+    font-size: 15px; letter-spacing: .10em; color: #C0B0FA;
+    border: 1px solid rgba(124,92,240,.45);
+    background: rgba(124,92,240,.12);
+    padding: 9px 16px; border-radius: 999px;
+    margin-bottom: 26px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #2FBF71; }
+
+  h1 {
+    font-family: Poppins, sans-serif; font-weight: 800;
+    font-size: 76px; line-height: 1.03; letter-spacing: -.035em;
+    color: #fff; max-width: 940px;
+  }
+  h1 em { font-style: normal; color: #9D78FF; }
+  p.sub {
+    margin-top: 24px; font-size: 25px; line-height: 1.45;
+    color: #AEB7CC; max-width: 850px; font-weight: 400;
+  }
+
+  .stats { display: flex; gap: 14px; align-items: center; }
+  .pill {
+    display: flex; align-items: center; gap: 11px;
+    border: 1px solid rgba(148,163,184,.20);
+    background: rgba(16,26,46,.75);
+    border-radius: 15px; padding: 15px 22px;
+  }
+  .pill b {
+    font-family: Poppins, sans-serif; font-size: 25px; font-weight: 800; color: #fff;
+    letter-spacing: -.02em;
+  }
+  .pill span { font-size: 17px; color: #AEB7CC; font-weight: 500; }
+  .url {
+    margin-left: auto;
+    font-family: "JetBrains Mono", monospace; font-weight: 700;
+    font-size: 22px; color: #7C8AA5; letter-spacing: -.01em;
+  }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow"></div>
+  <div class="glow2"></div>
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark"><img src="../public/logo512.png" alt=""></div>
+      <div class="name">SAT<span>Duel</span></div>
+    </div>
+
+    <div>
+      <div class="eyebrow"><i class="dot"></i>DIGITAL SAT · MATH + READING &amp; WRITING</div>
+      <h1>Turn Digital SAT practice into a <em>duel</em>.</h1>
+      <p class="sub">Practice 1,800+ real-format questions, host live party games with friends, and track every mistake.</p>
+    </div>
+
+    <div class="stats">
+      <div class="pill"><b>1,800+</b><span>questions</span></div>
+      <div class="pill"><b>Live</b><span>duels &amp; party games</span></div>
+      <div class="pill"><b>Free</b><span>to start</span></div>
+      <div class="url">satduel.com</div>
+    </div>
+  </div>
+</body>
+</html>
