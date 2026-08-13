@@ -1,9 +1,12 @@
 import React from 'react';
 import {Helmet} from 'react-helmet';
+import {DISCORD_INVITE} from './Discord';
 
 export const SITE_URL = 'https://satduel.com';
 export const SITE_NAME = 'SAT Duel';
-export const DEFAULT_IMAGE = `${SITE_URL}/logo512.png`;
+// A 1200x630 social card, not the square logo — crawlers crop/letterbox a
+// square badly and it reads as "no preview". Source: docs/og-image.html.
+export const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 
 export function absoluteUrl(path = '/') {
     if (!path) return SITE_URL;
@@ -19,7 +22,7 @@ export function organizationJsonLd() {
         url: SITE_URL,
         logo: DEFAULT_IMAGE,
         email: 'satduel@gmail.com',
-        sameAs: ['https://discord.gg/jzZTy3cdwm'],
+        sameAs: [DISCORD_INVITE],
     };
 }
 

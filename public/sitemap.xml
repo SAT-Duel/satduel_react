@@ -1,57 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Every public, indexable route. Keep in sync with MARKETING_ROUTES in
+  src/components/Router.jsx: a page belongs here only if it renders <SEO>
+  WITHOUT `noindex`. Login-gated routes must never be listed.
+
+  <changefreq> and <priority> are omitted on purpose — Google ignores both.
+  <lastmod> is omitted because it was hand-written and always stale; a sitemap
+  that claims a false lastmod is trusted less than one that omits it.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://satduel.com/</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/digital-sat-practice</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/diagnostic</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/sat-reading-and-writing-practice</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/sat-math-practice</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/sat-vocabulary-words-in-context</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/digital-sat-score-guide</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/pricing</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://satduel.com/about</loc>
-    <lastmod>2026-07-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
+  <url><loc>https://satduel.com/</loc></url>
+  <url><loc>https://satduel.com/digital-sat-practice</loc></url>
+  <url><loc>https://satduel.com/sat-math-practice</loc></url>
+  <url><loc>https://satduel.com/sat-reading-and-writing-practice</loc></url>
+  <url><loc>https://satduel.com/sat-vocabulary-words-in-context</loc></url>
+  <url><loc>https://satduel.com/digital-sat-score-guide</loc></url>
+  <url><loc>https://satduel.com/diagnostic</loc></url>
+  <url><loc>https://satduel.com/pricing</loc></url>
+  <url><loc>https://satduel.com/about</loc></url>
+  <url><loc>https://satduel.com/terms</loc></url>
+  <url><loc>https://satduel.com/privacy</loc></url>
+  <url><loc>https://satduel.com/refund-policy</loc></url>
 </urlset>
