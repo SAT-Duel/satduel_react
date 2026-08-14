@@ -139,7 +139,6 @@ const APP_ROUTES = [
     {path: '/practice_test', el: <PracticeTestPage/>},
     {path: '/classes', el: <ClassListPage/>},
     {path: '/settings', el: <SettingsPage/>},
-    {path: '/upgrade', el: <PricingPage/>},  // in-app pricing (keeps the shell)
     {path: '/admin', el: <AdminHomepage/>},
     {path: '/admin/announcement', el: <AnnouncementPage/>},
     {path: '/admin/question_reports', el: <QuestionReportsPage/>},
@@ -192,6 +191,13 @@ function Router() {
             {FULLSCREEN_ROUTES.map((r) => (
                 <Route key={r.path} path={r.path} element={S(r.el)}/>
             ))}
+
+            {/* /upgrade used to render PricingPage inside AppLayout. That shell has
+                no .sd-landing wrapper, so the page's --sd-* tokens resolved to
+                nothing and its hero lost its background, borders, and text color.
+                Pricing belongs to the public zone; send in-app upgrade links there
+                instead of maintaining one page that has to work in both. */}
+            <Route path="/upgrade" element={<Navigate to="/pricing" replace/>}/>
         </Routes>
     );
 }

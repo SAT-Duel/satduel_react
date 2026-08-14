@@ -101,7 +101,7 @@ export const SEO_ROUTES = [
         key: 'pricing',
         path: '/pricing',
         title: 'SAT Duel Pricing',
-        description: 'Start SAT Duel for free or upgrade to Premium for unlimited Digital SAT practice and focused topic selection.',
+        description: 'Start SAT Duel free with 25 questions a day, duels, tournaments, and party rooms. Premium adds unlimited practice, topic selection, 50-player parties, and the full Math study guide.',
         image: '/og/default.png',
     },
     {
