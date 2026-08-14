@@ -94,6 +94,12 @@ const MARKETING_ROUTES = [
     {path: '/sat-math-practice', el: <SEOGuidePage pageKey="satMath"/>},
     {path: '/sat-vocabulary-words-in-context', el: <SEOGuidePage pageKey="wordsInContext"/>},
     {path: '/digital-sat-score-guide', el: <SEOGuidePage pageKey="scoreGuide"/>},
+    // Public feature pages: the logged-in routes they describe (/party,
+    // /tournaments, /study_guides) sit behind the auth gate, so these are how
+    // search and shared links reach them.
+    {path: '/sat-party-game', el: <SEOGuidePage pageKey="partyGame"/>},
+    {path: '/sat-tournaments', el: <SEOGuidePage pageKey="tournaments"/>},
+    {path: '/sat-study-guide', el: <SEOGuidePage pageKey="studyGuide"/>},
     {path: '/confirm-email/:key', el: <ConfirmEmail/>},
     {path: '/email_verification', el: <EmailVerificationPage/>},
     {path: '/email_verification/:email', el: <EmailVerificationPage/>},

@@ -1,5 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {Helmet} from 'react-helmet';
+import {Helmet} from 'react-helmet-async';
 import {Navigate, NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom';
 import {
     Home,

@@ -1,12 +1,13 @@
 import React from 'react';
-import {Helmet} from 'react-helmet';
+import {Helmet} from 'react-helmet-async';
 import {DISCORD_INVITE} from './Discord';
+import {DEFAULT_IMAGE as DEFAULT_IMAGE_PATH, SITE_NAME, SITE_URL, seoMeta} from '../seo/routes';
 
-export const SITE_URL = 'https://satduel.com';
-export const SITE_NAME = 'SAT Duel';
+export {SITE_NAME, SITE_URL, seoMeta};
+
 // A 1200x630 social card, not the square logo — crawlers crop/letterbox a
 // square badly and it reads as "no preview". Source: docs/og-image.html.
-export const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+export const DEFAULT_IMAGE = `${SITE_URL}${DEFAULT_IMAGE_PATH}`;
 
 export function absoluteUrl(path = '/') {
     if (!path) return SITE_URL;
@@ -114,36 +115,56 @@ export function articleJsonLd({title, description, path}) {
     };
 }
 
+/**
+ * Public pages should pass `seoKey` so their title, description, path and OG
+ * card come from src/seo/routes.js — the same source scripts/prerender.mjs
+ * uses, which is what keeps the tags a crawler sees identical to the ones
+ * react-helmet-async writes. Private pages pass explicit props plus `noindex`.
+ */
 export default function SEO({
+    seoKey,
     title,
     description,
     path = '/',
-    image = DEFAULT_IMAGE,
+    image,
     type = 'website',
     structuredData = [],
     noindex = false,
 }) {
-    const canonical = absoluteUrl(path);
-    const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
-    const imageUrl = absoluteUrl(image);
+    const meta = seoKey ? seoMeta(seoKey) : null;
+    const resolved = {
+        title: title ?? meta?.title,
+        description: description ?? meta?.description,
+        path: meta?.path ?? path,
+        image: image ?? meta?.image ?? DEFAULT_IMAGE,
+        type: meta?.type ?? type,
+    };
+
+    const canonical = absoluteUrl(resolved.path);
+    const fullTitle = resolved.title.includes(SITE_NAME)
+        ? resolved.title
+        : `${resolved.title} | ${SITE_NAME}`;
+    const imageUrl = absoluteUrl(resolved.image);
 
     return (
         <Helmet>
             <title>{fullTitle}</title>
-            <meta name="description" content={description}/>
+            <meta name="description" content={resolved.description}/>
             <meta name="robots" content={noindex ? 'noindex,nofollow' : 'index,follow'}/>
             <link rel="canonical" href={canonical}/>
 
             <meta property="og:site_name" content={SITE_NAME}/>
-            <meta property="og:type" content={type}/>
+            <meta property="og:type" content={resolved.type}/>
             <meta property="og:title" content={fullTitle}/>
-            <meta property="og:description" content={description}/>
+            <meta property="og:description" content={resolved.description}/>
             <meta property="og:url" content={canonical}/>
             <meta property="og:image" content={imageUrl}/>
+            <meta property="og:image:width" content="1200"/>
+            <meta property="og:image:height" content="630"/>
 
             <meta name="twitter:card" content="summary_large_image"/>
             <meta name="twitter:title" content={fullTitle}/>
-            <meta name="twitter:description" content={description}/>
+            <meta name="twitter:description" content={resolved.description}/>
             <meta name="twitter:image" content={imageUrl}/>
 
             {structuredData.map((item, index) => (

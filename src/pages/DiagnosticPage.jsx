@@ -222,9 +222,7 @@ function DiagnosticPage() {
     return (
         <div className="min-h-[calc(100vh-4rem)] py-12 sm:py-16">
             <SEO
-                title="Free Digital SAT Diagnostic"
-                description="Answer three SAT Duel questions and get a quick, honest estimate of your Digital SAT practice level."
-                path="/diagnostic"
+                seoKey="diagnostic"
                 structuredData={[
                     softwareAppJsonLd(),
                     breadcrumbJsonLd([

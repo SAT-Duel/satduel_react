@@ -246,9 +246,7 @@ function LegalPage({kind}) {
     return (
         <div className="py-10 sm:py-14">
             <SEO
-                title={doc.title}
-                description={doc.description}
-                path={doc.path}
+                seoKey={slug}
                 structuredData={[
                     organizationJsonLd(),
                     breadcrumbJsonLd([

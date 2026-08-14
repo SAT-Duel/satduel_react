@@ -201,9 +201,7 @@ function PricingPage() {
     return (
         <div>
             <SEO
-                title="SAT Duel Pricing"
-                description="Start SAT Duel for free or upgrade to Premium for unlimited Digital SAT practice and focused topic selection."
-                path="/pricing"
+                seoKey="pricing"
                 structuredData={[
                     softwareAppJsonLd(),
                     faqJsonLd(FAQS),

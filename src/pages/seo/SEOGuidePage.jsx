@@ -8,7 +8,10 @@ import {
     CircleDot,
     Flame,
     LineChart,
+    PartyPopper,
+    Share2,
     Target,
+    Trophy,
     Zap,
 } from 'lucide-react';
 import SEO, {
@@ -16,15 +19,13 @@ import SEO, {
     breadcrumbJsonLd,
     faqJsonLd,
     organizationJsonLd,
+    seoMeta,
     softwareAppJsonLd,
 } from '../../components/SEO';
 import {Button, Card, PageContainer} from '../../components/ui';
 
 const GUIDE_PAGES = {
     digitalSatPractice: {
-        path: '/digital-sat-practice',
-        title: 'Digital SAT Practice That Keeps You Moving',
-        description: 'Practice Digital SAT questions one at a time, see your rating change, and build a daily study habit with SAT Duel.',
         eyebrow: 'Digital SAT practice',
         heading: 'Practice for the Digital SAT without turning it into a worksheet marathon.',
         intro: 'SAT Duel gives you focused reps, quick feedback, and visible progress. Start with a short diagnostic, then keep practicing one question at a time.',
@@ -64,9 +65,6 @@ const GUIDE_PAGES = {
         related: ['satMath', 'satReadingWriting', 'scoreGuide'],
     },
     satReadingWriting: {
-        path: '/sat-reading-and-writing-practice',
-        title: 'SAT Reading and Writing Practice',
-        description: 'Build Digital SAT Reading and Writing skills with short questions, clear explanations, and focused practice loops.',
         eyebrow: 'Reading and Writing',
         heading: 'Build Reading and Writing skill one passage, sentence, and choice at a time.',
         intro: 'Digital SAT Reading and Writing rewards careful reading, precise grammar, and quick recognition of question type. SAT Duel helps you practice those pieces without losing the thread.',
@@ -106,9 +104,6 @@ const GUIDE_PAGES = {
         related: ['wordsInContext', 'digitalSatPractice', 'scoreGuide'],
     },
     satMath: {
-        path: '/sat-math-practice',
-        title: 'SAT Math Practice for the Digital SAT',
-        description: 'Practice SAT Math questions with adaptive difficulty, clear feedback, and a rating that moves as you improve.',
         eyebrow: 'SAT Math',
         heading: 'Turn SAT Math practice into a cleaner feedback loop.',
         intro: 'SAT Math improvement comes from spotting the problem type, choosing the right setup, and checking the answer without wasting motion. SAT Duel makes those reps easier to repeat.',
@@ -148,9 +143,6 @@ const GUIDE_PAGES = {
         related: ['digitalSatPractice', 'satReadingWriting', 'scoreGuide'],
     },
     wordsInContext: {
-        path: '/sat-vocabulary-words-in-context',
-        title: 'SAT Words in Context Practice',
-        description: 'Practice SAT Words in Context questions by learning how sentence logic, contrast, and tone point to the right answer.',
         eyebrow: 'Words in Context',
         heading: 'Vocabulary on the Digital SAT is really context reading.',
         intro: 'You do not need to memorize an endless word list to improve. For Words in Context, the surrounding sentence usually tells you what job the word must do.',
@@ -190,9 +182,6 @@ const GUIDE_PAGES = {
         related: ['satReadingWriting', 'digitalSatPractice', 'scoreGuide'],
     },
     scoreGuide: {
-        path: '/digital-sat-score-guide',
-        title: 'How to Improve Your Digital SAT Score',
-        description: 'A practical Digital SAT score improvement guide: diagnose your level, practice weak skills, review misses, and keep a steady habit.',
         eyebrow: 'Score guide',
         heading: 'A better SAT score usually comes from a tighter practice loop.',
         intro: 'The students who improve fastest do not just answer more questions. They diagnose, drill, review, and repeat with enough consistency for the pattern to change.',
@@ -231,6 +220,166 @@ const GUIDE_PAGES = {
         ],
         related: ['digitalSatPractice', 'satMath', 'satReadingWriting'],
     },
+    partyGame: {
+        eyebrow: 'Party mode',
+        heading: 'The SAT, but it plays like a game show with your friends.',
+        intro: 'Host a room, put the six-digit code on the board, and everyone joins from their own phone. Real Digital SAT questions, live scoreboard, twenty players at once — the studying happens on the way.',
+        cta: 'Create a party room',
+        ctaTo: '/party',
+        secondaryCta: 'Create a free account',
+        icon: PartyPopper,
+        accent: 'text-emerald-700 bg-emerald-100',
+        panelEyebrow: 'How party mode works',
+        panelTitle: 'One code. Everyone plays.',
+        loop: [
+            {icon: PartyPopper, label: 'Host', text: 'Start a room in one tap.'},
+            {icon: Share2, label: 'Share', text: 'Read out the 6-digit code.'},
+            {icon: Zap, label: 'Play', text: 'Everyone answers together.'},
+            {icon: Trophy, label: 'Rank', text: 'Live scoreboard each round.'},
+        ],
+        bullets: [
+            'Up to 20 players in one room, joining from any phone or laptop',
+            'Four game modes, including team play and a gold-rush wager round',
+            'Real Digital SAT Math and Reading and Writing questions, not trivia',
+        ],
+        sections: [
+            {
+                title: 'Made for classrooms and group chats',
+                text: 'Teachers use it as a warm-up, study groups use it on a call, and friends use it instead of a review session nobody wants to run. Nothing to install and no setup beyond a room code.',
+            },
+            {
+                title: 'Competition does the motivating',
+                text: 'A scoreboard that updates after every question keeps a group engaged far longer than a worksheet does. Students end up answering more questions in twenty minutes than they would alone in an hour.',
+            },
+            {
+                title: 'The questions are the real thing',
+                text: 'Party rounds pull from the same Digital SAT question bank as regular practice, so a game night still counts as studying. Every answer is explained afterwards.',
+            },
+        ],
+        faq: [
+            {
+                question: 'Is this like Kahoot but for the SAT?',
+                answer: 'Very close. You host a room, players join with a code from their own device, and everyone answers the same question at the same time with a live scoreboard. The difference is that every question is real Digital SAT practice with a full explanation afterward.',
+            },
+            {
+                question: 'How many people can play at once?',
+                answer: 'Up to 20 players in a single room. Everyone joins with the same six-digit code from a phone, tablet, or laptop.',
+            },
+            {
+                question: 'Is the SAT party game free?',
+                answer: 'Yes. Hosting and joining a party room are free. You only need a free SAT Duel account.',
+            },
+            {
+                question: 'Can teachers use it with a class?',
+                answer: 'Yes. Put the join code on the board, have students join from their own devices, and run a round as a warm-up or review. Team mode splits the class into groups.',
+            },
+        ],
+        related: ['tournaments', 'digitalSatPractice', 'studyGuide'],
+    },
+    tournaments: {
+        eyebrow: 'Tournaments',
+        heading: 'Run an SAT competition for your class, club, or whole school.',
+        intro: 'Create a tournament, share one join link, and watch a live leaderboard as students work through the same set of Digital SAT questions on their own schedule.',
+        cta: 'Browse tournaments',
+        ctaTo: '/tournaments',
+        secondaryCta: 'Create a free account',
+        icon: Trophy,
+        accent: 'text-amber-700 bg-amber-100',
+        panelEyebrow: 'How tournaments work',
+        panelTitle: 'One link. Live standings.',
+        loop: [
+            {icon: Trophy, label: 'Create', text: 'Set the questions and window.'},
+            {icon: Share2, label: 'Invite', text: 'Share one join link.'},
+            {icon: Zap, label: 'Compete', text: 'Students answer anytime.'},
+            {icon: LineChart, label: 'Track', text: 'Standings update live.'},
+        ],
+        bullets: [
+            'One join link for the whole group, no accounts to set up in advance',
+            'Asynchronous by design, so students compete across different schedules',
+            'A live leaderboard that ranks by score and accuracy as answers land',
+        ],
+        sections: [
+            {
+                title: 'Better than assigning a worksheet',
+                text: 'A tournament gives a deadline, a scoreboard, and a reason to finish. Students who ignore practice sets will often finish a tournament because their friends are on the same board.',
+            },
+            {
+                title: 'Works for clubs and whole schools',
+                text: 'Run a small bracket for an SAT club or open one to an entire grade. The leaderboard scales either way, and you can see who is participating at a glance.',
+            },
+            {
+                title: 'Every round is still practice',
+                text: 'Tournament questions come from the same Digital SAT bank as everything else, with explanations available after the round. The competition is the wrapper, not a substitute.',
+            },
+        ],
+        faq: [
+            {
+                question: 'Can I run an SAT competition for my school?',
+                answer: 'Yes. Create a tournament, share the join link with students, and the leaderboard tracks everyone automatically. There is no limit on how many students can join a public tournament.',
+            },
+            {
+                question: 'Do students have to compete at the same time?',
+                answer: 'No. Tournaments are asynchronous. Students answer whenever they want inside the tournament window, and the leaderboard updates as results come in.',
+            },
+            {
+                question: 'Is it free to create a tournament?',
+                answer: 'Yes. Creating and joining tournaments is free with a SAT Duel account.',
+            },
+        ],
+        related: ['partyGame', 'digitalSatPractice', 'studyGuide'],
+    },
+    studyGuide: {
+        eyebrow: 'Study guides',
+        heading: 'The whole Digital SAT, explained in the order you should learn it.',
+        intro: 'Short lessons that build on each other across Math and Reading and Writing, so you always know what to study next instead of guessing which video to watch.',
+        cta: 'Open the study guides',
+        ctaTo: '/study_guides',
+        secondaryCta: 'Create a free account',
+        icon: BookOpenCheck,
+        accent: 'text-primary-700 bg-primary-100',
+        panelEyebrow: "What's inside",
+        panelTitle: 'Lessons in the right order.',
+        loop: [
+            {icon: BookOpenCheck, label: 'Learn', text: 'Read one short lesson.'},
+            {icon: Zap, label: 'Apply', text: 'Practice that exact skill.'},
+            {icon: CheckCircle2, label: 'Check', text: 'Review what you missed.'},
+            {icon: Flame, label: 'Advance', text: 'Move to the next lesson.'},
+        ],
+        bullets: [
+            'Math lessons covering algebra, advanced math, data analysis, and geometry',
+            'Reading and Writing lessons on question types, evidence, and grammar',
+            'Each lesson is short enough to finish and immediately practice',
+        ],
+        sections: [
+            {
+                title: 'Ordered, not a pile of links',
+                text: 'Most SAT material is a search result away, but nothing tells you what to read first. These lessons are sequenced into modules so each one assumes only what came before it.',
+            },
+            {
+                title: 'Built to be used next to practice',
+                text: 'Every lesson maps onto skills you will meet in practice questions. Read the lesson, then drill the same skill while it is fresh.',
+            },
+            {
+                title: 'Short on purpose',
+                text: 'A lesson you finish beats a chapter you abandon. Each one covers a single idea and takes a few minutes.',
+            },
+        ],
+        faq: [
+            {
+                question: 'Is the SAT study guide free?',
+                answer: 'The Reading and Writing lessons and the opening Math lessons are free with an account. The full Math library is part of Premium.',
+            },
+            {
+                question: 'What does the study guide cover?',
+                answer: 'The Digital SAT Math domains — algebra, advanced math, problem solving and data analysis, and geometry and trigonometry — plus Reading and Writing question types, evidence, and grammar.',
+            },
+            {
+                question: 'Where should I start?',
+                answer: 'Take the free diagnostic first. It points you at the weakest area, and you can start with that module instead of reading front to back.',
+            },
+        ],
+        related: ['digitalSatPractice', 'satMath', 'satReadingWriting'],
+    },
 };
 
 const RELATED_LABELS = {
@@ -239,6 +388,9 @@ const RELATED_LABELS = {
     satMath: 'SAT Math',
     wordsInContext: 'Words in Context',
     scoreGuide: 'Score Improvement Guide',
+    partyGame: 'SAT Party Game',
+    tournaments: 'SAT Tournaments',
+    studyGuide: 'SAT Study Guide',
 };
 
 function GuideCard({section}) {
@@ -250,14 +402,16 @@ function GuideCard({section}) {
     );
 }
 
-function PracticeLoop() {
-    const steps = [
-        {icon: Target, label: 'Diagnose', text: 'Find your starting level.'},
-        {icon: Zap, label: 'Practice', text: 'Answer one focused question.'},
-        {icon: CheckCircle2, label: 'Review', text: 'Learn why the answer works.'},
-        {icon: Flame, label: 'Repeat', text: 'Keep the streak alive.'},
-    ];
+// The four-step loop under the hero. Practice guides share the default; feature
+// pages (party, tournaments, study guides) describe their own loop instead.
+const DEFAULT_LOOP = [
+    {icon: Target, label: 'Diagnose', text: 'Find your starting level.'},
+    {icon: Zap, label: 'Practice', text: 'Answer one focused question.'},
+    {icon: CheckCircle2, label: 'Review', text: 'Learn why the answer works.'},
+    {icon: Flame, label: 'Repeat', text: 'Keep the streak alive.'},
+];
 
+function PracticeLoop({steps = DEFAULT_LOOP}) {
     return (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map(({icon: Icon, label, text}) => (
@@ -274,7 +428,10 @@ function PracticeLoop() {
 }
 
 export default function SEOGuidePage({pageKey}) {
-    const page = GUIDE_PAGES[pageKey] || GUIDE_PAGES.digitalSatPractice;
+    const key = GUIDE_PAGES[pageKey] ? pageKey : 'digitalSatPractice';
+    // Title, description, path and OG card live in src/seo/routes.js so the
+    // runtime tags match what scripts/prerender.mjs writes for crawlers.
+    const page = {...GUIDE_PAGES[key], ...seoMeta(key)};
     const Icon = page.icon;
     const structuredData = [
         organizationJsonLd(),
@@ -293,13 +450,7 @@ export default function SEOGuidePage({pageKey}) {
 
     return (
         <div>
-            <SEO
-                title={page.title}
-                description={page.description}
-                path={page.path}
-                type="article"
-                structuredData={structuredData}
-            />
+            <SEO seoKey={key} structuredData={structuredData}/>
 
             <section className="sd-hero-bg overflow-hidden border-b border-[var(--sd-line)]">
                 <PageContainer className="grid gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_0.8fr] lg:items-center">
@@ -314,7 +465,7 @@ export default function SEOGuidePage({pageKey}) {
                             {page.intro}
                         </p>
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                            <Button to="/diagnostic" size="lg">
+                            <Button to={page.ctaTo || '/diagnostic'} size="lg">
                                 {page.cta} <ArrowRight className="size-5"/>
                             </Button>
                             <Button to="/register" variant="secondary" size="lg">
@@ -325,8 +476,8 @@ export default function SEOGuidePage({pageKey}) {
 
                     <Card className="sat-arena-card overflow-hidden rounded-[1.75rem] bg-white/95">
                         <div className="border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
-                            <p className="m-0 text-xs font-black uppercase text-cyan-200">SAT Duel loop</p>
-                            <p className="m-0 mt-1 font-display text-xl font-black">Short reps. Clear feedback.</p>
+                            <p className="m-0 text-xs font-black uppercase text-cyan-200">{page.panelEyebrow || 'SAT Duel loop'}</p>
+                            <p className="m-0 mt-1 font-display text-xl font-black">{page.panelTitle || 'Short reps. Clear feedback.'}</p>
                         </div>
                         <div className="space-y-4 p-5">
                             {page.bullets.map((bullet) => (
@@ -344,7 +495,7 @@ export default function SEOGuidePage({pageKey}) {
 
             <section className="py-12 sm:py-16">
                 <PageContainer>
-                    <PracticeLoop/>
+                    <PracticeLoop steps={page.loop}/>
 
                     <div className="mt-10 grid gap-4 lg:grid-cols-3">
                         {page.sections.map((section) => (

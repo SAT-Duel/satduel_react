@@ -238,9 +238,7 @@ function AboutPage() {
     return (
         <div>
             <SEO
-                title="About SAT Duel"
-                description="Meet the SAT Duel team and the mission behind a focused, competitive Digital SAT practice platform."
-                path="/about"
+                seoKey="about"
                 structuredData={[
                     organizationJsonLd(),
                     breadcrumbJsonLd([
