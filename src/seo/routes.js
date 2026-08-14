@@ -118,9 +118,82 @@ export const SEO_ROUTES = [
     {key: 'refunds', path: '/refund-policy', title: 'Refund and Cancellation Policy', description: 'How SAT Duel handles Premium cancellations and refund requests.', image: DEFAULT_IMAGE},
 ];
 
+/**
+ * Login-gated app routes that people actually paste into Discord.
+ *
+ * These are NOT indexable and never appear in the sitemap — they render behind
+ * the auth gate. But a shared link still gets unfurled, and without a
+ * prerendered file it falls through to index.html and previews as the generic
+ * site card. So they get the same treatment as public routes, minus the
+ * canonical, plus `noindex`.
+ *
+ * A share card is about what the link *is*, so the copy is written for someone
+ * who has just been handed the URL by a friend.
+ */
+export const SHARE_ROUTES = [
+    {
+        key: 'appParty',
+        path: '/party',
+        title: 'Join a live SAT party game',
+        description: 'Host a room or punch in a friend\'s code, then race each other through real Digital SAT questions with a live scoreboard.',
+        image: '/og/party.png',
+    },
+    {
+        key: 'appPartyHistory',
+        path: '/party/history',
+        title: 'SAT party game results',
+        description: 'Every room you have played, who won, and how each question went.',
+        image: '/og/party.png',
+    },
+    {
+        key: 'appTournaments',
+        path: '/tournaments',
+        title: 'SAT tournaments',
+        description: 'Join an SAT tournament, answer on your own schedule, and watch the live leaderboard.',
+        image: '/og/tournaments.png',
+    },
+    {
+        key: 'appStudyGuides',
+        path: '/study_guides',
+        title: 'SAT study guides',
+        description: 'Short Math and Reading & Writing lessons in the order you should learn them.',
+        image: '/og/studyGuide.png',
+    },
+    {
+        key: 'appPractice',
+        path: '/infinite_questions',
+        title: 'Practice Digital SAT questions',
+        description: 'One real question at a time, with a rating that moves as you answer and an explanation on every miss.',
+        image: '/og/practice.png',
+    },
+    {
+        key: 'appPracticeTest',
+        path: '/practice_test',
+        title: 'Full-length Digital SAT practice test',
+        description: 'Take an adaptive, full-length practice test under real timing and get a scored breakdown.',
+        image: '/og/practice.png',
+    },
+    {
+        key: 'appRanking',
+        path: '/ranking',
+        title: 'SAT Duel leaderboard',
+        description: 'See where you rank on Practice Elo, Duel Elo, and correct-answer streaks.',
+        image: '/og/tournaments.png',
+    },
+    {
+        // The default card is already duel-themed, so it fits without a variant.
+        key: 'appMatch',
+        path: '/match',
+        title: 'Duel someone at the Digital SAT',
+        description: 'Get matched against another student and answer the same questions head to head, in real time.',
+        image: '/og/default.png',
+    },
+];
+
 /** Look up one route's metadata by key. Throws early on a typo. */
 export function seoMeta(key) {
-    const found = SEO_ROUTES.find((r) => r.key === key);
+    const found = SEO_ROUTES.find((r) => r.key === key)
+        || SHARE_ROUTES.find((r) => r.key === key);
     if (!found) throw new Error(`Unknown SEO route key: ${key}`);
     return found;
 }

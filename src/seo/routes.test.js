@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import {SEO_ROUTES, seoMeta} from './routes.js';
+import {SEO_ROUTES, SHARE_ROUTES, seoMeta} from './routes.js';
 import {headFor, render, sitemap} from '../../scripts/prerender.mjs';
 
 const SHELL = `<!DOCTYPE html>
@@ -16,7 +16,7 @@ const SHELL = `<!DOCTYPE html>
 </head><body><div id="root"></div></body></html>`;
 
 test('every route has the fields the prerenderer and sitemap need', () => {
-    for (const r of SEO_ROUTES) {
+    for (const r of [...SEO_ROUTES, ...SHARE_ROUTES]) {
         assert.ok(r.key, 'missing key');
         assert.match(r.path, /^\//, `${r.key}: path must be absolute`);
         assert.ok(r.title?.length, `${r.key}: missing title`);
@@ -25,11 +25,29 @@ test('every route has the fields the prerenderer and sitemap need', () => {
     }
 });
 
-test('paths and keys are unique', () => {
-    const paths = SEO_ROUTES.map((r) => r.path);
-    const keys = SEO_ROUTES.map((r) => r.key);
+test('paths and keys are unique across both lists', () => {
+    const all = [...SEO_ROUTES, ...SHARE_ROUTES];
+    const paths = all.map((r) => r.path);
+    const keys = all.map((r) => r.key);
     assert.equal(new Set(paths).size, paths.length, 'duplicate path');
     assert.equal(new Set(keys).size, keys.length, 'duplicate key');
+});
+
+test('share routes are noindex, carry no canonical, and stay out of the sitemap', () => {
+    const xml = sitemap();
+    for (const route of SHARE_ROUTES) {
+        const head = headFor({...route, noindex: true});
+        assert.ok(head.includes('content="noindex,nofollow"'), `${route.key}: not noindex`);
+        assert.ok(!head.includes('rel="canonical"'), `${route.key}: canonical contradicts noindex`);
+        assert.ok(head.includes(`content="https://satduel.com${route.image}"`), `${route.key}: wrong card`);
+        assert.ok(!xml.includes(`${route.path}</loc>`), `${route.key}: leaked into the sitemap`);
+    }
+});
+
+test('public routes stay indexable and keep their canonical', () => {
+    const head = headFor(seoMeta('partyGame'));
+    assert.ok(head.includes('content="index,follow"'));
+    assert.ok(head.includes('rel="canonical"'));
 });
 
 test('seoMeta throws on an unknown key rather than rendering blank tags', () => {
@@ -75,6 +93,20 @@ test('quotes in copy are escaped so they cannot break out of an attribute', () =
 
 test('render fails loudly if the markers are removed from index.html', () => {
     assert.throws(() => render('<html><head></head></html>', seoMeta('home')), /markers are missing/);
+});
+
+test('robots.txt does not block a route that has a share card', async () => {
+    const {readFile} = await import('node:fs/promises');
+    const robots = await readFile(new URL('../../public/robots.txt', import.meta.url), 'utf8');
+    const blocked = robots.split('\n')
+        .filter((l) => l.startsWith('Disallow:'))
+        .map((l) => l.replace('Disallow:', '').trim());
+
+    for (const route of SHARE_ROUTES) {
+        // Blocking the fetch would hide the noindex AND kill the link preview.
+        const hit = blocked.find((b) => route.path === b || route.path.startsWith(`${b}/`));
+        assert.equal(hit, undefined, `${route.path} has a share card but robots.txt blocks ${hit}`);
+    }
 });
 
 test('sitemap lists every route exactly once, absolute', () => {
