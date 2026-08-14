@@ -46,11 +46,28 @@ keeps them from drifting apart:
 2. `scripts/prerender.mjs` at build time — what link-preview crawlers see.
 3. The generated `sitemap.xml`.
 
-**Adding a public page:** add an entry to `src/seo/routes.js`, add the route in
+`routes.js` exports two lists:
+
+- **`SEO_ROUTES`** — public, indexable, in the sitemap.
+- **`SHARE_ROUTES`** — login-gated app routes people paste into Discord
+  (`/party`, `/study_guides`, `/tournaments`, …). Prerendered with the right OG
+  card but `noindex` and no canonical, and never in the sitemap. Without an
+  entry here a shared app URL falls back to `index.html` and previews as the
+  generic site card — which is the whole reason this list exists.
+
+**Adding a public page:** add an entry to `SEO_ROUTES`, add the route in
 `src/components/Router.jsx`, render `<SEO seoKey="yourKey"/>`, and link to it
 from `SATFooter` so it is reachable. The sitemap and prerendered HTML follow
-automatically. Private pages pass explicit props plus `noindex` and must NOT be
-listed in `routes.js`.
+automatically.
+
+**Dynamic invite links** (`/party/:roomId`, `/tournament/:id`) can't be
+prerendered per-instance, so `public/_redirects` maps those prefixes onto the
+matching share card. Serving another route's HTML is safe because every
+prerendered file is the same full SPA shell — React still reads the real URL.
+
+**robots.txt:** never `Disallow` a path that has a share card. Blocking the
+fetch hides the `noindex` from Google *and* stops X's card crawler from reading
+the OG tags. A test enforces this.
 
 **Why prerendering exists:** Discord, iMessage, Slack and X do not run
 JavaScript, so they only read the HTML the server returns. For an SPA that is

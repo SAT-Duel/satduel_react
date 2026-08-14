@@ -1,2 +1,18 @@
+# Dynamic invite links get the card of the thing they invite you to.
+#
+# Netlify serves an existing file before applying any non-forced rule, so
+# /party and /party/history keep their own prerendered files (written by
+# scripts/prerender.mjs) and never reach these lines. Only a room code like
+# /party/A1B2C3 falls through to here.
+#
+# Serving another route's HTML is safe: every prerendered file is the same full
+# SPA shell, so React still reads the real URL and renders the right page. Only
+# the <head> differs, and that is exactly what the crawler came for.
+/party/*               /party/index.html         200
+/tournament/*          /tournaments/index.html   200
+/tournaments/join/*    /tournaments/index.html   200
+
+# SPA fallback for everything else.
 /* /index.html 200
+
 https://satduel.netlify.app/* https://satduel.com/:splat 301!

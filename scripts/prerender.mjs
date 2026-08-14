@@ -24,7 +24,7 @@ import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import {SEO_ROUTES, SITE_URL, SITE_NAME} from '../src/seo/routes.js';
+import {SEO_ROUTES, SHARE_ROUTES, SITE_URL, SITE_NAME} from '../src/seo/routes.js';
 
 const BUILD = fileURLToPath(new URL('../build', import.meta.url));
 
@@ -42,12 +42,18 @@ export function headFor(route) {
     const canonical = absolute(route.path);
     const image = absolute(route.image);
 
+    // Share cards are login-gated: they exist so a pasted link unfurls properly,
+    // not to be indexed. No canonical either — it would contradict noindex.
+    const indexing = route.noindex
+        ? '    <meta data-rh="true" name="robots" content="noindex,nofollow"/>'
+        : `    <meta data-rh="true" name="robots" content="index,follow"/>\n`
+          + `    <link data-rh="true" rel="canonical" href="${canonical}"/>`;
+
     // data-rh marks each tag as react-helmet-async's to own: on mount it
     // replaces these in place instead of appending a second, conflicting copy.
     // Without it every page ships two <link rel="canonical"> tags.
     return `    <meta data-rh="true" name="description" content="${description}"/>
-    <meta data-rh="true" name="robots" content="index,follow"/>
-    <link data-rh="true" rel="canonical" href="${canonical}"/>
+${indexing}
     <meta data-rh="true" property="og:site_name" content="${SITE_NAME}"/>
     <meta data-rh="true" property="og:type" content="${route.type || 'website'}"/>
     <meta data-rh="true" property="og:title" content="${title}"/>
@@ -98,7 +104,8 @@ ${urls}
 async function main() {
     const shell = await readFile(join(BUILD, 'index.html'), 'utf8');
 
-    for (const route of SEO_ROUTES) {
+    const shareRoutes = SHARE_ROUTES.map((r) => ({...r, noindex: true}));
+    for (const route of [...SEO_ROUTES, ...shareRoutes]) {
         if (route.path === '/') continue;  // that IS build/index.html
         const dir = join(BUILD, route.path);
         await mkdir(dir, {recursive: true});
@@ -109,9 +116,12 @@ async function main() {
     const home = SEO_ROUTES.find((r) => r.path === '/');
     await writeFile(join(BUILD, 'index.html'), render(shell, home));
 
+    // Only public routes belong in the sitemap; share cards are noindex.
     await writeFile(join(BUILD, 'sitemap.xml'), sitemap());
 
-    console.log(`prerendered ${SEO_ROUTES.length} routes + sitemap.xml`);
+    console.log(
+        `prerendered ${SEO_ROUTES.length} public + ${shareRoutes.length} share routes, + sitemap.xml`
+    );
 }
 
 // Importable for tests; only builds when run as a script.

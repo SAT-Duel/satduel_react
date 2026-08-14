@@ -1,19 +1,41 @@
 User-agent: *
 Allow: /
 
+# The rule for app routes:
+#
+# - Route has an entry in SHARE_ROUTES (src/seo/routes.js)? Do NOT list it here.
+#   It is prerendered with `noindex`, which keeps it out of the index properly,
+#   and leaving it crawlable is what lets Discord and X's card crawler read its
+#   OG tags. Disallowing it here would block the fetch, so the noindex would
+#   never be read AND shared links would lose their preview.
+#
+# - No share card? It falls back to index.html, which claims index,follow and
+#   canonical "/", so it must be listed below or Google may index it as a
+#   duplicate of the home page.
+#
+# Crawlable with a noindex share card: /party, /party/history, /tournaments,
+# /study_guides, /infinite_questions, /practice_test, /ranking, /match.
+
 Disallow: /trainer
-Disallow: /infinite_questions
-Disallow: /match
 Disallow: /questions
-Disallow: /ranking
-Disallow: /profile
-Disallow: /settings
 Disallow: /upgrade
-Disallow: /admin
+Disallow: /profile
+Disallow: /messages
+Disallow: /settings
 Disallow: /shop
-Disallow: /duels
-Disallow: /practice_test
 Disallow: /classes
+Disallow: /my_tournaments
+Disallow: /create_tournament
+Disallow: /saved-questions
+Disallow: /practice-history
+Disallow: /mistake-review
+Disallow: /timed_challenges
+Disallow: /power_sprint
+Disallow: /sat_survival
+Disallow: /bot_training
+Disallow: /welcome
+Disallow: /complete_profile
+Disallow: /admin
 Disallow: /api/reset
 
 Sitemap: https://satduel.com/sitemap.xml
