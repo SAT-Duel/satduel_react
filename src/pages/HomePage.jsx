@@ -1021,31 +1021,36 @@ function Pricing() {
                     Free to duel. Cheap to go unlimited.
                 </h2>
                 <div className="mt-12 grid gap-5 md:grid-cols-2">
-                    <div className={`${panelCls} rounded-[18px] p-7`}>
+                    {/* Cards are uneven now that Premium lists more; align the tops. */}
+                    <div className={`${panelCls} flex flex-col rounded-[18px] p-7`}>
                         <span className={`${MONO} text-xs tracking-[0.1em] text-[var(--sd-violet-lbl)]`}>FREE</span>
                         <div className="mt-3 flex items-baseline gap-2">
                             <span className="sd-display text-[44px] font-bold text-[var(--sd-text)]">$0</span>
                             <span className="text-sm text-[var(--sd-dim)]">forever</span>
                         </div>
-                        <div className="mt-5 flex flex-col gap-2.5 text-[14.5px] text-[var(--sd-mut2)]">
+                        <div className="mt-5 flex flex-1 flex-col gap-2.5 text-[14.5px] text-[var(--sd-mut2)]">
                             <span>✓&nbsp;&nbsp;25 questions a day</span>
-                            <span>✓&nbsp;&nbsp;Duels and practice tests</span>
-                            <span>✓&nbsp;&nbsp;Diagnostic score estimate</span>
+                            <span>✓&nbsp;&nbsp;Duels, tournaments and practice tests</span>
+                            <span>✓&nbsp;&nbsp;Party rooms up to 6 players</span>
+                            <span>✓&nbsp;&nbsp;Every Reading &amp; Writing lesson</span>
                         </div>
                         <Link to="/register" className="mt-[26px] block rounded-[11px] border-[1.5px] border-[var(--sd-line3)] py-[13px] text-center text-[15px] font-bold text-[var(--sd-body)] no-underline transition-colors hover:border-[#A78BFA] hover:text-[var(--sd-text)]">
                             Start Free
                         </Link>
                     </div>
-                    <div className={`relative rounded-[18px] border-[1.5px] border-[rgba(233,188,79,0.55)] bg-[var(--sd-panel)] p-7 shadow-[0_0_0_4px_rgba(233,188,79,0.07)]`}>
+                    <div className={`relative flex flex-col rounded-[18px] border-[1.5px] border-[rgba(233,188,79,0.55)] bg-[var(--sd-panel)] p-7 shadow-[0_0_0_4px_rgba(233,188,79,0.07)]`}>
                         <span className={`${MONO} absolute -top-3 right-[22px] rounded-md bg-[#E9BC4F] px-2.5 py-1 text-[10.5px] tracking-[0.08em] text-[#1F1204]`}>MOST POPULAR</span>
                         <span className={`${MONO} text-xs tracking-[0.1em] text-[var(--sd-gold-lbl)]`}>PREMIUM</span>
                         <div className="mt-3 flex items-baseline gap-2">
                             <span className="sd-display text-[44px] font-bold text-[var(--sd-text)]">$9.99</span>
                             <span className="text-sm text-[var(--sd-dim)]">per month</span>
                         </div>
-                        <div className="mt-5 flex flex-col gap-2.5 text-[14.5px] text-[var(--sd-mut2)]">
+                        <div className="mt-5 flex flex-1 flex-col gap-2.5 text-[14.5px] text-[var(--sd-mut2)]">
                             <span>✓&nbsp;&nbsp;Unlimited practice</span>
                             <span>✓&nbsp;&nbsp;Choose the exact topics you drill</span>
+                            <span>✓&nbsp;&nbsp;Party rooms up to 50 players, 50 questions</span>
+                            <span>✓&nbsp;&nbsp;The full Math study guide library</span>
+                            <span>✓&nbsp;&nbsp;Premium crown on the leaderboard</span>
                             <span>✓&nbsp;&nbsp;Everything in Free</span>
                         </div>
                         <Link to="/pricing" className="mt-[26px] block rounded-[11px] bg-[#7C5CF0] py-[13px] text-center text-[15px] font-bold text-white no-underline shadow-[0_6px_20px_rgba(124,92,240,0.4)] transition-colors hover:bg-[#9678FF]">

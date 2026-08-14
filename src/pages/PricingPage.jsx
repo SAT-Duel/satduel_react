@@ -9,7 +9,7 @@ import {
     FileText,
     Gauge,
     Lock,
-    ShieldCheck,
+    PartyPopper,
     Sparkles,
     Target,
     Trophy,
@@ -21,18 +21,29 @@ import {useAuth} from '../context/AuthContext';
 import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
 import SEO, {breadcrumbJsonLd, faqJsonLd, softwareAppJsonLd} from '../components/SEO';
 
+// Every line below maps to a real gate in the code. Keep it that way — this is
+// the page people pay from.
+//   daily cap ......... settings.FREE_DAILY_LIMIT (25)
+//   topic selection ... api/views/practice_views.py filters_are_default()
+//   party sizes ....... api/views/party_views.py CAPS
+//   gold rush pool .... api/views/party_views.py GOLD_POOL (30 vs 100)
+//   math guides ....... src/pages/StudyGuidePage.jsx isLocked()
+//   crown ............. RankingPage / ProfilePage render it off is_premium
 const FREE_FEATURES = [
     '25 adaptive practice questions each day',
     'Random topic mix from the SAT bank',
-    'Two-minute diagnostic estimate',
-    'Duels, tournaments, and practice tests',
+    'Party rooms with up to 6 friends, 20 questions a game',
+    'Duels, tournaments, and full-length practice tests',
+    'Every Reading and Writing study guide lesson',
 ];
 
 const PREMIUM_FEATURES = [
-    'Unlimited adaptive practice',
-    'Choose exact SAT question topics',
-    'Keep diagnostic and progress history',
-    'Stripe subscription, invoices, and billing portal',
+    'Unlimited adaptive practice — no daily cap',
+    'Choose the exact SAT topics you drill',
+    'Party rooms up to 50 players and 50 questions a game',
+    'A deeper Gold Rush pool, so questions repeat far less',
+    'The complete Math study guide library',
+    'A Premium crown on your profile and the leaderboard',
 ];
 
 const SCORE_SIGNALS = [
@@ -44,15 +55,19 @@ const SCORE_SIGNALS = [
 const FAQS = [
     {
         question: 'Can I keep using SAT Duel for free?',
-        answer: 'Yes. Free users still get daily practice, the diagnostic, duels, tournaments, and practice tests.',
+        answer: 'Yes, and free is genuinely usable. You get 25 questions a day, the diagnostic, duels, tournaments, full-length practice tests, party rooms up to six players, and the whole Reading and Writing study guide.',
     },
     {
         question: 'What does Premium unlock first?',
-        answer: 'Premium removes the daily practice cap and unlocks topic selection so students can drill the exact skills they need.',
+        answer: 'The daily cap disappears and you can pick exact topics to drill. After that it scales up the social side: party rooms go from 6 players to 50, and games from 20 questions to 50.',
+    },
+    {
+        question: 'Does Premium change party games?',
+        answer: 'Yes. A Premium host can run a room for up to 50 players with up to 50 questions, and Gold Rush draws from a much larger pool so questions repeat far less over a long game. Guests never need Premium to join.',
     },
     {
         question: 'Where are payments handled?',
-        answer: 'Checkout, invoices, and subscription management are handled by Stripe.',
+        answer: 'Checkout, invoices, and subscription management are handled by Stripe. You can cancel any time from the billing portal.',
     },
 ];
 
@@ -222,10 +237,10 @@ function PricingPage() {
                             Free forever. $9.99/month to go unlimited.
                         </h1>
                         <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-[var(--sd-mut)]">
-                            Free gives you 25 adaptive questions a day plus duels, tournaments, and practice tests. Premium removes the daily cap and lets you pick the exact topics you drill.
+                            Free gives you 25 adaptive questions a day plus duels, tournaments, practice tests, and party rooms. Premium removes the daily cap, lets you pick the exact topics you drill, and scales your party rooms to a full classroom.
                         </p>
                         <div className="mt-6 flex flex-wrap justify-center gap-2">
-                            {['Unlimited practice', 'Topic selection', 'Cancel anytime'].map((label) => (
+                            {['Unlimited practice', 'Topic selection', '50-player parties', 'Cancel anytime'].map((label) => (
                                 <span key={label} className="rounded-full border border-[var(--sd-line2)] bg-[var(--sd-panel)] px-3 py-1.5 text-sm font-black text-[var(--sd-mut2)]">
                                     {label}
                                 </span>
@@ -240,8 +255,10 @@ function PricingPage() {
                     )}
 
                     <div className="mx-auto mt-8 grid max-w-5xl gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-                        <Card className="sat-arena-card overflow-hidden">
-                            <div className="p-6">
+                        {/* Premium lists more features, so the grid row is taller than
+                            this card's content — grow the body to keep the CTA on the floor. */}
+                        <Card className="sat-arena-card flex flex-col overflow-hidden">
+                            <div className="flex-1 p-6">
                                 <div className="flex items-center gap-3">
                                     <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
                                         <Zap className="size-5"/>
@@ -337,10 +354,10 @@ function PricingPage() {
                     <div>
                         <p className="m-0 text-xs font-black uppercase text-[var(--sd-violet-lbl)]">Why upgrade</p>
                         <h2 className="m-0 mt-3 font-display text-3xl font-black leading-tight text-[var(--sd-text)] sm:text-4xl">
-                            Premium changes exactly two things.
+                            More reps, aimed better, with more friends.
                         </h2>
                         <p className="m-0 mt-4 text-lg leading-relaxed text-[var(--sd-mut)]">
-                            The 25-question daily cap goes away, and you choose which topics you drill instead of getting a random mix. Everything else — duels, tournaments, practice tests, the diagnostic — stays free.
+                            The 25-question daily cap goes away, you pick the topics you drill instead of taking a random mix, and your party rooms grow from 6 players to 50. Duels, tournaments, practice tests, and the diagnostic stay free for everyone.
                         </p>
                     </div>
 
@@ -365,10 +382,10 @@ function PricingPage() {
                         </p>
                     </Card>
                     <Card className="sat-arena-card p-5">
-                        <ShieldCheck className="mb-4 size-7 text-emerald-700"/>
-                        <h3 className="m-0 font-display text-lg font-black text-slate-950">Clean billing</h3>
+                        <PartyPopper className="mb-4 size-7 text-emerald-700"/>
+                        <h3 className="m-0 font-display text-lg font-black text-slate-950">Bigger parties</h3>
                         <p className="m-0 mt-2 text-sm leading-relaxed text-slate-600">
-                            Stripe handles checkout, invoices, and subscription management.
+                            Host a whole class instead of a group chat: 50 players, 50 questions, and far fewer repeats.
                         </p>
                     </Card>
                 </div>
