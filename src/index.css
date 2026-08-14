@@ -46,6 +46,17 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+}
+
+/* Keep links underline-free globally; colors are set per-component so
+   Tailwind utility classes (which live in a cascade layer) aren't
+   overridden by this unlayered rule. */
+a {
+    text-decoration: none;
+}
+
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
