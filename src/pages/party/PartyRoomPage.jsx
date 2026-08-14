@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {ArrowLeftRight, BarChart3, BookOpen, Check, ChevronDown, Coins, Copy, Crown, Hand, Heart, Pencil, Shuffle, Skull, SmilePlus, TrendingDown, Trophy, Users, X, Zap} from 'lucide-react';
 import {Button, ModalShell, Spinner} from '../../components/ui';
@@ -6,6 +6,7 @@ import UserAvatar from '../../components/UserAvatar';
 import RenderWithMath from '../../components/RenderWithMath';
 import api from '../../components/api';
 import {notify} from '../../utils/notify';
+import {groupPartyReactions} from '../../utils/partyReactions';
 import '../../styles/party.css';
 
 const POLL_MS = 1000;
@@ -73,7 +74,6 @@ function PlayerChip({player}) {
 
 function PartyReactionLayer({reactions}) {
     const drifts = [-36, 22, -14, 38, 8];
-    const turns = [-8, 6, -4, 9, 3];
     return (
         <div className="pointer-events-none fixed inset-0 z-40 h-dvh overflow-hidden" aria-hidden="true">
             {reactions.map((reaction) => {
@@ -85,14 +85,21 @@ function PartyReactionLayer({reactions}) {
                         style={{
                             '--party-reaction-right': `${10 + lane * 40}px`,
                             '--party-reaction-drift': `${drifts[lane]}px`,
-                            '--party-reaction-turn': `${turns[lane]}deg`,
+                            '--party-reaction-mid-drift': `${drifts[lane] * 0.65}px`,
                             animationDelay: `${reaction.delay}ms`,
                         }}
                     >
-                        <span className="text-3xl leading-none drop-shadow-sm">{reaction.emoji}</span>
-                        <span className="mt-1 max-w-24 truncate rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                            @{reaction.sender_username}
-                        </span>
+                        <div key={reaction.count} className="party-reaction-bubble">
+                            <span className="relative text-3xl leading-none drop-shadow-sm">
+                                {reaction.emoji}
+                                {reaction.count > 1 && (
+                                    <span className="party-reaction-count">×{reaction.count}</span>
+                                )}
+                            </span>
+                            <span className="mt-1 max-w-24 truncate rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                                @{reaction.sender_username}
+                            </span>
+                        </div>
                     </div>
                 );
             })}
@@ -100,9 +107,10 @@ function PartyReactionLayer({reactions}) {
     );
 }
 
-function PartyReactionPicker({emotes, onSend}) {
+function PartyReactionPicker({emotes, onSend, inline = false}) {
     const [open, setOpen] = useState(false);
     const pickerRef = useRef(null);
+    const optionsId = useId();
 
     useEffect(() => {
         if (!open) return undefined;
@@ -120,13 +128,15 @@ function PartyReactionPicker({emotes, onSend}) {
     }, [open]);
 
     return (
-        <div ref={pickerRef} className="party-reaction-control fixed z-50">
+        <div ref={pickerRef} className={inline ? 'relative z-50' : 'party-reaction-control fixed z-50 hidden sm:block'}>
             {open && (
                 <div
-                    id="party-reaction-options"
+                    id={optionsId}
                     role="toolbar"
                     aria-label="Send a reaction"
-                    className="absolute right-0 top-[calc(100%+0.5rem)] flex items-center gap-1 rounded-2xl bg-white p-1.5 shadow-[0_8px_28px_rgba(15,23,42,0.22)]"
+                    className={`absolute top-[calc(100%+0.5rem)] flex items-center gap-1 rounded-2xl bg-white p-1.5 shadow-[0_8px_28px_rgba(15,23,42,0.22)] ${
+                        inline ? 'left-0' : 'right-0'
+                    }`}
                 >
                     {emotes.map((emoji) => (
                         <button
@@ -146,8 +156,10 @@ function PartyReactionPicker({emotes, onSend}) {
                 onClick={() => setOpen((current) => !current)}
                 aria-label={open ? 'Hide reactions' : 'Send a reaction'}
                 aria-expanded={open}
-                aria-controls="party-reaction-options"
-                className={`grid size-11 cursor-pointer place-items-center rounded-full shadow-[0_6px_20px_rgba(15,23,42,0.2)] transition-colors active:bg-primary-100 ${
+                aria-controls={optionsId}
+                className={`grid cursor-pointer place-items-center rounded-full transition-colors active:bg-primary-100 ${
+                    inline ? 'size-9 border border-slate-200 shadow-sm' : 'size-11 shadow-[0_6px_20px_rgba(15,23,42,0.2)]'
+                } ${
                     open ? 'bg-primary-600 text-white' : 'bg-white text-primary-600'
                 }`}
             >
@@ -303,7 +315,7 @@ function TeamSorter({state, teams, editable, selected, onSelect, onMove, onRenam
     );
 }
 
-function Lobby({state, roomId, onLeave}) {
+function Lobby({state, roomId, onLeave, reactionPicker}) {
     const [starting, setStarting] = useState(false);
     const [selected, setSelected] = useState(null);
     const {settings} = state;
@@ -353,9 +365,12 @@ function Lobby({state, roomId, onLeave}) {
     return (
         <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5 py-6">
             <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
-                    <Users className="size-4 text-slate-400"/> {state.players.length}/{settings.max_players}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+                        <Users className="size-4 text-slate-400"/> {state.players.length}/{settings.max_players}
+                    </span>
+                    {reactionPicker}
+                </div>
                 <button
                     type="button"
                     onClick={onLeave}
@@ -559,7 +574,7 @@ function WagerPhase({state, roomId, secondsLeft}) {
     );
 }
 
-function QuestionPhase({state, roomId, secondsLeft}) {
+function QuestionPhase({state, roomId, secondsLeft, reactionPicker}) {
     const [locked, setLocked] = useState(null);
     const question = state.question;
     const questionId = question?.id;
@@ -624,9 +639,12 @@ function QuestionPhase({state, roomId, secondsLeft}) {
                 </div>
             )}
             <div className="flex items-center justify-between gap-3">
-                <span className="rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-700">
-                    Q {state.question_number}/{state.total_questions}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-700">
+                        Q {state.question_number}/{state.total_questions}
+                    </span>
+                    {reactionPicker}
+                </div>
                 <span className="text-xs font-semibold text-slate-400">
                     {answeredCount}/{state.players.length} answered
                 </span>
@@ -1197,7 +1215,7 @@ function GoldLeaderboard({players, you, onClose}) {
     );
 }
 
-function GoldRush({state, roomId, secondsLeft}) {
+function GoldRush({state, roomId, secondsLeft, reactionPicker}) {
     const gold = state.gold || {};
     const [busy, setBusy] = useState(false);
     const [picked, setPicked] = useState(null);        // answer letter, pre-poll
@@ -1282,9 +1300,12 @@ function GoldRush({state, roomId, secondsLeft}) {
         <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-4 py-4 sm:py-6">
             {/* Persistent bar: gold, standings, clock. */}
             <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 font-mono text-sm font-black text-amber-700">
-                    <Coins className="size-4"/> {gold.gold}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 font-mono text-sm font-black text-amber-700">
+                        <Coins className="size-4"/> {gold.gold}
+                    </span>
+                    {reactionPicker}
+                </div>
                 <button
                     type="button"
                     onClick={() => setShowBoard(true)}
@@ -1448,20 +1469,43 @@ function PartyRoomPage() {
 
     const showReactions = useCallback((reactions) => {
         const now = Date.now();
-        const animated = reactions.map((reaction, index) => {
-            const sequence = reactionSequenceRef.current++;
-            return {
-                ...reaction,
-                animationKey: reaction.id ? `server-${reaction.id}` : `local-${sequence}`,
-                lane: sequence % 5,
-                delay: Math.min(index, 8) * 65,
-                shownAt: now,
-            };
+        const groups = groupPartyReactions(reactions);
+
+        setLiveReactions((current) => {
+            const next = current.filter((reaction) => now - reaction.shownAt < 3500);
+            groups.forEach((group, groupIndex) => {
+                let remaining = group.count;
+                while (remaining > 0) {
+                    let match = -1;
+                    for (let index = next.length - 1; index >= 0; index -= 1) {
+                        const reaction = next[index];
+                        if (reaction.groupKey === group.groupKey && now - reaction.lastTapAt < 650 && reaction.count < 5) {
+                            match = index;
+                            break;
+                        }
+                    }
+                    if (match >= 0) {
+                        const added = Math.min(remaining, 5 - next[match].count);
+                        next[match] = {...next[match], count: next[match].count + added, lastTapAt: now};
+                        remaining -= added;
+                    } else {
+                        const sequence = reactionSequenceRef.current++;
+                        const count = Math.min(remaining, 5);
+                        next.push({
+                            ...group,
+                            count,
+                            animationKey: `reaction-${sequence}`,
+                            lane: sequence % 5,
+                            delay: Math.min(groupIndex, 4) * 80,
+                            shownAt: now,
+                            lastTapAt: now,
+                        });
+                        remaining -= count;
+                    }
+                }
+            });
+            return next.slice(-16);
         });
-        setLiveReactions((current) => [
-            ...current.filter((reaction) => now - reaction.shownAt < 5200),
-            ...animated,
-        ].slice(-50));
     }, []);
 
     const flushReactionQueue = useCallback(() => {
@@ -1556,18 +1600,23 @@ function PartyRoomPage() {
     const secondsLeft = deadlineRef.current == null
         ? 0
         : Math.max(0, (deadlineRef.current - Date.now()) / 1000);
+    const mobileReactionPicker = (
+        <div className="sm:hidden">
+            <PartyReactionPicker inline emotes={state.your_emotes || []} onSend={sendEmote}/>
+        </div>
+    );
 
     let content;
     if (state.status === 'lobby') {
-        content = <Lobby state={state} roomId={roomId} onLeave={leave}/>;
+        content = <Lobby state={state} roomId={roomId} onLeave={leave} reactionPicker={mobileReactionPicker}/>;
     } else if (state.status === 'countdown') {
         content = <Countdown secondsLeft={secondsLeft}/>;
     } else if (state.status === 'wager') {
         content = <WagerPhase state={state} roomId={roomId} secondsLeft={secondsLeft}/>;
     } else if (state.status === 'question') {
-        content = <QuestionPhase state={state} roomId={roomId} secondsLeft={secondsLeft}/>;
+        content = <QuestionPhase state={state} roomId={roomId} secondsLeft={secondsLeft} reactionPicker={mobileReactionPicker}/>;
     } else if (state.status === 'playing') {
-        content = <GoldRush state={state} roomId={roomId} secondsLeft={secondsLeft}/>;
+        content = <GoldRush state={state} roomId={roomId} secondsLeft={secondsLeft} reactionPicker={mobileReactionPicker}/>;
     } else if (state.status === 'leaderboard') {
         content = <Leaderboard state={state} roomId={roomId}/>;
     } else if (state.started) {
