@@ -32,9 +32,11 @@ Rules:
   route sits in `MARKETING_ROUTES` or `APP_ROUTES` in `src/components/Router.jsx`.
 - Reuse the primitives in `src/components/ui` before writing new ones.
 
-`styled-components` (`src/styles/theme.js`, `src/styles/globalStyles.js`,
-`src/components/common/`) is legacy and only wraps a handful of old files. Do
-not add new styled-components usage; port to Tailwind when you touch one.
+`styled-components` is legacy and now only wraps five files (`RichTextEditor`,
+`Progress`, `Inventory_storage`, `RenderWithMath`, `PowerSprintPage`). There is
+no longer a styled-components theme or `ThemeProvider` — global element styles
+live in `src/index.css`, so those five hardcode their own values. Do not add new
+styled-components usage; port to Tailwind when you touch one.
 
 ## SEO
 
