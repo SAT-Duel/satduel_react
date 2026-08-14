@@ -71,6 +71,56 @@ function PlayerChip({player}) {
     );
 }
 
+function PartyReactionLayer({reactions}) {
+    const drifts = [-36, 22, -14, 38, 8];
+    const turns = [-8, 6, -4, 9, 3];
+    return (
+        <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden" aria-hidden="true">
+            {reactions.map((reaction) => {
+                const lane = reaction.id % drifts.length;
+                return (
+                    <div
+                        key={reaction.id}
+                        className="party-reaction absolute"
+                        style={{
+                            '--party-reaction-right': `${12 + lane * 52}px`,
+                            '--party-reaction-drift': `${drifts[lane]}px`,
+                            '--party-reaction-turn': `${turns[lane]}deg`,
+                        }}
+                    >
+                        <span className="text-3xl leading-none drop-shadow-sm">{reaction.emoji}</span>
+                        <span className="mt-1 max-w-24 truncate rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                            @{reaction.sender_username}
+                        </span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function PartyReactionPicker({emotes, sending, onSend}) {
+    return (
+        <div className="fixed bottom-3 right-3 z-50 flex items-center gap-1 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-[0_8px_28px_rgba(15,23,42,0.18)] backdrop-blur-sm">
+            <span className="sr-only">Send a reaction</span>
+            {emotes.map((emoji) => (
+                <button
+                    key={emoji}
+                    type="button"
+                    disabled={Boolean(sending)}
+                    onClick={() => onSend(emoji)}
+                    aria-label={`Send ${emoji}`}
+                    className={`grid size-10 cursor-pointer place-items-center rounded-xl text-2xl transition active:scale-90 disabled:cursor-wait ${
+                        sending === emoji ? 'bg-primary-100' : 'hover:bg-slate-100'
+                    }`}
+                >
+                    {emoji}
+                </button>
+            ))}
+        </div>
+    );
+}
+
 function TeamNameField({team, editable, onRename}) {
     const [draft, setDraft] = useState(null);
     const tone = toneFor(team.index);
@@ -556,8 +606,8 @@ function QuestionPhase({state, roomId, secondsLeft}) {
             </div>
             <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-200">
                 <div
-                    className={`h-full rounded-full ${urgent ? 'bg-rose-400' : 'bg-primary-500'}`}
-                    style={{width: `${fraction * 100}%`, transition: 'width 1s linear'}}
+                    className={`h-full origin-left rounded-full transition-transform duration-1000 ease-linear ${urgent ? 'bg-rose-400' : 'bg-primary-500'}`}
+                    style={{transform: `scaleX(${fraction})`}}
                 />
             </div>
 
@@ -1351,6 +1401,7 @@ function PartyRoomPage() {
     const {roomId} = useParams();
     const navigate = useNavigate();
     const [state, setState] = useState(null);
+    const [sendingEmote, setSendingEmote] = useState(null);
     // Timer is interpolated locally between polls from the server's seconds_left.
     const deadlineRef = useRef(null);
     const [, forceTick] = useState(0);
@@ -1396,6 +1447,24 @@ function PartyRoomPage() {
         navigate('/party');
     }, [roomId, navigate]);
 
+    const sendEmote = useCallback(async (emoji) => {
+        if (sendingEmote) return;
+        setSendingEmote(emoji);
+        try {
+            const {data} = await api.post(`/api/party/${roomId}/emotes/`, {emoji});
+            setState((current) => current ? {
+                ...current,
+                reactions: [...(current.reactions || []).filter((item) => item.id !== data.reaction.id), data.reaction],
+            } : current);
+        } catch (error) {
+            if (error.response?.status !== 429) {
+                notify.error(error.response?.data?.error || 'Could not send that reaction.');
+            }
+        } finally {
+            setSendingEmote(null);
+        }
+    }, [roomId, sendingEmote]);
+
     if (!state) {
         return (
             <div className="grid min-h-dvh place-items-center bg-slate-50">
@@ -1437,8 +1506,10 @@ function PartyRoomPage() {
     }
 
     return (
-        <div className="min-h-dvh bg-slate-50">
-            {content}
+        <div className="min-h-dvh bg-slate-50 pb-20">
+            <div className="party-room-content">{content}</div>
+            <PartyReactionLayer reactions={state.reactions || []}/>
+            <PartyReactionPicker emotes={state.your_emotes || []} sending={sendingEmote} onSend={sendEmote}/>
         </div>
     );
 }

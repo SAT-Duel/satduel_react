@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {ArrowLeft, BarChart3, CheckCircle2, Layers3, Plus} from 'lucide-react';
+import {ArrowLeft, BarChart3, CheckCircle2, Crown, Layers3, Plus} from 'lucide-react';
 import api from '../../components/api';
 import withAuth from '../../hoc/withAuth';
 import {Button, Card, Field, Input, PageContainer, Select} from '../../components/ui';
@@ -26,6 +26,7 @@ function PracticeTestCreatorPage() {
     const [modules, setModules] = useState([]);
     const [name, setName] = useState('');
     const [testType, setTestType] = useState('full');
+    const [premiumOnly, setPremiumOnly] = useState(false);
     const [selection, setSelection] = useState(emptySelection);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -57,10 +58,12 @@ function PracticeTestCreatorPage() {
             const response = await api.post('/api/admin/practice-tests/', {
                 name: name.trim(),
                 test_type: testType,
+                premium_only: premiumOnly,
                 ...Object.fromEntries(activeSlots.map(([field]) => [field, Number(selection[field])])),
             });
             notify.success(`${response.data.test.name} is now live on the Practice Tests page.`);
             setName('');
+            setPremiumOnly(false);
             setSelection(emptySelection);
             await load();
         } catch (error) {
@@ -99,6 +102,19 @@ function PracticeTestCreatorPage() {
                     <Field label="Practice test name">
                         <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. SAT Duel Practice Test 1" maxLength={120}/>
                     </Field>
+                    <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 md:col-span-2">
+                        <input
+                            type="checkbox"
+                            checked={premiumOnly}
+                            onChange={(event) => setPremiumOnly(event.target.checked)}
+                            className="size-4 accent-amber-600"
+                        />
+                        <Crown className="size-5 fill-amber-400 text-amber-600"/>
+                        <span>
+                            <span className="block text-sm font-black text-amber-900">Premium-only test</span>
+                            <span className="block text-xs text-amber-700">Free students can see this test, but only Premium students can start it.</span>
+                        </span>
+                    </label>
                 </div>
                 <div className="grid gap-4 p-5 md:grid-cols-2 sm:p-6">
                     {activeSlots.map(([field, label, description]) => {
@@ -122,7 +138,7 @@ function PracticeTestCreatorPage() {
                 </div>
                 <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <p className="m-0 text-xs font-bold text-slate-500">
-                        Students see this {testTypes[testType].label.toLowerCase()} test immediately. Every delivered question counts toward its {testTypes[testType].score}-point score.
+                        Students see this {testTypes[testType].label.toLowerCase()} test immediately{premiumOnly ? ' with a Premium lock' : ''}. Every delivered question counts toward its {testTypes[testType].score}-point score.
                     </p>
                     <Button onClick={createTest} disabled={!ready} loading={saving} className="shrink-0">
                         <Plus size={18}/> Create and publish
@@ -145,9 +161,16 @@ function PracticeTestCreatorPage() {
                                         {testTypes[test.test_type]?.label} · {test.question_count} questions · {test.duration_minutes} minutes · /{test.maximum_score}
                                     </p>
                                 </div>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
-                                    <CheckCircle2 className="size-3.5"/> Live
-                                </span>
+                                <div className="flex flex-wrap justify-end gap-1.5">
+                                    {test.premium_only && (
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-700">
+                                            <Crown className="size-3.5 fill-amber-400"/> Premium
+                                        </span>
+                                    )}
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
+                                        <CheckCircle2 className="size-3.5"/> Live
+                                    </span>
+                                </div>
                             </div>
                             <div className="mt-4 grid grid-cols-2 gap-2">
                                 <div className="rounded-2xl bg-primary-50 p-3">

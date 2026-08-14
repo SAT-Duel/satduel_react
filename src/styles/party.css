@@ -18,7 +18,7 @@
 
 .party-podium-bar {
     transform-origin: bottom;
-    animation: party-rise 0.9s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+    animation: party-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes party-fade-up {
@@ -30,24 +30,23 @@
     animation: party-fade-up 0.45s ease-out both;
 }
 
-@keyframes party-bounce-slow {
+@keyframes party-crown-float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
 }
 
 .party-bounce {
-    animation: party-bounce-slow 1.6s ease-in-out infinite;
+    animation: party-crown-float 1.6s ease-in-out infinite;
 }
 
-/* Gold Rush: chest reveal overlay pops in with a little overshoot. */
+/* Gold Rush: chest reveal overlay arrives quickly without delaying play. */
 @keyframes party-pop-in {
     0% { transform: scale(0.6); opacity: 0; }
-    60% { transform: scale(1.06); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
 
 .party-pop-in {
-    animation: party-pop-in 0.35s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+    animation: party-pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Closed chests wobble invitingly on hover. */
@@ -59,4 +58,58 @@
 
 .party-chest-shake {
     animation: party-chest-shake 0.4s ease-in-out infinite;
+}
+
+/* Shared live reactions rise from the picker without covering the question. */
+@keyframes party-reaction-float {
+    0% {
+        transform: translate3d(0, 14px, 0) scale(0.72) rotate(0deg);
+        opacity: 0;
+        filter: blur(2px);
+    }
+    12% {
+        transform: translate3d(0, 0, 0) scale(1.08) rotate(0deg);
+        opacity: 1;
+        filter: blur(0);
+    }
+    70% {
+        transform: translate3d(var(--party-reaction-drift), -42vh, 0) scale(1) rotate(var(--party-reaction-turn));
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: translate3d(0, -68vh, 0) scale(0.9) rotate(0deg);
+        opacity: 0;
+        filter: blur(1px);
+    }
+}
+
+.party-reaction {
+    right: var(--party-reaction-right);
+    bottom: 4.5rem;
+    display: flex;
+    max-width: 6rem;
+    flex-direction: column;
+    align-items: center;
+    animation: party-reaction-float 4.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @keyframes party-reaction-fade {
+        0% { opacity: 0; }
+        15%, 75% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    .party-reaction {
+        animation: party-reaction-fade 2.4s ease-out both;
+        will-change: opacity;
+    }
+}
+
+@media (max-width: 639px) {
+    .party-room-content > * {
+        min-height: calc(100dvh - 5rem);
+    }
 }

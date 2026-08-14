@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ArrowRight, ChevronRight, Clock3, Info, PlayCircle, Users} from 'lucide-react';
+import {ArrowRight, ChevronRight, Clock3, Crown, Info, PlayCircle, Users} from 'lucide-react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import api from '../../components/api';
 import {useAuth} from '../../context/AuthContext';
@@ -32,10 +32,11 @@ const formatDuration = (minutes) => {
 function TestCard({test, onStart}) {
     const resume = test.status === 'in_progress';
     const retake = test.status === 'completed';
+    const locked = test.locked;
     const type = testTypeMeta[test.test_type] || testTypeMeta.full;
     return (
-        <Card className={`sat-arena-card relative flex h-full flex-col overflow-hidden ${resume ? 'border-amber-300' : 'border-primary-300'}`}>
-            <div className={resume ? 'h-1 bg-amber-400' : 'sat-score-strip h-1 border-0'}/>
+        <Card className={`sat-arena-card relative flex h-full flex-col overflow-hidden ${resume || test.premium_only ? 'border-amber-300' : 'border-primary-300'}`}>
+            <div className={resume || test.premium_only ? 'h-1 bg-amber-400' : 'sat-score-strip h-1 border-0'}/>
             <span className={`absolute right-4 top-4 rounded-full px-2.5 py-1 text-xs font-black uppercase ${
                 resume ? 'bg-amber-50 text-amber-700' : retake ? 'bg-slate-100 text-slate-600' : 'bg-primary-600 text-white'
             }`}>
@@ -43,7 +44,14 @@ function TestCard({test, onStart}) {
             </span>
             <div className="flex flex-1 flex-col p-5">
                 <h3 className="m-0 pr-24 font-display text-2xl font-black text-slate-950">{test.name}</h3>
-                <span className={`mt-3 w-fit rounded-full px-2.5 py-1 text-xs font-black ${type.tone}`}>{type.label}</span>
+                <div className="mt-3 flex flex-wrap gap-2">
+                    <span className={`w-fit rounded-full px-2.5 py-1 text-xs font-black ${type.tone}`}>{type.label}</span>
+                    {test.premium_only && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-700">
+                            <Crown className="size-3.5 fill-amber-400"/> Premium
+                        </span>
+                    )}
+                </div>
                 <p className="m-0 mt-2 text-sm leading-relaxed text-slate-500">{type.description}</p>
                 <div className="mt-5 grid gap-2">
                     {[
@@ -61,10 +69,10 @@ function TestCard({test, onStart}) {
                     <Users className="size-4"/> {test.completion_count} {test.completion_count === 1 ? 'student has' : 'students have'} completed this test
                 </p>
                 <div className="mt-auto pt-6">
-                    <Button block variant={resume ? 'secondary' : 'primary'} onClick={() => onStart(test)}>
-                        {resume ? <PlayCircle className="size-4"/> : null}
-                        {resume ? 'Resume test' : retake ? 'Take again' : 'Start test'}
-                        {!resume && <ArrowRight className="size-4"/>}
+                    <Button block variant={locked || resume ? 'secondary' : 'primary'} onClick={() => onStart(test)}>
+                        {locked ? <Crown className="size-4"/> : resume ? <PlayCircle className="size-4"/> : null}
+                        {locked ? 'Unlock with Premium' : resume ? 'Resume test' : retake ? 'Take again' : 'Start test'}
+                        {!locked && !resume && <ArrowRight className="size-4"/>}
                     </Button>
                 </div>
             </div>
@@ -178,7 +186,13 @@ function PracticeTestPage() {
                     <Card className="flex items-center justify-center gap-3 p-10 text-sm font-bold text-slate-500"><Spinner/> Loading available tests…</Card>
                 ) : tests.length ? (
                     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        {tests.map((test) => <TestCard key={test.id} test={test} onStart={() => navigate(`/full_length_test/${test.id}`)}/>) }
+                        {tests.map((test) => (
+                            <TestCard
+                                key={test.id}
+                                test={test}
+                                onStart={(selected) => navigate(selected.locked ? '/pricing' : `/full_length_test/${selected.id}`)}
+                            />
+                        ))}
                     </section>
                 ) : (
                     <Card className="p-10 text-center">

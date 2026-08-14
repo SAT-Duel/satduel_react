@@ -8,7 +8,7 @@ import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../u
 import UserAvatar from '../components/UserAvatar';
 import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 import {useAuth} from '../context/AuthContext';
-import {DEFAULT_DUEL_EMOTES, DUEL_EMOJIS} from '../utils/duelEmotes';
+import {DEFAULT_DUEL_EMOTES, FREE_DUEL_EMOJIS, PREMIUM_DUEL_EMOJIS} from '../utils/duelEmotes';
 import {notify} from '../utils/notify';
 
 const GRADES = [...Array.from({length: 5}, (_, i) => String(i + 8)), '>12'];
@@ -106,7 +106,7 @@ function SettingsPage() {
             });
             setNotice({type: 'success', text: 'Settings saved.'});
         } catch (e) {
-            setNotice({type: 'error', text: e.response?.data?.error || 'Could not save your settings.'});
+            setNotice({type: 'error', text: apiErrorMessage(e, 'Could not save your settings.')});
         } finally {
             setSaving(false);
         }
@@ -320,9 +320,9 @@ function SettingsPage() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <h2 className="m-0 inline-flex items-center gap-2 text-lg font-bold text-slate-900">
-                                <SmilePlus className="size-5 text-primary-500"/> Duel emotes
+                                <SmilePlus className="size-5 text-primary-500"/> Reactions
                             </h2>
-                            <p className="m-0 mt-1 text-sm text-slate-500">Choose four reactions to bring into every duel.</p>
+                            <p className="m-0 mt-1 text-sm text-slate-500">Choose four reactions to bring into every duel and Party game.</p>
                         </div>
                         <span className={`rounded-full px-2.5 py-1 text-xs font-black ${
                             form.duel_emotes.length === 4
@@ -334,7 +334,7 @@ function SettingsPage() {
                     </div>
 
                     <div className="mt-5 grid grid-cols-6 gap-2 sm:grid-cols-10">
-                        {DUEL_EMOJIS.map((emoji) => {
+                        {FREE_DUEL_EMOJIS.map((emoji) => {
                             const slot = form.duel_emotes.indexOf(emoji);
                             const selected = slot !== -1;
                             return (
@@ -361,6 +361,53 @@ function SettingsPage() {
                             );
                         })}
                     </div>
+                    <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+                        <div>
+                            <p className="m-0 inline-flex items-center gap-1.5 text-sm font-black text-amber-700">
+                                <Crown className="size-4 fill-amber-400 text-amber-500"/> Premium reactions
+                            </p>
+                            <p className="m-0 mt-0.5 text-xs text-slate-500">Extra chaos for your loadout.</p>
+                        </div>
+                        {!profile?.is_premium && (
+                            <Button size="sm" variant="secondary" onClick={handleUpgrade} loading={billingAction === 'checkout'}>
+                                Unlock
+                            </Button>
+                        )}
+                    </div>
+                    <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                        {PREMIUM_DUEL_EMOJIS.map((emoji) => {
+                            const slot = form.duel_emotes.indexOf(emoji);
+                            const selected = slot !== -1;
+                            const locked = !profile?.is_premium;
+                            const disabled = locked && !selected;
+                            return (
+                                <button
+                                    key={emoji}
+                                    type="button"
+                                    onClick={() => toggleEmote(emoji)}
+                                    disabled={disabled}
+                                    aria-label={selected ? `Remove ${emoji}` : locked ? `Premium required for ${emoji}` : `Choose ${emoji}`}
+                                    aria-pressed={selected}
+                                    className={[
+                                        'relative flex aspect-square items-center justify-center rounded-xl border-2 text-2xl transition-all',
+                                        disabled
+                                            ? 'cursor-not-allowed border-amber-200 bg-amber-50 opacity-55'
+                                            : selected
+                                                ? 'cursor-pointer border-amber-500 bg-amber-50 shadow-sm'
+                                                : 'cursor-pointer border-amber-200 bg-white hover:border-amber-400 hover:bg-amber-50',
+                                    ].join(' ')}
+                                >
+                                    {emoji}
+                                    {selected && (
+                                        <span className="absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-black text-white">
+                                            {slot + 1}
+                                        </span>
+                                    )}
+                                    {locked && <Crown className="absolute right-0.5 top-0.5 size-3 text-amber-600"/>}
+                                </button>
+                            );
+                        })}
+                    </div>
                     <p className="m-0 mt-3 text-xs text-slate-400">Remove one selected emote before choosing a replacement.</p>
                     <Button
                         onClick={handleSave}
@@ -368,7 +415,7 @@ function SettingsPage() {
                         disabled={form.duel_emotes.length !== 4}
                         className="mt-4"
                     >
-                        Save duel emotes
+                        Save reactions
                     </Button>
                 </Card>
 
