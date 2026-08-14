@@ -60,39 +60,40 @@
     animation: party-chest-shake 0.4s ease-in-out infinite;
 }
 
-/* Shared live reactions rise from the picker without covering the question. */
+/* Shared live reactions use compositor-only movement so rapid taps stay smooth on phones. */
 @keyframes party-reaction-float {
     0% {
-        transform: translate3d(0, 14px, 0) scale(0.72) rotate(0deg);
+        transform: translate3d(0, 0, 0) scale(0.72) rotate(0deg);
         opacity: 0;
-        filter: blur(2px);
     }
     12% {
-        transform: translate3d(0, 0, 0) scale(1.08) rotate(0deg);
+        transform: translate3d(0, -24px, 0) scale(1.08) rotate(0deg);
         opacity: 1;
-        filter: blur(0);
     }
-    70% {
-        transform: translate3d(var(--party-reaction-drift), -42vh, 0) scale(1) rotate(var(--party-reaction-turn));
+    78% {
+        transform: translate3d(var(--party-reaction-drift), calc(-100dvh + 9rem), 0) scale(1) rotate(var(--party-reaction-turn));
         opacity: 1;
-        filter: blur(0);
     }
     100% {
-        transform: translate3d(0, -68vh, 0) scale(0.9) rotate(0deg);
+        transform: translate3d(0, calc(-100dvh + 4rem), 0) scale(0.88) rotate(0deg);
         opacity: 0;
-        filter: blur(1px);
     }
+}
+
+.party-reaction-control {
+    top: max(0.75rem, env(safe-area-inset-top));
+    right: 4.25rem;
 }
 
 .party-reaction {
     right: var(--party-reaction-right);
-    bottom: 4.5rem;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
     display: flex;
     max-width: 6rem;
     flex-direction: column;
     align-items: center;
-    animation: party-reaction-float 4.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: transform, opacity, filter;
+    animation: party-reaction-float 4.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -108,8 +109,8 @@
     }
 }
 
-@media (max-width: 639px) {
-    .party-room-content > * {
-        min-height: calc(100dvh - 5rem);
+@media (min-width: 640px) {
+    .party-reaction-control {
+        right: 1rem;
     }
 }

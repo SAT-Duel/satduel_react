@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {ArrowLeftRight, BarChart3, BookOpen, Check, ChevronDown, Coins, Copy, Crown, Hand, Heart, Pencil, Shuffle, Skull, TrendingDown, Trophy, Users, X, Zap} from 'lucide-react';
+import {ArrowLeftRight, BarChart3, BookOpen, Check, ChevronDown, Coins, Copy, Crown, Hand, Heart, Pencil, Shuffle, Skull, SmilePlus, TrendingDown, Trophy, Users, X, Zap} from 'lucide-react';
 import {Button, ModalShell, Spinner} from '../../components/ui';
 import UserAvatar from '../../components/UserAvatar';
 import RenderWithMath from '../../components/RenderWithMath';
@@ -75,17 +75,18 @@ function PartyReactionLayer({reactions}) {
     const drifts = [-36, 22, -14, 38, 8];
     const turns = [-8, 6, -4, 9, 3];
     return (
-        <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden" aria-hidden="true">
+        <div className="pointer-events-none fixed inset-0 z-40 h-dvh overflow-hidden" aria-hidden="true">
             {reactions.map((reaction) => {
-                const lane = reaction.id % drifts.length;
+                const lane = reaction.lane % drifts.length;
                 return (
                     <div
-                        key={reaction.id}
+                        key={reaction.animationKey}
                         className="party-reaction absolute"
                         style={{
-                            '--party-reaction-right': `${12 + lane * 52}px`,
+                            '--party-reaction-right': `${10 + lane * 40}px`,
                             '--party-reaction-drift': `${drifts[lane]}px`,
                             '--party-reaction-turn': `${turns[lane]}deg`,
+                            animationDelay: `${reaction.delay}ms`,
                         }}
                     >
                         <span className="text-3xl leading-none drop-shadow-sm">{reaction.emoji}</span>
@@ -99,24 +100,59 @@ function PartyReactionLayer({reactions}) {
     );
 }
 
-function PartyReactionPicker({emotes, sending, onSend}) {
+function PartyReactionPicker({emotes, onSend}) {
+    const [open, setOpen] = useState(false);
+    const pickerRef = useRef(null);
+
+    useEffect(() => {
+        if (!open) return undefined;
+        const close = (event) => {
+            if (event.type === 'keydown' && event.key !== 'Escape') return;
+            if (event.type === 'pointerdown' && pickerRef.current?.contains(event.target)) return;
+            setOpen(false);
+        };
+        document.addEventListener('pointerdown', close);
+        document.addEventListener('keydown', close);
+        return () => {
+            document.removeEventListener('pointerdown', close);
+            document.removeEventListener('keydown', close);
+        };
+    }, [open]);
+
     return (
-        <div className="fixed bottom-3 right-3 z-50 flex items-center gap-1 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-[0_8px_28px_rgba(15,23,42,0.18)] backdrop-blur-sm">
-            <span className="sr-only">Send a reaction</span>
-            {emotes.map((emoji) => (
-                <button
-                    key={emoji}
-                    type="button"
-                    disabled={Boolean(sending)}
-                    onClick={() => onSend(emoji)}
-                    aria-label={`Send ${emoji}`}
-                    className={`grid size-10 cursor-pointer place-items-center rounded-xl text-2xl transition active:scale-90 disabled:cursor-wait ${
-                        sending === emoji ? 'bg-primary-100' : 'hover:bg-slate-100'
-                    }`}
+        <div ref={pickerRef} className="party-reaction-control fixed z-50">
+            {open && (
+                <div
+                    id="party-reaction-options"
+                    role="toolbar"
+                    aria-label="Send a reaction"
+                    className="absolute right-0 top-[calc(100%+0.5rem)] flex items-center gap-1 rounded-2xl bg-white p-1.5 shadow-[0_8px_28px_rgba(15,23,42,0.22)]"
                 >
-                    {emoji}
-                </button>
-            ))}
+                    {emotes.map((emoji) => (
+                        <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => onSend(emoji)}
+                            aria-label={`Send ${emoji}`}
+                            className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl text-2xl transition-colors hover:bg-slate-100 active:bg-primary-100"
+                        >
+                            {emoji}
+                        </button>
+                    ))}
+                </div>
+            )}
+            <button
+                type="button"
+                onClick={() => setOpen((current) => !current)}
+                aria-label={open ? 'Hide reactions' : 'Send a reaction'}
+                aria-expanded={open}
+                aria-controls="party-reaction-options"
+                className={`grid size-11 cursor-pointer place-items-center rounded-full shadow-[0_6px_20px_rgba(15,23,42,0.2)] transition-colors active:bg-primary-100 ${
+                    open ? 'bg-primary-600 text-white' : 'bg-white text-primary-600'
+                }`}
+            >
+                <SmilePlus className="size-5"/>
+            </button>
         </div>
     );
 }
@@ -1401,10 +1437,49 @@ function PartyRoomPage() {
     const {roomId} = useParams();
     const navigate = useNavigate();
     const [state, setState] = useState(null);
-    const [sendingEmote, setSendingEmote] = useState(null);
+    const [liveReactions, setLiveReactions] = useState([]);
+    const seenReactionIdsRef = useRef(new Set());
+    const reactionSequenceRef = useRef(0);
+    const reactionQueueRef = useRef(new Map());
+    const reactionFlushTimerRef = useRef(null);
     // Timer is interpolated locally between polls from the server's seconds_left.
     const deadlineRef = useRef(null);
     const [, forceTick] = useState(0);
+
+    const showReactions = useCallback((reactions) => {
+        const now = Date.now();
+        const animated = reactions.map((reaction, index) => {
+            const sequence = reactionSequenceRef.current++;
+            return {
+                ...reaction,
+                animationKey: reaction.id ? `server-${reaction.id}` : `local-${sequence}`,
+                lane: sequence % 5,
+                delay: Math.min(index, 8) * 65,
+                shownAt: now,
+            };
+        });
+        setLiveReactions((current) => [
+            ...current.filter((reaction) => now - reaction.shownAt < 5200),
+            ...animated,
+        ].slice(-50));
+    }, []);
+
+    const flushReactionQueue = useCallback(() => {
+        reactionFlushTimerRef.current = null;
+        const reactions = Array.from(reactionQueueRef.current, ([emoji, count]) => ({emoji, count}));
+        reactionQueueRef.current.clear();
+        if (!reactions.length) return;
+
+        api.post(`/api/party/${roomId}/emotes/`, {reactions})
+            .then(({data}) => {
+                (data.reactions || []).forEach((reaction) => seenReactionIdsRef.current.add(reaction.id));
+            })
+            .catch((error) => {
+                if (error.response?.status !== 429) {
+                    notify.error(error.response?.data?.error || 'Could not send those reactions.');
+                }
+            });
+    }, [roomId]);
 
     useEffect(() => {
         let active = true;
@@ -1417,6 +1492,12 @@ function PartyRoomPage() {
                 } else {
                     deadlineRef.current = null;
                 }
+                const unseen = (data.reactions || []).filter((reaction) => {
+                    if (seenReactionIdsRef.current.has(reaction.id)) return false;
+                    seenReactionIdsRef.current.add(reaction.id);
+                    return reaction.sender_id !== data.you;
+                });
+                if (unseen.length) showReactions(unseen);
                 setState(data);
             } catch (error) {
                 if (!active) return;
@@ -1436,7 +1517,11 @@ function PartyRoomPage() {
             clearInterval(pollId);
             clearInterval(tickId);
         };
-    }, [roomId, navigate]);
+    }, [roomId, navigate, showReactions]);
+
+    useEffect(() => () => {
+        if (reactionFlushTimerRef.current) clearTimeout(reactionFlushTimerRef.current);
+    }, []);
 
     const leave = useCallback(async () => {
         try {
@@ -1447,23 +1532,18 @@ function PartyRoomPage() {
         navigate('/party');
     }, [roomId, navigate]);
 
-    const sendEmote = useCallback(async (emoji) => {
-        if (sendingEmote) return;
-        setSendingEmote(emoji);
-        try {
-            const {data} = await api.post(`/api/party/${roomId}/emotes/`, {emoji});
-            setState((current) => current ? {
-                ...current,
-                reactions: [...(current.reactions || []).filter((item) => item.id !== data.reaction.id), data.reaction],
-            } : current);
-        } catch (error) {
-            if (error.response?.status !== 429) {
-                notify.error(error.response?.data?.error || 'Could not send that reaction.');
-            }
-        } finally {
-            setSendingEmote(null);
+    const sendEmote = useCallback((emoji) => {
+        const sender = state?.players.find((player) => player.id === state.you);
+        showReactions([{
+            emoji,
+            sender_id: state?.you,
+            sender_username: sender?.username || 'you',
+        }]);
+        reactionQueueRef.current.set(emoji, (reactionQueueRef.current.get(emoji) || 0) + 1);
+        if (!reactionFlushTimerRef.current) {
+            reactionFlushTimerRef.current = setTimeout(flushReactionQueue, 300);
         }
-    }, [roomId, sendingEmote]);
+    }, [flushReactionQueue, showReactions, state]);
 
     if (!state) {
         return (
@@ -1506,10 +1586,10 @@ function PartyRoomPage() {
     }
 
     return (
-        <div className="min-h-dvh bg-slate-50 pb-20">
+        <div className="min-h-dvh bg-slate-50">
             <div className="party-room-content">{content}</div>
-            <PartyReactionLayer reactions={state.reactions || []}/>
-            <PartyReactionPicker emotes={state.your_emotes || []} sending={sendingEmote} onSend={sendEmote}/>
+            <PartyReactionLayer reactions={liveReactions}/>
+            <PartyReactionPicker emotes={state.your_emotes || []} onSend={sendEmote}/>
         </div>
     );
 }
