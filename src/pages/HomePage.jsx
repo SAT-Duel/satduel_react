@@ -1090,9 +1090,7 @@ function HomePage() {
     return (
         <div>
             <SEO
-                title="SAT Duel - Turn Digital SAT Practice Into a Duel"
-                description="Train with 1,800+ Digital SAT questions, challenge friends in timed rounds, review AI explanations, and track every mistake across Math and Reading & Writing."
-                path="/"
+                seoKey="home"
                 structuredData={[organizationJsonLd(), websiteJsonLd(), softwareAppJsonLd()]}
             />
             <Hero/>

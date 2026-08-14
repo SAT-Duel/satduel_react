@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Helmet} from 'react-helmet';
+import {Helmet} from 'react-helmet-async';
 import {Link, useNavigate} from 'react-router-dom';
 import {ArrowRight, BookOpen, Calculator, Swords, Trophy} from 'lucide-react';
 import {useAuth} from '../context/AuthContext';

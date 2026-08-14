@@ -38,18 +38,48 @@ not add new styled-components usage; port to Tailwind when you touch one.
 
 ## SEO
 
-- Every public page renders `<SEO>` from `src/components/SEO.jsx`. Private and
-  transactional pages pass `noindex`.
-- Adding an indexable public route means adding it to `public/sitemap.xml` too.
-- Link-preview crawlers (Discord, iMessage, Slack, X) **do not run JavaScript**.
-  They only ever see the static tags in `index.html` — never the per-route
-  `<SEO>` tags. Sharing-facing copy and images belong in `index.html`.
-- `public/og-image.png` is the 1200x630 social card. Regenerate it from
-  `docs/og-image.html` when the tagline changes:
+**`src/seo/routes.js` is the single source of truth** for every public page's
+title, description, path and social card. Three things read it, which is what
+keeps them from drifting apart:
 
-  ```bash
-  npx serve docs -p 8899 & "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 --screenshot=public/og-image.png --virtual-time-budget=4000 http://localhost:8899/og-image.html
-  ```
+1. `<SEO seoKey="...">` at runtime — what Google sees after it runs the JS.
+2. `scripts/prerender.mjs` at build time — what link-preview crawlers see.
+3. The generated `sitemap.xml`.
+
+**Adding a public page:** add an entry to `src/seo/routes.js`, add the route in
+`src/components/Router.jsx`, render `<SEO seoKey="yourKey"/>`, and link to it
+from `SATFooter` so it is reachable. The sitemap and prerendered HTML follow
+automatically. Private pages pass explicit props plus `noindex` and must NOT be
+listed in `routes.js`.
+
+**Why prerendering exists:** Discord, iMessage, Slack and X do not run
+JavaScript, so they only read the HTML the server returns. For an SPA that is
+always `index.html`, which made every URL preview as the site-wide default.
+`npm run build` now writes `build/<path>/index.html` per route with only the
+`<head>` metadata swapped between the `<!-- seo:start -->` / `<!-- seo:end -->`
+markers. Netlify serves an existing file before the `/* /index.html 200`
+fallback in `public/_redirects`, so crawlers get the right tags and humans get
+the same SPA. Keep those markers in `index.html`.
+
+Every managed tag carries `data-rh="true"` so `react-helmet-async` replaces it
+on mount instead of appending a second copy — without it every page ships two
+`<link rel="canonical">`. Use `react-helmet-async`, never `react-helmet`: v6 is
+silently broken under React 18 and applied no tags at all.
+
+**Social cards** live in `public/og/`, one per feature, generated from
+`docs/og-image.html`. Each card leads with the single thing its page is for.
+Edit the `VARIANTS` map there, then:
+
+```bash
+npm run og
+```
+
+**Verifying meta tags:** the browser preview pane caches aggressively and will
+lie about `document.title`. Dump the DOM after JS instead:
+
+```bash
+npx serve build -l 4182 & sleep 5 && "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu --virtual-time-budget=6000 --dump-dom http://localhost:4182/sat-party-game | grep -E '<title>|canonical|og:image'
+```
 
 - The Discord invite has one home: `DISCORD_INVITE` in
   `src/components/Discord.jsx`. Import it; never paste an invite URL inline.

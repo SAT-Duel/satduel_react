@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Helmet} from 'react-helmet';
+import {Helmet} from 'react-helmet-async';
 import {useNavigate} from 'react-router-dom';
 import {CalendarDays, Check, ShieldCheck, UserRound} from 'lucide-react';
 import api from '../components/api';

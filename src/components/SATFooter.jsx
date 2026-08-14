@@ -9,10 +9,13 @@ const COLUMNS = [
     {
         title: 'Product',
         links: [
-            {label: 'Practice', href: '/#journey'},
+            // Real routes rather than homepage anchors: a #fragment is the same
+            // URL to a crawler, so these pages only earn ranking of their own
+            // once something links to them sitewide.
+            {label: 'SAT Party Game', to: '/sat-party-game'},
+            {label: 'SAT Tournaments', to: '/sat-tournaments'},
+            {label: 'Study Guides', to: '/sat-study-guide'},
             {label: 'Duel Mode', href: '/#multiplayer'},
-            {label: 'Tournaments', href: '/#tournaments'},
-            {label: 'Study Guides', href: '/#guides'},
             {label: 'Pricing', to: '/pricing'},
         ],
     },

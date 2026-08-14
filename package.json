@@ -18,7 +18,7 @@
     "lucide-react": "^0.451.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-helmet": "^6.1.0",
+    "react-helmet-async": "^2.0.5",
     "react-katex": "^3.0.1",
     "react-lottie": "^1.2.4",
     "react-quill": "^2.0.0",
@@ -32,8 +32,9 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "test": "node --test src/utils/*.test.js",
-    "build": "vite build",
+    "test": "node --test src/utils/*.test.js src/seo/*.test.js",
+    "og": "node scripts/og.mjs",
+    "build": "vite build && node scripts/prerender.mjs",
     "preview": "vite preview"
   },
   "browserslist": {
