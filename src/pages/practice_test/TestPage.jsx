@@ -68,7 +68,13 @@ function TestPage() {
         }
         api.post(`/api/practice-tests/${testId}/start/`)
             .then((response) => setSession(prepareSession(response.data)))
-            .catch((requestError) => setError(requestError.response?.data?.error || 'This practice test could not be opened.'));
+            .catch((requestError) => {
+                if (requestError.response?.data?.error === 'premium_required') {
+                    navigate('/pricing', {replace: true});
+                    return;
+                }
+                setError(requestError.response?.data?.detail || requestError.response?.data?.error || 'This practice test could not be opened.');
+            });
     }, [navigate, testId]);
 
     const persistProgress = useCallback((answers, state) => {

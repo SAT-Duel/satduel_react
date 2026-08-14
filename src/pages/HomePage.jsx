@@ -1030,7 +1030,7 @@ function Pricing() {
                         </div>
                         <div className="mt-5 flex flex-1 flex-col gap-2.5 text-[14.5px] text-[var(--sd-mut2)]">
                             <span>✓&nbsp;&nbsp;25 questions a day</span>
-                            <span>✓&nbsp;&nbsp;Duels, tournaments and practice tests</span>
+                            <span>✓&nbsp;&nbsp;Duels, tournaments and free practice tests</span>
                             <span>✓&nbsp;&nbsp;Party rooms up to 6 players</span>
                             <span>✓&nbsp;&nbsp;Every Reading &amp; Writing lesson</span>
                         </div>
@@ -1049,6 +1049,7 @@ function Pricing() {
                             <span>✓&nbsp;&nbsp;Unlimited practice</span>
                             <span>✓&nbsp;&nbsp;Choose the exact topics you drill</span>
                             <span>✓&nbsp;&nbsp;Party rooms up to 50 players, 50 questions</span>
+                            <span>✓&nbsp;&nbsp;Premium practice tests and reactions</span>
                             <span>✓&nbsp;&nbsp;The full Math study guide library</span>
                             <span>✓&nbsp;&nbsp;Premium crown on the leaderboard</span>
                             <span>✓&nbsp;&nbsp;Everything in Free</span>

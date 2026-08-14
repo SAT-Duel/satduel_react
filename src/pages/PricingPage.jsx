@@ -33,7 +33,7 @@ const FREE_FEATURES = [
     '25 adaptive practice questions each day',
     'Random topic mix from the SAT bank',
     'Party rooms with up to 6 friends, 20 questions a game',
-    'Duels, tournaments, and full-length practice tests',
+    'Duels, tournaments, and free practice-test forms',
     'Every Reading and Writing study guide lesson',
 ];
 
@@ -42,6 +42,7 @@ const PREMIUM_FEATURES = [
     'Choose the exact SAT topics you drill',
     'Party rooms up to 50 players and 50 questions a game',
     'A deeper Gold Rush pool, so questions repeat far less',
+    'Premium-only practice tests and reaction pack',
     'The complete Math study guide library',
     'A Premium crown on your profile and the leaderboard',
 ];
@@ -55,11 +56,11 @@ const SCORE_SIGNALS = [
 const FAQS = [
     {
         question: 'Can I keep using SAT Duel for free?',
-        answer: 'Yes, and free is genuinely usable. You get 25 questions a day, the diagnostic, duels, tournaments, full-length practice tests, party rooms up to six players, and the whole Reading and Writing study guide.',
+        answer: 'Yes, and free is genuinely usable. You get 25 questions a day, the diagnostic, duels, tournaments, free practice-test forms, party rooms up to six players, and the whole Reading and Writing study guide.',
     },
     {
         question: 'What does Premium unlock first?',
-        answer: 'The daily cap disappears and you can pick exact topics to drill. After that it scales up the social side: party rooms go from 6 players to 50, and games from 20 questions to 50.',
+        answer: 'The daily cap disappears and you can pick exact topics to drill. You also unlock Premium practice tests, extra reactions, and party rooms for up to 50 players.',
     },
     {
         question: 'Does Premium change party games?',
@@ -237,10 +238,10 @@ function PricingPage() {
                             Free forever. $9.99/month to go unlimited.
                         </h1>
                         <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-[var(--sd-mut)]">
-                            Free gives you 25 adaptive questions a day plus duels, tournaments, practice tests, and party rooms. Premium removes the daily cap, lets you pick the exact topics you drill, and scales your party rooms to a full classroom.
+                            Free gives you 25 adaptive questions a day plus duels, tournaments, free practice tests, and party rooms. Premium removes the daily cap, unlocks exclusive tests and reactions, and scales your party rooms to a full classroom.
                         </p>
                         <div className="mt-6 flex flex-wrap justify-center gap-2">
-                            {['Unlimited practice', 'Topic selection', '50-player parties', 'Cancel anytime'].map((label) => (
+                            {['Unlimited practice', 'Premium tests', '50-player parties', 'Cancel anytime'].map((label) => (
                                 <span key={label} className="rounded-full border border-[var(--sd-line2)] bg-[var(--sd-panel)] px-3 py-1.5 text-sm font-black text-[var(--sd-mut2)]">
                                     {label}
                                 </span>
@@ -357,7 +358,7 @@ function PricingPage() {
                             More reps, aimed better, with more friends.
                         </h2>
                         <p className="m-0 mt-4 text-lg leading-relaxed text-[var(--sd-mut)]">
-                            The 25-question daily cap goes away, you pick the topics you drill instead of taking a random mix, and your party rooms grow from 6 players to 50. Duels, tournaments, practice tests, and the diagnostic stay free for everyone.
+                            The 25-question daily cap goes away, you pick the topics you drill instead of taking a random mix, and your party rooms grow from 6 players to 50. Free test forms stay open to everyone; Premium adds exclusive forms and reactions.
                         </p>
                     </div>
 
