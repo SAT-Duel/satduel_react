@@ -42,6 +42,7 @@ const RankingPage = React.lazy(() => import("../pages/RankingPage"));
 const TournamentListPage = React.lazy(() => import("../pages/TournamentListPage"));
 const TournamentDetailPage = React.lazy(() => import("../pages/TournamentDetailPage"));
 const JoinTournamentLinkPage = React.lazy(() => import("../pages/JoinTournamentLinkPage"));
+const FreeWeekPage = React.lazy(() => import("../pages/FreeWeekPage"));
 const TournamentQuestionPage = React.lazy(() => import("../pages/TournamentQuestionPage"));
 const CreateTournamentPage = React.lazy(() => import("../pages/CreateTournamentPage"));
 const BotTrainingPage = React.lazy(() => import("../pages/BotTrainingPage"));
@@ -139,6 +140,7 @@ const APP_ROUTES = [
     {path: '/practice_test', el: <PracticeTestPage/>},
     {path: '/classes', el: <ClassListPage/>},
     {path: '/settings', el: <SettingsPage/>},
+    {path: '/free-week', el: <FreeWeekPage/>},
     {path: '/admin', el: <AdminHomepage/>},
     {path: '/admin/announcement', el: <AnnouncementPage/>},
     {path: '/admin/question_reports', el: <QuestionReportsPage/>},

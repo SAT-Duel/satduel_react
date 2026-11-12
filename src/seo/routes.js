@@ -181,6 +181,14 @@ export const SHARE_ROUTES = [
         image: '/og/tournaments.png',
     },
     {
+        // Linked from the free-week marketing email; people forward it.
+        key: 'appFreeWeek',
+        path: '/free-week',
+        title: '7 days of SAT Duel Premium, free',
+        description: 'Unlimited Digital SAT practice and your pick of topics for a week. No card needed.',
+        image: '/og/practice.png',
+    },
+    {
         // The default card is already duel-themed, so it fits without a variant.
         key: 'appMatch',
         path: '/match',
