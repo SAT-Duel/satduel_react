@@ -7,6 +7,7 @@ import {Cta, EYEBROW, PANEL} from '../components/ui/landing';
 import {DISCORD_INVITE, DiscordIcon} from '../components/Discord';
 import {useAuth} from '../context/AuthContext';
 import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
+import {formatPremiumEnd, isOnFreeWeek} from '../utils/premium';
 import SEO, {breadcrumbJsonLd, faqJsonLd, softwareAppJsonLd} from '../components/SEO';
 import '../styles/landing.css';
 
@@ -255,6 +256,9 @@ function PricingPage() {
     const [billingAction, setBillingAction] = useState(null);
     const [profile, setProfile] = useState(null);
     const isPremium = Boolean(profile?.is_premium || user?.is_premium);
+    // Free-week Premium has no subscription behind it, so it gets the
+    // checkout button (to keep Premium), not the billing portal.
+    const onFreeWeek = isOnFreeWeek(profile);
 
     useEffect(() => {
         const checkout = searchParams.get('checkout');
@@ -316,7 +320,7 @@ function PricingPage() {
 
     const premiumCta = () => {
         if (loading) return <Cta solid loading className="px-5 py-3.5 text-[15px]">Loading account</Cta>;
-        if (isPremium) {
+        if (isPremium && !onFreeWeek) {
             return (
                 <Cta onClick={handleManageBilling} loading={billingAction === 'portal'} className="px-5 py-3.5 text-[15px]">
                     Manage billing
@@ -326,7 +330,7 @@ function PricingPage() {
         if (user) {
             return (
                 <Cta solid onClick={handleUpgrade} loading={billingAction === 'checkout'} className="px-5 py-3.5 text-[15px]">
-                    Start Premium <ArrowRight className="size-[17px]"/>
+                    {onFreeWeek ? 'Keep Premium' : 'Start Premium'} <ArrowRight className="size-[17px]"/>
                 </Cta>
             );
         }
@@ -420,7 +424,12 @@ function PricingPage() {
                         </ul>
 
                         <div className="grow"/>
-                        <div className="mt-7">{premiumCta()}</div>
+                        {onFreeWeek && (
+                            <p className="m-0 mt-7 text-center text-[13.5px] text-[var(--sd-mut)]">
+                                Your free week ends {formatPremiumEnd(profile.premium.until)}.
+                            </p>
+                        )}
+                        <div className={onFreeWeek ? 'mt-3' : 'mt-7'}>{premiumCta()}</div>
                         <p className="m-0 mt-3 flex items-center justify-center gap-1.5 text-[12.5px] text-[var(--sd-dim)]">
                             <Lock className="size-3.5"/> Secure checkout by Stripe &middot; Cancel anytime
                         </p>
@@ -482,9 +491,9 @@ function PricingPage() {
                     </div>
                     <div className="flex shrink-0 gap-3">
                         <Cta to={user ? '/trainer' : '/register'} className="px-[22px] py-3.5 text-[15px]">Practice free</Cta>
-                        {!isPremium && (user ? (
+                        {(!isPremium || onFreeWeek) && (user ? (
                             <Cta solid onClick={handleUpgrade} loading={billingAction === 'checkout'} className="px-[22px] py-3.5 text-[15px]">
-                                Start Premium
+                                {onFreeWeek ? 'Keep Premium' : 'Start Premium'}
                             </Cta>
                         ) : (
                             <Cta solid to="/register" className="px-[22px] py-3.5 text-[15px]">

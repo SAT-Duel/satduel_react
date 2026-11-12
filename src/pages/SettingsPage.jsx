@@ -5,6 +5,7 @@ import withAuth from '../hoc/withAuth';
 import api from '../components/api';
 import {Alert, Button, Card, Field, Input, ModalShell, PageContainer, Select, Spinner} from '../components/ui';
 import {billingErrorMessage, openBillingPortal, startPremiumCheckout} from '../utils/billing';
+import {formatPremiumEnd, isOnFreeWeek} from '../utils/premium';
 import UserAvatar from '../components/UserAvatar';
 import {AVATAR_BACKGROUNDS, PIXEL_AVATARS} from '../components/avatarCatalog';
 import {useAuth} from '../context/AuthContext';
@@ -516,12 +517,14 @@ function SettingsPage() {
                                     <Crown className="size-4 text-amber-500"/> Plan
                                 </p>
                                 <p className="m-0 text-sm text-slate-500">
-                                    {profile?.is_premium
-                                        ? 'Premium — unlimited practice and topic selection.'
-                                        : 'Free — daily practice limit, random topics.'}
+                                    {isOnFreeWeek(profile)
+                                        ? `Free week of Premium — ends ${formatPremiumEnd(profile.premium.until)}.`
+                                        : profile?.is_premium
+                                            ? 'Premium — unlimited practice and topic selection.'
+                                            : 'Free — daily practice limit, random topics.'}
                                 </p>
                             </div>
-                            {profile?.is_premium ? (
+                            {profile?.is_premium && !isOnFreeWeek(profile) ? (
                                 <Button
                                     onClick={handleManageBilling}
                                     loading={billingAction === 'portal'}
@@ -532,7 +535,7 @@ function SettingsPage() {
                                 </Button>
                             ) : (
                                 <Button onClick={handleUpgrade} loading={billingAction === 'checkout'} size="sm">
-                                    <Crown className="size-4"/> Upgrade
+                                    <Crown className="size-4"/> {isOnFreeWeek(profile) ? 'Keep Premium' : 'Upgrade'}
                                 </Button>
                             )}
                         </div>
