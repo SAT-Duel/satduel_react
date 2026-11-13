@@ -547,7 +547,11 @@ function ProfilePage() {
                 </div>
 
                 {activeTab === 'overview' && (
-                    <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.75fr)]">
+                    <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.75fr)]">
+                        {/* The single phone column is minmax(0,1fr), not the default
+                            auto track: an auto track grows to fit its widest item, so
+                            the 780px activity heatmap stretched the whole page to 858px
+                            instead of scrolling inside its own overflow-x-auto wrapper. */}
                         <Card className="p-6">
                             <h2 className="m-0 flex items-center gap-2 text-lg font-black text-slate-900">
                                 <Target className="size-5 text-primary-600"/> Practice analysis
