@@ -95,6 +95,9 @@ const SATFooter = () => (
                     Built for Digital SAT students who hate boring practice.
                 </span>
             </div>
+            <p className="m-0 mt-3 text-center text-[11px] leading-[1.6] text-[var(--sd-dim)] sm:text-left">
+                SAT and Bluebook are trademarks of College Board. College Board and Khan Academy are not affiliated with SAT Duel and do not endorse it.
+            </p>
         </div>
     </footer>
 );

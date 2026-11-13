@@ -1,11 +1,18 @@
 # Landing Page Feature Gaps
 
 The redesigned landing page (`src/pages/HomePage.jsx`, from the July 2026 design handoff)
-advertises several features that do not exist in the product yet (items marked DONE have since shipped). Each section below is a
-self-contained task brief written as instructions for an AI coding session. Backend work
-happens in the `satduel` Django repo (`api/` app); frontend in `satduel_react`.
+originally advertised several features that did not exist in the product (items marked DONE
+have since shipped). Each section below is a self-contained task brief written as
+instructions for an AI coding session. Backend work happens in the `satduel` Django repo
+(`api/` app); frontend in `satduel_react`.
 
-Ordered roughly by how prominently the landing page promises the feature.
+**November 2026: the landing page no longer advertises the open items.** Its mock-ups were
+rewritten to show states the product really has (all-time Duel leaderboard, static worked
+explanations, practice history, per-skill question-bank progress, accuracy by section). The
+"Landing claim" lines below describe the *original* copy. When one of these ships, bring
+its landing section back; until then, do not re-add the claim.
+
+Ordered roughly by how prominently the landing page originally promised the feature.
 
 ---
 
@@ -126,6 +133,17 @@ the matching screen.
 
 ### Numbers to keep honest
 
-The landing repeats **1,800+ questions / 400+ students / 25 questions per day / $9.99 Premium**.
-If any of these drift, update `HomePage.jsx` (hero, stat rows, pricing, final CTA) — the
-figures are hardcoded in several sections.
+The landing repeats **3,500+ questions / 400+ students / 25 questions per day / $9.99 Premium**
+(plus 1,600+ Math and 1,800+ R&W on the arena tiles). If any of these drift, update
+`HomePage.jsx` (hero, stat rows, arena tiles, pricing, final CTA), the home description in
+`src/seo/routes.js`, and the pills in `docs/og-image.html` (then `npm run og`) — the figures
+are hardcoded in several places.
+
+The question counts come from the live bank, not a guess. Re-check with:
+
+```bash
+curl -s "https://satduel-e07814415d4e.herokuapp.com/api/filter_questions/?subject=math&page_size=1" | python3 -c "import sys,json;print(json.load(sys.stdin)['total'])"
+curl -s "https://satduel-e07814415d4e.herokuapp.com/api/filter_questions/?subject=english&page_size=1" | python3 -c "import sys,json;print(json.load(sys.stdin)['total'])"
+```
+
+On 2026-11-12 that returned 1,631 Math and 1,883 Reading & Writing (3,514 total).

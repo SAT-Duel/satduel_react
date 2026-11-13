@@ -23,7 +23,7 @@ export const SEO_ROUTES = [
         key: 'home',
         path: '/',
         title: 'SAT Duel - Turn Digital SAT Practice Into a Duel',
-        description: 'Train with 1,800+ Digital SAT questions, challenge friends in timed rounds, review AI explanations, and track every mistake across Math and Reading & Writing.',
+        description: 'Free Digital SAT practice with 3,500+ questions. Race a friend in a duel or party room, read a worked explanation for every miss, and build a daily streak across Math and Reading & Writing.',
         image: '/og/default.png',
     },
     {
