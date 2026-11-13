@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, {useEffect, useRef, useState} from 'react';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import {ArrowLeft, Check, Crown, HelpCircle, History, PartyPopper, Play, Smartphone, Trophy, Users} from 'lucide-react';
 import {Button, ModalShell, PageContainer, Toggle} from '../../components/ui';
 import {useAuth} from '../../context/AuthContext';
 import api from '../../components/api';
 import {notify} from '../../utils/notify';
+import {isPartyCode} from '../../utils/partyLinks';
 import {PARTY_MODES} from './modes';
 
 const SUBJECTS = [
@@ -237,6 +238,7 @@ function ModeDetailModal({mode, onClose, onPick}) {
 function PartyHomePage() {
     const {user} = useAuth();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const premium = Boolean(user?.is_premium);
     const playerCap = premium ? 50 : 6;
     const questionCap = premium ? 50 : 20;
@@ -295,17 +297,38 @@ function PartyHomePage() {
         }
     };
 
-    const joinRoom = async () => {
-        if (joinCode.trim().length < 6) return;
+    const joinWithCode = async (code) => {
         setBusy(true);
         try {
-            const {data} = await api.post('/api/party/join/', {code: joinCode.trim()});
-            navigate(`/party/${data.id}`);
+            const {data} = await api.post('/api/party/join/', {code});
+            navigate(`/party/${data.id}`, {replace: true});
         } catch (error) {
             notify.error(error.response?.data?.error || 'Could not join that room.');
             setBusy(false);
         }
     };
+
+    const joinRoom = () => {
+        if (joinCode.trim().length < 6) return;
+        joinWithCode(joinCode.trim());
+    };
+
+    // Invite links land here as /party?code=123456 (after login, if the friend
+    // had to sign in first). Join once, straight away; if the room is gone or
+    // full, leave them on the join form with the code filled in and the reason
+    // in a toast. The ref keeps StrictMode's double effect from joining twice.
+    const inviteHandled = useRef(false);
+    useEffect(() => {
+        const invited = searchParams.get('code');
+        if (!invited || inviteHandled.current) return;
+        inviteHandled.current = true;
+        setSearchParams({}, {replace: true});
+        if (!isPartyCode(invited)) return;
+        setJoinCode(invited);
+        setView('join');
+        joinWithCode(invited);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <PageContainer maxWidth="max-w-2xl" className="px-4 py-8 sm:py-12">

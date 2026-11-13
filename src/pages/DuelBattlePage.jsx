@@ -81,12 +81,17 @@ function DuelBattlePage() {
 
     useEffect(() => {
         if (loading || loadingQuestions) return;
+        // Wait until the player has stepped past their last question. A practice
+        // rival now finishes the moment the player's final answer lands, so
+        // without this the result would open over the last explanation before
+        // it could be read. The clock still ends the duel on its own.
         if (questions.length && opponentProgress.length
+            && activeIndex >= questions.length
             && questions.every((entry) => entry.status !== 'Blank')
             && opponentProgress.every((entry) => entry.status !== 'Blank')) {
             finishMatch();
         }
-    }, [finishMatch, loading, loadingQuestions, opponentProgress, questions]);
+    }, [activeIndex, finishMatch, loading, loadingQuestions, opponentProgress, questions]);
 
     useEffect(() => {
         const loadBattle = async () => {

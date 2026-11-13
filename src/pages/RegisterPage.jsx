@@ -65,8 +65,17 @@ function Register() {
             }
             navigate('/email_verification', {state: {email: form.email}});
         } catch (error) {
-            const data = error.response?.data || {error: 'An error occurred'};
-            setErrors(Object.values(data).flat());
+            // A 5xx or gateway error answers with an HTML page (a string), and
+            // Object.values() on a string yields one entry per character. Only
+            // read field errors out of a real JSON object, and keep strings only
+            // (the 429 body also carries a numeric retry_after).
+            const data = error.response?.data;
+            const messages = data && typeof data === 'object'
+                ? Object.values(data).flat().filter((value) => typeof value === 'string')
+                : [];
+            setErrors(messages.length
+                ? messages
+                : ['We couldn’t create your account right now. Try again in a moment, or continue with Google.']);
             setIsSubmitting(false);
         }
     };

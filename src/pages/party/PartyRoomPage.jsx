@@ -1,12 +1,14 @@
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {ArrowLeftRight, BarChart3, BookOpen, Check, ChevronDown, Coins, Copy, Crown, Hand, Heart, Pencil, Shuffle, Skull, SmilePlus, TrendingDown, Trophy, Users, X, Zap} from 'lucide-react';
+import {ArrowLeftRight, BarChart3, BookOpen, Check, ChevronDown, Coins, Copy, Crown, Hand, Heart, Pencil, Share2, Shuffle, Skull, SmilePlus, TrendingDown, Trophy, Users, X, Zap} from 'lucide-react';
 import {Button, ModalShell, Spinner} from '../../components/ui';
 import UserAvatar from '../../components/UserAvatar';
 import RenderWithMath from '../../components/RenderWithMath';
 import api from '../../components/api';
 import {notify} from '../../utils/notify';
 import {groupPartyReactions} from '../../utils/partyReactions';
+import {partyInviteUrl} from '../../utils/partyLinks';
+import {shareLink} from '../../utils/shareLink';
 import '../../styles/party.css';
 
 const POLL_MS = 1000;
@@ -352,6 +354,16 @@ function Lobby({state, roomId, onLeave, reactionPicker}) {
         }
     };
 
+    const shareInvite = async () => {
+        const url = partyInviteUrl(state.code);
+        const outcome = await shareLink({
+            title: 'Join my SAT Duel party',
+            text: `Join my SAT party game on SAT Duel. Room code: ${state.code}`,
+            url,
+        });
+        if (outcome === 'copied') notify.success('Invite link copied. Paste it in your group chat.');
+        if (outcome === 'failed') notify.info(`Share this link: ${url}`);
+    };
     const start = async () => {
         setStarting(true);
         try {
@@ -394,8 +406,14 @@ function Lobby({state, roomId, onLeave, reactionPicker}) {
                     </span>
                     <Copy className="size-5 text-slate-400"/>
                 </button>
+                <div className="mt-4">
+                    <Button variant="secondary" onClick={shareInvite}>
+                        <Share2 className="size-4"/> Share invite link
+                    </Button>
+                </div>
                 <p className="mt-3 text-sm text-slate-500">
-                    Friends open <span className="font-bold text-slate-700">Party → Join room</span> and type this in.
+                    The link drops friends straight into this room. Or they can open{' '}
+                    <span className="font-bold text-slate-700">Party → Join room</span> and type the code.
                 </p>
             </div>
 

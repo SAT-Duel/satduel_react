@@ -129,8 +129,7 @@ function HeroQuestionCard({timer}) {
                     ))}
                 </div>
                 <div className="mt-3.5 flex gap-2">
-                    <span className={`${MONO} rounded-md border border-[#BFE8D2] bg-[#EAF9F1] px-2 py-1 text-[11px] text-[#1E9A5A]`}>+12 RATING</span>
-                    <span className={`${MONO} rounded-md border border-[#EDDCAE] bg-[#FBF3DF] px-2 py-1 text-[11px] text-[#B4771E]`}>+3 SPEED BONUS</span>
+                    <span className={`${MONO} rounded-md border border-[#BFE8D2] bg-[#EAF9F1] px-2 py-1 text-[11px] text-[#1E9A5A]`}>+12 PRACTICE ELO</span>
                 </div>
             </div>
         </div>
@@ -150,22 +149,22 @@ function HeroDuelCard() {
                 <img src={novaQuill} alt="" className="image-render-pixel size-8 rounded-lg"/>
                 <div className="flex-1">
                     <div className="text-[12.5px] font-bold text-[var(--sd-text)]">ilovemath2026</div>
-                    <div className={`${MONO} text-[10px] font-medium text-[var(--sd-dim)]`}>avg 12.4s</div>
+                    <div className={`${MONO} text-[10px] font-medium text-[var(--sd-dim)]`}>1,540 Elo</div>
                 </div>
                 <div className="text-right">
                     <div className="sd-display text-[19px] font-bold text-[var(--sd-text)]">7</div>
-                    <div className={`${MONO} text-[9.5px] text-[var(--sd-orange-lbl)]`}>STREAK ×3</div>
+                    <div className={`${MONO} text-[9.5px] text-[var(--sd-orange-lbl)]`}>7/10</div>
                 </div>
             </div>
             <div className="mt-2 flex items-center gap-2.5 rounded-[10px] border border-[var(--sd-line2)] bg-[var(--sd-track)] px-2.5 py-[9px]">
                 <img src={emberAbacus} alt="" className="image-render-pixel size-8 rounded-lg"/>
                 <div className="flex-1">
                     <div className="text-[12.5px] font-bold text-[var(--sd-text)]">satslayer</div>
-                    <div className={`${MONO} text-[10px] font-medium text-[var(--sd-dim)]`}>avg 18.9s</div>
+                    <div className={`${MONO} text-[10px] font-medium text-[var(--sd-dim)]`}>1,512 Elo</div>
                 </div>
                 <div className="text-right">
                     <div className="sd-display text-[19px] font-bold text-[var(--sd-mut2)]">6</div>
-                    <div className={`${MONO} text-[9.5px] font-medium text-[var(--sd-dim)]`}>answering…</div>
+                    <div className={`${MONO} text-[9.5px] font-medium text-[var(--sd-dim)]`}>6/10</div>
                 </div>
             </div>
             <div className="mt-3 flex gap-[5px]">
@@ -181,11 +180,11 @@ function HeroDuelCard() {
     );
 }
 
-function HeroAiCard() {
+function HeroExplanationCard() {
     return (
         <div className="absolute -right-1.5 top-[52px] z-[4] hidden w-[262px] rotate-3 rounded-[14px] border border-[#E4E1D6] bg-white p-4 shadow-[var(--sd-shadow-sm)] lg:block">
             <div className="flex items-center justify-between">
-                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[#7C5CF0]`}>AI EXPLANATION</span>
+                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[#7C5CF0]`}>EXPLANATION</span>
                 <span className={`${MONO} rounded-[5px] bg-[#FDEDED] px-[7px] py-0.5 text-[10px] text-[#E85D5D]`}>YOU PICKED A</span>
             </div>
             <div className="mt-3 flex flex-col gap-2">
@@ -199,7 +198,7 @@ function HeroAiCard() {
                 </div>
                 <div className="flex gap-[9px] rounded-[9px] border border-[#EDDCAE] bg-[#FDF6E3] p-2">
                     <span className={`${MONO} grid size-[18px] flex-none place-items-center rounded-full bg-[#E9BC4F] text-[10px] text-[#5C4508]`}>3</span>
-                    <p className="m-0 text-xs leading-normal text-[#5C4508]"><strong>The step you skipped:</strong> “celebrated” is positive — it ignores the contrast entirely.</p>
+                    <p className="m-0 text-xs leading-normal text-[#5C4508]"><strong>Choice A:</strong> “celebrated” is positive, so it ignores the contrast entirely.</p>
                 </div>
             </div>
             <div className="mt-3 text-xs font-bold text-[#1E9A5A]">Answer: B — dismissed</div>
@@ -208,17 +207,17 @@ function HeroAiCard() {
 }
 
 const LEADERBOARD_ROWS = [
-    {rank: '#11', avatar: orbitScout, name: 'quietgrinder', score: '1,291', delta: '▲2 +24', up: true},
-    {rank: '#12', avatar: echoFencer, name: 'you', score: '1,288', delta: '▲3 +31', up: true, you: true},
-    {rank: '#13', avatar: slateSentinel, name: 'geo_metry', score: '1,270', delta: '▼1 −6', up: false},
+    {rank: '#11', avatar: orbitScout, name: 'quietgrinder', score: '1,291'},
+    {rank: '#12', avatar: echoFencer, name: 'you', score: '1,288', you: true},
+    {rank: '#13', avatar: slateSentinel, name: 'geo_metry', score: '1,270'},
 ];
 
 function HeroLeaderboard() {
     return (
         <div className={`${panelCls} absolute bottom-0 left-1/2 z-[5] hidden w-[500px] -translate-x-1/2 px-4 py-3 shadow-[var(--sd-shadow-sm)] lg:block`}>
             <div className="flex items-center justify-between">
-                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[var(--sd-gold-lbl)]`}>WEEKLY LEADERBOARD</span>
-                <span className={`${MONO} text-[10px] font-medium text-[var(--sd-dim)]`}>resets Sun 11:59pm</span>
+                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[var(--sd-gold-lbl)]`}>DUEL LEADERBOARD</span>
+                <span className={`${MONO} text-[10px] font-medium text-[var(--sd-dim)]`}>ranked by Duel Elo</span>
             </div>
             <div className="mt-2.5 flex flex-col gap-1.5 text-[12.5px]">
                 {LEADERBOARD_ROWS.map((r) => (
@@ -228,11 +227,11 @@ function HeroLeaderboard() {
                             ? 'sd-glow -mx-2 flex items-center gap-2.5 rounded-lg border border-[rgba(124,92,240,0.4)] bg-[rgba(124,92,240,0.14)] px-2 py-[5px]'
                             : 'flex items-center gap-2.5'}
                     >
-                        <span className={`${MONO} w-7 ${r.you || r.up ? 'text-[var(--sd-gold-lbl)]' : 'text-[var(--sd-dim)]'}`}>{r.rank}</span>
+                        <span className={`${MONO} w-7 ${r.you ? 'text-[var(--sd-gold-lbl)]' : 'text-[var(--sd-dim)]'}`}>{r.rank}</span>
                         <img src={r.avatar} alt="" className="image-render-pixel size-[22px] rounded-[5px]"/>
                         <span className={`flex-1 font-semibold ${r.you ? 'font-bold text-[var(--sd-text)]' : 'text-[var(--sd-body)]'}`}>{r.name}</span>
                         <span className={`${MONO} font-medium ${r.you ? 'text-[var(--sd-text)]' : 'text-[var(--sd-mut2)]'}`}>{r.score}</span>
-                        <span className={`${MONO} w-16 text-right text-[11px] ${r.up ? 'text-[var(--sd-green-lbl)]' : 'text-[#E85D5D]'}`}>{r.delta}</span>
+                        <span className={`${MONO} w-8 text-right text-[10px] font-medium text-[var(--sd-dim)]`}>Elo</span>
                     </div>
                 ))}
             </div>
@@ -254,14 +253,14 @@ function Hero() {
                         Turn Digital SAT practice into a duel.
                     </h1>
                     <p className="m-0 mt-5 max-w-[420px] text-[17.5px] leading-relaxed text-[var(--sd-mut)]">
-                        Train with 1,800+ Digital SAT questions, challenge friends in timed rounds, review AI explanations, and track every mistake across Math and Reading & Writing.
+                        Free to start. Race a friend through Digital SAT questions, read a worked explanation for every miss, and keep a daily streak going. Built to sit alongside Bluebook and Khan Academy, not replace them.
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3.5">
                         <PrimaryCta>Start Free</PrimaryCta>
                         <OutlineCta>Try a Demo Round</OutlineCta>
                     </div>
                     <div className={`${MONO} mt-9 flex gap-7 text-[12.5px] font-medium text-[var(--sd-dim)]`}>
-                        <span><span className="font-bold text-[var(--sd-gold-lbl)]">1,800+</span> questions</span>
+                        <span><span className="font-bold text-[var(--sd-gold-lbl)]">3,500+</span> questions</span>
                         <span><span className="font-bold text-[var(--sd-green-lbl)]">400+</span> students</span>
                         <span><span className="font-bold text-[#7C5CF0]">$0</span> to start</span>
                     </div>
@@ -270,7 +269,7 @@ function Hero() {
                 <div className="relative mx-auto w-full max-w-[400px] lg:h-[640px] lg:min-w-[560px] lg:max-w-none">
                     <HeroQuestionCard timer={heroTimer}/>
                     <HeroDuelCard/>
-                    <HeroAiCard/>
+                    <HeroExplanationCard/>
                     <HeroLeaderboard/>
                 </div>
             </div>
@@ -293,7 +292,7 @@ const DEMO_QUESTION = {
     ],
     answer: 'B',
     explanation:
-        'You never need x by itself. From 3x + 7 = 22, subtract 7: 3x = 15. Double it: 6x = 30, so 6x + 7 = 37. The step most students skip: noticing 6x is just 2 × 3x — solving x = 5 first works, but costs about 15 extra seconds on the clock.',
+        'You never need x by itself. From 3x + 7 = 22, subtract 7: 3x = 15. Double it: 6x = 30, so 6x + 7 = 37. The faster route is noticing that 6x is just 2 × 3x. Solving x = 5 first works too; it just takes longer.',
 };
 
 function MiniDemo() {
@@ -301,7 +300,6 @@ function MiniDemo() {
     const [elapsed, setElapsed] = useState(0);
     const answered = picked !== null;
     const isRight = picked === DEMO_QUESTION.answer;
-    const gotSpeedBonus = answered && isRight && elapsed <= 25;
 
     useEffect(() => {
         if (answered) return undefined;
@@ -315,7 +313,7 @@ function MiniDemo() {
                 <div className="text-center">
                     <Eyebrow>LIVE ON THIS PAGE</Eyebrow>
                     <H2 className="sm:text-[40px]">Try one round.</H2>
-                    <p className="m-0 mt-3 text-base text-[var(--sd-mut)]">One real Digital SAT question. The clock is already running.</p>
+                    <p className="m-0 mt-3 text-base text-[var(--sd-mut)]">One Digital SAT-style question. The clock is already running.</p>
                 </div>
 
                 <div className={`${paperCls} mt-9 rounded-[18px] shadow-[var(--sd-shadow)]`}>
@@ -366,11 +364,8 @@ function MiniDemo() {
                                         {isRight ? 'Correct!' : 'Not quite.'}
                                     </span>
                                     <span className={`${MONO} text-xs ${isRight ? 'text-[#1E9A5A]' : 'text-[#C24040]'}`}>
-                                        {isRight ? '+12' : '−8'} RATING
+                                        {isRight ? '+12' : '−8'} PRACTICE ELO
                                     </span>
-                                    {gotSpeedBonus && (
-                                        <span className={`${MONO} rounded-md border border-[#EDDCAE] bg-[#FBF3DF] px-2 py-0.5 text-xs text-[#B4771E]`}>+3 SPEED BONUS</span>
-                                    )}
                                 </div>
                                 <p className="m-0 mt-3.5 text-[14.5px] leading-relaxed text-[#333B4E]">{DEMO_QUESTION.explanation}</p>
                                 <Link
@@ -393,10 +388,10 @@ function MiniDemo() {
 /* ------------------------------------------------------------------ */
 
 const ARENA_TILES = [
-    {id: 'math', label: 'Math', sub: '900+ questions', span: 'sm:col-span-2'},
-    {id: 'rw', label: 'R&W', sub: '900+ questions', span: 'sm:col-span-2'},
-    {id: 'quick', label: 'Quick Practice', sub: '10 Q · no setup', span: 'sm:col-span-2'},
-    {id: 'module', label: 'Full Module', sub: '27 Q · 32 min', span: 'sm:col-span-3'},
+    {id: 'math', label: 'Math', sub: '1,600+ questions', span: 'sm:col-span-2'},
+    {id: 'rw', label: 'R&W', sub: '1,800+ questions', span: 'sm:col-span-2'},
+    {id: 'quick', label: 'Daily Practice', sub: '10 Q goal · no setup', span: 'sm:col-span-2'},
+    {id: 'module', label: 'Practice Test', sub: 'adaptive · scored', span: 'sm:col-span-3'},
     {id: 'duel', label: 'Duel Mode', sub: '1v1 · 10 Q · live', span: 'sm:col-span-3'},
 ];
 
@@ -501,46 +496,48 @@ function MissCard() {
     return (
         <div className="rounded-2xl border border-[#E4E1D6] bg-white p-[22px] shadow-[var(--sd-shadow)]">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className={`${MONO} text-[11px] tracking-[0.1em] text-[#7C5CF0]`}>AI EXPLANATION · SYSTEMS OF EQUATIONS</span>
+                <span className={`${MONO} text-[11px] tracking-[0.1em] text-[#7C5CF0]`}>EXPLANATION · SYSTEMS OF EQUATIONS</span>
                 <span className={`${MONO} rounded-[5px] bg-[#FDEDED] px-2 py-[3px] text-[10.5px] text-[#E85D5D]`}>YOU PICKED C</span>
             </div>
             <div className="mt-4 grid gap-3.5 sm:grid-cols-2">
                 <div className="rounded-[11px] border border-[#F3C6C6] bg-[#FDF4F4] p-3.5">
-                    <span className={`${MONO} text-[10px] tracking-[0.08em] text-[#C24040]`}>WHY C IS WRONG</span>
-                    <p className="m-0 mt-2 text-[13.5px] leading-[1.55] text-[#333B4E]">C = 24 is the value of <strong>x</strong>. The question asks for <strong>x + y</strong>. Stopping at the first solved variable is the most common trap on this skill.</p>
+                    <span className={`${MONO} text-[10px] tracking-[0.08em] text-[#C24040]`}>CHOICE C</span>
+                    <p className="m-0 mt-2 text-[13.5px] leading-[1.55] text-[#333B4E]">24 is the value of <strong>x</strong>. The question asks for <strong>x + y</strong>, so stopping at the first solved variable gives the wrong answer.</p>
                 </div>
                 <div className="rounded-[11px] border border-[#EDDCAE] bg-[#FDF6E3] p-3.5">
-                    <span className={`${MONO} text-[10px] tracking-[0.08em] text-[#B4771E]`}>THE STEP YOU SKIPPED</span>
+                    <span className={`${MONO} text-[10px] tracking-[0.08em] text-[#B4771E]`}>WORKED SOLUTION</span>
                     <p className="m-0 mt-2 text-[13.5px] leading-[1.55] text-[#333B4E]">Substitute back: y = 40 − 24 = 16, then x + y = <strong>40</strong>. Re-read the question stem before answering.</p>
                 </div>
             </div>
             <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#EEEBE0] pt-3">
                 <span className="text-[13.5px] font-bold text-[#1E9A5A]">Correct answer: B — 40</span>
-                <span className={`${MONO} text-[11px] font-medium text-[#8A93A8]`}>saved to your mistake log</span>
+                <span className={`${MONO} text-[11px] font-medium text-[#8A93A8]`}>saved to your practice history</span>
             </div>
         </div>
     );
 }
 
-const OLD_EXAMS = [
-    {label: 'Module 2 · Math', score: '24/27', color: 'text-[var(--sd-green-lbl)]'},
-    {label: 'Quick 10 · R&W', score: '7/10', color: 'text-[var(--sd-orange-lbl)]'},
+const RECENT_ROUNDS = [
+    {label: 'Practice test · Math', score: '640', color: 'text-[var(--sd-green-lbl)]'},
+    {label: 'Daily 10 · R&W', score: '7/10', color: 'text-[var(--sd-orange-lbl)]'},
     {label: 'Duel vs satslayer', score: 'W 8–6', color: 'text-[var(--sd-green-lbl)]'},
 ];
-const WEAK_TOPICS = [
-    {label: 'Transitions', pct: 52, color: '#E85D5D'},
-    {label: 'Circle equations', pct: 64, color: '#F08A3E'},
-    {label: 'Word problems', pct: 71, color: '#E9BC4F'},
+// Mirrors the "question bank" panel on the practice page: questions answered
+// out of the total in each skill. The product does not rank weak topics yet.
+const SKILL_PROGRESS = [
+    {label: 'Transitions', done: 61, total: 118, color: '#7C5CF0'},
+    {label: 'Circles', done: 23, total: 64, color: '#F08A3E'},
+    {label: 'Percentages', done: 59, total: 83, color: '#2FBF71'},
 ];
 
-function RematchGrid() {
+function ReviewGrid() {
     return (
         <div className="grid gap-3.5 sm:grid-cols-2">
             <div className={`${panelCls} rounded-[14px] p-4`}>
-                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[var(--sd-violet-lbl)]`}>OLD EXAMS</span>
+                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[var(--sd-violet-lbl)]`}>RECENT ROUNDS</span>
                 <div className="mt-3 flex flex-col gap-2 text-[13px]">
-                    {OLD_EXAMS.map((e, i) => (
-                        <div key={e.label} className={`flex justify-between ${i < OLD_EXAMS.length - 1 ? 'border-b border-[var(--sd-line)] pb-2' : ''}`}>
+                    {RECENT_ROUNDS.map((e, i) => (
+                        <div key={e.label} className={`flex justify-between ${i < RECENT_ROUNDS.length - 1 ? 'border-b border-[var(--sd-line)] pb-2' : ''}`}>
                             <span className="font-semibold text-[var(--sd-body)]">{e.label}</span>
                             <span className={`${MONO} ${e.color}`}>{e.score}</span>
                         </div>
@@ -548,16 +545,16 @@ function RematchGrid() {
                 </div>
             </div>
             <div className={`${panelCls} rounded-[14px] p-4`}>
-                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[var(--sd-orange-lbl)]`}>WEAK TOPICS</span>
+                <span className={`${MONO} text-[10.5px] tracking-[0.1em] text-[var(--sd-orange-lbl)]`}>SKILL PROGRESS</span>
                 <div className="mt-3 flex flex-col gap-2.5">
-                    {WEAK_TOPICS.map((t) => (
+                    {SKILL_PROGRESS.map((t) => (
                         <div key={t.label}>
                             <div className="mb-1 flex justify-between text-[12.5px]">
                                 <span className="font-semibold text-[var(--sd-body)]">{t.label}</span>
-                                <span className={`${MONO}`} style={{color: t.color}}>{t.pct}%</span>
+                                <span className={`${MONO} font-medium text-[var(--sd-mut2)]`}>{t.done}/{t.total}</span>
                             </div>
                             <div className="h-1.5 rounded-[3px] bg-[var(--sd-track)]">
-                                <div className="h-1.5 rounded-[3px]" style={{width: `${t.pct}%`, background: t.color}}/>
+                                <div className="h-1.5 rounded-[3px]" style={{width: `${Math.round((t.done / t.total) * 100)}%`, background: t.color}}/>
                             </div>
                         </div>
                     ))}
@@ -567,12 +564,12 @@ function RematchGrid() {
                 <div className="flex items-center gap-3">
                     <span className="sd-display text-[22px] font-bold text-[var(--sd-gold-lbl)]">#12</span>
                     <div>
-                        <div className="text-[13px] font-bold text-[var(--sd-body)]">Weekly leaderboard</div>
-                        <div className={`${MONO} text-[11px] font-medium text-[var(--sd-green-lbl)]`}>▲3 since Monday</div>
+                        <div className="text-[13px] font-bold text-[var(--sd-body)]">Duel leaderboard</div>
+                        <div className={`${MONO} text-[11px] font-medium text-[var(--sd-dim)]`}>1,288 Duel Elo</div>
                     </div>
                 </div>
                 <Link to="/register" className="rounded-[10px] bg-[#F08A3E] px-5 py-2.5 text-sm font-bold text-[#1F1204] no-underline transition-colors hover:bg-[#FF9F58]">
-                    Rematch satslayer
+                    Duel again
                 </Link>
             </div>
         </div>
@@ -590,13 +587,13 @@ function Journey() {
             <div className="mx-auto max-w-[1160px]">
                 <div className="max-w-[640px]">
                     <Eyebrow>HOW A ROUND WORKS</Eyebrow>
-                    <H2>From pick to rematch in four moves.</H2>
+                    <H2>From first pick to the next round in four moves.</H2>
                 </div>
 
                 <div className={`${step} mt-[72px]`}>
                     <div className={copyL}>
                         <StepCopy num="01" title="Pick your arena.">
-                            <p className="m-0">Drill one subject, sprint through ten quick questions, sit a full timed module — or challenge a friend to 10 Digital SAT questions in Duel Mode.</p>
+                            <p className="m-0">Drill one subject, knock out your ten for the day, sit an adaptive practice test — or race through 10 Digital SAT questions in Duel Mode.</p>
                             <p className={`${MONO} m-0 text-[12.5px] font-medium text-[var(--sd-dim)]`}>Tap a tile →</p>
                         </StepCopy>
                     </div>
@@ -607,8 +604,8 @@ function Journey() {
                     <div className={visL}><RaceClockCard/></div>
                     <div className={copyR}>
                         <StepCopy num="02" title="Race the clock.">
-                            <p className="m-0">Every question is timed. Pull up the built-in Desmos graphing calculator — the same tool you get on the real Digital SAT — whenever a problem is faster to graph than to grind.</p>
-                            <p className="m-0">Answer quickly and cleanly to earn speed bonuses on top of your rating.</p>
+                            <p className="m-0">Duels run on one shared five-minute clock, and practice has a timer you can switch on. Pull up the built-in Desmos graphing calculator — the same tool you get on the real Digital SAT — whenever a problem is faster to graph than to grind.</p>
+                            <p className="m-0">Highlight the passage and cross out answers as you go, the way you would on test day.</p>
                         </StepCopy>
                     </div>
                 </div>
@@ -616,17 +613,17 @@ function Journey() {
                 <div className={`${step} mt-24`}>
                     <div className={copyL}>
                         <StepCopy num="03" title="Learn from the miss.">
-                            <p className="m-0">AI explanations show the reasoning step you skipped, not just the correct answer — including why the answer you picked looked tempting.</p>
+                            <p className="m-0">Every question has a worked explanation that appears the moment you answer: the reasoning, not just the letter. Anything you miss stays in your practice history.</p>
                         </StepCopy>
                     </div>
                     <div className={visR}><MissCard/></div>
                 </div>
 
                 <div className={`${step} mt-24 pb-16`}>
-                    <div className={visL}><RematchGrid/></div>
+                    <div className={visL}><ReviewGrid/></div>
                     <div className={copyR}>
-                        <StepCopy num="04" title="Rematch or review.">
-                            <p className="m-0">Review the exact questions you missed after each round, watch weak topics shrink, and climb the weekly board — or run it back immediately.</p>
+                        <StepCopy num="04" title="Review, then run it back.">
+                            <p className="m-0">Filter your history down to the questions you missed and replay them in a review session that never touches your rating. Then queue the next duel and climb the board.</p>
                         </StepCopy>
                     </div>
                 </div>
@@ -751,18 +748,18 @@ function Tournaments() {
 }
 
 /* ------------------------------------------------------------------ */
-/* AI explanations                                                     */
+/* explanations                                                        */
 /* ------------------------------------------------------------------ */
 
-function AiExplanations() {
+function Explanations() {
     return (
         <section id="ai" className="border-y border-[var(--sd-line)] bg-[var(--sd-bg2)] px-5 py-[104px] sm:px-10">
             <div className="mx-auto max-w-[1160px]">
                 <div className="mx-auto max-w-[680px] text-center">
                     <Eyebrow>AFTER EVERY MISS</Eyebrow>
-                    <H2>The explanation shows the step you skipped.</H2>
+                    <H2>Every miss comes with the reasoning.</H2>
                     <p className="m-0 mt-3.5 text-[16.5px] leading-relaxed text-[var(--sd-mut)]">
-                        Not just the correct answer — the exact reasoning move that separates your pick from the right one.
+                        Not just the right letter. A worked explanation appears as soon as you answer, and the question goes into your history so you can come back to it.
                     </p>
                 </div>
 
@@ -770,7 +767,7 @@ function AiExplanations() {
                     <div className={`${paperCls} shadow-[var(--sd-shadow)]`}>
                         <div className="flex items-center justify-between bg-[#131B2C] px-[18px] py-[11px]">
                             <span className={`${MONO} text-[11px] tracking-[0.08em] text-[#C0B0FA]`}>R&W · TRANSITIONS</span>
-                            <span className={`${MONO} rounded-[5px] border border-[rgba(232,93,93,0.4)] bg-[rgba(232,93,93,0.15)] px-2 py-[3px] text-[10.5px] text-[#E85D5D]`}>MISSED · 0:31</span>
+                            <span className={`${MONO} rounded-[5px] border border-[rgba(232,93,93,0.4)] bg-[rgba(232,93,93,0.15)] px-2 py-[3px] text-[10.5px] text-[#E85D5D]`}>MISSED</span>
                         </div>
                         <div className="p-[18px]">
                             <p className="m-0 text-sm leading-[1.65] text-[#131B2C]">
@@ -800,7 +797,7 @@ function AiExplanations() {
                     </div>
 
                     <div className="rounded-2xl border border-[#E4E1D6] bg-white p-5 shadow-[var(--sd-shadow)]">
-                        <span className={`${MONO} text-[11px] tracking-[0.1em] text-[#7C5CF0]`}>AI EXPLANATION</span>
+                        <span className={`${MONO} text-[11px] tracking-[0.1em] text-[#7C5CF0]`}>EXPLANATION</span>
                         <div className="mt-3.5 flex flex-col gap-2.5">
                             <div className="flex gap-2.5">
                                 <span className={`${MONO} grid size-5 flex-none place-items-center rounded-full bg-[#F1EDFE] text-[10.5px] text-[#7C5CF0]`}>1</span>
@@ -812,12 +809,12 @@ function AiExplanations() {
                             </div>
                             <div className="flex gap-2.5 rounded-[10px] border border-[#EDDCAE] bg-[#FDF6E3] p-2.5">
                                 <span className={`${MONO} grid size-5 flex-none place-items-center rounded-full bg-[#E9BC4F] text-[10.5px] text-[#5C4508]`}>3</span>
-                                <p className="m-0 text-[13.5px] leading-[1.55] text-[#5C4508]"><strong>The step you skipped:</strong> you matched “However” to the surprise of a 22% jump — but transitions connect logic, not feelings. Label the relationship first, then pick.</p>
+                                <p className="m-0 text-[13.5px] leading-[1.55] text-[#5C4508]"><strong>Choice A:</strong> “However” signals a contrast, but nothing here is in tension. Transitions connect logic, so label the relationship first, then pick.</p>
                             </div>
                         </div>
                         <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#EEEBE0] pt-3">
-                            <span className={`${MONO} text-[11px] font-medium text-[#8A93A8]`}>added to weak topic: Transitions</span>
-                            <Link to="/register" className="text-[13px] font-bold text-[#7C5CF0] no-underline">Drill 5 more like this →</Link>
+                            <span className={`${MONO} text-[11px] font-medium text-[#8A93A8]`}>saved to your practice history</span>
+                            <Link to="/register" className="text-[13px] font-bold text-[#7C5CF0] no-underline">Review your misses →</Link>
                         </div>
                     </div>
                 </div>
@@ -900,10 +897,10 @@ function StudyGuides() {
 /* ------------------------------------------------------------------ */
 
 const EXAM_HISTORY = [
-    {label: 'Full Module · Math', date: 'Jun 28', score: '24/27', color: 'text-[var(--sd-green-lbl)]'},
-    {label: 'Full Module · R&W', date: 'Jun 25', score: '21/27', color: 'text-[var(--sd-orange-lbl)]'},
+    {label: 'Practice test · Math', date: 'Jun 28', score: '640', color: 'text-[var(--sd-green-lbl)]'},
+    {label: 'Practice test · R&W', date: 'Jun 25', score: '610', color: 'text-[var(--sd-orange-lbl)]'},
     {label: 'Duel vs mia.k', date: 'Jun 24', score: 'L 6–8', color: 'text-[#E85D5D]'},
-    {label: 'Quick 10 · Math', date: 'Jun 24', score: '9/10', color: 'text-[var(--sd-green-lbl)]'},
+    {label: 'Daily 10 · Math', date: 'Jun 24', score: '9/10', color: 'text-[var(--sd-green-lbl)]'},
 ];
 
 function Progress() {
@@ -914,13 +911,13 @@ function Progress() {
                     <Eyebrow color="#2FBF71">EVERY MISTAKE, LOGGED</Eyebrow>
                     <H2>Know where the points are leaking.</H2>
                     <p className="m-0 mt-3.5 text-[16.5px] leading-relaxed text-[var(--sd-mut)]">
-                        See whether you are losing points from accuracy, pacing, or repeated weak topics — across every round, duel, and full module you’ve ever taken.
+                        Every practice answer, duel, tournament and practice test is kept. See your accuracy and rating for each section, and reopen the questions you missed.
                     </p>
                 </div>
 
                 <div className="mt-12 grid gap-[18px] md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr]">
                     <div className={`${panelCls} p-5`}>
-                        <span className={`${MONO} text-[11px] tracking-[0.1em] text-[var(--sd-violet-lbl)]`}>EXAM HISTORY</span>
+                        <span className={`${MONO} text-[11px] tracking-[0.1em] text-[var(--sd-violet-lbl)]`}>HISTORY</span>
                         <div className="mt-3.5 flex flex-col gap-2.5 text-[13.5px]">
                             {EXAM_HISTORY.map((e, i) => (
                                 <div key={e.label} className={`grid grid-cols-[1fr_auto_auto] gap-3 ${i < EXAM_HISTORY.length - 1 ? 'border-b border-[var(--sd-line)] pb-2.5' : ''}`}>
@@ -930,27 +927,27 @@ function Progress() {
                                 </div>
                             ))}
                         </div>
-                        <Link to="/register" className="mt-3.5 inline-block text-[13px] font-bold text-[var(--sd-violet-lbl)] no-underline">Reopen any exam →</Link>
+                        <Link to="/register" className="mt-3.5 inline-block text-[13px] font-bold text-[var(--sd-violet-lbl)] no-underline">See your history →</Link>
                     </div>
 
                     <div className={`${panelCls} p-5`}>
-                        <span className={`${MONO} text-[11px] tracking-[0.1em] text-[var(--sd-green-lbl)]`}>ACCURACY VS PACING</span>
+                        <span className={`${MONO} text-[11px] tracking-[0.1em] text-[var(--sd-green-lbl)]`}>ACCURACY BY SECTION</span>
                         <div className="mt-4">
                             <div className="mb-1 flex justify-between text-[13px]">
-                                <span className="font-semibold text-[var(--sd-body)]">Accuracy</span>
+                                <span className="font-semibold text-[var(--sd-body)]">Math · 412 answered</span>
                                 <span className={`${MONO} text-[var(--sd-green-lbl)]`}>84%</span>
                             </div>
                             <div className="h-2 rounded bg-[var(--sd-track)]"><div className="h-2 w-[84%] rounded bg-[#2FBF71]"/></div>
                         </div>
                         <div className="mt-4">
                             <div className="mb-1 flex justify-between text-[13px]">
-                                <span className="font-semibold text-[var(--sd-body)]">Pacing · avg 71s target 65s</span>
-                                <span className={`${MONO} text-[var(--sd-orange-lbl)]`}>+6s</span>
+                                <span className="font-semibold text-[var(--sd-body)]">Reading &amp; Writing · 268 answered</span>
+                                <span className={`${MONO} text-[var(--sd-orange-lbl)]`}>71%</span>
                             </div>
-                            <div className="h-2 rounded bg-[var(--sd-track)]"><div className="h-2 w-[62%] rounded bg-[#F08A3E]"/></div>
+                            <div className="h-2 rounded bg-[var(--sd-track)]"><div className="h-2 w-[71%] rounded bg-[#F08A3E]"/></div>
                         </div>
                         <p className="m-0 mt-[18px] text-[13px] leading-[1.55] text-[var(--sd-mut)]">
-                            Your misses cluster in the last 5 questions of each module — a pacing problem, not a knowledge problem.
+                            Math and Reading &amp; Writing are tracked separately, so a strong section never hides a weak one.
                         </p>
                     </div>
 
@@ -958,14 +955,14 @@ function Progress() {
                         <span className={`${MONO} text-[11px] tracking-[0.1em] text-[var(--sd-gold-lbl)]`}>RATING & RANK</span>
                         <div className="mt-3.5 flex items-baseline gap-2.5">
                             <span className="sd-display text-[40px] font-bold text-[var(--sd-text)]">1,288</span>
-                            <span className={`${MONO} text-[13px] text-[var(--sd-green-lbl)]`}>+31 this week</span>
+                            <span className={`${MONO} text-[13px] text-[var(--sd-dim)]`}>Duel Elo</span>
                         </div>
                         <div className="mt-3 flex gap-2">
                             <span className={`${MONO} rounded-md border border-[rgba(233,188,79,0.35)] bg-[rgba(233,188,79,0.12)] px-2 py-1 text-[11px] text-[var(--sd-gold-lbl)]`}>RANK #12</span>
                             <span className={`${MONO} rounded-md border border-[rgba(240,138,62,0.35)] bg-[rgba(240,138,62,0.12)] px-2 py-1 text-[11px] text-[var(--sd-orange-lbl)]`}>STREAK 6 DAYS</span>
                         </div>
                         <p className="m-0 mt-[18px] text-[13px] leading-[1.55] text-[var(--sd-mut)]">
-                            Every answered question moves your rating. Every duel moves your rank.
+                            Every first attempt at a question moves your Practice Elo. Every duel moves your Duel Elo and your rank.
                         </p>
                     </div>
                 </div>
@@ -982,8 +979,8 @@ const TRAIN_TILES = [
     {title: 'Power Sprint', sub: 'PICK A CLOCK · RACK UP ANSWERS', text: 'Set a timer and answer as many questions as you can before it hits zero.'},
     {title: 'SAT Survival', sub: 'HOW LONG CAN YOU LAST?', text: 'Keep answering until you miss. Every run is a new high score to beat.'},
     {title: 'Live Duels', sub: 'FIND A MATCH FAST', text: 'Race another SAT Duel player through the same 10-question set, with live progress and reactions.'},
-    {title: 'Full Practice Tests', sub: 'FULL TIMED MODULES', text: 'Sit a complete timed module and get a score report you can reopen anytime.'},
-    {title: '2-Minute Diagnostic', sub: 'NO SIGNUP NEEDED', text: 'Answer a few questions and get an instant estimate of where you stand.'},
+    {title: 'Full Practice Tests', sub: 'ADAPTIVE · SCORED', text: 'Sit a full adaptive test or a single section and get a score report you can reopen anytime.'},
+    {title: '2-Minute Diagnostic', sub: 'NO SIGNUP NEEDED', text: 'Answer three questions and see which skills to start with.'},
     {title: 'Coin Shop', sub: 'EARN COINS FROM PRACTICE', text: 'Every session earns coins. Spend them on pixel avatars and cosmetics.'},
 ];
 
@@ -1069,7 +1066,7 @@ function FinalCta() {
         <section className="border-t border-[var(--sd-line)] px-5 pb-[110px] pt-[72px] sm:px-10">
             <div className="mx-auto max-w-[880px] text-center">
                 <div className={`${MONO} flex flex-wrap justify-center gap-x-11 gap-y-4 border-b border-[var(--sd-line)] pb-10 text-[13px] font-medium text-[var(--sd-dim)]`}>
-                    <span><span className="text-xl font-bold text-[var(--sd-gold-lbl)]">1,800+</span><br/>SAT-style questions</span>
+                    <span><span className="text-xl font-bold text-[var(--sd-gold-lbl)]">3,500+</span><br/>SAT-style questions</span>
                     <span><span className="text-xl font-bold text-[var(--sd-green-lbl)]">400+</span><br/>students practicing</span>
                     <span><span className="text-xl font-bold text-[#7C5CF0]">$0</span><br/>to start</span>
                 </div>
@@ -1104,7 +1101,7 @@ function HomePage() {
             <Journey/>
             <Multiplayer/>
             <Tournaments/>
-            <AiExplanations/>
+            <Explanations/>
             <StudyGuides/>
             <Progress/>
             <MoreWaysToTrain/>

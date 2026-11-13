@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
-import {BookOpen, Calculator, ArrowRight} from 'lucide-react';
+import {ArrowRight, BookOpen, Calculator, CheckCircle2, XCircle} from 'lucide-react';
 import {Button, Card, PageContainer, Spinner} from '../components/ui';
 import PracticeQuestionCard from '../components/practice/PracticeQuestionCard';
 import {useAuth} from '../context/AuthContext';
@@ -9,44 +9,80 @@ import SEO, {breadcrumbJsonLd, softwareAppJsonLd} from '../components/SEO';
 
 const baseUrl = import.meta.env.VITE_API_URL;
 
-// Question types per subject; the diagnostic samples one question from each.
+// Skills per subject, grouped by College Board domain. The names are the
+// exact `question_type` values in the question bank. The diagnostic draws one
+// question from each of three domains, so three questions span the section
+// instead of landing on one corner of it.
 const SUBJECTS = {
     english: {
         label: 'Reading & Writing',
         icon: BookOpen,
-        types: ['Words in Context', 'Central Ideas and Details', 'Boundaries'],
+        domains: [
+            ['Words in Context', 'Text Structure and Purpose', 'Cross-Text Connections'],
+            ['Central Ideas and Details', 'Command of Evidence', 'Inferences'],
+            ['Boundaries', 'Form, Structure, and Sense'],
+            ['Transitions', 'Rhetorical Synthesis'],
+        ],
     },
     math: {
         label: 'Math',
         icon: Calculator,
-        types: ['Algebra', 'Problem-Solving and Data Analysis', 'Geometry and Trigonometry'],
+        domains: [
+            [
+                'Linear equations in one variable', 'Linear functions', 'Linear equations in two variables',
+                'Systems of two linear equations in two variables', 'Linear inequalities in one or two variables',
+            ],
+            [
+                'Equivalent expressions', 'Nonlinear functions',
+                'Nonlinear equations in one variable and systems of equations in two variables',
+            ],
+            [
+                'Ratios, rates, proportional relationships, and units', 'Percentages',
+                'One-variable data: distributions and measures of center and spread',
+                'Two-variable data: models and scatterplots', 'Probability and conditional probability',
+                'Inference from sample statistics and margin of error',
+                'Evaluating statistical claims: observational studies and experiments',
+            ],
+            ['Area and volume', 'Lines, angles, and triangles', 'Right triangles and trigonometry', 'Circles'],
+        ],
     },
 };
 
-async function fetchDiagnosticQuestions(subjectKey) {
-    const {types} = SUBJECTS[subjectKey];
-    const results = await Promise.all(
-        types.map((type) =>
-            axios.get(`${baseUrl}/api/filter_questions/`, {
-                params: {type, random: 'true', page_size: 1, page: 1},
-            })
-        )
-    );
-    return results
-        .map((r) => r.data.questions?.[0])
-        .filter(Boolean);
+const QUESTION_COUNT = 3;
+
+const shuffled = (list) => [...list].sort(() => Math.random() - 0.5);
+
+// One random question from the first skill in the domain that has any. The
+// `subject` param matters: the endpoint defaults to English, which is how the
+// Math diagnostic used to miss the whole Math bank.
+async function fetchFromDomain(subjectKey, skills) {
+    for (const type of shuffled(skills)) {
+        const response = await axios.get(`${baseUrl}/api/filter_questions/`, {
+            params: {subject: subjectKey, type, random: 'true', page_size: 1, page: 1},
+        });
+        const question = response.data.questions?.[0];
+        if (question) return question;
+    }
+    return null;
 }
 
-// Rough score-range estimate from 3 questions. Deliberately framed as a range;
-// three questions can only ever be a ballpark.
-function estimateRange(answers) {
-    let score = 380;
-    answers.forEach(({correct, difficulty}) => {
-        if (correct) score += 60 + 20 * (difficulty || 3);
-    });
-    const low = Math.max(200, Math.min(720, score - 60));
-    const high = Math.min(800, score + 80);
-    return [Math.round(low / 10) * 10, Math.round(high / 10) * 10];
+async function fetchDiagnosticQuestions(subjectKey) {
+    const domains = shuffled(SUBJECTS[subjectKey].domains).slice(0, QUESTION_COUNT);
+    const questions = await Promise.all(domains.map((skills) => fetchFromDomain(subjectKey, skills)));
+    // Easiest first, so the opening question is not the hardest of the three.
+    return questions.filter(Boolean).sort((a, b) => Number(a.difficulty) - Number(b.difficulty));
+}
+
+// Three questions cannot predict a section score, so the result is a plain
+// level plus the skills behind it, never a number on the 200-800 scale.
+function levelFor(correct, total) {
+    if (correct === total) {
+        return {title: 'Strong start', text: 'You handled all three. Harder questions will show where the ceiling is.'};
+    }
+    if (correct >= total - 1) {
+        return {title: 'Solid base', text: 'Most of it landed. The skill you missed is a good first target.'};
+    }
+    return {title: 'Room to grow', text: 'A few gaps showed up. Short, steady practice on these skills moves fast.'};
 }
 
 function SubjectPicker({onPick, loading}) {
@@ -121,15 +157,15 @@ function QuestionStep({question, index, total, onAnswered}) {
             submitOnSelect
             status={result || 'Blank'}
             checking={checking}
-            primaryAction={() => onAnswered(result === 'correct', question.difficulty)}
+            primaryAction={() => onAnswered(result === 'correct', question.question_type)}
             primaryActionLabel={index + 1 === total ? 'See my result' : 'Next question'}
         />
     );
 }
 
 function ResultStep({answers, subjectKey, user}) {
-    const [low, high] = estimateRange(answers);
     const correct = answers.filter((a) => a.correct).length;
+    const level = levelFor(correct, answers.length);
     const label = SUBJECTS[subjectKey].label;
 
     return (
@@ -141,15 +177,31 @@ function ResultStep({answers, subjectKey, user}) {
                 You got {correct} of {answers.length} right
             </h1>
 
-            <Card className="mx-auto mt-8 max-w-md p-8">
+            <Card className="mx-auto mt-8 max-w-md p-6 text-left sm:p-8">
                 <p className="m-0 text-sm font-semibold text-slate-500">
-                    Estimated {label} range
+                    {label} snapshot
                 </p>
-                <p className="m-0 mt-2 font-display text-5xl font-bold text-primary-600">
-                    {low}–{high}
+                <p className="m-0 mt-1 font-display text-3xl font-bold text-primary-600 sm:text-4xl">
+                    {level.title}
                 </p>
-                <p className="mt-3 text-sm text-slate-400">
-                    Based on 3 questions — a real practice test will pin this down.
+                <p className="m-0 mt-2 text-[15px] leading-6 text-slate-600">{level.text}</p>
+
+                <ul className="m-0 mt-5 list-none space-y-2.5 border-t border-slate-100 p-0 pt-5">
+                    {answers.map(({correct: gotIt, skill}, index) => (
+                        <li key={`${skill}-${index}`} className="flex items-start gap-2.5 text-[15px] leading-6 text-slate-700">
+                            {gotIt
+                                ? <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" aria-hidden="true"/>
+                                : <XCircle className="mt-0.5 size-5 shrink-0 text-rose-600" aria-hidden="true"/>}
+                            <span>
+                                <span className="font-semibold text-slate-900">{skill}</span>
+                                <span className="text-slate-500"> · {gotIt ? 'correct' : 'missed'}</span>
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+
+                <p className="m-0 mt-5 text-sm leading-5 text-slate-500">
+                    Three questions can’t predict a score. A full practice test gives you a real one.
                 </p>
             </Card>
 
@@ -209,8 +261,8 @@ function DiagnosticPage() {
         }
     };
 
-    const handleAnswered = (correct, difficulty) => {
-        const next = [...answers, {correct, difficulty}];
+    const handleAnswered = (correct, skill) => {
+        const next = [...answers, {correct, skill}];
         setAnswers(next);
         if (current + 1 < questions.length) {
             setCurrent(current + 1);
