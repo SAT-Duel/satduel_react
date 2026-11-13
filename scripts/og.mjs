@@ -24,6 +24,7 @@ const PORT = 8123;
 const VARIANTS = [
     'default', 'practice', 'math', 'english',
     'party', 'tournaments', 'studyGuide', 'diagnostic',
+    'challenge',
 ];
 
 const CHROME = [

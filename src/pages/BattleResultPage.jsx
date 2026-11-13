@@ -1,10 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {Check, Home, Minus, RotateCcw, Swords, Trophy, X} from 'lucide-react';
-import {useNavigate, useParams} from 'react-router-dom';
+import {Check, Home, Minus, RotateCcw, Share2, Swords, Trophy, X} from 'lucide-react';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import {Alert, Button, Card, PageContainer, Spinner} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import UserAvatar from '../components/UserAvatar';
 import api from '../components/api';
+import {notify} from '../utils/notify';
+import {challengeShareText, challengeUrl} from '../utils/challengeLinks';
+import {shareLink} from '../utils/shareLink';
 
 const OUTCOMES = {
     win: {
@@ -101,7 +104,37 @@ function BattleResultPage() {
     const {loading} = useAuth();
     const [results, setResults] = useState(null);
     const [error, setError] = useState('');
+    const [challengeCode, setChallengeCode] = useState(null);
+    const [challenging, setChallenging] = useState(false);
     const navigate = useNavigate();
+
+    // Turn this duel into a link: a friend plays the same ten questions later,
+    // against the score on this screen. The first tap creates the challenge;
+    // later taps just share it again.
+    const challengeFriend = async () => {
+        setChallenging(true);
+        try {
+            let code = challengeCode;
+            if (!code) {
+                const {data} = await api.post('api/challenges/create/', {room_id: roomId});
+                code = data.code;
+                setChallengeCode(code);
+            }
+            const url = challengeUrl(code);
+            const total = results.current_user.results?.length || 10;
+            const outcome = await shareLink({
+                title: 'Beat my SAT Duel score',
+                text: challengeShareText(results.current_user.score ?? 0, total),
+                url,
+            });
+            if (outcome === 'copied') notify.success('Challenge link copied. Paste it to a friend.');
+            if (outcome === 'failed') notify.info(`Share this link: ${url}`);
+        } catch (err) {
+            notify.error(err.response?.data?.error || 'Could not create the challenge link.');
+        } finally {
+            setChallenging(false);
+        }
+    };
 
     useEffect(() => {
         const fetchResults = async () => {
@@ -177,10 +210,24 @@ function BattleResultPage() {
                     <Button onClick={() => navigate('/')} variant="secondary">
                         <Home className="size-4"/> Home
                     </Button>
+                    <Button onClick={challengeFriend} variant="secondary" loading={challenging}>
+                        <Share2 className="size-4"/> Challenge a friend to these 10
+                    </Button>
                     <Button onClick={() => navigate('/match')}>
                         <RotateCcw className="size-4"/> Duel again
                     </Button>
                 </div>
+                <p className="m-0 mt-3 text-center text-sm text-slate-500">
+                    A challenge sends a friend the same 10 questions to play against your score, whenever they like.
+                    {challengeCode && (
+                        <>
+                            {' '}
+                            <Link to={`/challenge/${challengeCode}`} className="font-semibold text-primary-700 hover:text-primary-800">
+                                See who has played
+                            </Link>
+                        </>
+                    )}
+                </p>
             </PageContainer>
         </div>
     );

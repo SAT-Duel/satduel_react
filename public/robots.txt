@@ -14,7 +14,8 @@ Allow: /
 #   duplicate of the home page.
 #
 # Crawlable with a noindex share card: /party, /party/history, /tournaments,
-# /study_guides, /infinite_questions, /practice_test, /ranking, /match.
+# /study_guides, /infinite_questions, /practice_test, /ranking, /match,
+# /challenge.
 
 Disallow: /trainer
 Disallow: /questions

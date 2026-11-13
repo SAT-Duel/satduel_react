@@ -9,6 +9,7 @@
 # SPA shell, so React still reads the real URL and renders the right page. Only
 # the <head> differs, and that is exactly what the crawler came for.
 /party/*               /party/index.html         200
+/challenge/*           /challenge/index.html     200
 /tournament/*          /tournaments/index.html   200
 /tournaments/join/*    /tournaments/index.html   200
 

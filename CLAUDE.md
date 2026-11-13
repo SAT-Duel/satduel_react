@@ -62,7 +62,7 @@ keeps them from drifting apart:
 from `SATFooter` so it is reachable. The sitemap and prerendered HTML follow
 automatically.
 
-**Dynamic invite links** (`/party/:roomId`, `/tournament/:id`) can't be
+**Dynamic invite links** (`/party/:roomId`, `/tournament/:id`, `/challenge/:code`) can't be
 prerendered per-instance, so `public/_redirects` maps those prefixes onto the
 matching share card. Serving another route's HTML is safe because every
 prerendered file is the same full SPA shell — React still reads the real URL.

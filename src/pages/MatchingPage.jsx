@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {History, Swords, Trophy, Users} from 'lucide-react';
+import {Link, useNavigate} from 'react-router-dom';
+import {History, Send, Swords, Trophy, Users} from 'lucide-react';
 import {Alert, Button, Card, PageContainer} from '../components/ui';
 import {useAuth} from '../context/AuthContext';
 import api from '../components/api';
@@ -15,6 +15,7 @@ function MatchingPage() {
     const [notice, setNotice] = useState(null);
     const [profile, setProfile] = useState(null);
     const [recentMatches, setRecentMatches] = useState([]);
+    const [challenges, setChallenges] = useState({sent: [], played: []});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,6 +23,9 @@ function MatchingPage() {
         api.get('api/profile/').then((r) => setProfile(r.data)).catch(() => {});
         api.get('api/match/get_match_history/')
             .then((r) => setRecentMatches((r.data || []).slice(0, 5)))
+            .catch(() => {});
+        api.get('api/challenges/mine/')
+            .then((r) => setChallenges({sent: r.data?.sent || [], played: r.data?.played || []}))
             .catch(() => {});
     }, [loading, token]);
 
@@ -245,6 +249,85 @@ function MatchingPage() {
                                 </div>
                             </div>
                         </Card>
+
+                        {/* Challenges: only shown once there is one, so a new
+                            player's duel page is not padded with an empty panel. */}
+                        {(challenges.sent.length > 0 || challenges.played.length > 0) && (
+                            <Card className="sat-arena-card p-5 sm:p-6">
+                                <h2 className="m-0 inline-flex items-center gap-2 text-xl font-bold text-slate-900">
+                                    <Send className="size-5 text-slate-400"/> Challenges
+                                </h2>
+                                <p className="m-0 mt-1 text-sm text-slate-500">
+                                    Duels sent to friends as a link. They play the same 10 whenever they like.
+                                </p>
+                                <div className="mt-4 space-y-2">
+                                    {challenges.sent.map((entry) => (
+                                        <Link
+                                            key={`sent-${entry.code}`}
+                                            to={`/challenge/${entry.code}`}
+                                            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 no-underline transition-colors hover:border-primary-300"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="m-0 font-semibold text-slate-800">
+                                                    You sent it · your {entry.your_score}/{entry.question_count}
+                                                </p>
+                                                <p className="m-0 text-xs text-slate-500">
+                                                    {new Date(entry.created_at).toLocaleDateString()}
+                                                    {entry.expired ? ' · ended' : ''}
+                                                </p>
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-700">
+                                                {entry.best
+                                                    ? `${entry.players} played · best ${entry.best.username} ${entry.best.score}/${entry.question_count}`
+                                                    : 'No one has played yet'}
+                                            </span>
+                                        </Link>
+                                    ))}
+                                    {challenges.played.map((entry) => {
+                                        const finished = entry.status === 'finished';
+                                        const verdict = !finished
+                                            ? 'In progress'
+                                            : entry.your_score > entry.creator_score
+                                                ? 'Win'
+                                                : entry.your_score < entry.creator_score ? 'Loss' : 'Draw';
+                                        const verdictStyle = verdict === 'Win'
+                                            ? 'bg-emerald-50 text-emerald-700'
+                                            : verdict === 'Loss'
+                                                ? 'bg-rose-50 text-rose-600'
+                                                : 'bg-slate-100 text-slate-600';
+                                        return (
+                                            <Link
+                                                key={`played-${entry.code}`}
+                                                to={`/challenge/${entry.code}`}
+                                                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 no-underline transition-colors hover:border-primary-300"
+                                            >
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <UserAvatar profile={entry.creator} size="sm" className="ring-0"/>
+                                                    <div className="min-w-0">
+                                                        <p className="m-0 truncate font-semibold text-slate-800">
+                                                            From {entry.creator.username}
+                                                        </p>
+                                                        <p className="m-0 text-xs text-slate-500">
+                                                            {new Date(entry.started_at).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    {finished && (
+                                                        <span className="font-bold text-slate-700">
+                                                            {entry.your_score}–{entry.creator_score}
+                                                        </span>
+                                                    )}
+                                                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${verdictStyle}`}>
+                                                        {verdict}
+                                                    </span>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </Card>
+                        )}
 
                         {/* Recent duels */}
                         <Card className="sat-arena-card p-5 sm:p-6">

@@ -285,6 +285,17 @@ const VARIANTS = {
       </div>`,
   },
 
+  // Every /challenge/<code> link unfurls with this one card, so it cannot name
+  // the sender or their real score. The 8/10 is an example of the shape.
+  challenge: {
+    accent: A.violet, eyebrow: 'DUEL CHALLENGE &middot; SAME 10 QUESTIONS',
+    head: 'You&rsquo;ve been <em>challenged</em>.',
+    sub: 'A friend finished ten Digital SAT questions and sent you the same set. Play them and see who scored higher.',
+    stats: pill('10', 'questions') + pill('5 min', 'on the clock') + pill('Free', 'to play') + url,
+    motif: `<div class="motif-head">SCORE TO BEAT</div>
+      <div class="formula">8 / 10<small>YOUR TURN &middot; SAME SET, SAME CLOCK</small></div>`,
+  },
+
   tournaments: {
     accent: A.gold, eyebrow: 'TOURNAMENTS &middot; LIVE LEADERBOARDS',
     head: 'Run an SAT tournament for <em>your whole school</em>.',

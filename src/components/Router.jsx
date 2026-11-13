@@ -22,6 +22,7 @@ const MessagesPage = React.lazy(() => import("../pages/MessagesPage"));
 const Match = React.lazy(() => import("../pages/MatchingPage"));
 const DuelBattle = React.lazy(() => import("../pages/DuelBattlePage"));
 const BattleResultPage = React.lazy(() => import("../pages/BattleResultPage"));
+const ChallengePage = React.lazy(() => import("../pages/ChallengePage"));
 const MatchLoadingPage = React.lazy(() => import("../pages/MatchLoadingPage"));
 const HomeDashboard = React.lazy(() => import("../pages/HomeDashboard"));
 const StudyGuidePage = React.lazy(() => import("../pages/StudyGuidePage"));
@@ -157,6 +158,9 @@ const APP_ROUTES = [
 const FULLSCREEN_ROUTES = [
     {path: '/duel_battle/:roomId', el: <DuelBattle/>},
     {path: '/battle_result/:roomId', el: <BattleResultPage/>},
+    // Deliberately outside AppLayout's auth gate: a challenge link has to show
+    // who sent it and what the score to beat is before it asks for an account.
+    {path: '/challenge/:code', el: <ChallengePage/>},
     {path: '/match-loading/:roomId', el: <MatchLoadingPage/>},
     {path: '/power_sprint', el: <PowerSprintPage/>},
     {path: '/sat_survival', el: <SATSurvivalPage/>},
@@ -200,6 +204,10 @@ function Router() {
                 Pricing belongs to the public zone; send in-app upgrade links there
                 instead of maintaining one page that has to work in both. */}
             <Route path="/upgrade" element={<Navigate to="/pricing" replace/>}/>
+
+            {/* /challenge has a prerendered share card (the target of the
+                /challenge/* rewrite) but no page of its own. */}
+            <Route path="/challenge" element={<Navigate to="/match" replace/>}/>
         </Routes>
     );
 }

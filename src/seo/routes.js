@@ -189,6 +189,16 @@ export const SHARE_ROUTES = [
         image: '/og/practice.png',
     },
     {
+        // The card every /challenge/<code> link unfurls with (see _redirects).
+        // The page itself is public so the invite can explain itself, but each
+        // one is a private link between friends, so it stays noindex.
+        key: 'appChallenge',
+        path: '/challenge',
+        title: 'You have been challenged to an SAT duel',
+        description: 'A friend finished ten Digital SAT questions and sent you the same set. Play them and see who scored higher.',
+        image: '/og/challenge.png',
+    },
+    {
         // The default card is already duel-themed, so it fits without a variant.
         key: 'appMatch',
         path: '/match',
